@@ -39,13 +39,13 @@ function os-test-isPortFree {
     Param($port)
 
     $openedSockets = Get-NetTCPConnection -State Listen
-    $isUsed = $false
+    $isFree = $true
     ForEach ($socket in $openedSockets) {
         if ($socket.localPort -eq $port) {
-            $isUsed = $true
+            $isFree = $false
             break
         }
     }
 
-    return $isUsed
+    return $isFree
 }

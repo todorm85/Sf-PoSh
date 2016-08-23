@@ -2,12 +2,13 @@ Param (
         [Parameter(Mandatory=$true)][string] $ServerInstance
     )
 
+    Import-Module SQLPS -DisableNameChecking
+
 function sql-delete-database {
     Param (
             [Parameter(Mandatory=$true)][string] $dbName
         )
 
-    Import-Module SQLPS -DisableNameChecking
 
     $Databases = Invoke-SQLcmd -ServerInstance $ServerInstance -Query ("SELECT * from sys.databases where NAME = '$dbName'")
 
@@ -20,17 +21,33 @@ function sql-delete-database {
 }
 
 function sql-get-dbs {
-    
-    Import-Module SQLPS -DisableNameChecking
-
     $Databases = Invoke-SQLcmd -ServerInstance $ServerInstance -Query ("SELECT * from sys.databases")
 
     return $Databases
 }
 
+function sql-get-items {
+    Param($dbName, $tableName, $selectFilter, $whereFilter)
+
+    $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query ("
+        SELECT $selectFilter
+        FROM [${dbName}].[dbo].[${tableName}]
+        WHERE $whereFilter")
+
+    return $result
+}
+
+function sql-delete-items {
+    Param($dbName, $tableName, $whereFilter)
+
+    $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query ("
+        DELETE FROM [${dbName}].[dbo].[${tableName}]
+        WHERE $whereFilter")
+}
+
 function sql-test-isDbNameDuplicate {
     Param($dbName)
-    
+
     $existingDbs = @(sql-get-dbs)
     $exists = $false
     ForEach ($db in $existingDbs) {

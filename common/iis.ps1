@@ -175,3 +175,18 @@ function iis-create-website {
 
     return @{name = $newWebsiteName; port = $newPort; appPool = $newAppPool; appPath = $newAppPath}
 }
+
+function iis-test-isPortFree {
+    Param($port)
+
+    $usedPorts = iis-get-usedPorts
+    $isFree = $true
+    ForEach ($usedPort in $usedPorts) {
+        if ($usedPort -eq $port) {
+            $isFree = $false
+            break
+        }
+    }
+
+    return $isFree
+}

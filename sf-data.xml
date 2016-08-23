@@ -2,10 +2,9 @@
 <data>
   <sitefinities>
     <sitefinity name="AdvancedSettings" workspaceName="AdvancedSettings" solutionPath="d:\AdvancedSettings\source" dbName="AdvancedSettings" websiteName="AdvancedSettings" port="1111" appPool="DefaultAppPool" />
-    <sitefinity name="OfflineWebsiteBug" solutionPath="d:\OfflineWebsiteBug" workspaceName="OfflineWebsiteBug" dbName="OfflineWebsiteBug" websiteName="OfflineWebsiteBug" port="1113" appPool="DefaultAppPool" />
     <sitefinity name="sf91LatestHf" solutionPath="d:\sf91LatestHf" workspaceName="sf91LatestHf" dbName="sf91LatestHf" websiteName="sf91LatestHf" port="1112" appPool="DefaultAppPool" />
-    <sitefinity name="t1" solutionPath="d:\t1" workspaceName="t1" dbName="t1" websiteName="t1" port="1114" appPool="DefaultAppPool" />
-    <sitefinity name="t2" solutionPath="d:\t2" workspaceName="t2" dbName="t2" websiteName="t2" port="1115" appPool="DefaultAppPool" />
-    <sitefinity name="t3" solutionPath="d:\t3" workspaceName="t3" dbName="t3" websiteName="t3" port="1116" appPool="DefaultAppPool" />
+    <sitefinity name="AdvancedSettingsBugFixing" solutionPath="d:\AdvancedSettingsBugFixing" workspaceName="AdvancedSettingsBugFixing" dbName="AdvancedSettingsBugFixing" websiteName="" port="" appPool="" />
+    <sitefinity name="Migration" solutionPath="d:\Migration" workspaceName="Migration" dbName="Migration" websiteName="Migration" port="1114" appPool="DefaultAppPool" />
+    <sitefinity name="t1" solutionPath="d:\t1" workspaceName="t1" dbName="t1" websiteName="t1" port="1113" appPool="DefaultAppPool" />
   </sitefinities>
 </data>
