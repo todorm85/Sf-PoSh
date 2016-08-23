@@ -302,15 +302,22 @@ function sf-reset-webApp {
         Write-Warning "Erros while deleting database: $_.Exception.Message"
     }
 
+    try {
+        _sf-create-startupConfig
+    } catch {
+        throw "Erros while creating startupConfig: $_.Exception.Message"
+    }
+
     if ($start) {
         try {
             if ($configRestrictionSafe) {
                 # set readonly off
                 $oldConfigStroageSettings = sf-get-storageMode
-                sf-set-storageMode -storageMode $oldConfigStroageSettings.StorageMode -restrictionLevel "Default"
+                if ($oldConfigStroageSettings -ne $null -and $oldConfigStroageSettings -ne '') {
+                    sf-set-storageMode -storageMode $oldConfigStroageSettings.StorageMode -restrictionLevel "Default"
+                }
             }
 
-            _sf-create-startupConfig
             _sf-start-sitefinity -url "http://localhost:$($context.port)"
         } catch {
             Write-Host "`n`n"
@@ -334,7 +341,9 @@ function sf-reset-webApp {
         }  finally {
             # restore readonly state
             if ($configRestrictionSafe) {
-                sf-set-storageMode -storageMode $oldConfigStroageSettings.StorageMode -restrictionLevel $oldConfigStroageSettings.RestrictionLevel
+                if ($oldConfigStroageSettings -ne $null -and $oldConfigStroageSettings -ne '') {
+                   sf-set-storageMode -storageMode $oldConfigStroageSettings.StorageMode -restrictionLevel $oldConfigStroageSettings.RestrictionLevel
+                }
             }
         }
     }
