@@ -5,7 +5,7 @@ This tool allows easy sitefinity web apps setup and teardown on a local machine.
 
 ## Prerequisites (IMPORTANT)
 - Powershell 4.0 or later
-- Setup environment constants. Open for edit sitefinity.ps1 and in the beginning of the file there is a section 'Environment Constants'. Please, enter your environment specific paths there in order for all functionality to work correctly.
+- Setup environment constants. Open for edit sf-constants.ps1 and section 'Environment Constants'. Please, enter your environment specific paths there in order for all functionality to work correctly.
 - The folder common and all of its contents are needed for proper script operation
 
 ## Usage
