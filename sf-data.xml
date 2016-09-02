@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <data>
   <sitefinities>
-    <sitefinity name="AdvancedSettings" workspaceName="AdvancedSettings" solutionPath="d:\AdvancedSettings\source" dbName="AdvancedSettings" websiteName="AdvancedSettings" port="1111" appPool="DefaultAppPool" />
-    <sitefinity name="sf91LatestHf" solutionPath="d:\sf91LatestHf" workspaceName="sf91LatestHf" dbName="sf91LatestHf" websiteName="sf91LatestHf" port="1112" appPool="DefaultAppPool" />
-    <sitefinity name="AdvancedSettingsBugFixing" solutionPath="d:\AdvancedSettingsBugFixing" workspaceName="AdvancedSettingsBugFixing" dbName="AdvancedSettingsBugFixing" websiteName="" port="" appPool="" />
-    <sitefinity name="Migration" solutionPath="d:\Migration" workspaceName="Migration" dbName="Migration" websiteName="Migration" port="1114" appPool="DefaultAppPool" />
+    <sitefinity displayName="AdvancedSettingsFixes" name="AdvancedSettingsFixes" solutionPath="d:\AdvancedSettingsFixes" workspaceName="AdvancedSettingsFixes" dbName="AdvancedSettingsFixes" websiteName="AdvancedSettingsFixes" port="1111" appPool="DefaultAppPool" />
+    <sitefinity displayName="Sf_91" name="Sf_91" solutionPath="d:\Sf_91" workspaceName="Sf_91" dbName="Sf_91" websiteName="Sf_91" port="1112" appPool="DefaultAppPool" />
+    <sitefinity displayName="Migration" name="MoveConfigs" solutionPath="d:\workspaces\MoveConfigs" workspaceName="MoveConfigs" dbName="MoveConfigs" websiteName="MoveConfigs" port="1113" appPool="DefaultAppPool" />
+    <sitefinity displayName="MigrationMoveConfigs" name="AdvancedSettingsMoveConfigs" solutionPath="d:\workspaces\AdvancedSettingsMoveConfigs" workspaceName="AdvancedSettingsMoveConfigs" dbName="AdvancedSettingsMoveConfigs" websiteName="AdvancedSettingsMoveConfigs" port="1114" appPool="DefaultAppPool" />
   </sitefinities>
 </data>

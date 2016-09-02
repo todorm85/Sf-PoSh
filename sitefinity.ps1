@@ -37,7 +37,7 @@ function sf-create-sitefinity {
 
         Write-Host "Getting latest workspace changes..."
         tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
-           
+
         # persist current context to script data
         $newContext.dbName = $defaultContext.dbName
         $oldContext = ''
@@ -64,9 +64,9 @@ function sf-create-sitefinity {
 
         throw "Nothing created. Try again. Error: $_.Exception.Message"
     }
-    
+
     $startWebApp = $true
-    
+
     try {
         Write-Host "Building solution..."
         sf-build-solution
@@ -184,7 +184,7 @@ function sf-select-sitefinity {
 
     foreach ($sitefinity in $sitefinities) {
         $index = [array]::IndexOf($sitefinities, $sitefinity)
-        Write-Host  $index : $sitefinity.name
+        Write-Host  $index : $sitefinity.displayName
     }
 
     while ($true) {
@@ -207,7 +207,7 @@ function sf-show-sitefinityDetails {
     }
 
     $sitefinity = @(
-        [pscustomobject]@{id = 1; Parameter = "Sitefinity name"; Value = $context.name;},
+        [pscustomobject]@{id = 1; Parameter = "Sitefinity name"; Value = $context.displayName;},
         [pscustomobject]@{id = 2; Parameter = "Solution Path"; Value = $context.solutionPath;},
         [pscustomobject]@{id = 2; Parameter = "Workspace name"; Value = $context.workspaceName;},
         [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = $context.dbName;},
@@ -217,6 +217,14 @@ function sf-show-sitefinityDetails {
     )
 
     $sitefinity | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto
+}
+
+function sf-rename-sitefinity {
+    Param([Parameter(Mandatory=$true)][string]$newName)
+
+    $context = _sf-get-context
+    $context.displayName = $newName
+    _sfData-save-context $context
 }
 
 # Web app management
@@ -249,7 +257,7 @@ function sf-remove-precompiledTemplates {
         throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
     }
 }
- 
+
 function sf-reset-webApp {
     Param(
         [switch]$start,
@@ -277,7 +285,7 @@ function sf-reset-webApp {
     } catch {
         Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_.Exception.Message"
     }
-    
+
     Write-Host "Deleting database..."
     try {
         sql-delete-database -dbName $context.dbName
@@ -361,7 +369,7 @@ function sf-build-solution {
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
 
-    Write-Host "Building solution ${solutionPath}\Telerik.Sitefinity.sln" 
+    Write-Host "Building solution ${solutionPath}\Telerik.Sitefinity.sln"
     $output = & $msBUildPath /verbosity:quiet /nologo "${solutionPath}\Telerik.Sitefinity.sln" 2>&1
     if ($LastExitCode -ne 0)
     {
@@ -427,14 +435,14 @@ function sf-set-storageMode {
 
     $telerikHandlerGroup = $webConfig.SelectSingleNode('//configuration/configSections/sectionGroup[@name="telerik"]')
     if ($telerikHandlerGroup -eq $null -or $telerikHandlerGroup -eq '') {
-        
+
         $telerikHandlerGroup = $webConfig.CreateElement("sectionGroup")
         $telerikHandlerGroup.SetAttribute('name', 'telerik')
-        
+
         $telerikHandler = $webConfig.CreateElement("section")
         $telerikHandler.SetAttribute('name', 'sitefinity')
         $telerikHandler.SetAttribute('type', 'Telerik.Sitefinity.Configuration.SectionHandler, Telerik.Sitefinity')
-        $telerikHandler.SetAttribute('requirePermissions', 'false')
+        $telerikHandler.SetAttribute('requirePermission', 'false')
 
         $telerikHandlerGroup.AppendChild($telerikHandler)
         $webConfig.configuration.configSections.AppendChild($telerikHandlerGroup)
@@ -503,14 +511,14 @@ function sf-get-storageMode {
     return New-Object psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
 }
 
-function sf-load-configFromDbToFile {
+function sf-get-configContentFromDb {
     Param(
         [Parameter(Mandatory=$true)]$configName,
         $filePath="${Env:userprofile}\Desktop\dbConfig.xml"
         )
-    
+
     $context = _sf-get-context
-    $config = sql-get-items -dbName $context.dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}'"
+    $config = sql-get-items -dbName $context.dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
 
     if ($config -ne $null -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -524,13 +532,25 @@ function sf-load-configFromDbToFile {
     }
 }
 
-function sf-clear-configFromDb {
+function sf-insert-configContentInDb {
+    Param(
+        [Parameter(Mandatory=$true)]$configName,
+        $filePath="${Env:userprofile}\Desktop\dbImport.xml"
+        )
+
+    $context = _sf-get-context
+    $xmlString = Get-Content $filePath -Raw
+
+    $config = sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value $xmlString -whereFilter "path='${configName}.config'"
+}
+
+function sf-clear-configContentInDb {
     Param(
         [Parameter(Mandatory=$true)]$configName
         )
-    
+
     $context = _sf-get-context
-    sql-delete-items -dbName $context.dbName -tableName 'sf_xml_config_items' -whereFilter "path='${configName}'"
+    sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value "<${configName}/>" -whereFilter "path='${configName}.config'"
 }
 
 # DBP
@@ -566,7 +586,7 @@ function sf-reset-appPool {
     $appPool = $context.appPool
     if ($appPool -eq '') {
            throw "No app pool set."
-    }   
+    }
 
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
     if ($start) {
@@ -580,7 +600,7 @@ function sf-change-appPool {
     $websiteName = $context.websiteName
 
     if ($websiteName -eq '') {
-        throw "Website name not set."    
+        throw "Website name not set."
     }
 
     # display app pools with websites
@@ -625,6 +645,10 @@ function sf-open-appData {
     cd "${solutionPath}\SitefinityWebApp\App_Data\Sitefinity"
 }
 
+function sf-start-webTestRunner {
+    & $webTestRunner
+}
+
 #endregion
 
 #region PRIVATE
@@ -643,12 +667,12 @@ function _sf-create-startupConfig {
     $solutionPath = $context.solutionPath
 
     Write-Host "Creating StartupConfig..."
-    try { 
+    try {
         $appConfigPath = "${solutionPath}\SitefinityWebApp\App_Data\Sitefinity\Configuration"
         if (-not (Test-Path $appConfigPath)) {
             New-Item $appConfigPath -type directory > $null
         }
-        
+
         $configPath = "${appConfigPath}\StartupConfig.config"
 
         if(Test-Path -Path $configPath){
@@ -682,7 +706,7 @@ function _sf-create-startupConfig {
 
 function _sf-start-sitefinity {
     param(
-        [string]$url, 
+        [string]$url,
         [Int32]$totalWaitSeconds = 10 * 60,
         [Int32]$attempts = 1
     )
@@ -706,23 +730,23 @@ function _sf-start-sitefinity {
 
         $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
         $statusUrl = "$url/appstatus"
-        
+
         Write-Host "Attempt[$attempt] Starting Sitefinity..."
         $retryCount = 0
 
-        try 
+        try
         {
             $retryCount++
             # Send initial request to begin bootstrapping sitefinity
             $response = Invoke-WebRequest $statusUrl -TimeoutSec 1600
-            # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state        
+            # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
             if($response.StatusCode -eq 200)
             {
                 Write-Host "Sitefinity is starting..."
             }
 
             while($response.StatusCode -eq 200)
-            {    
+            {
                 Write-Host "Retry[$retryCount] Checking Sitefinity status: '$statusUrl'"
                 $retryCount++
 
@@ -752,7 +776,7 @@ function _sf-start-sitefinity {
                } catch {
                     # do nothing
                }
-               
+
                # if request to base url is 200 ok sitefinity has started
                if($response.StatusCode -eq 200)
                {
@@ -766,7 +790,7 @@ function _sf-start-sitefinity {
                }
 
             } else {
-               Write-Host "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"   
+               Write-Host "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"
                # Write-Host $_ | Format-List -Force
                # Write-Host $_.Exception | Format-List -Force
                throw $_
@@ -926,7 +950,7 @@ function _sfData-validate-context {
 function _sfData-get-currentContext {
 
     _sfData-validate-context $script:globalContext
-    return $script:globalContext    
+    return $script:globalContext
 }
 
 function _sfData-set-currentContext {
@@ -943,7 +967,7 @@ function _sfData-apply-contextConventions {
         )
 
     $name = $defaultContext.name
-    $solutionPath = "d:\${name}";
+    $solutionPath = "d:\workspaces\${name}";
     $websiteName = $name
     $workspaceName = $name
     $appPool = "DefaultAppPool"
@@ -974,6 +998,7 @@ function _sfData-get-defaultContext {
 
     # build default context object
     $defaultContext = @{
+        displayName = $name;
         name = $name;
         solutionPath = '';
         dbName = '';
@@ -1056,8 +1081,9 @@ function _sfData-save-context {
             $sitefinities = $data.SelectSingleNode('/data/sitefinities')
             $sitefinities.AppendChild($sitefinityEntry)
         }
-        
+
         $sitefinityEntry.SetAttribute("name", $context.name)
+        $sitefinityEntry.SetAttribute("displayName", $context.displayName)
         $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
         $sitefinityEntry.SetAttribute("workspaceName", $context.workspaceName)
         $sitefinityEntry.SetAttribute("dbName", $context.dbName)
