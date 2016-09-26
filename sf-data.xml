@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <data>
   <sitefinities>
-    <sitefinity displayName="AdvancedSettingsFixes" name="AdvancedSettingsFixes" solutionPath="d:\AdvancedSettingsFixes" workspaceName="AdvancedSettingsFixes" dbName="AdvancedSettingsFixes" websiteName="AdvancedSettingsFixes" port="1111" appPool="DefaultAppPool" />
-    <sitefinity displayName="Sf_91" name="Sf_91" solutionPath="d:\Sf_91" workspaceName="Sf_91" dbName="Sf_91" websiteName="Sf_91" port="1112" appPool="DefaultAppPool" />
-    <sitefinity displayName="Migration" name="MoveConfigs" solutionPath="d:\workspaces\MoveConfigs" workspaceName="MoveConfigs" dbName="MoveConfigs" websiteName="MoveConfigs" port="1113" appPool="DefaultAppPool" />
-    <sitefinity displayName="MigrationMoveConfigs" name="AdvancedSettingsMoveConfigs" solutionPath="d:\workspaces\AdvancedSettingsMoveConfigs" workspaceName="AdvancedSettingsMoveConfigs" dbName="AdvancedSettingsMoveConfigs" websiteName="AdvancedSettingsMoveConfigs" port="1114" appPool="DefaultAppPool" />
+    <sitefinity name="instance_0" displayName="ConfigElementsWithoutKeyPropertiesLostOnUpgradeToLatestCodeBase" solutionPath="d:\workspaces\instance_0" workspaceName="ConfigElementsWithoutKeyPropertiesLostOnUpgradeToLatestCodeBase" dbName="instance_0" websiteName="instance_0" port="1111" appPool="DefaultAppPool" />
+    <sitefinity name="instance_1" displayName="instance_1" solutionPath="d:\workspaces\instance_1" workspaceName="instance_1" dbName="instance_1" websiteName="instance_1" port="1112" appPool="DefaultAppPool" />
+    <sitefinity name="instance_2" displayName="instance_2" solutionPath="d:\workspaces\instance_2" workspaceName="instance_2" dbName="instance_2" websiteName="instance_2" port="1113" appPool="DefaultAppPool" />
+    <sitefinity name="instance_3" displayName="instance_3" solutionPath="d:\workspaces\instance_3" workspaceName="instance_3" dbName="instance_3" websiteName="instance_3" port="1114" appPool="DefaultAppPool" />
+    <sitefinity name="instance_4" displayName="instance_4" solutionPath="d:\workspaces\instance_4" workspaceName="instance_4" dbName="instance_4" websiteName="instance_4" port="1115" appPool="DefaultAppPool" />
   </sitefinities>
 </data>

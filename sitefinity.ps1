@@ -16,9 +16,10 @@ function sf-create-sitefinity {
         [string]$branch = $defaultBranch
         )
 
-    $defaultContext = _sfData-get-defaultContext -name $name
+    $defaultContext = _sfData-get-defaultContext $name
     try {
         $newContext = @{ name = $defaultContext.name }
+        $newContext.displayName = $defaultContext.displayName
         if (Test-Path $defaultContext.solutionPath) {
             throw "Path already exists:" + $defaultContext.solutionPath
         }
@@ -220,45 +221,24 @@ function sf-show-sitefinityDetails {
 }
 
 function sf-rename-sitefinity {
-    Param([Parameter(Mandatory=$true)][string]$newName)
+    Param([string]$newName)
 
     $context = _sf-get-context
+
+    if ([string]::IsNullOrEmpty($newName)) {
+        $newName = $context.name
+    }
+
     $context.displayName = $newName
+    & $tfPath workspace /newname:$newName $context.workspaceName /noprompt
+    $context.workspaceName = $newName
+    
     _sfData-save-context $context
 }
 
-# Web app management
+# Sitefinity web app management
 
-function sf-open-webApp {
-    $context = _sf-get-context
-    $port = $context.port
-    if ($port -eq '' -or $port -eq $null) {
-        throw "No sitefinity port set."
-    }
-
-    & $browserPath "http://localhost:${port}/Sitefinity" -noframemerging
-}
-
-function sf-add-precompiledTemplates {
-    $context = _sf-get-context
-    $solutionPath = $context.solutionPath
-
-    & $sitefinityCompiler /appdir="${solutionPath}\SitefinityWebApp" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default"
-}
-
-function sf-remove-precompiledTemplates {
-    $context = _sf-get-context
-    $solutionPath = $context.solutionPath
-
-    $dlls = Get-ChildItem -Force "${solutionPath}\SitefinityWebApp\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
-    try {
-        os-del-filesAndDirsRecursive $dlls
-    } catch {
-        throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
-    }
-}
-
-function sf-reset-webApp {
+function sf-reset-sitefinityWebApp {
     Param(
         [switch]$start,
         [switch]$configRestrictionSafe,
@@ -300,6 +280,8 @@ function sf-reset-webApp {
     }
 
     if ($start) {
+        sf-reset-webSiteApp
+        Start-Sleep -s 2
         try {
             if ($configRestrictionSafe) {
                 # set readonly off
@@ -343,6 +325,25 @@ function sf-reset-webApp {
     os-popup-notification -msg "Operation completed!"
 }
 
+function sf-add-precompiledTemplates {
+    $context = _sf-get-context
+    $solutionPath = $context.solutionPath
+
+    & $sitefinityCompiler /appdir="${solutionPath}\SitefinityWebApp" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default"
+}
+
+function sf-remove-precompiledTemplates {
+    $context = _sf-get-context
+    $solutionPath = $context.solutionPath
+
+    $dlls = Get-ChildItem -Force "${solutionPath}\SitefinityWebApp\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
+    try {
+        os-del-filesAndDirsRecursive $dlls
+    } catch {
+        throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
+    }
+}
+
 #Solution
 
 function sf-get-latest {
@@ -356,6 +357,21 @@ function sf-get-latest {
     Write-Host "Getting latest changes for path ${solutionPath}."
     tfs-get-latestChanges -branchMapPath $solutionPath
     Write-Host "Getting latest changes complete."
+}
+
+function sf-show-pendingChanges {
+    Param(
+        [switch]$detailed
+        )
+
+    if ($detailed) {
+        $format = "Detailed"
+    } else {
+        $format = "Brief"
+    }
+
+    $context = _sf-get-context
+    & tf.exe stat /workspace:$($context.workspaceName) /format:$($format)
 }
 
 function sf-open-solution {
@@ -532,6 +548,15 @@ function sf-get-configContentFromDb {
     }
 }
 
+function sf-clear-configContentInDb {
+    Param(
+        [Parameter(Mandatory=$true)]$configName
+        )
+
+    $context = _sf-get-context
+    sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value "<${configName}/>" -whereFilter "path='${configName}.config'"
+}
+
 function sf-insert-configContentInDb {
     Param(
         [Parameter(Mandatory=$true)]$configName,
@@ -542,15 +567,6 @@ function sf-insert-configContentInDb {
     $xmlString = Get-Content $filePath -Raw
 
     $config = sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value $xmlString -whereFilter "path='${configName}.config'"
-}
-
-function sf-clear-configContentInDb {
-    Param(
-        [Parameter(Mandatory=$true)]$configName
-        )
-
-    $context = _sf-get-context
-    sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value "<${configName}/>" -whereFilter "path='${configName}.config'"
 }
 
 # DBP
@@ -578,6 +594,31 @@ function sf-uninstall-dbp {
 }
 
 # IIS
+
+function sf-browse-webSite {
+    $context = _sf-get-context
+    $port = $context.port
+    if ($port -eq '' -or $port -eq $null) {
+        throw "No sitefinity port set."
+    }
+
+    & $browserPath "http://localhost:${port}/Sitefinity" -noframemerging
+}
+
+function sf-reset-webSiteApp {
+    Param([switch]$start)
+    
+    $context = _sf-get-context
+
+    $binPath = "$($context.solutionPath)\SitefinityWebApp\bin\dummy.sf"
+    New-Item -ItemType file -Path $binPath > $null
+    Remove-Item -Path $binPath > $null
+
+    if ($start) {
+        Start-Sleep -s 1
+        _sf-start-sitefinity
+    }
+}
 
 function sf-reset-appPool {
     Param([switch]$start)
@@ -638,7 +679,7 @@ function sf-clear-nugetCache {
     & "${solutionPath}\.nuget\nuget.exe" locals all -clear
 }
 
-function sf-open-appData {
+function sf-explore-appData {
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
 
@@ -646,6 +687,7 @@ function sf-open-appData {
 }
 
 function sf-start-webTestRunner {
+
     & $webTestRunner
 }
 
@@ -969,7 +1011,7 @@ function _sfData-apply-contextConventions {
     $name = $defaultContext.name
     $solutionPath = "d:\workspaces\${name}";
     $websiteName = $name
-    $workspaceName = $name
+    $workspaceName = $defaultContext.displayName
     $appPool = "DefaultAppPool"
 
     # initial port to start checking from
@@ -993,12 +1035,45 @@ function _sfData-apply-contextConventions {
 
 function _sfData-get-defaultContext {
     Param(
-        [Parameter(Mandatory=$true)][string]$name
+        [Parameter(Mandatory=$true)][string]$displayName
         )
+
+    function validateName ($name) {
+        $sitefinities = @(_sfData-get-allContexts)
+        foreach ($sitefinity in $sitefinities) {
+            if ($sitefinity.name -eq $name) {
+                return $false;
+            }
+        }    
+
+        return $true;
+    }
+
+    $sitefinities = @(_sfData-get-allContexts)
+    foreach ($sitefinity in $sitefinities) {
+        if ($sitefinity.displayName -eq $displayName) {
+            Write-Host "Sitefinity display name already used. ${displayName}"
+            $name = Read-Host -Prompt 'Enter new sitefinity name: '
+            _sfData-get-defaultContext $name
+            return
+        }
+    }
+
+    $i = 0;
+    $name = "instance_$i"
+    while($true) {
+        $isValid = validateName $name
+        if ($isValid) {
+            break;
+        }
+
+        $i++;
+        $name = "instance_$i"
+    }
 
     # build default context object
     $defaultContext = @{
-        displayName = $name;
+        displayName = $displayName;
         name = $name;
         solutionPath = '';
         dbName = '';
@@ -1019,15 +1094,7 @@ function _sfData-get-defaultContext {
         }
     }
 
-    $sitefinities = @(_sfData-get-allContexts)
-    foreach ($sitefinity in $sitefinities) {
-        if ($sitefinity.name -eq $name) {
-            Write-Host "Sitefinity name already used. ${name}"
-            $name = Read-Host -Prompt 'Enter new sitefinity name: '
-            _sfData-get-defaultContext
-            return
-        }
-    }
+    
 
     _sfData-apply-contextConventions $defaultContext
 

@@ -109,5 +109,7 @@ function tfs-get-latestChanges {
     if ($LastExitCode -ne 0)
     {
         throw "Error getting latest changes. Message: $output"
-    }   
+    } else {
+        Write-Host $output
+    }
 }

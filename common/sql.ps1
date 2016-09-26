@@ -48,6 +48,17 @@ function sql-update-items {
     return $result
 }
 
+function sql-insert-items {
+    Param($dbName, $tableName, $value, $whereFilter)
+
+    $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query "
+        UPDATE [${dbName}].[dbo].[${tableName}]
+        SET dta='${value}'
+        WHERE $whereFilter"
+
+    return $result
+}
+
 function sql-delete-items {
     Param($dbName, $tableName, $whereFilter)
 
