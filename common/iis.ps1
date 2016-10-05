@@ -12,6 +12,7 @@ function iis-show-appPoolPid {
 }
 
 function iis-get-usedPorts {
+
     Get-WebBinding | select -expand bindingInformation | %{$_.split(':')[-2]}
 }
 
@@ -174,6 +175,14 @@ function iis-create-website {
     New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol="http";bindingInformation=("*:${newPort}:")} -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool
 
     return @{name = $newWebsiteName; port = $newPort; appPool = $newAppPool; appPath = $newAppPath}
+}
+
+function iis-get-siteAppPool {
+    Param(
+        [Parameter(Mandatory=$true)][string]$websiteName
+        )
+
+    Get-ItemProperty "IIS:\Sites\${websiteName}" -Name "applicationPool"
 }
 
 function iis-test-isPortFree {

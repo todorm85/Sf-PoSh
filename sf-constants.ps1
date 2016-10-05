@@ -12,7 +12,16 @@ $scriptPath = $MyInvocation.ScriptName
 $dataPath = "${PSScriptRoot}\sf-data.xml"
 
 # Hardcoded settings
+
+# Sitefinity web app
 $defaultBranch = "$/CMS/Sitefinity 4.0/Code Base"
 $webAppUser = 'admin'
 $webAppUserPass = 'admin@2'
-$dbpAccountId = "da122e15-9199-45ae-9e06-d2847f81d1fe"
+
+# DBP module
+# testteam3test@mailinator.com
+# admin@2
+
+$dbpAccountId = "c964b751-f733-4271-905f-1de80e5bdf5f"
+$dbpPort = 4080
+$dbpEnv = "uat"

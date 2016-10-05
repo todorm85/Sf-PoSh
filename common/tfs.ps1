@@ -113,3 +113,39 @@ function tfs-get-latestChanges {
         Write-Host $output
     }
 }
+
+function tfs-undo-pendingChanges {
+    Param(
+        [Parameter(Mandatory=$true)][string]$localPath
+        )
+
+    $output = & $tfPath undo /recursive /noprompt $localPath 2>&1
+
+    if ($LastExitCode -ne 0)
+    {
+        throw "Error undoing pending changes. Message: $output"
+    } else {
+        Write-Host $output
+    }       
+}
+
+function tfs-get-workspaceName {
+    Param(
+        [string]$path
+        )
+    
+    $oldLocation = Get-Location
+    Set-Location $path
+    $wsInfo = & $tfPath workfold 2>&1
+    Set-Location $oldLocation
+
+    try {
+        $wsInfo = $wsInfo.split(':')
+        $wsInfo = $wsInfo[2].split('(')
+        $wsInfo = $wsInfo[0].trim()
+    } catch {
+        $wsInfo = ''
+    }
+
+    return $wsInfo
+}

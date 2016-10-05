@@ -2,7 +2,9 @@ Param (
         [Parameter(Mandatory=$true)][string] $ServerInstance
     )
 
-    Import-Module SQLPS -DisableNameChecking
+$oldLocation = Get-Location
+Import-Module SQLPS -DisableNameChecking
+Set-Location $oldLocation
 
 function sql-delete-database {
     Param (
