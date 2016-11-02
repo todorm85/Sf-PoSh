@@ -1,22 +1,5 @@
-# Environment Constants
-$sqlServerInstance = '.' # the name of the local sql server instance that is used to connect
-$browserPath = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
-$vsPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe"
-$msBUildPath = "C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe"
-$tfPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\tf.exe" # used for tfs workspace manipulations, installed with Visual Studio
-$sitefinityCompiler = "D:\Tools\SitefinityCompiler\SitefinityCompiler\bin\Release\Telerik.Sitefinity.Compiler.exe" # needed if you use precompiled templates functions can be found at $/CMS/Sitefinity 4.0/Tools/Telerik.WebTestRunner
-
-# Sript constants
-$scriptPath = $MyInvocation.ScriptName
-$dataPath = "${PSScriptRoot}\sf-data.xml"
-
-# Hardcoded settings
-$defaultBranch = "$/CMS/Sitefinity 4.0/OfficialReleases/DBP"
-$webAppUser = 'admin'
-$webAppUserPass = 'admin@2'
-$dbpAccountId = "da122e15-9199-45ae-9e06-d2847f81d1fe"
-
 # Usings
+. "${PSScriptRoot}\sf-constants.ps1"
 . "${PSScriptRoot}\common\iis.ps1"
 . "${PSScriptRoot}\common\sql.ps1" $sqlServerInstance
 . "${PSScriptRoot}\common\os.ps1"
@@ -29,13 +12,16 @@ Import-Module "WebAdministration"
 
 function sf-create-sitefinity {
     Param(
-        [Parameter(Mandatory=$true)][string]$name,
-        [string]$branch = $defaultBranch
+        [string]$name,
+        [string]$branch = $defaultBranch,
+        [switch]$startWebApp,
+        [switch]$buildSolution
         )
 
-    $defaultContext = _sfData-get-defaultContext -name $name
+    $defaultContext = _sfData-get-defaultContext $name
     try {
         $newContext = @{ name = $defaultContext.name }
+        $newContext.displayName = $defaultContext.displayName
         if (Test-Path $defaultContext.solutionPath) {
             throw "Path already exists:" + $defaultContext.solutionPath
         }
@@ -46,17 +32,18 @@ function sf-create-sitefinity {
 
         # create and map workspace
         Write-Host "Creating workspace..."
-        tfs-create-workspace $defaultContext.workspaceName $defaultContext.solutionPath
-        $newContext.workspaceName = $defaultContext.workspaceName;
+        $workspaceName = $defaultContext.displayName
+        tfs-create-workspace $workspaceName $defaultContext.solutionPath
 
         Write-Host "Creating workspace mappings..."
-        tfs-create-mappings -branch $branch -branchMapPath $defaultContext.solutionPath -workspaceName $defaultContext.workspaceName
+        tfs-create-mappings -branch $branch -branchMapPath $defaultContext.solutionPath -workspaceName $workspaceName
 
         Write-Host "Getting latest workspace changes..."
         tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
-           
+
         # persist current context to script data
         $newContext.dbName = $defaultContext.dbName
+        $newContext.webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
         $oldContext = ''
         $oldContext = _sfData-get-currentContext
         _sfData-set-currentContext $newContext
@@ -64,15 +51,11 @@ function sf-create-sitefinity {
     } catch {
         Write-Host "############ CLEANING UP ############"
         Set-Location $PSScriptRoot
-        if ($newContext.solutionPath -ne '') {
+        if ($newContext.solutionPath -ne '' -and $newContext.solutionPath -ne $null) {
             Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
             if ($ProcessError) {
                 Write-Host $ProcessError
             }
-        }
-
-        if ($newContext.workspaceName -ne '') {
-            tfs-delete-workspace $newCOntext.workspaceName
         }
 
         if ($oldContext -ne '') {
@@ -81,12 +64,12 @@ function sf-create-sitefinity {
 
         throw "Nothing created. Try again. Error: $_.Exception.Message"
     }
-    
-    $startWebApp = $true
-    
+
     try {
-        Write-Host "Building solution..."
-        sf-build-solution
+        if ($buildSolution) {
+            Write-Host "Building solution..."
+            sf-build-solution
+        }
     } catch {
         $startWebApp = $false
         Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
@@ -115,34 +98,127 @@ function sf-create-sitefinity {
     os-popup-notification "Operation completed!"
 }
 
-function sf-show-sitefinities {
+function sf-import-sitefinity {
+    Param(
+        [Parameter(Mandatory=$true)][string]$displayName,
+        [Parameter(Mandatory=$true)][string]$path
+        )
 
-    _sfData-get-allContexts
+    if (!(Test-Path $path)) {
+        throw "Invalid path"
+    }
+
+    $isSolution = Test-Path "$path\Telerik.Sitefinity.sln"
+    $isWebApp = Test-Path "$path\web.config"
+    if (-not $isWebApp -and -not $isSolution) {
+        throw "No web app or solution found."
+    }
+
+    if ($isWebApp -and $isSolution) {
+        throw "Cannot determine whether webapp or solution."
+    }
+
+    $defaultContext = _sfData-get-defaultContext $displayName
+    $newContext = @{ name = $defaultContext.name }
+    $newContext.displayName = $defaultContext.displayName
+    if ($isSolution) {
+        $newContext.solutionPath = $path
+        $newContext.webAppPath = $path + '\SitefinityWebApp'
+    } else {
+        $newContext.solutionPath = ''
+        $newContext.webAppPath = $path
+    }
+
+    while ($appInitialized -ne 'y' -and $appInitialized -ne 'n') {
+        $appInitialized = Read-Host -Prompt 'Is your app initialized with a database? [y/n]'
+    }
+
+    if ($appInitialized -eq 'y') {
+        $isDuplicate = $false
+        while (!$isDuplicate) {
+            $dbName = Read-Host -Prompt 'Enter database name: '
+            $isDuplicate = sql-test-isDbNameDuplicate $dbName
+        }
+
+        $newContext.dbName = $dbName
+    } else {
+        $newContext.dbName = $defaultContext.dbName
+    }
+
+    while ($hasWebSite -ne 'y' -and $hasWebSite -ne 'n') {
+        $hasWebSite = Read-Host -Prompt 'Does your app has a website created for it? [y/n]'
+    }
+
+    if ($hasWebSite -eq 'y') {
+        $isDuplicate = $false
+        while (!$isDuplicate) {
+            $websiteName = Read-Host -Prompt 'Enter website name: '
+            $isDuplicate = sql-test-isDbNameDuplicate $dbName
+            $newContext.websiteName = $websiteName
+        }
+    } else {
+        try {
+            Write-Host "Creating website..."
+            _sfData-set-currentContext $newContext
+            _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
+        } catch {
+            $startWebApp = $false
+            Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
+        }
+    }
+
+    _sfData-set-currentContext $newContext
+    _sfData-save-context $newContext
+
+    # Display message
+    os-popup-notification "Operation completed!"
+}
+
+function sf-show-sitefinities {
+    $sitefinities = @(_sfData-get-allContexts)
+    if ($sitefinities[0] -eq $null) {
+        Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
+        return
+    }
+
+    foreach ($sitefinity in $sitefinities) {
+        _sf-show-sitefinity $sitefinity
+    }
+}
+
+function sf-show-selectedSitefinity {
+    $context = _sf-get-context
+
+    _sf-show-sitefinity $context
 }
 
 function sf-delete-sitefinity {
+    Param(
+        [switch]$keepWorkspace,
+        [switch]$keepProjectFiles
+        )
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
-    $workspaceName = $context.workspaceName
+    $workspaceName = tfs-get-workspaceName $context.webAppPath
     $dbName = $context.dbName
     $websiteName = $context.websiteName
 
-    while ($true) {
-        $isConfirmed = Read-Host -Prompt "WARNING! Current operation will reset IIS. You also need to have closed the current sitefinity solution in Visual Studio and any opened browsers for complete deletion. Continue [y/n]?"
-        if ($isConfirmed -eq 'y') {
-            break;
-        }
+    # while ($true) {
+    #     $isConfirmed = Read-Host -Prompt "WARNING! Current operation will reset IIS. You also need to have closed the current sitefinity solution in Visual Studio and any opened browsers for complete deletion. Continue [y/n]?"
+    #     if ($isConfirmed -eq 'y') {
+    #         break;
+    #     }
 
-        if ($isConfirmed -eq 'n') {
-            return
-        }
-    }
+    #     if ($isConfirmed -eq 'n') {
+    #         return
+    #     }
+    # }
 
     Set-Location -Path $PSScriptRoot
 
     # Del workspace
-    Write-Host "Deleting workspace..."
-    if ($workspaceName -ne '') {
+    if ($workspaceName -ne '' -and !($keepWorkspace)) {
+        Write-Host "Deleting workspace..."
         try {
             tfs-delete-workspace $workspaceName
         } catch {
@@ -171,15 +247,22 @@ function sf-delete-sitefinity {
     }
 
     # Del dir
-    Write-Host "Resetting IIS and deleting solution directory..."
-    try {
-        iisreset.exe > $null
-        Remove-Item $solutionPath -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
-        if ($ProcessError) {
-            throw $ProcessError
+    if (!($keepProjectFiles)) {
+        Write-Host "Resetting IIS and deleting solution directory..."
+        try {
+            iisreset.exe > $null
+            if ($solutionPath -ne "") {
+                Remove-Item $solutionPath -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+            } else {
+                Remove-Item $context.webAppPath -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+            }
+
+            if ($ProcessError) {
+                throw $ProcessError
+            }
+        } catch {
+            Write-Host "Errors deleting sitefinity directory. $_.Exception.Message"
         }
-    } catch {
-        Write-Host "Errors deleting sitefinity directory ${solutionPath}. $_.Exception.Message"
     }
 
     Write-Host "Deleting data entry..."
@@ -201,7 +284,7 @@ function sf-select-sitefinity {
 
     foreach ($sitefinity in $sitefinities) {
         $index = [array]::IndexOf($sitefinities, $sitefinity)
-        Write-Host  $index : $sitefinity.name
+        Write-Host  $index : $sitefinity.displayName
     }
 
     while ($true) {
@@ -213,61 +296,31 @@ function sf-select-sitefinity {
     }
 
     _sfData-set-currentContext $selectedSitefinity
+    Set-Location $selectedSitefinity.webAppPath
 }
 
-function sf-show-sitefinityDetails {
+function sf-rename-sitefinity {
+    Param([string]$newName)
+
     $context = _sf-get-context
-    if ($context.websiteName -eq '' -or $context.websiteName -eq $null) {
-        $websiteName = ''
-    } else {
-        $websiteName = "http://localhost:$($context.port)"
+
+    if ([string]::IsNullOrEmpty($newName)) {
+        $newName = $context.name
     }
 
-    $sitefinity = @(
-        [pscustomobject]@{id = 1; Parameter = "Sitefinity name"; Value = $context.name;},
-        [pscustomobject]@{id = 2; Parameter = "Solution Path"; Value = $context.solutionPath;},
-        [pscustomobject]@{id = 2; Parameter = "Workspace name"; Value = $context.workspaceName;},
-        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = $context.dbName;},
-        [pscustomobject]@{id = 4; Parameter = "Website Name in IIS"; Value = $context.websiteName;},
-        [pscustomobject]@{id = 5; Parameter = "Website address"; Value = $websiteName;},
-        [pscustomobject]@{id = 6; Parameter = "Application Pool"; Value = $context.appPool;}
-    )
-
-    $sitefinity | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto
-}
-
-# Web app management
-
-function sf-open-webApp {
-    $context = _sf-get-context
-    $port = $context.port
-    if ($port -eq '' -or $port -eq $null) {
-        throw "No sitefinity port set."
+    $context.displayName = $newName
+    $workspaceName = tfs-get-workspaceName $context.webAppPath
+    if ($workspaceName -ne "") {
+        & $tfPath workspace /newname:$newName $workspaceName /noprompt
+        $workspaceName = $newName
     }
-
-    & $browserPath "http://localhost:${port}/Sitefinity" -noframemerging
+    
+    _sfData-save-context $context
 }
 
-function sf-add-precompiledTemplates {
-    $context = _sf-get-context
-    $solutionPath = $context.solutionPath
+# Sitefinity web app management
 
-    & $sitefinityCompiler /appdir="${solutionPath}\SitefinityWebApp" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default"
-}
-
-function sf-remove-precompiledTemplates {
-    $context = _sf-get-context
-    $solutionPath = $context.solutionPath
-
-    $dlls = Get-ChildItem -Force "${solutionPath}\SitefinityWebApp\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
-    try {
-        os-del-filesAndDirsRecursive $dlls
-    } catch {
-        throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
-    }
-}
- 
-function sf-reset-webApp {
+function sf-reset-sitefinityWebApp {
     Param(
         [switch]$start,
         [switch]$configRestrictionSafe,
@@ -294,7 +347,7 @@ function sf-reset-webApp {
     } catch {
         Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_.Exception.Message"
     }
-    
+
     Write-Host "Deleting database..."
     try {
         sql-delete-database -dbName $context.dbName
@@ -307,8 +360,11 @@ function sf-reset-webApp {
     } catch {
         throw "Erros while creating startupConfig: $_.Exception.Message"
     }
+    
+    sf-reset-webSiteApp
 
     if ($start) {
+        Start-Sleep -s 2
         try {
             if ($configRestrictionSafe) {
                 # set readonly off
@@ -318,7 +374,8 @@ function sf-reset-webApp {
                 }
             }
 
-            _sf-start-sitefinity -url "http://localhost:$($context.port)"
+            $port = @(iis-get-websitePort $context.websiteName)[0]
+            _sf-start-sitefinity -url "http://localhost:$($port)"
         } catch {
             Write-Host "`n`n"
             Write-Warning "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`n"
@@ -352,11 +409,33 @@ function sf-reset-webApp {
     os-popup-notification -msg "Operation completed!"
 }
 
+function sf-add-precompiledTemplates {
+    $context = _sf-get-context
+    $webAppPath = $context.webAppPath
+
+    & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default"
+}
+
+function sf-remove-precompiledTemplates {
+    $context = _sf-get-context
+    $webAppPath = $context.webAppPath
+
+    $dlls = Get-ChildItem -Force "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
+    try {
+        os-del-filesAndDirsRecursive $dlls
+    } catch {
+        throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
+    }
+}
+
 #Solution
 
 function sf-get-latest {
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
+    if (!(Test-Path $solutionPath)) {
+        throw "invalid or no solution path"
+    }
 
     if ($solutionPath -eq '') {
         throw "Solution path is not set."
@@ -367,9 +446,37 @@ function sf-get-latest {
     Write-Host "Getting latest changes complete."
 }
 
+function sf-undo-pendingChanges {
+    $context = _sf-get-context
+    if (!(Test-Path $context.solutionPath)) {
+        throw "invalid or no solution path"
+    }
+
+    tfs-undo-pendingChanges $context.solutionPath
+}
+
+function sf-show-pendingChanges {
+    Param(
+        [switch]$detailed
+        )
+
+    if ($detailed) {
+        $format = "Detailed"
+    } else {
+        $format = "Brief"
+    }
+
+    $context = _sf-get-context
+    $workspaceName = tfs-get-workspaceName $context.webAppPath
+    & tf.exe stat /workspace:$workspaceName /format:$($format)
+}
+
 function sf-open-solution {
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
+    if ($solutionPath -eq '') {
+        throw "invalid or no solution path"
+    }
 
     & $vsPath "${solutionPath}\telerik.sitefinity.sln"
 }
@@ -377,8 +484,11 @@ function sf-open-solution {
 function sf-build-solution {
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
+    if (!(Test-Path $solutionPath)) {
+        throw "invalid or no solution path"
+    }
 
-    Write-Host "Building solution ${solutionPath}\Telerik.Sitefinity.sln" 
+    Write-Host "Building solution ${solutionPath}\Telerik.Sitefinity.sln"
     $output = & $msBUildPath /verbosity:quiet /nologo "${solutionPath}\Telerik.Sitefinity.sln" 2>&1
     if ($LastExitCode -ne 0)
     {
@@ -406,7 +516,6 @@ function sf-set-storageMode {
         )
 
     $context = _sf-get-context
-    $solutionPath = $context.solutionPath
 
     if ($storageMode -eq '') {
         do {
@@ -435,7 +544,7 @@ function sf-set-storageMode {
         } while ($repeat)
     }
 
-    $webConfigPath = $solutionPath + '\SitefinityWebApp\web.config'
+    $webConfigPath = $context.webAppPath + '\web.config'
     # set web.config readonly off
     attrib -r $webConfigPath
 
@@ -444,14 +553,14 @@ function sf-set-storageMode {
 
     $telerikHandlerGroup = $webConfig.SelectSingleNode('//configuration/configSections/sectionGroup[@name="telerik"]')
     if ($telerikHandlerGroup -eq $null -or $telerikHandlerGroup -eq '') {
-        
+
         $telerikHandlerGroup = $webConfig.CreateElement("sectionGroup")
         $telerikHandlerGroup.SetAttribute('name', 'telerik')
-        
+
         $telerikHandler = $webConfig.CreateElement("section")
         $telerikHandler.SetAttribute('name', 'sitefinity')
         $telerikHandler.SetAttribute('type', 'Telerik.Sitefinity.Configuration.SectionHandler, Telerik.Sitefinity')
-        $telerikHandler.SetAttribute('requirePermissions', 'false')
+        $telerikHandler.SetAttribute('requirePermission', 'false')
 
         $telerikHandlerGroup.AppendChild($telerikHandler)
         $webConfig.configuration.configSections.AppendChild($telerikHandlerGroup)
@@ -489,10 +598,9 @@ function sf-set-storageMode {
 
 function sf-get-storageMode {
     $context = _sf-get-context
-    $solutionPath = $context.solutionPath
 
     # set web.config readonly off
-    $webConfigPath = $solutionPath + '\SitefinityWebApp\web.config'
+    $webConfigPath = $context.webAppPath + '\web.config'
     attrib -r $webConfigPath
 
     $webConfig = New-Object XML
@@ -520,14 +628,14 @@ function sf-get-storageMode {
     return New-Object psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
 }
 
-function sf-load-configFromDbToFile {
+function sf-get-configContentFromDb {
     Param(
         [Parameter(Mandatory=$true)]$configName,
         $filePath="${Env:userprofile}\Desktop\dbConfig.xml"
         )
-    
+
     $context = _sf-get-context
-    $config = sql-get-items -dbName $context.dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}'"
+    $config = sql-get-items -dbName $context.dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
 
     if ($config -ne $null -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -541,49 +649,92 @@ function sf-load-configFromDbToFile {
     }
 }
 
-function sf-clear-configFromDb {
+function sf-clear-configContentInDb {
     Param(
         [Parameter(Mandatory=$true)]$configName
         )
-    
+
     $context = _sf-get-context
-    sql-delete-items -dbName $context.dbName -tableName 'sf_xml_config_items' -whereFilter "path='${configName}'"
+    sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value "<${configName}/>" -whereFilter "path='${configName}.config'"
+}
+
+function sf-insert-configContentInDb {
+    Param(
+        [Parameter(Mandatory=$true)]$configName,
+        $filePath="${Env:userprofile}\Desktop\dbImport.xml"
+        )
+
+    $context = _sf-get-context
+    $xmlString = Get-Content $filePath -Raw
+
+    $config = sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value $xmlString -whereFilter "path='${configName}.config'"
 }
 
 # DBP
 
 function sf-install-dbp {
-    Param (
-        [string]$accountId = $dbpAccountId
-        )
 
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
+    if (!(Test-Path $solutionPath)) {
+        throw "invalid or no solution path"
+    }
 
-    & "${solutionPath}\Builds\DBPModuleSetup\dbp.ps1" -organizationAccountId $accountId -port $port
+    & "${solutionPath}\Builds\DBPModuleSetup\dbp.ps1" -organizationAccountId $dbpAccountId -port $dbpPort -environment $dbpEnv
 }
 
 function sf-uninstall-dbp {
-    Param (
-        [string]$accountId = $dbpAccountId
-        )
 
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
+    if (!(Test-Path $solutionPath)) {
+        throw "invalid or no solution path"
+    }
 
-    & "${solutionPath}\Builds\DBPModuleSetup\dbp.ps1" -organizationAccountId $accountId -port $port -rollback $true
+    & "${solutionPath}\Builds\DBPModuleSetup\dbp.ps1"  -organizationAccountId $dbpAccountId -port $dbpPort -environment $dbpEnv -rollback $true
 }
 
 # IIS
+
+function sf-browse-webSite {
+    Param([switch]$newBrowser)
+
+    $context = _sf-get-context
+    $port = @(iis-get-websitePort $context.websiteName)[0]
+    if ($port -eq '' -or $port -eq $null) {
+        throw "No sitefinity port set."
+    }
+
+    if ($newBrowser) {
+        & start $browserPath
+    }
+
+    & $browserPath "http://localhost:${port}/Sitefinity" -noframemerging
+}
+
+function sf-reset-webSiteApp {
+    Param([switch]$start)
+
+    $context = _sf-get-context
+
+    $binPath = "$($context.webAppPath)\bin\dummy.sf"
+    New-Item -ItemType file -Path $binPath > $null
+    Remove-Item -Path $binPath > $null
+
+    if ($start) {
+        Start-Sleep -s 1
+        _sf-start-sitefinity
+    }
+}
 
 function sf-reset-appPool {
     Param([switch]$start)
 
     $context = _sf-get-context
-    $appPool = $context.appPool
+    $appPool = @(iis-get-siteAppPool $context.websiteName)
     if ($appPool -eq '') {
            throw "No app pool set."
-    }   
+    }
 
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
     if ($start) {
@@ -597,7 +748,7 @@ function sf-change-appPool {
     $websiteName = $context.websiteName
 
     if ($websiteName -eq '') {
-        throw "Website name not set."    
+        throw "Website name not set."
     }
 
     # display app pools with websites
@@ -623,23 +774,133 @@ function sf-change-appPool {
     } catch {
         throw "Could not set website pools"
     }
+}
 
-    $context.appPool = $selectedPool.name
-    _sfData-save-context $context
+function sf-add-sitePort {
+    Param(
+        [Parameter(Mandatory=$true)][string]$port
+        )
+
+    while(!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
+        $port = Read-Host -Prompt 'Port used. Enter new: '
+    }
+
+    $context = _sf-get-context
+    $websiteName = $context.websiteName
+
+    New-WebBinding -Name $websiteName -port $port
+}
+
+function sf-remove-sitePort {
+    Param(
+        [Parameter(Mandatory=$true)][string]$port
+        )
+
+    $context = _sf-get-context
+    $websiteName = $context.websiteName
+
+    Remove-WebBinding -Name $websiteName -port $port
 }
 
 # Misc
 
 function sf-clear-nugetCache {
+    $context = _sf-get-context
+    if (!(Test-Path $context.solutionPath)) {
+        throw "invalid or no solution path"
+    }
 
-    & "${solutionPath}\.nuget\nuget.exe" locals all -clear
+    & "$($context.solutionPath)\.nuget\nuget.exe" locals all -clear
 }
 
-function sf-open-appData {
+function sf-explore-appData {
     $context = _sf-get-context
-    $solutionPath = $context.solutionPath
+    $webAppPath = $context.webAppPath
 
-    cd "${solutionPath}\SitefinityWebApp\App_Data\Sitefinity"
+    cd "${webAppPath}\App_Data\Sitefinity"
+}
+
+function sf-start-webTestRunner {
+
+    & $webTestRunner
+}
+
+function sf-copy-decModule {
+    Param(
+        [switch]$build,
+        [switch]$revert)
+
+    $context = _sf-get-context
+    $decDllsPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\bin\Debug"
+    $decProjectPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\Telerik.Sitefinity.DataIntelligenceConnector.csproj"
+    
+    if ($build) {
+        $output = & $msBUildPath /verbosity:quiet /nologo $decProjectPath 2>&1
+        if ($LastExitCode -ne 0)
+        {
+            throw "$output"
+        }
+    }
+    
+    Copy-Item "${decDllsPath}\Telerik.Sitefinity.DataIntelligenceConnector.dll" "$($context.webAppPath)\bin"
+    Copy-Item "${decDllsPath}\Telerik.Sitefinity.DataIntelligenceConnector.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "${decDllsPath}\Telerik.DigitalExperienceCloud.Client.dll" "$($context.webAppPath)\bin"
+    Copy-Item "${decDllsPath}\Telerik.DigitalExperienceCloud.Client.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.WebTestRunner.Server.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.WebTestRunner.Server.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.TestArrangementService.Core.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.TestArrangementService.Core.pdb" "$($context.webAppPath)\bin"
+    
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\WebDriver.dll" "$($context.webAppPath)\bin"
+    
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Gallio.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Gallio40.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\MbUnit.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\MbUnit40.dll" "$($context.webAppPath)\bin"
+
+    if ($revert) {
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.pdb"
+        
+        Remove-Item "$($context.webAppPath)\bin\Telerik.DigitalExperienceCloud.Client.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.DigitalExperienceCloud.Client.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.WebTestRunner.Server.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.WebTestRunner.Server.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.TestArrangementService.Core.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.TestArrangementService.Core.pdb"
+        
+        Remove-Item "$($context.webAppPath)\bin\WebDriver.dll" 
+        
+        Remove-Item "$($context.webAppPath)\bin\Gallio.dll" 
+        Remove-Item "$($context.webAppPath)\bin\Gallio40.dll" 
+        Remove-Item "$($context.webAppPath)\bin\MbUnit.dll" 
+        Remove-Item "$($context.webAppPath)\bin\MbUnit40.dll" 
+    }
+
+    os-popup-notification "Operation completed!"
 }
 
 #endregion
@@ -648,7 +909,7 @@ function sf-open-appData {
 
 function _sf-delete-startupConfig {
     $context = _sf-get-context
-    $configPath = "$($context.solutionPath)\SitefinityWebApp\App_Data\Sitefinity\Configuration\StartupConfig.config"
+    $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
     if ($ProcessError) {
         throw $ProcessError
@@ -657,15 +918,15 @@ function _sf-delete-startupConfig {
 
 function _sf-create-startupConfig {
     $context = _sf-get-context
-    $solutionPath = $context.solutionPath
-
+    $webAppPath = $context.webAppPath
+    
     Write-Host "Creating StartupConfig..."
-    try { 
-        $appConfigPath = "${solutionPath}\SitefinityWebApp\App_Data\Sitefinity\Configuration"
+    try {
+        $appConfigPath = "${webAppPath}\App_Data\Sitefinity\Configuration"
         if (-not (Test-Path $appConfigPath)) {
             New-Item $appConfigPath -type directory > $null
         }
-        
+
         $configPath = "${appConfigPath}\StartupConfig.config"
 
         if(Test-Path -Path $configPath){
@@ -699,16 +960,17 @@ function _sf-create-startupConfig {
 
 function _sf-start-sitefinity {
     param(
-        [string]$url, 
+        [string]$url,
         [Int32]$totalWaitSeconds = 10 * 60,
         [Int32]$attempts = 1
     )
 
     $context = _sf-get-context
-    if ($context.port -eq '' -or $context.port -eq $null) {
+    $port = @(iis-get-websitePort $context.websiteName)[0]
+    if ($port -eq '' -or $port -eq $null) {
         throw "No port defined for selected sitefinity."
     } else {
-        $url = "http://localhost:$($context.port)"
+        $url = "http://localhost:$($port)"
     }
 
     $errorMsg = "Sitefinity initialization failed!"
@@ -723,23 +985,23 @@ function _sf-start-sitefinity {
 
         $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
         $statusUrl = "$url/appstatus"
-        
+
         Write-Host "Attempt[$attempt] Starting Sitefinity..."
         $retryCount = 0
 
-        try 
+        try
         {
             $retryCount++
             # Send initial request to begin bootstrapping sitefinity
             $response = Invoke-WebRequest $statusUrl -TimeoutSec 1600
-            # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state        
+            # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
             if($response.StatusCode -eq 200)
             {
                 Write-Host "Sitefinity is starting..."
             }
 
             while($response.StatusCode -eq 200)
-            {    
+            {
                 Write-Host "Retry[$retryCount] Checking Sitefinity status: '$statusUrl'"
                 $retryCount++
 
@@ -769,7 +1031,7 @@ function _sf-start-sitefinity {
                } catch {
                     # do nothing
                }
-               
+
                # if request to base url is 200 ok sitefinity has started
                if($response.StatusCode -eq 200)
                {
@@ -783,7 +1045,7 @@ function _sf-start-sitefinity {
                }
 
             } else {
-               Write-Host "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"   
+               Write-Host "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"
                # Write-Host $_ | Format-List -Force
                # Write-Host $_.Exception | Format-List -Force
                throw $_
@@ -799,6 +1061,10 @@ function _sf-clean-solution {
     Write-Host "Cleaning solution..."
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
+    if (!(Test-Path $solutionPath)) {
+        throw "invalid or no solution path"
+    }
+
     $errorMessage = ''
     #delete all bin, obj and packages
     Write-Host "Deleting bins and objs..."
@@ -829,10 +1095,10 @@ function _sf-clean-solution {
 function _sf-delete-appDataFiles {
     Write-Host "Deleting sitefinity configs, logs, temps..."
     $context = _sf-get-context
-    $solutionPath = $context.solutionPath
+    $webAppPath = $context.webAppPath
     $errorMessage = ''
-    if (Test-Path "${solutionPath}\SitefinityWebApp\App_Data\Sitefinity") {
-        $dirs = Get-ChildItem "${solutionPath}\SitefinityWebApp\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
+    if (Test-Path "${webAppPath}\App_Data\Sitefinity") {
+        $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
         try {
             os-del-filesAndDirsRecursive $dirs
         } catch {
@@ -840,8 +1106,8 @@ function _sf-delete-appDataFiles {
         }
     }
 
-    if (Test-Path "${solutionPath}\SitefinityWebApp\App_Data\Telerik") {
-        $files = Get-ChildItem "${solutionPath}\SitefinityWebApp\App_Data\Telerik" | Where-Object { ($_.PSIsContainer -eq $false) -and ($_.Name -like "sso.config") }
+    if (Test-Path "${webAppPath}\App_Data\Telerik") {
+        $files = Get-ChildItem "${webAppPath}\App_Data\Telerik" | Where-Object { ($_.PSIsContainer -eq $false) -and ($_.Name -like "sso.config") }
         try {
             os-del-filesAndDirsRecursive $files
         } catch {
@@ -873,24 +1139,19 @@ function _sf-create-website {
         )
 
     $context = _sf-get-context
-    $solutionPath = $context.solutionPath
     $websiteName = $context.websiteName
 
     if ($context.websiteName -ne '' -and $context.websiteName -ne $null) {
         throw 'Current context already has a website assigned!'
     }
 
-    $newAppPath = "${solutionPath}\SitefinityWebApp"
+    $newAppPath = $context.webAppPath
     try {
         $site = iis-create-website -newWebsiteName $newWebsiteName -newPort $newPort -newAppPath $newAppPath -newAppPool $newAppPool
         $context.websiteName = $site.name
-        $context.port = $site.port
-        $context.appPool = $site.appPool
         _sfData-save-context $context
     } catch {
         $context.websiteName = ''
-        $context.port = ''
-        $context.appPool = ''
         throw "Error creating site: $_.Exception.Message"
     }
 }
@@ -903,21 +1164,40 @@ function _sf-delete-website {
     }
 
     $oldWebsiteName = $context.websiteName
-    $oldPort = $context.port
-    $oldAppPool = $context.appPool
     $context.websiteName = ''
-    $context.port = ''
-    $context.appPool = ''
     try {
         _sfData-save-context $context
         Remove-WebSite -Name $websiteName
     } catch {
         $context.websiteName = $oldWebsiteName
-        $context.port = $oldPort
-        $context.appPool = $oldAppPool
         _sfData-save-context $context
         throw "Error: $_.Exception.Message"
     }
+}
+
+function _sf-show-sitefinity {
+    Param(
+        [Parameter(Mandatory=$true)]$context
+        )
+
+    $ports = @(iis-get-websitePort $context.websiteName)
+    $appPool = @(iis-get-siteAppPool $context.websiteName)
+    $workspaceName = tfs-get-workspaceName $context.webAppPath
+    $mapping = tfs-get-mappings $context.webAppPath
+
+    $sitefinity = @(
+        [pscustomobject]@{id = 1; Parameter = "Sitefinity name"; Value = $context.displayName;},
+        [pscustomobject]@{id = 2; Parameter = "Solution path"; Value = $context.solutionPath;},
+        [pscustomobject]@{id = 3; Parameter = "Web app path"; Value = $context.webAppPath;},
+        [pscustomobject]@{id = 4; Parameter = "Workspace name"; Value = $workspaceName;},
+        [pscustomobject]@{id = 5; Parameter = "Mapping"; Value = $mapping;},
+        [pscustomobject]@{id = 6; Parameter = "Database Name"; Value = $context.dbName;},
+        [pscustomobject]@{id = 7; Parameter = "Website Name in IIS"; Value = $context.websiteName;},
+        [pscustomobject]@{id = 8; Parameter = "Ports"; Value = $ports;},
+        [pscustomobject]@{id = 9; Parameter = "Application Pool Name"; Value = $appPool;}
+    )
+
+    $sitefinity | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto
 }
 
 #endregion
@@ -934,8 +1214,14 @@ function _sfData-validate-context {
             throw "Invalid sitefinity context. No sitefinity name."
         }
 
-        if (-not (Test-Path $context.solutionPath)) {
-            throw "Invalid sitefinity context. No solution path or it does not exist."
+        if ($context.solutionPath -ne '') {
+            if (-not (Test-Path $context.solutionPath)) {
+                throw "Invalid sitefinity context. Solution path does not exist."
+            }
+        }
+        
+        if (-not(Test-Path $context.webAppPath)) {
+            throw "Invalid sitefinity context. No web app path or it does not exist."
         }
     }
 }
@@ -943,7 +1229,7 @@ function _sfData-validate-context {
 function _sfData-get-currentContext {
 
     _sfData-validate-context $script:globalContext
-    return $script:globalContext    
+    return $script:globalContext
 }
 
 function _sfData-set-currentContext {
@@ -960,9 +1246,9 @@ function _sfData-apply-contextConventions {
         )
 
     $name = $defaultContext.name
-    $solutionPath = "d:\${name}";
+    $solutionPath = "d:\sitefinities\${name}";
+    $webAppPath = "d:\sitefinities\${name}\SitefinityWebApp";
     $websiteName = $name
-    $workspaceName = $name
     $appPool = "DefaultAppPool"
 
     # initial port to start checking from
@@ -972,30 +1258,84 @@ function _sfData-apply-contextConventions {
     }
 
     $dbName = $name
+    $i = 0
     while ((sql-test-isDbNameDuplicate $dbName)) {
-        $dbName = Read-Host -Prompt "Database $($dbName) exists. Enter database name: "
+        $dbName = $name + '_' + $i
+        $i++
     }
 
     $defaultContext.solutionPath = $solutionPath
+    $defaultContext.webAppPath = $webAppPath
     $defaultContext.dbName = $dbName
     $defaultContext.websiteName = $websiteName
-    $defaultContext.workspaceName = $workspaceName
     $defaultContext.appPool = $appPool
     $defaultContext.port = $port
 }
 
 function _sfData-get-defaultContext {
     Param(
-        [Parameter(Mandatory=$true)][string]$name
+        [string]$displayName
         )
 
+    function validateName ($name) {
+        $sitefinities = @(_sfData-get-allContexts)
+        foreach ($sitefinity in $sitefinities) {
+            if ($sitefinity.name -eq $name) {
+                return $false;
+            }
+        }    
+
+        return $true;
+    }
+
+    function validateDisplayName ($name) {
+        $sitefinities = @(_sfData-get-allContexts)
+        foreach ($sitefinity in $sitefinities) {
+            if ($sitefinity.displayName -eq $name) {
+                return $false;
+            }
+        }    
+
+        return $true;
+    }
+
+    # if (-not([string]::IsNullOrEmpty($displayName))) {
+    #     $sitefinities = @(_sfData-get-allContexts)
+    #     foreach ($sitefinity in $sitefinities) {
+    #         if ($sitefinity.displayName -eq $displayName) {
+    #             Write-Host "Sitefinity display name already used. ${displayName}"
+    #             $displayName = Read-Host -Prompt 'Enter new sitefinity name: '
+    #             _sfData-get-defaultContext $displayName
+    #             return
+    #         }
+    #     }
+    # } else {
+    #     $displayName = "sitefinity"
+    # }
+
+    # set valid display name
+    $i = 0;
+    while($true) {
+        $isValid = (validateDisplayName $displayName) -and (validateName $displayName)
+        if ($isValid) {
+            break;
+        }
+
+        # $i++;
+        # $displayName = "${displayName}_${i}"
+        $displayName = Read-Host -Prompt "Display name $displayName used. Enter new display name: "
+    }
+
+    $name = $displayName
+    
     # build default context object
     $defaultContext = @{
+        displayName = $displayName;
         name = $name;
         solutionPath = '';
+        webAppPath = '';
         dbName = '';
         websiteName = '';
-        workspaceName = '';
         port = '';
         appPool = '';
     }
@@ -1008,16 +1348,6 @@ function _sfData-get-defaultContext {
         } else {
             $defaultContext.name = $name
             break
-        }
-    }
-
-    $sitefinities = @(_sfData-get-allContexts)
-    foreach ($sitefinity in $sitefinities) {
-        if ($sitefinity.name -eq $name) {
-            Write-Host "Sitefinity name already used. ${name}"
-            $name = Read-Host -Prompt 'Enter new sitefinity name: '
-            _sfData-get-defaultContext
-            return
         }
     }
 
@@ -1073,14 +1403,15 @@ function _sfData-save-context {
             $sitefinities = $data.SelectSingleNode('/data/sitefinities')
             $sitefinities.AppendChild($sitefinityEntry)
         }
-        
+
         $sitefinityEntry.SetAttribute("name", $context.name)
+        $sitefinityEntry.SetAttribute("displayName", $context.displayName)
         $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
-        $sitefinityEntry.SetAttribute("workspaceName", $context.workspaceName)
+        $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
         $sitefinityEntry.SetAttribute("dbName", $context.dbName)
         $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
-        $sitefinityEntry.SetAttribute("port", $context.port)
-        $sitefinityEntry.SetAttribute("appPool", $context.appPool)
+        # $sitefinityEntry.SetAttribute("port", $context.port)
+        # $sitefinityEntry.SetAttribute("appPool", $context.appPool)
 
         $data.Save($dataPath) > $null
     } catch {

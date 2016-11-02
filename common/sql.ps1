@@ -2,7 +2,9 @@ Param (
         [Parameter(Mandatory=$true)][string] $ServerInstance
     )
 
-    Import-Module SQLPS -DisableNameChecking
+$oldLocation = Get-Location
+Import-Module SQLPS -DisableNameChecking
+Set-Location $oldLocation
 
 function sql-delete-database {
     Param (
@@ -33,6 +35,28 @@ function sql-get-items {
         SELECT $selectFilter
         FROM [${dbName}].[dbo].[${tableName}]
         WHERE $whereFilter")
+
+    return $result
+}
+
+function sql-update-items {
+    Param($dbName, $tableName, $value, $whereFilter)
+
+    $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query "
+        UPDATE [${dbName}].[dbo].[${tableName}]
+        SET dta='${value}'
+        WHERE $whereFilter"
+
+    return $result
+}
+
+function sql-insert-items {
+    Param($dbName, $tableName, $value, $whereFilter)
+
+    $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query "
+        UPDATE [${dbName}].[dbo].[${tableName}]
+        SET dta='${value}'
+        WHERE $whereFilter"
 
     return $result
 }
