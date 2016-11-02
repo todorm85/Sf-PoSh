@@ -149,3 +149,22 @@ function tfs-get-workspaceName {
 
     return $wsInfo
 }
+
+function tfs-get-mappings {
+    Param(
+        [string]$path
+        )
+    
+    $oldLocation = Get-Location
+    Set-Location $path
+    $wsInfo = & $tfPath workfold 2>&1
+    Set-Location $oldLocation
+
+    try {
+        $res = $wsInfo[3].split(':')[0]
+    } catch {
+        $res = ''
+    }
+
+    return $res
+}
