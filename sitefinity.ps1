@@ -6,6 +6,135 @@
 . "${PSScriptRoot}\common\tfs.ps1" $tfPath
 Import-Module "WebAdministration"
 
+# region CUSTOM FUNCTIONS
+
+function sf-copy-httpClientCore {
+
+    $httpClientCoreBinPath = "D:\Tools\HttpClientCore\bin\Debug"
+
+    $webTestRunnerBinPath = "D:\Tools\Telerik.WebTestRunner\Telerik.WebTestRunner.Client\bin\Debug"
+    $webTestRunnerPackagesPath = "D:\Tools\Telerik.WebTestRunner\packages\Telerik.Sitefinity.HttpClientCore.2.0.0.0\lib\net40"
+
+    $filesToCopy = @("Telerik.Sitefinity.HttpClientCore.dll", "Telerik.Sitefinity.HttpClientCore.pdb")
+
+    ForEach ($fileName in $filesToCopy) {
+        $sourceFilePath = "${httpClientCoreBinPath}\${fileName}"
+        Copy-Item $sourceFilePath $webTestRunnerBinPath -force
+        Copy-Item $sourceFilePath $webTestRunnerPackagesPath -force
+    }
+}
+
+function sf-clear-nugetCache {
+    $context = _sf-get-context
+    if (!(Test-Path $context.solutionPath)) {
+        throw "invalid or no solution path"
+    }
+
+    & "$($context.solutionPath)\.nuget\nuget.exe" locals all -clear
+}
+
+function sf-explore-appData {
+    $context = _sf-get-context
+    $webAppPath = $context.webAppPath
+
+    cd "${webAppPath}\App_Data\Sitefinity"
+}
+
+function sf-start-webTestRunner {
+
+    & $webTestRunner
+}
+
+function sf-copy-decModule {
+    Param(
+        [switch]$build,
+        [switch]$revert)
+
+    $context = _sf-get-context
+    $decDllsPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\bin\Debug"
+    $decProjectPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\Telerik.Sitefinity.DataIntelligenceConnector.csproj"
+    
+    if ($build) {
+        $output = & $msBUildPath /verbosity:quiet /nologo $decProjectPath 2>&1
+        if ($LastExitCode -ne 0)
+        {
+            throw "$output"
+        }
+    }
+    
+    Copy-Item "${decDllsPath}\Telerik.Sitefinity.DataIntelligenceConnector.dll" "$($context.webAppPath)\bin"
+    Copy-Item "${decDllsPath}\Telerik.Sitefinity.DataIntelligenceConnector.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "${decDllsPath}\Telerik.DigitalExperienceCloud.Client.dll" "$($context.webAppPath)\bin"
+    Copy-Item "${decDllsPath}\Telerik.DigitalExperienceCloud.Client.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.WebTestRunner.Server.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.WebTestRunner.Server.pdb" "$($context.webAppPath)\bin"
+
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.TestArrangementService.Core.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.TestArrangementService.Core.pdb" "$($context.webAppPath)\bin"
+    
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\WebDriver.dll" "$($context.webAppPath)\bin"
+    
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Gallio.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Gallio40.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\MbUnit.dll" "$($context.webAppPath)\bin"
+    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\MbUnit40.dll" "$($context.webAppPath)\bin"
+
+    if ($revert) {
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.pdb"
+        
+        Remove-Item "$($context.webAppPath)\bin\Telerik.DigitalExperienceCloud.Client.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.DigitalExperienceCloud.Client.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.WebTestRunner.Server.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.WebTestRunner.Server.pdb"
+
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.TestArrangementService.Core.dll"
+        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.TestArrangementService.Core.pdb"
+        
+        Remove-Item "$($context.webAppPath)\bin\WebDriver.dll" 
+        
+        Remove-Item "$($context.webAppPath)\bin\Gallio.dll" 
+        Remove-Item "$($context.webAppPath)\bin\Gallio40.dll" 
+        Remove-Item "$($context.webAppPath)\bin\MbUnit.dll" 
+        Remove-Item "$($context.webAppPath)\bin\MbUnit40.dll" 
+    }
+
+    os-popup-notification "Operation completed!"
+}
+
+function sf-open-dec {
+
+    & "D:\DEC-Connector\data-intell-sitefinity-connector\DataIntellConnector.sln"
+}
+
+function sf-edit-script {
+
+    & "C:\Program Files\Sublime Text 3\sublime_text.exe" "${PSScriptRoot}\sitefinity.ps1" -noframemerging
+}
+
+#endregion
+
 #region PUBLIC
 
 # Sitefinity instances management
@@ -800,107 +929,6 @@ function sf-remove-sitePort {
     $websiteName = $context.websiteName
 
     Remove-WebBinding -Name $websiteName -port $port
-}
-
-# Misc
-
-function sf-clear-nugetCache {
-    $context = _sf-get-context
-    if (!(Test-Path $context.solutionPath)) {
-        throw "invalid or no solution path"
-    }
-
-    & "$($context.solutionPath)\.nuget\nuget.exe" locals all -clear
-}
-
-function sf-explore-appData {
-    $context = _sf-get-context
-    $webAppPath = $context.webAppPath
-
-    cd "${webAppPath}\App_Data\Sitefinity"
-}
-
-function sf-start-webTestRunner {
-
-    & $webTestRunner
-}
-
-function sf-copy-decModule {
-    Param(
-        [switch]$build,
-        [switch]$revert)
-
-    $context = _sf-get-context
-    $decDllsPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\bin\Debug"
-    $decProjectPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\Telerik.Sitefinity.DataIntelligenceConnector.csproj"
-    
-    if ($build) {
-        $output = & $msBUildPath /verbosity:quiet /nologo $decProjectPath 2>&1
-        if ($LastExitCode -ne 0)
-        {
-            throw "$output"
-        }
-    }
-    
-    Copy-Item "${decDllsPath}\Telerik.Sitefinity.DataIntelligenceConnector.dll" "$($context.webAppPath)\bin"
-    Copy-Item "${decDllsPath}\Telerik.Sitefinity.DataIntelligenceConnector.pdb" "$($context.webAppPath)\bin"
-
-    Copy-Item "${decDllsPath}\Telerik.DigitalExperienceCloud.Client.dll" "$($context.webAppPath)\bin"
-    Copy-Item "${decDllsPath}\Telerik.DigitalExperienceCloud.Client.pdb" "$($context.webAppPath)\bin"
-
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.dll" "$($context.webAppPath)\bin"
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.pdb" "$($context.webAppPath)\bin"
-
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.dll" "$($context.webAppPath)\bin"
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.pdb" "$($context.webAppPath)\bin"
-
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.dll" "$($context.webAppPath)\bin"
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.pdb" "$($context.webAppPath)\bin"
-
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.WebTestRunner.Server.dll" "$($context.webAppPath)\bin"
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.WebTestRunner.Server.pdb" "$($context.webAppPath)\bin"
-
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.TestArrangementService.Core.dll" "$($context.webAppPath)\bin"
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Telerik.Sitefinity.TestArrangementService.Core.pdb" "$($context.webAppPath)\bin"
-    
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\WebDriver.dll" "$($context.webAppPath)\bin"
-    
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Gallio.dll" "$($context.webAppPath)\bin"
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\Gallio40.dll" "$($context.webAppPath)\bin"
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\MbUnit.dll" "$($context.webAppPath)\bin"
-    Copy-Item "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug\MbUnit40.dll" "$($context.webAppPath)\bin"
-
-    if ($revert) {
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.dll"
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.pdb"
-        
-        Remove-Item "$($context.webAppPath)\bin\Telerik.DigitalExperienceCloud.Client.dll"
-        Remove-Item "$($context.webAppPath)\bin\Telerik.DigitalExperienceCloud.Client.pdb"
-
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.dll"
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests.pdb"
-
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.dll"
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUI.Arrangements.pdb"
-
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.dll"
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.DataIntelligenceConnector.TestUtilities.pdb"
-
-        Remove-Item "$($context.webAppPath)\bin\Telerik.WebTestRunner.Server.dll"
-        Remove-Item "$($context.webAppPath)\bin\Telerik.WebTestRunner.Server.pdb"
-
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.TestArrangementService.Core.dll"
-        Remove-Item "$($context.webAppPath)\bin\Telerik.Sitefinity.TestArrangementService.Core.pdb"
-        
-        Remove-Item "$($context.webAppPath)\bin\WebDriver.dll" 
-        
-        Remove-Item "$($context.webAppPath)\bin\Gallio.dll" 
-        Remove-Item "$($context.webAppPath)\bin\Gallio40.dll" 
-        Remove-Item "$($context.webAppPath)\bin\MbUnit.dll" 
-        Remove-Item "$($context.webAppPath)\bin\MbUnit40.dll" 
-    }
-
-    os-popup-notification "Operation completed!"
 }
 
 #endregion
