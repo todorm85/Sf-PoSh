@@ -3,14 +3,21 @@ Param (
     )
 
 $oldLocation = Get-Location
-Import-Module SQLPS -DisableNameChecking
+# Import-Module SQLPS -DisableNameChecking
 Set-Location $oldLocation
+
+function _sql-load-module {
+    If ( ! (Get-module SQLPS )) {
+        Import-Module SQLPS -DisableNameChecking
+    }
+}
 
 function sql-delete-database {
     Param (
             [Parameter(Mandatory=$true)][string] $dbName
         )
 
+    _sql-load-module
 
     $Databases = Invoke-SQLcmd -ServerInstance $ServerInstance -Query ("SELECT * from sys.databases where NAME = '$dbName'")
 
@@ -23,6 +30,8 @@ function sql-delete-database {
 }
 
 function sql-get-dbs {
+    _sql-load-module
+
     $Databases = Invoke-SQLcmd -ServerInstance $ServerInstance -Query ("SELECT * from sys.databases")
 
     return $Databases
@@ -30,6 +39,8 @@ function sql-get-dbs {
 
 function sql-get-items {
     Param($dbName, $tableName, $selectFilter, $whereFilter)
+
+    _sql-load-module
 
     $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query ("
         SELECT $selectFilter
@@ -42,6 +53,8 @@ function sql-get-items {
 function sql-update-items {
     Param($dbName, $tableName, $value, $whereFilter)
 
+    _sql-load-module
+
     $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query "
         UPDATE [${dbName}].[dbo].[${tableName}]
         SET dta='${value}'
@@ -52,6 +65,8 @@ function sql-update-items {
 
 function sql-insert-items {
     Param($dbName, $tableName, $value, $whereFilter)
+
+    _sql-load-module
 
     $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query "
         UPDATE [${dbName}].[dbo].[${tableName}]
@@ -64,6 +79,8 @@ function sql-insert-items {
 function sql-delete-items {
     Param($dbName, $tableName, $whereFilter)
 
+    _sql-load-module
+
     $result = Invoke-SQLcmd -ServerInstance $ServerInstance -Query ("
         DELETE FROM [${dbName}].[dbo].[${tableName}]
         WHERE $whereFilter")
@@ -71,6 +88,8 @@ function sql-delete-items {
 
 function sql-test-isDbNameDuplicate {
     Param($dbName)
+
+    _sql-load-module
 
     $existingDbs = @(sql-get-dbs)
     $exists = $false

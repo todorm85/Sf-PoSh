@@ -199,3 +199,11 @@ function iis-test-isPortFree {
 
     return $isFree
 }
+
+function iis-add-sitePort {
+    Param(
+        $name, $port
+        )
+
+    New-WebBinding -Name $websiteName -port $port
+}
