@@ -1,6 +1,6 @@
 # to use in PS5 type "Install-Module ImportExcel" GitHub: dfinke/ImportExcel
 
-function convertAll-xml2xls {
+function sfTests-convertAll-xml2xls {
     Param([string]$dirPath)
     
     $filesAndDirs = get-childitem $dirPath
@@ -10,7 +10,7 @@ function convertAll-xml2xls {
     }
 }
 
-function convert-xml2xls {
+function sfTests-convert-xml2xls {
     Param($path)
 
     $data = New-Object XML

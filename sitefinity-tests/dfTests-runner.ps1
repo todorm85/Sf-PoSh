@@ -3,11 +3,11 @@ Import-Module "WebAdministration"
 $cmdTestRunnerPath = "D:\Tools\Telerik.WebTestRunner\Telerik.WebTestRunner.Cmd\bin\Debug\Telerik.WebTestRunner.Cmd.exe"
 $TfisTokenEndpointUrl = "https://uatidentity.telerik.com/v2/oauth/telerik/token"
 $TfisTokenEndpointBasicAuth = "dXJpJTNBaW50ZWdyYXRpb24udGVzdHM6NDcwNzE5MTU0NjZmYTBlNWYwNmRlYWQ3NGY4MTFkMzE="
-$accounId = "84500334-c148-4331-beae-60512c6eb9d8"
-$sitefinityUrl = "https://ft4qp557kaz7u0bu.sites.testtap.telerik.com"
-$dbBackupId = "bb465e55-d567-477a-9b61-36127a278def"
+$accounId = "1495b382-c205-4ae4-b0e1-204689558b24"
 $username = "tmitskov@progress.com"
 $pass = "admin@2"
+$sitefinityUrl = "https://ft4qp557kaz7u0bu.sites.testtap.telerik.com"
+$dbBackupId = "bb465e55-d567-477a-9b61-36127a278def"
 $resultsDirectory = "D:\DF-test-results\local-results"
 
 $categories = @( 
@@ -82,7 +82,7 @@ $categories = @(
     "ConfigurationDifferentialSave"
 )
 
-function df-run-all {
+function dfTests-run-all {
     Param([string]$url="http://localhost:4080")
 
     if ($url) {
@@ -92,7 +92,7 @@ function df-run-all {
     forEach ($cat in $categories) {
         try {
             Write-Host "$cat started."
-            df-run-dfTest $cat
+            dfTests-run-dfTest $cat
             Write-Host "$cat completed."
         } catch {
             Write-Host "Stopping all runs... Error: " + $_
@@ -101,7 +101,7 @@ function df-run-all {
     }
 }
 
-function df-run-dfTest {
+function dfTests-run-dfTest {
     Param(
         [string]$category,
         [switch]$restoreDb
@@ -109,7 +109,7 @@ function df-run-dfTest {
 
     if ($restoreDb) {
         try {
-            _df-restoreDb
+            _restore-db
         } catch {
             throw "Error restoring database." + $_
         }
@@ -118,8 +118,8 @@ function df-run-dfTest {
     & $cmdTestRunnerPath Run /Url=$sitefinityUrl /RunName=test  /CategoriesFilter=$category /TfisTokenEndpointUrl=$TfisTokenEndpointUrl /TfisTokenEndpointBasicAuth=$TfisTokenEndpointBasicAuth /UserName=$username /Password=$pass /TraceFilePath="${resultsDirectory}\${category}.xml" 2>&1
 }
 
-function _df-restoreDb {
-    $token = _df-get-token
+function _restore-db {
+    $token = _get-token
 
     $url = "https://testtap.telerik.com/sitefactory/api/${accounId}/restore-operations"
     $body = "{""environmentType"":""staging"",""backupId"":""${dbBackupId}""}"
@@ -155,13 +155,12 @@ function _df-restoreDb {
     }
 }
 
-function _df-get-token {
-    $url = "https://uatidentity.telerik.com/v2/oauth/telerik/token"
+function _get-token {
     $body = "{""grant_type"":""password"",""username"":""${username}"",""password"":""${pass}""}"
     $contentType = "application/json"
     $headers = @{ Authorization = "Basic dXJpJTNBaW50ZWdyYXRpb24udGVzdHM6NDcwNzE5MTU0NjZmYTBlNWYwNmRlYWQ3NGY4MTFkMzE=" }
 
-    $response = Invoke-WebRequest $url -TimeoutSec 1600 -body $body -Method Post -Headers $headers -ContentType $contentType
+    $response = Invoke-WebRequest $TfisTokenEndpointUrl -TimeoutSec 1600 -body $body -Method Post -Headers $headers -ContentType $contentType
     $jsonContent = ConvertFrom-JSON $response.Content
     return $jsonContent.access_token;
 }

@@ -1,9 +1,22 @@
 $localTestResultsPath = "D:\DF-test-results\local-results"
 $remoteTestResultsPath = "D:\DF-test-results\df-results"
-$traceFileName = "compare-result"
 $traceOutputDir = "${Env:userprofile}\Desktop"
 
-function sf-compare-testResultsFolders {
+function sfTests-compare-testResultsFoldersByCategory {
+
+    $resFiles = _get-allXmlResults $localTestResultsPath
+
+    forEach($resFile in $resFiles) {
+        Write-Host "Comapring $($resFile.BaseName)..."
+        $localTests = _load-testsFromPath $resFile.FullName
+        $remoteTests = _load-testsFromPath $resFile.FullName
+        _compare-tests $localTests $remoteTests $resFile.BaseName
+        Write-Host "Done comapring $($resFile.BaseName)."
+    }
+}
+
+
+function sfTests-compare-testResultsFolders {
 
     $localTests = _load-testsFromPath $localTestResultsPath
     $remoteTests = _load-testsFromPath $remoteTestResultsPath
@@ -11,9 +24,9 @@ function sf-compare-testResultsFolders {
     _compare-tests $localTests $remoteTests
 }
 
-function sf-compare-testResultsFiles {
+function sfTests-compare-testResultsFiles {
     Param(
-        $fileName = "compare-result-files"
+        $fileName = "Core"
         )
 
     $localTests = _load-testsFromFile "${localTestResultsPath}\${fileName}.xml"
@@ -62,11 +75,11 @@ function _load-testsFromFile {
 }
 
 function _compare-tests {
-    Param($localTests, $remoteTests )
+    Param($localTests, $remoteTests, $traceFileName = "compare-result")
 
     $failedTests = [System.Collections.ArrayList]@()
-    $localTestMessages = [System.Collections.ArrayList]@()
-    $remoteTestMessages = [System.Collections.ArrayList]@()
+    $localTestMessages = @{}
+    $remoteTestMessages = @{}
     foreach($localTest in $localTests) {
         # if failed
         if ($localTest.Result -eq "Failed") {
@@ -77,14 +90,14 @@ function _compare-tests {
                 $remoteMessage = $remoteTest.Message
                 $bothFailFlag = $localTest.Result -eq $remoteTest.Result
 
-                $localTest.Message -match "^(?<msgLoc>.*)\n   at " > $Null
+                $localTest.Message -match "^(?<msgLoc>(.|\n)*?)\n   at " > $Null
                 $localTestMessage = $matches["msgLoc"]
-                $remoteTest.Message -match "^(?<msgRem>.*)\n   at " > $Null
+                $remoteTest.Message -match "^(?<msgRem>(.|\n)*?)\n   at " > $Null
                 $remoteTestMessage = $matches["msgRem"]
                 $sameMessage = $localTestMessage -eq $remoteTestMessage
 
-                $localErrorGroupId = _get-errorGroupId $localTestMessages, $localTestMessage
-                $remoteErrorGroupId = _get-errorGroupId $remoteTestMessages, $remoteTestMessage
+                $localErrorGroupId = _get-errorGroupId $localTestMessages $localTestMessage
+                $remoteErrorGroupId = _get-errorGroupId $remoteTestMessages $remoteTestMessage
             } else {
                 $remoteResult = 'Null'
                 $remoteMessage = 'Null'
@@ -133,13 +146,19 @@ function _compare-tests {
 }
 
 function _get-errorGroupId {
-    Param([System.Collections.ArrayList]$localTestMessages, $localTestMessage ) 
+    Param($arr, $el ) 
 
-    $locMsgIdx = [array]::IndexOf($localTestMessages, $localTestMessage)
-    if ($locMsgIdx -lt 0) {
-        $localTestMessages.Add($localTestMessage)
-        return $localTestMessages.Count - 1
-    } else {
-        return $locMsgIdx
+    if ([string]::IsNullOrEmpty($el)) {
+        return -1
     }
+
+    $idx = $arr[$el]
+    if ($idx -eq $null) {
+        $arr.Add($el, $arr.Count) > $null
+        $idx = $arr.Count
+    }
+
+    return $idx
 }
+
+sfTests-compare-testResultsFiles

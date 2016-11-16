@@ -9,7 +9,7 @@ This tool allows easy sitefinity web apps setup and teardown on a local machine.
 - The folder common and all of its contents are needed for proper script operation
 
 ## Usage
-Navigate to the directory where sitefinity.ps1 is located. Open a powershell instance with admin rights there. 'Dot source' the script by entering: `. ./sitefinity.ps1` (Note there are two dots, delimted by space character). Start typing `sf-` then press tab repeatedly to cycle through available functions. You can narrow the filter by further typing the desired function name - e.x. `sf-show`.
+Navigate to the directory where sitefinity.ps1 is located. Open a powershell instance with admin rights there. 'Dot source' the script by entering: `. ./SfAdminTool.ps1` (Note there are two dots, delimted by space character). Start typing `sf-` then press tab repeatedly to cycle through available functions. You can narrow the filter by further typing the desired function name - e.x. `sf-show`.
 
 ## Functions
 Mandatory params given in ().
