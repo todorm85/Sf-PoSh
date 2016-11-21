@@ -4,7 +4,8 @@ function sf-reset-app {
         [switch]$start,
         [switch]$configRestrictionSafe,
         [switch]$rebuild,
-        [switch]$build
+        [switch]$build,
+        [switch]$dbp
         )
 
     if ($rebuild) {
@@ -55,6 +56,10 @@ function sf-reset-app {
 
             $port = @(iis-get-websitePort $context.websiteName)[0]
             _sf-start-sitefinity -url "http://localhost:$($port)"
+            if ($dbp) {
+                sf-install-dbp
+                _sf-start-sitefinity -url "http://localhost:$($port)"
+            }
         } catch {
             Write-Host "`n`n"
             Write-Warning "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`n"

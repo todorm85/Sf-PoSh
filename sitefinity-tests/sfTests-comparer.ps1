@@ -78,8 +78,8 @@ function _compare-tests {
     Param($localTests, $remoteTests, $traceFileName = "compare-result")
 
     $failedTests = [System.Collections.ArrayList]@()
-    $localTestMessages = @{}
-    $remoteTestMessages = @{}
+    $localTestMessages = [System.Collections.ArrayList]@()
+    $remoteTestMessages = [System.Collections.ArrayList]@()
     foreach($localTest in $localTests) {
         # if failed
         if ($localTest.Result -eq "Failed") {
@@ -152,13 +152,14 @@ function _get-errorGroupId {
         return -1
     }
 
-    $idx = $arr[$el]
-    if ($idx -eq $null) {
-        $arr.Add($el, $arr.Count) > $null
-        $idx = $arr.Count
+    $idx = $arr.indexOf($el)
+    if ($idx -eq -1) {
+        $arr.Add($el) > $null
+        $idx = $arr.Count - 1
     }
 
     return $idx
 }
 
-sfTests-compare-testResultsFiles
+#sfTests-compare-testResultsFiles Connectors
+sfTests-compare-testResultsFolders

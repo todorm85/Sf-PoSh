@@ -226,6 +226,7 @@ function _sfData-save-context {
         $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
         $sitefinityEntry.SetAttribute("dbName", $context.dbName)
         $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
+        $sitefinityEntry.SetAttribute("branch", $context.branch)
         # $sitefinityEntry.SetAttribute("port", $context.port)
         # $sitefinityEntry.SetAttribute("appPool", $context.appPool)
 

@@ -25,6 +25,7 @@ function sf-create-sitefinity {
 
         Write-Host "Creating workspace mappings..."
         tfs-create-mappings -branch $branch -branchMapPath $defaultContext.solutionPath -workspaceName $workspaceName
+        $newContext.branch = $branch
 
         Write-Host "Getting latest workspace changes..."
         tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
@@ -287,21 +288,30 @@ function sf-show-selectedSitefinity {
     $ports = @(iis-get-websitePort $context.websiteName)
     $appPool = @(iis-get-siteAppPool $context.websiteName)
     $workspaceName = tfs-get-workspaceName $context.webAppPath
-    $mapping = tfs-get-mappings $context.webAppPath
+    # $mapping = tfs-get-mappings $context.webAppPath
 
-    $sitefinity = @(
+    $instanceDetails = @(
         [pscustomobject]@{id = 1; Parameter = "Sitefinity name"; Value = $context.displayName;},
         [pscustomobject]@{id = 2; Parameter = "Solution path"; Value = $context.solutionPath;},
         [pscustomobject]@{id = 3; Parameter = "Web app path"; Value = $context.webAppPath;},
-        [pscustomobject]@{id = 4; Parameter = "Workspace name"; Value = $workspaceName;},
-        [pscustomobject]@{id = 5; Parameter = "Mapping"; Value = $mapping;},
-        [pscustomobject]@{id = 6; Parameter = "Database Name"; Value = $context.dbName;},
-        [pscustomobject]@{id = 7; Parameter = "Website Name in IIS"; Value = $context.websiteName;},
-        [pscustomobject]@{id = 8; Parameter = "Ports"; Value = $ports;},
-        [pscustomobject]@{id = 9; Parameter = "Application Pool Name"; Value = $appPool;}
+        [pscustomobject]@{id = 6; Parameter = "Database Name"; Value = $context.dbName;}
     )
 
-    $sitefinity | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto
+    $iisDetails = @(
+        [pscustomobject]@{id = 7; Parameter = "Website Name in IIS"; Value = $context.websiteName;},
+        [pscustomobject]@{id = 8; Parameter = "Ports"; Value = $ports;},
+        [pscustomobject]@{id = 9; Parameter = "Application Pool Name"; Value = $appPool;})
+
+    $tfsDetails = @(
+        [pscustomobject]@{id = 4; Parameter = "Workspace name"; Value = $workspaceName;},
+        [pscustomobject]@{id = 5; Parameter = "Mapping"; Value = $context.branch;})
+
+    Write-Host "`n`nINSTANCE details:"
+    $instanceDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
+    Write-Host "IIS details:"
+    $iisDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
+    Write-Host "TFS details:"
+    $tfsDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
 }
 
 function sf-show-allSitefinities {
@@ -314,14 +324,14 @@ function sf-show-allSitefinities {
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {
         $ports = @(iis-get-websitePort $sitefinity.websiteName)
-        $mapping = tfs-get-mappings $sitefinity.webAppPath
-        if ($mapping) {
-            $mapping = $mapping.split("4.0")[3]
-        }
+        # $mapping = tfs-get-mappings $sitefinity.webAppPath
+        # if ($mapping) {
+        #     $mapping = $mapping.split("4.0")[3]
+        # }
 
         $index = [array]::IndexOf($sitefinities, $sitefinity)
 
-        $output.add([pscustomobject]@{id = $index; Title = "$index : $($sitefinity.displayName)"; Branch = "$mapping"; Ports = "$ports";}) > $null
+        $output.add([pscustomobject]@{id = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports";}) > $null
     }
 
     $output | Sort-Object -Property id | Format-Table -Property Title, Branch, Ports -auto
