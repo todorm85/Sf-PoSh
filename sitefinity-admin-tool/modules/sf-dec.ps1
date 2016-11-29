@@ -1,4 +1,3 @@
-
 function sf-copy-decModule {
     Param(
         [string]$decModuleDllsPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\bin\Debug",

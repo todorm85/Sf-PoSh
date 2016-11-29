@@ -1,22 +1,22 @@
 Import-Module "WebAdministration"
 
 function sf-browse-webSite {
-    Param([switch]$newBrowser)
+    Param([switch]$useExistingBrowser)
 
     $context = _sf-get-context
     $port = @(iis-get-websitePort $context.websiteName)[0]
-    if ($port -eq '' -or $port -eq $null) {
+    if ($port -eq '' -or $null -eq $port) {
         throw "No sitefinity port set."
     }
 
-    if ($newBrowser) {
+    if (-not $useExistingBrowser) {
         & start $browserPath
     }
 
     & $browserPath "http://localhost:${port}/Sitefinity" -noframemerging
 }
 
-function sf-reset-appThread {
+function sf-reset-thread {
     Param([switch]$start)
 
     $context = _sf-get-context
@@ -31,7 +31,7 @@ function sf-reset-appThread {
     }
 }
 
-function sf-reset-appPool {
+function sf-reset-pool {
     Param([switch]$start)
 
     $context = _sf-get-context
@@ -67,7 +67,7 @@ function sf-change-appPool {
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose appPool'
         $selectedPool = $appPools[$choice]
-        if ($selectedPool -ne $null) {
+        if ($null -ne $selectedPool) {
             break;
         }
     }
@@ -124,7 +124,7 @@ function _sf-create-website {
     $context = _sf-get-context
     $websiteName = $context.websiteName
 
-    if ($context.websiteName -ne '' -and $context.websiteName -ne $null) {
+    if ($context.websiteName -ne '' -and $null -ne $context.websiteName) {
         throw 'Current context already has a website assigned!'
     }
 
@@ -155,5 +155,39 @@ function _sf-delete-website {
         $context.websiteName = $oldWebsiteName
         _sfData-save-context $context
         throw "Error: $_.Exception.Message"
+    }
+}
+
+function sf-setup-asSubApp () {
+    Param(
+        [switch]$revert
+    )
+
+    $context = _sf-get-context
+    if (-not $revert) {
+        
+        Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value "c:\"
+
+        New-Item "IIS:\Sites\$($context.websiteName)\subApp" -physicalPath $context.webAppPath -type "Application"
+    } else {
+        Remove-Item "IIS:\Sites\$($context.websiteName)\subApp" -force -recurse -Confirm:$false
+
+        Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value $context.webAppPath
+    }
+
+}
+
+function sf-get-appPoolId () {
+    $context = _sf-get-context
+
+    $appPools = iis-show-appPoolPid
+    $currentAppPool = @(iis-get-siteAppPool $context.websiteName)
+    foreach ($entry in $appPools) {
+        $entry -match "\(applicationPool:(?<pool>.*?)\)" > $Null
+        $entryPool = $matches["pool"]
+        if ($entryPool -eq $currentAppPool) {
+            Write-Host $entry
+            return
+        }
     }
 }

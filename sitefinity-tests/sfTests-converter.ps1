@@ -1,26 +1,30 @@
 # to use in PS5 type "Install-Module ImportExcel" GitHub: dfinke/ImportExcel
-
-function sfTests-convertAll-xml2xls {
-    Param([string]$dirPath)
-    
-    $filesAndDirs = get-childitem $dirPath
-    $txtFilePaths = $filesAndDirs | where {$_.extension -eq ".xml"}
-    foreach($path in $txtFilePaths) {
-        convert-xml2xls $path
-    }
-}
+. "${PSScriptRoot}\sfTests-common.ps1"
 
 function sfTests-convert-xml2xls {
-    Param($path)
-
-    $data = New-Object XML
-    $data.Load($path.FullName)
-    $testResults = $data.TestResults.testRun.RunnerTestResult
+    Param([string]$path)
     
-    $testResultsFiltered = $testResults | Select-Object -Property FixtureName, TestMethodName, AuthorName, Result, StartTime, EndTime, TestDuration, IdentificationKey, Message
+    [System.Collections.ArrayList]$testsToExport = @()
 
-    # $testResultsFiltered
-    $testResultsFiltered | Export-Excel "$($path.Directory.FullName)\$($path.BaseName).xlsx"
+    $pathInfo = get-childitem $path
+    $xmlPathInfos = $pathInfo | where {$_.extension -eq ".xml"}
+    foreach($xmlPathInfo in $xmlPathInfos) {
+        $testsMessages = [System.Collections.ArrayList]@()
+        $tests = _load-testsFromXml $xmlPathInfo.FullName
+
+        foreach($test in $tests) {
+            if ($test.Result -ne "Failed") {
+                continue
+            }
+
+            $test.Message -match "^(?<msgLoc>(.|\n)*?)\n   at " > $Null
+            $testMessage = $matches["msgLoc"]
+
+            $errorGroupId = _set-errorGroupId $testsMessages $testMessage
+            $test | Add-Member ErrorGruop $errorGroupId
+            $testsToExport.Add($test) > $Null
+        }
+
+        $testsToExport | Export-Excel "$($xmlPathInfo.Directory.FullName)\$($xmlPathInfo.BaseName).xlsx"
+    }
 }
-
-

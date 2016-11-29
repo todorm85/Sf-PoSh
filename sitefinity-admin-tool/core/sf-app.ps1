@@ -1,11 +1,10 @@
-
 function sf-reset-app {
     Param(
         [switch]$start,
         [switch]$configRestrictionSafe,
         [switch]$rebuild,
         [switch]$build,
-        [switch]$dbp
+        [switch]$silentFinish
         )
 
     if ($rebuild) {
@@ -41,7 +40,8 @@ function sf-reset-app {
         throw "Erros while creating startupConfig: $_.Exception.Message"
     }
     
-    sf-reset-appThread
+    Write-Host "Restarting app threads..."
+    sf-reset-thread
 
     if ($start) {
         Start-Sleep -s 2
@@ -49,17 +49,13 @@ function sf-reset-app {
             if ($configRestrictionSafe) {
                 # set readonly off
                 $oldConfigStroageSettings = sf-get-storageMode
-                if ($oldConfigStroageSettings -ne $null -and $oldConfigStroageSettings -ne '') {
+                if ($null -ne $oldConfigStroageSettings -and $oldConfigStroageSettings -ne '') {
                     sf-set-storageMode -storageMode $oldConfigStroageSettings.StorageMode -restrictionLevel "Default"
                 }
             }
 
             $port = @(iis-get-websitePort $context.websiteName)[0]
             _sf-start-sitefinity -url "http://localhost:$($port)"
-            if ($dbp) {
-                sf-install-dbp
-                _sf-start-sitefinity -url "http://localhost:$($port)"
-            }
         } catch {
             Write-Host "`n`n"
             Write-Warning "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`n"
@@ -89,8 +85,10 @@ function sf-reset-app {
         }
     }
 
-    # display message
-    os-popup-notification -msg "Operation completed!"
+    if (-not $silentFinish) {
+        # display message
+        os-popup-notification -msg "Operation completed!"
+    }
 }
 
 function sf-add-precompiledTemplates {

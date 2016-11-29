@@ -66,6 +66,8 @@ function sf-open-solution {
 }
 
 function sf-build-solution {
+    Param([switch]$useOldMsBuild)
+
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
@@ -73,7 +75,12 @@ function sf-build-solution {
     }
 
     Write-Host "Building solution ${solutionPath}\Telerik.Sitefinity.sln"
-    $output = & $msBUildPath /verbosity:quiet /nologo "${solutionPath}\Telerik.Sitefinity.sln" 2>&1
+    if ($useOldMsBuild) {
+        $output = & $msBUildPath /verbosity:quiet /nologo /tv:"4.0" "${solutionPath}\Telerik.Sitefinity.sln" 2>&1
+    } else {
+        $output = & $msBUildPath /verbosity:quiet /nologo "${solutionPath}\Telerik.Sitefinity.sln" 2>&1
+    }
+
     if ($LastExitCode -ne 0)
     {
         throw "$output"
@@ -140,8 +147,8 @@ function _sf-delete-appDataFiles {
         }
     }
 
-    if (Test-Path "${webAppPath}\App_Data\Telerik") {
-        $files = Get-ChildItem "${webAppPath}\App_Data\Telerik" | Where-Object { ($_.PSIsContainer -eq $false) -and ($_.Name -like "sso.config") }
+    if (Test-Path "${webAppPath}\App_Data\Telerik\Configuration") {
+        $files = Get-ChildItem "${webAppPath}\App_Data\Telerik\Configuration" | Where-Object { ($_.PSIsContainer -eq $false) -and ($_.Name -like "sso.config") }
         try {
             os-del-filesAndDirsRecursive $files
         } catch {

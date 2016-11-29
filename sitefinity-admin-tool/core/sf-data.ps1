@@ -1,31 +1,22 @@
-$dataPath = "${PSScriptRoot}\sf-data.xml"
-
-# Usings
-. "${PSScriptRoot}\..\EnvConstants.ps1"
-. "${PSScriptRoot}\..\common\iis.ps1"
-. "${PSScriptRoot}\..\common\sql.ps1" $sqlServerInstance
-. "${PSScriptRoot}\..\common\os.ps1"
-. "${PSScriptRoot}\..\common\tfs.ps1" $tfPath
+$dataPath = "${PSScriptRoot}\..\db.xml"
 
 function _sf-get-context {
     $context = _sfData-get-currentContext
     if ($context -eq '') {
         throw "Invalid context object."
-    } elseif ($context -eq $null ) {
+    } elseif ($null -eq $context) {
         throw "No sitefinity selected."
     } else {
         return $context
     }
 }
 
-#region DATA LAYER
-
 function _sfData-validate-context {
     Param($context)
 
     if ($context -eq '') {
         throw "Invalid sitefinity context. Cannot be empty string."
-    } elseif ($context -ne $null){
+    } elseif ($null  -ne $context){
         if ($context.name -eq '') {
             throw "Invalid sitefinity context. No sitefinity name."
         }
@@ -237,6 +228,8 @@ function _sfData-save-context {
 }
 
 function _sfData-init-data {
+    _sfData-set-currentContext $null
+    
     if (!(Test-Path $dataPath)) {
         Write-Host "Initializing script data..."
         New-Item -ItemType file -Path $dataPath
@@ -260,19 +253,3 @@ function _sfData-init-data {
         $xmlWriter.Close()
     }
 }
-
-#endregion
-
-_sfData-init-data
-
-_sfData-set-currentContext $null
-
-. "${PSScriptRoot}\functions\sf-instance.ps1"
-. "${PSScriptRoot}\functions\sf-app.ps1"
-. "${PSScriptRoot}\functions\sf-solution.ps1"
-. "${PSScriptRoot}\functions\sf-configs.ps1"
-. "${PSScriptRoot}\functions\sf-dbp.ps1"
-. "${PSScriptRoot}\functions\sf-iis.ps1"
-. "${PSScriptRoot}\functions\sf-dec.ps1"
-
-sf-select-sitefinity

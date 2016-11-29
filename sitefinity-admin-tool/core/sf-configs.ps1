@@ -120,13 +120,13 @@ function sf-get-storageMode {
 function sf-get-configContentFromDb {
     Param(
         [Parameter(Mandatory=$true)]$configName,
-        $filePath="${Env:userprofile}\Desktop\dbConfig.xml"
+        $filePath="${Env:userprofile}\Desktop\dbExport.xml"
         )
 
     $context = _sf-get-context
     $config = sql-get-items -dbName $context.dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
 
-    if ($config -ne $null -and $config -ne '') {
+    if ($null -ne $config -and $config -ne '') {
         if (!(Test-Path $filePath)) {
             New-Item -ItemType file -Path $filePath
         }
