@@ -32,8 +32,8 @@ function sf-uninstall-dbp {
 function sf-reset-appDbp {
     $context = _sf-get-context
 
-    $oldConfigStroageSettings = sf-get-storageMode
-    sf-set-storageMode -storageMode $oldConfigStroageSettings.StorageMode -restrictionLevel "Default"
+    $oldConfigStorageSettings = sf-get-storageMode
+    sf-set-storageMode -storageMode $oldConfigStorageSettings.StorageMode -restrictionLevel "Default"
 
     try {
         try {
@@ -66,6 +66,6 @@ function sf-reset-appDbp {
     } catch {
         Write-Error "`n`nException: $_.Exception"
     } finally {
-        sf-set-storageMode -storageMode $oldConfigStroageSettings.StorageMode -restrictionLevel $oldConfigStroageSettings.RestrictionLevel
+        sf-set-storageMode -storageMode $oldConfigStorageSettings.StorageMode -restrictionLevel $oldConfigStorageSettings.RestrictionLevel
     }
 }

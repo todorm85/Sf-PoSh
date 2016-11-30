@@ -1,4 +1,4 @@
-. "${PSScriptRoot}\sfTests-common.ps1"
+. "${PSScriptRoot}\sf-tests-common.ps1"
 
 $localTestResultsPath = "D:\DF-test-results\local-results"
 $remoteTestResultsPath = "D:\DF-test-results\df-results"

@@ -1,9 +1,9 @@
 Import-Module "WebAdministration"
-. "${PSScriptRoot}\sfTests-runner-config.ps1"
+. "${PSScriptRoot}\sf-tests-runner-config.ps1"
+. "${PSScriptRoot}\sf-tests-common.ps1"
 
-function sfTests-run-allCategories {
+function sfTests-run-configuredCategories {
     Param(
-        [string]$url = $sitefinityUrl,
         [switch]$restoreDfDb
         )
 
@@ -19,7 +19,7 @@ function sfTests-run-allCategories {
                 }
             }
 
-            _sfTests-run-tests -categories $cat
+            sfTests-run-tests -categories $cat
 
             Write-Host "$cat completed."
         } catch {
@@ -29,16 +29,13 @@ function sfTests-run-allCategories {
     }
 }
 
-function sfTests-run-allTests {
-    Param(
-        [string]$url = $sitefinityUrl
-        )
+function sfTests-run-configuredTests {
 
     forEach ($test in $tests) {
         try {
             Write-Host "$test started."
 
-            _sfTests-run-tests -tests $test
+            sfTests-run-tests -tests $test
 
             Write-Host "$test completed."
         } catch {
@@ -48,13 +45,57 @@ function sfTests-run-allTests {
     }
 }
 
-function _sfTests-run-tests {
+function sfTests-rerun-tests () {
+    Param($xmlPath = "D:\sitefinities\IntegrationTests01\test-results\tests.xml")
+
+    $tests = _load-testsFromXml $xmlPath
+    $testsToRerun = @{}
+    foreach ($test in $tests) {
+        if ($test.Result -eq "Failed") {
+            if (-not $testsToRerun[$test.FixtureName]) {
+                $testsToRerun[$test.FixtureName] = [System.Collections.ArrayList]@()
+            }
+
+            $testsToRerun[$test.FixtureName].Add($test) > $Null
+        }
+    }
+
+    foreach ($testGroupKey in $testsToRerun.Keys) {
+        Write-Host "Resetting instance..."
+        try {
+            sfTests-reset-appDbp > $resetOutput
+        }
+        catch {
+            $resetOutput
+            return            
+        }
+
+        Write-Host "Running fixture: $testGroupKey"
+        foreach ($test in $testsToRerun[$testGroupKey]) {
+            Write-Host "    Running method: $($test.TestMethodName)"
+            sfTests-run-tests -tests $test.TestMethodName > $Null
+        }
+    }
+}
+
+function sfTests-run-tests {
     Param(
         [string]$categories = "",
         [string]$tests = ""
         )
     
     & $cmdTestRunnerPath Run /Url=$sitefinityUrl /RunName=test /tests=$tests /CategoriesFilter=$categories /TfisTokenEndpointUrl=$TfisTokenEndpointUrl /TfisTokenEndpointBasicAuth=$TfisTokenEndpointBasicAuth /UserName=$username /Password=$pass /TraceFilePath="${resultsDirectory}\results.xml" 2>&1
+}
+
+function sfTests-reset-appDbp () {
+    sf-reset-appDbp
+    sf-set-storageMode Auto Default
+    sfTests-setup-multilingual
+    sf-set-storageMode Auto ReadOnlyConfigFile
+}
+
+function sfTests-setup-multilingual () {
+    sfTests-run-tests -tests "DummyTest"
 }
 
 function _df-restore-db {
