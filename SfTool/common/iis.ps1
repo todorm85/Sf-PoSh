@@ -1,9 +1,17 @@
+
 function iis-get-websitePort {
     Param (
         [Parameter(Mandatory=$true)][string] $webAppName
         )
 
+    _iis-load-webAdministrationModule
     Get-WebBinding -Name $webAppName | select -expand bindingInformation | %{$_.split(':')[-2]}
+}
+
+function _iis-load-webAdministrationModule () {
+    if (Get-Module "WebAdministration" -ne $null) {
+        Import-Module "WebAdministration"
+    }
 }
 
 function iis-show-appPoolPid {
@@ -13,10 +21,12 @@ function iis-show-appPoolPid {
 
 function iis-get-usedPorts {
 
+    _iis-load-webAdministrationModule
     Get-WebBinding | select -expand bindingInformation | %{$_.split(':')[-2]}
 }
 
 function iis-get-appPoolApps ($appPoolName) {
+    _iis-load-webAdministrationModule
     $sites = get-webconfigurationproperty "/system.applicationHost/sites/site/application[@applicationPool=`'$appPoolName`'and @path='/']/parent::*" machine/webroot/apphost -name name
     $apps = get-webconfigurationproperty "/system.applicationHost/sites/site/application[@applicationPool=`'$appPoolName`'and @path!='/']" machine/webroot/apphost -name path
     $arr = @()
@@ -43,13 +53,14 @@ function iis-get-appPools {
 
 function iis-delete-appPool ($appPoolName) {
     # display app pools with websites
+    _iis-load-webAdministrationModule
     if ($appPoolName -eq '' -or $appPoolName -eq $null) {
         $appPools = @(Get-ChildItem ("IIS:\AppPools"))
         $appPools
 
         foreach ($pool in $appPools) {
             $index = [array]::IndexOf($appPools, $pool)
-            Write-Host  $index : $pool.name
+            Write-Verbose  $index : $pool.name
         }
 
         while ($true) {
@@ -65,7 +76,7 @@ function iis-delete-appPool ($appPoolName) {
     
     $apps = iis-get-appPoolApps $appPoolName
     if ($apps.Length -gt 0) {
-        Write-Host 'CANNOT DELETE APP POOL! AppPool has websites and apps hosted'
+        Write-Verbose 'CANNOT DELETE APP POOL! AppPool has websites and apps hosted'
     } else {
         Remove-WebAppPool -Name $appPoolName
     }
@@ -79,13 +90,14 @@ function iis-create-website {
         [string]$newAppPool
         )
 
+    _iis-load-webAdministrationModule
     function select-appPool {
         $availablePools = @(Get-ChildItem -Path "IIS:\AppPools")
 
         # select appPool
         ForEach ($pool in $availablePools) {
             $index = [array]::IndexOf($availablePools, $pool)
-            Write-Host $index : $pool.Name
+            Write-Verbose $index : $pool.Name
         }
 
         while ($true) {
@@ -108,7 +120,7 @@ function iis-create-website {
         $isDuplicateSite = $false
         ForEach ($site in $availableSites) {
             if ($site.name.ToLower() -eq $newWebsiteName) {
-                Write-Host "Site exists"
+                Write-Verbose "Site exists"
                 $isDuplicateSite = $true
                 break
             }
@@ -131,7 +143,7 @@ function iis-create-website {
         $isReserved = $false
         ForEach ($reservedPort in $reservedPorts) {
             if ($reservedPort -eq $newPort) {
-                Write-Host "Port ${newPort} already used"
+                Write-Verbose "Port ${newPort} already used"
                 $isReserved = $true
                 break
             }
@@ -205,5 +217,6 @@ function iis-add-sitePort {
         $name, $port
         )
 
+    _iis-load-webAdministrationModule
     New-WebBinding -Name $websiteName -port $port
 }

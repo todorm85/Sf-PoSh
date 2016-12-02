@@ -10,17 +10,16 @@ function sfTests-compare-testResultsFoldersByCategory {
 
     forEach($resFile in $locResFiles) {
         
-        Write-Host "Comapring $($resFile.BaseName)..."
+        Write-Verbose "Comapring $($resFile.BaseName)..."
 
         $localTests = _load-testsFromXml $resFile.FullName -setCategory
         $remoteTests = _load-testsFromXml "${remoteTestResultsPath}\$($resFile.BaseName).xml" -setCategory
 
         _compare-tests $localTests $remoteTests $resFile.BaseName
 
-        Write-Host "Done comapring $($resFile.BaseName)."
+        Write-Verbose "Done comapring $($resFile.BaseName)."
     }
 }
-
 
 function sfTests-compare-testResultsFolders {
 

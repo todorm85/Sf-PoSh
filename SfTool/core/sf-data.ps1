@@ -110,7 +110,7 @@ function _sfData-get-defaultContext {
     #     $sitefinities = @(_sfData-get-allContexts)
     #     foreach ($sitefinity in $sitefinities) {
     #         if ($sitefinity.displayName -eq $displayName) {
-    #             Write-Host "Sitefinity display name already used. ${displayName}"
+    #             Write-Verbose "Sitefinity display name already used. ${displayName}"
     #             $displayName = Read-Host -Prompt 'Enter new sitefinity name: '
     #             _sfData-get-defaultContext $displayName
     #             return
@@ -150,7 +150,7 @@ function _sfData-get-defaultContext {
     # check sitefinity name
     while($true) {
         if ($name -notmatch "^[a-zA-Z]+\w*$") {
-           Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
+           Write-Verbose "Sitefinity name must contain only alphanumerics and not start with number."
            $name = Read-Host "Enter new name: "
         } else {
             $defaultContext.name = $name
@@ -171,7 +171,7 @@ function _sfData-get-allContexts {
 
 function _sfData-delete-context {
     Param($context)
-    Write-Host "Updating script databse..."
+    Write-Verbose "Updating script databse..."
     $name = $context.name
     try {
         $data = New-Object XML
@@ -231,7 +231,7 @@ function _sfData-init-data {
     _sfData-set-currentContext $null
     
     if (!(Test-Path $dataPath)) {
-        Write-Host "Initializing script data..."
+        Write-Verbose "Initializing script data..."
         New-Item -ItemType file -Path $dataPath
 
         # Create The Document

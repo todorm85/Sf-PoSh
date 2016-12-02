@@ -1,4 +1,4 @@
-Import-Module "WebAdministration"
+
 . "${PSScriptRoot}\sf-tests-runner-config.ps1"
 . "${PSScriptRoot}\sf-tests-common.ps1"
 
@@ -9,7 +9,7 @@ function sfTests-run-configuredCategories {
 
     forEach ($cat in $categories) {
         try {
-            Write-Host "$cat started."
+            Write-Verbose "$cat started."
     
             if ($restoreDfDb) {
                 try {
@@ -21,9 +21,9 @@ function sfTests-run-configuredCategories {
 
             sfTests-run-tests -categories $cat
 
-            Write-Host "$cat completed."
+            Write-Verbose "$cat completed."
         } catch {
-            Write-Host "Stopping all runs... Error: " + $_
+            Write-Verbose "Stopping all runs... Error: " + $_
             break
         }
     }
@@ -33,13 +33,13 @@ function sfTests-run-configuredTests {
 
     forEach ($test in $tests) {
         try {
-            Write-Host "$test started."
+            Write-Verbose "$test started."
 
             sfTests-run-tests -tests $test
 
-            Write-Host "$test completed."
+            Write-Verbose "$test completed."
         } catch {
-            Write-Host "Stopping all runs... Error: " + $_
+            Write-Verbose "Stopping all runs... Error: " + $_
             break
         }
     }
@@ -61,18 +61,18 @@ function sfTests-rerun-tests () {
     }
 
     foreach ($testGroupKey in $testsToRerun.Keys) {
-        Write-Host "Resetting instance..."
+        Write-Verbose "Resetting instance..."
         try {
-            sfTests-reset-appDbp > $resetOutput
+            _sfTests-reset-appDbp > $resetOutput
         }
         catch {
             $resetOutput
             return            
         }
 
-        Write-Host "Running fixture: $testGroupKey"
+        Write-Verbose "Running fixture: $testGroupKey"
         foreach ($test in $testsToRerun[$testGroupKey]) {
-            Write-Host "    Running method: $($test.TestMethodName)"
+            Write-Verbose "    Running method: $($test.TestMethodName)"
             sfTests-run-tests -tests $test.TestMethodName > $Null
         }
     }
@@ -87,18 +87,20 @@ function sfTests-run-tests {
     & $cmdTestRunnerPath Run /Url=$sitefinityUrl /RunName=test /tests=$tests /CategoriesFilter=$categories /TfisTokenEndpointUrl=$TfisTokenEndpointUrl /TfisTokenEndpointBasicAuth=$TfisTokenEndpointBasicAuth /UserName=$username /Password=$pass /TraceFilePath="${resultsDirectory}\results.xml" 2>&1
 }
 
-function sfTests-reset-appDbp () {
+function _sfTests-reset-appDbp () {
     sf-reset-appDbp
     sf-set-storageMode Auto Default
-    sfTests-setup-multilingual
+    _sfTests-setup-multilingual
     sf-set-storageMode Auto ReadOnlyConfigFile
 }
 
-function sfTests-setup-multilingual () {
+function _sfTests-setup-multilingual () {
     sfTests-run-tests -tests "DummyTest"
 }
 
 function _df-restore-db {
+    Import-Module "WebAdministration"
+    
     $token = _df-get-token
 
     $url = "https://testtap.telerik.com/sitefactory/api/${accounId}/restore-operations"
@@ -110,7 +112,7 @@ function _df-restore-db {
 
     if($response.StatusCode -eq 202)
     {
-        Write-Host "Database is restoring..."
+        Write-Verbose "Database is restoring..."
     } else {
         throw "Not accepted restore of Database on DF"
     }

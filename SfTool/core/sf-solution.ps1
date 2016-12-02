@@ -1,61 +1,15 @@
-function sf-explore-appData {
-    $context = _sf-get-context
-    $webAppPath = $context.webAppPath
-
-    cd "${webAppPath}\App_Data\Sitefinity"
-}
-
-function sf-get-latest {
-    $context = _sf-get-context
-    $solutionPath = $context.solutionPath
-    if (!(Test-Path $solutionPath)) {
-        throw "invalid or no solution path"
-    }
-
-    if ($solutionPath -eq '') {
-        throw "Solution path is not set."
-    }
-
-    Write-Host "Getting latest changes for path ${solutionPath}."
-    tfs-get-latestChanges -branchMapPath $solutionPath
-    Write-Host "Getting latest changes complete."
-}
-
-function sf-clear-nugetCache {
-    $context = _sf-get-context
-    if (!(Test-Path $context.solutionPath)) {
-        throw "invalid or no solution path"
-    }
-
-    & "$($context.solutionPath)\.nuget\nuget.exe" locals all -clear
-}
-
-function sf-undo-pendingChanges {
-    $context = _sf-get-context
-    if (!(Test-Path $context.solutionPath)) {
-        throw "invalid or no solution path"
-    }
-
-    tfs-undo-pendingChanges $context.solutionPath
-}
-
-function sf-show-pendingChanges {
-    Param(
-        [switch]$detailed
-        )
-
-    if ($detailed) {
-        $format = "Detailed"
-    } else {
-        $format = "Brief"
-    }
-
-    $context = _sf-get-context
-    $workspaceName = tfs-get-workspaceName $context.webAppPath
-    & tf.exe stat /workspace:$workspaceName /format:$($format)
-}
-
+<#
+    .SYNOPSIS 
+    Opens the selected sitefinity solution.
+    .DESCRIPTION
+    If a webapp without solution was imported nothing is opened.
+    .OUTPUTS
+    None
+#>
 function sf-open-solution {
+    
+    [CmdletBinding()]param()
+    
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
     if ($solutionPath -eq '') {
@@ -65,7 +19,19 @@ function sf-open-solution {
     & $vsPath "${solutionPath}\telerik.sitefinity.sln"
 }
 
+<#
+    .SYNOPSIS 
+    Builds the current sitefinity instance solution.
+    .DESCRIPTION
+    If an existing sitefinity web app without a solution was imported nothing is done.
+    .PARAMETER useOldMsBuild
+    If switch is passed msbuild 4.0 tools will be used. (The one used by VS2012), Otherwise the default msbuild tools version is used, which for vs2015 is 14.0
+    .OUTPUTS
+    None
+#>
 function sf-build-solution {
+    
+    [CmdletBinding()]
     Param([switch]$useOldMsBuild)
 
     $context = _sf-get-context
@@ -74,7 +40,7 @@ function sf-build-solution {
         throw "invalid or no solution path"
     }
 
-    Write-Host "Building solution ${solutionPath}\Telerik.Sitefinity.sln"
+    Write-Verbose "Building solution ${solutionPath}\Telerik.Sitefinity.sln"
     if ($useOldMsBuild) {
         $output = & $msBUildPath /verbosity:quiet /nologo /tv:"4.0" "${solutionPath}\Telerik.Sitefinity.sln" 2>&1
     } else {
@@ -87,8 +53,16 @@ function sf-build-solution {
     }
 }
 
+<#
+    .SYNOPSIS 
+    Does a true rebuild of the current sitefinity instance solution by deleteing all bin and obj folders and then builds.
+    .OUTPUTS
+    None
+#>
 function sf-rebuild-solution {
-    Write-Host "Rebuilding solution..."
+    [CmdletBinding()]param()
+    
+    Write-Verbose "Rebuilding solution..."
     try {
         _sf-clean-solution
     } catch {
@@ -99,7 +73,7 @@ function sf-rebuild-solution {
 }
 
 function _sf-clean-solution {
-    Write-Host "Cleaning solution..."
+    Write-Verbose "Cleaning solution..."
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
@@ -108,7 +82,7 @@ function _sf-clean-solution {
 
     $errorMessage = ''
     #delete all bin, obj and packages
-    Write-Host "Deleting bins and objs..."
+    Write-Verbose "Deleting bins and objs..."
     $dirs = Get-ChildItem -force -recurse $solutionPath | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "bin") -or ($_.Name -like "obj")) }
     try {
         os-del-filesAndDirsRecursive $dirs
@@ -120,7 +94,7 @@ function _sf-clean-solution {
         $errorMessage = "Errors while deleting bins and objs:`n$errorMessage"
     }
 
-    Write-Host "Deleting packages..."
+    Write-Verbose "Deleting packages..."
     $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
     try {
         os-del-filesAndDirsRecursive $dirs
@@ -134,7 +108,7 @@ function _sf-clean-solution {
 }
 
 function _sf-delete-appDataFiles {
-    Write-Host "Deleting sitefinity configs, logs, temps..."
+    Write-Verbose "Deleting sitefinity configs, logs, temps..."
     $context = _sf-get-context
     $webAppPath = $context.webAppPath
     $errorMessage = ''
