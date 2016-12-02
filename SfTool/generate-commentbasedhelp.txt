@@ -1,0 +1,2 @@
+# type in ps console window to generate documentation form comments in functions
+Get-Command -Module SfTool | % { Get-Help $_ -full; Write-Output "`n----------------------------------------------------`n";} >> export.txt

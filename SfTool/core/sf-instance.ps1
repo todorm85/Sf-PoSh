@@ -1,9 +1,26 @@
-function sf-create-sitefinity {
+<#
+    .SYNOPSIS 
+    Provisions a new sitefinity instance project. 
+    .DESCRIPTION
+    Gets latest from the branch, builds and starts a sitefinity instance with default admin user username:admin pass:admin@2.
+    .PARAMETER name
+    The name of the new sitefinity instance, which is used to select it.
+    .PARAMETER branch
+    The tfs branch from which the source code is downloaded.
+    .PARAMETER buildSolution
+    Builds the solution after downloading from tfs.
+    .PARAMETER startWebApp
+    Starts webapp after building the solution.
+    .OUTPUTS
+    None
+#>
+function sf-provision-sitefinity {
+    [CmdletBinding()]
     Param(
         [string]$name,
         [string]$branch = "$/CMS/Sitefinity 4.0/Code Base",
-        [switch]$startWebApp,
-        [switch]$buildSolution
+        [switch]$buildSolution,
+        [switch]$startWebApp
         )
 
     $defaultContext = _sfData-get-defaultContext $name
@@ -14,20 +31,20 @@ function sf-create-sitefinity {
             throw "Path already exists:" + $defaultContext.solutionPath
         }
 
-        Write-Host "Creating solution path..."
+        Write-Verbose "Creating solution path..."
         New-Item $defaultContext.solutionPath -type directory > $null
         $newContext.solutionPath = $defaultContext.solutionPath;
 
         # create and map workspace
-        Write-Host "Creating workspace..."
+        Write-Verbose "Creating workspace..."
         $workspaceName = $defaultContext.displayName
         tfs-create-workspace $workspaceName $defaultContext.solutionPath
 
-        Write-Host "Creating workspace mappings..."
+        Write-Verbose "Creating workspace mappings..."
         tfs-create-mappings -branch $branch -branchMapPath $defaultContext.solutionPath -workspaceName $workspaceName
         $newContext.branch = $branch
 
-        Write-Host "Getting latest workspace changes..."
+        Write-Verbose "Getting latest workspace changes..."
         tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
 
         # persist current context to script data
@@ -38,12 +55,12 @@ function sf-create-sitefinity {
         _sfData-set-currentContext $newContext
         _sfData-save-context $newContext
     } catch {
-        Write-Host "############ CLEANING UP ############"
+        Write-Verbose "############ CLEANING UP ############"
         Set-Location $PSScriptRoot
         if ($newContext.solutionPath -ne '' -and $newContext.solutionPath -ne $null) {
             Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
             if ($ProcessError) {
-                Write-Host $ProcessError
+                Write-Verbose $ProcessError
             }
         }
 
@@ -56,7 +73,7 @@ function sf-create-sitefinity {
 
     try {
         if ($buildSolution) {
-            Write-Host "Building solution..."
+            Write-Verbose "Building solution..."
             sf-build-solution
         }
     } catch {
@@ -65,7 +82,7 @@ function sf-create-sitefinity {
     }
 
     try {
-        Write-Host "Creating website..."
+        Write-Verbose "Creating website..."
         _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
     } catch {
         $startWebApp = $false
@@ -74,7 +91,7 @@ function sf-create-sitefinity {
 
     if ($startWebApp) {
         try {
-            Write-Host "Initializing Sitefinity"
+            Write-Verbose "Initializing Sitefinity"
             _sf-create-startupConfig
             _sf-start-sitefinity
         } catch {
@@ -147,7 +164,7 @@ function sf-import-sitefinity {
         }
     } else {
         try {
-            Write-Host "Creating website..."
+            Write-Verbose "Creating website..."
             _sfData-set-currentContext $newContext
             _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
         } catch {
@@ -189,37 +206,37 @@ function sf-delete-sitefinity {
 
     # Del workspace
     if ($workspaceName -ne '' -and !($keepWorkspace)) {
-        Write-Host "Deleting workspace..."
+        Write-Verbose "Deleting workspace..."
         try {
             tfs-delete-workspace $workspaceName
         } catch {
-            Write-Host "Could not delete workspace $_.Exception.Message"
+            Write-Verbose "Could not delete workspace $_.Exception.Message"
         }
     }
 
     # Del db
-    Write-Host "Deleting sitefinity database..."
+    Write-Verbose "Deleting sitefinity database..."
     if ($dbName -ne '') {
         try {
             sql-delete-database -dbName $dbName
         } catch {
-            Write-Host "Could not delete database: ${dbName}. $_.Exception.Message"
+            Write-Verbose "Could not delete database: ${dbName}. $_.Exception.Message"
         }
     }
 
     # Del Website
-    Write-Host "Deleting website..."
+    Write-Verbose "Deleting website..."
     if ($websiteName -ne '') {
         try {
             _sf-delete-website
         } catch {
-            Write-Host "Could not delete website ${websiteName}. $_.Exception.Message"
+            Write-Verbose "Could not delete website ${websiteName}. $_.Exception.Message"
         }
     }
 
     # Del dir
     if (!($keepProjectFiles)) {
-        Write-Host "Resetting IIS and deleting solution directory..."
+        Write-Verbose "Resetting IIS and deleting solution directory..."
         try {
             iisreset.exe > $null
             if ($solutionPath -ne "") {
@@ -232,11 +249,11 @@ function sf-delete-sitefinity {
                 throw $ProcessError
             }
         } catch {
-            Write-Host "Errors deleting sitefinity directory. $_.Exception.Message"
+            Write-Verbose "Errors deleting sitefinity directory. $_.Exception.Message"
         }
     }
 
-    Write-Host "Deleting data entry..."
+    Write-Verbose "Deleting data entry..."
     _sfData-delete-context $context
     _sfData-set-currentContext $null
 
@@ -306,18 +323,18 @@ function sf-show-selectedSitefinity {
         [pscustomobject]@{id = 4; Parameter = "Workspace name"; Value = $workspaceName;},
         [pscustomobject]@{id = 5; Parameter = "Mapping"; Value = $context.branch;})
 
-    Write-Host "`n`nINSTANCE details:"
+    Write-Verbose "`n`nINSTANCE details:"
     $instanceDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
-    Write-Host "IIS details:"
+    Write-Verbose "IIS details:"
     $iisDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
-    Write-Host "TFS details:"
+    Write-Verbose "TFS details:"
     $tfsDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
 }
 
 function sf-show-allSitefinities {
     $sitefinities = @(_sfData-get-allContexts)
     if ($sitefinities[0] -eq $null) {
-        Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
+        Write-Verbose "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return
     }
     

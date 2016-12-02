@@ -1,3 +1,7 @@
+if (-not $sfToolLoaded) {
+    . "${PSScriptRoot}\..\sfTool.ps1"
+}
+
 function sf-set-storageMode {
     Param (
         [string]$storageMode,
@@ -157,55 +161,4 @@ function sf-insert-configContentInDb {
     $xmlString = Get-Content $filePath -Raw
 
     $config = sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value $xmlString -whereFilter "path='${configName}.config'"
-}
-
-function _sf-delete-startupConfig {
-    $context = _sf-get-context
-    $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
-    Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
-    if ($ProcessError) {
-        throw $ProcessError
-    }
-}
-
-function _sf-create-startupConfig {
-    $context = _sf-get-context
-    $webAppPath = $context.webAppPath
-    
-    Write-Host "Creating StartupConfig..."
-    try {
-        $appConfigPath = "${webAppPath}\App_Data\Sitefinity\Configuration"
-        if (-not (Test-Path $appConfigPath)) {
-            New-Item $appConfigPath -type directory > $null
-        }
-
-        $configPath = "${appConfigPath}\StartupConfig.config"
-
-        if(Test-Path -Path $configPath){
-            Remove-Item $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
-            if ($ProcessError) {
-                throw "Could not remove old StartupConfig $ProcessError"
-            }
-        }
-
-        $XmlWriter = New-Object System.XMl.XmlTextWriter($configPath,$Null)
-        $xmlWriter.WriteStartDocument()
-            $xmlWriter.WriteStartElement("startupConfig")
-                $XmlWriter.WriteAttributeString("dbName", $context.dbName)
-                $XmlWriter.WriteAttributeString("username", "admin")
-                $XmlWriter.WriteAttributeString("password", "admin@2")
-                $XmlWriter.WriteAttributeString("enabled", "True")
-                $XmlWriter.WriteAttributeString("initialized", "False")
-                $XmlWriter.WriteAttributeString("email", "admin@adminov.com")
-                $XmlWriter.WriteAttributeString("firstName", "Admin")
-                $XmlWriter.WriteAttributeString("lastName", "Adminov")
-                $XmlWriter.WriteAttributeString("dbType", "SqlServer")
-                $XmlWriter.WriteAttributeString("sqlInstance", $sqlServerInstance)
-            $xmlWriter.WriteEndElement()
-        $xmlWriter.Finalize
-        $xmlWriter.Flush()
-        $xmlWriter.Close() > $null
-    } catch {
-        throw "Error creating startupConfig. Message: $_.Exception.Message"
-    }
 }

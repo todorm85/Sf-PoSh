@@ -1,34 +1,5 @@
-Import-Module "WebAdministration"
-
-function sf-browse-webSite {
-    Param([switch]$useExistingBrowser)
-
-    $context = _sf-get-context
-    $port = @(iis-get-websitePort $context.websiteName)[0]
-    if ($port -eq '' -or $null -eq $port) {
-        throw "No sitefinity port set."
-    }
-
-    if (-not $useExistingBrowser) {
-        & start $browserPath
-    }
-
-    & $browserPath "http://localhost:${port}/Sitefinity" -noframemerging
-}
-
-function sf-reset-thread {
-    Param([switch]$start)
-
-    $context = _sf-get-context
-
-    $binPath = "$($context.webAppPath)\bin\dummy.sf"
-    New-Item -ItemType file -Path $binPath > $null
-    Remove-Item -Path $binPath > $null
-
-    if ($start) {
-        Start-Sleep -s 1
-        _sf-start-sitefinity
-    }
+if (-not $sfToolLoaded) {
+    . "${PSScriptRoot}\..\sfTool.ps1"
 }
 
 function sf-reset-pool {
@@ -61,7 +32,7 @@ function sf-change-appPool {
 
     foreach ($pool in $appPools) {
         $index = [array]::IndexOf($appPools, $pool)
-        Write-Host  $index : $pool.name
+        Write-Verbose  $index : $pool.name
     }
 
     while ($true) {
@@ -114,50 +85,6 @@ function sf-remove-sitePorts {
     }
 }
 
-function _sf-create-website {
-    Param(
-        [string]$newWebsiteName,
-        [string]$newPort,
-        [string]$newAppPool
-        )
-
-    $context = _sf-get-context
-    $websiteName = $context.websiteName
-
-    if ($context.websiteName -ne '' -and $null -ne $context.websiteName) {
-        throw 'Current context already has a website assigned!'
-    }
-
-    $newAppPath = $context.webAppPath
-    try {
-        $site = iis-create-website -newWebsiteName $newWebsiteName -newPort $newPort -newAppPath $newAppPath -newAppPool $newAppPool
-        $context.websiteName = $site.name
-        _sfData-save-context $context
-    } catch {
-        $context.websiteName = ''
-        throw "Error creating site: $_.Exception.Message"
-    }
-}
-
-function _sf-delete-website {
-    $context = _sf-get-context
-    $websiteName = $context.websiteName
-    if ($websiteName -eq '') {
-        throw "Website name not set."
-    }
-
-    $oldWebsiteName = $context.websiteName
-    $context.websiteName = ''
-    try {
-        _sfData-save-context $context
-        Remove-WebSite -Name $websiteName
-    } catch {
-        $context.websiteName = $oldWebsiteName
-        _sfData-save-context $context
-        throw "Error: $_.Exception.Message"
-    }
-}
-
 function sf-setup-asSubApp () {
     Param(
         [switch]$revert
@@ -186,7 +113,7 @@ function sf-get-appPoolId () {
         $entry -match "\(applicationPool:(?<pool>.*?)\)" > $Null
         $entryPool = $matches["pool"]
         if ($entryPool -eq $currentAppPool) {
-            Write-Host $entry
+            Write-Verbose $entry
             return
         }
     }
