@@ -1,8 +1,17 @@
-if (-not $sfToolLoaded) {
-    . "${PSScriptRoot}\..\sfTool.ps1"
-}
-
+<#
+    .SYNOPSIS 
+    Sets the config storage mode of selected sitefinity
+    .DESCRIPTION
+    If no parameters are passed user is prompted to choose from available
+    .PARAMETER storageMode
+    The storage mode given as string.
+    .PARAMETER restrictionLevel
+    The restirction level if storage mode is set to "auto", otherwise it is discarded.
+    .OUTPUTS
+    None
+#>
 function sf-set-storageMode {
+    [CmdletBinding()]
     Param (
         [string]$storageMode,
         [string]$restrictionLevel
@@ -89,7 +98,16 @@ function sf-set-storageMode {
     $webConfig.Save($webConfigPath) > $null
 }
 
+<#
+    .SYNOPSIS 
+    Returns config storage mode info object for selected sitefinity
+    .OUTPUTS
+    psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
+#>
 function sf-get-storageMode {
+    [CmdletBinding()]
+    Param()
+
     $context = _sf-get-context
 
     # set web.config readonly off
@@ -121,7 +139,18 @@ function sf-get-storageMode {
     return New-Object psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
 }
 
+<#
+    .SYNOPSIS
+    Extracts the sitefinity config contents from the database, formats it and saves it to desktop by default.
+    .PARAMETER configName
+    The name of the sitefinity config without extension
+    .PARAMETER filePath
+    The path to the file where the config contents will be saved. By default:"${Env:userprofile}\Desktop\dbExport.xml" 
+    .OUTPUTS
+    None
+#>
 function sf-get-configContentFromDb {
+    [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$true)]$configName,
         $filePath="${Env:userprofile}\Desktop\dbExport.xml"
@@ -142,7 +171,14 @@ function sf-get-configContentFromDb {
     }
 }
 
+<#
+    .SYNOPSIS 
+    Deletes the given config contents only from the database. Same config in file system is preserved
+    .PARAMETER configName
+    The sitefinity config name withouth extension
+#>
 function sf-clear-configContentInDb {
+    [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$true)]$configName
         )
@@ -151,7 +187,20 @@ function sf-clear-configContentInDb {
     sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value "<${configName}/>" -whereFilter "path='${configName}.config'"
 }
 
+<#
+    .SYNOPSIS
+    Inserts config content into database. 
+    .DESCRIPTION
+    Inserts the sitefinity config content from given path to the database.
+    .PARAMETER configName
+    Name of sitefinity config without extension that will be overriden in database with content from given file on the fs.
+    .PARAMETER filePath
+    The source file path whose content will be inserted to the databse. Default: $filePath="${Env:userprofile}\Desktop\dbImport.xml"
+    .OUTPUTS
+    None
+#>
 function sf-insert-configContentInDb {
+    [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$true)]$configName,
         $filePath="${Env:userprofile}\Desktop\dbImport.xml"

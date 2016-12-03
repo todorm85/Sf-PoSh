@@ -1,7 +1,6 @@
 # to use in PS5 type "Install-Module ImportExcel" GitHub: dfinke/ImportExcel
-. "${PSScriptRoot}\sf-tests-common.ps1"
 
-function sfTests-convert-xml2xls {
+function sfTest-convert-xml2xls {
     Param([string]$path)
     
     [System.Collections.ArrayList]$testsToExport = @()

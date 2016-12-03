@@ -53,8 +53,8 @@ function _sfData-apply-contextConventions {
         )
 
     $name = $defaultContext.name
-    $solutionPath = "d:\sitefinities\${name}";
-    $webAppPath = "d:\sitefinities\${name}\SitefinityWebApp";
+    $solutionPath = "${projectsDirectory}\${name}";
+    $webAppPath = "${projectsDirectory}\${name}\SitefinityWebApp";
     $websiteName = $name
     $appPool = "DefaultAppPool"
 

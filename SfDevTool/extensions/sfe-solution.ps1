@@ -1,8 +1,15 @@
-if (-not $sfToolLoaded) {
-    . "${PSScriptRoot}\..\sfTool.ps1"
-}
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-goto-configs {
+    [CmdletBinding()]
+    Param()
+
     $context = _sf-get-context
     $webAppPath = $context.webAppPath
 
@@ -10,7 +17,17 @@ function sf-goto-configs {
     ls
 }
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-clear-nugetCache {
+    [CmdletBinding()]
+    Param()
+    
     $context = _sf-get-context
     if (!(Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"

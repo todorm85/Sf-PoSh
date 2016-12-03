@@ -1,8 +1,7 @@
 
 . "${PSScriptRoot}\sf-tests-runner-config.ps1"
-. "${PSScriptRoot}\sf-tests-common.ps1"
 
-function sfTests-run-configuredCategories {
+function sfTest-run-configuredCategories {
     Param(
         [switch]$restoreDfDb
         )
@@ -19,7 +18,7 @@ function sfTests-run-configuredCategories {
                 }
             }
 
-            sfTests-run-tests -categories $cat
+            sfTest-run-tests -categories $cat
 
             Write-Verbose "$cat completed."
         } catch {
@@ -29,13 +28,13 @@ function sfTests-run-configuredCategories {
     }
 }
 
-function sfTests-run-configuredTests {
+function sfTest-run-configuredTests {
 
     forEach ($test in $tests) {
         try {
             Write-Verbose "$test started."
 
-            sfTests-run-tests -tests $test
+            sfTest-run-tests -tests $test
 
             Write-Verbose "$test completed."
         } catch {
@@ -45,7 +44,7 @@ function sfTests-run-configuredTests {
     }
 }
 
-function sfTests-rerun-tests () {
+function sfTest-rerun-tests () {
     Param($xmlPath = "D:\sitefinities\IntegrationTests01\test-results\tests.xml")
 
     $tests = _load-testsFromXml $xmlPath
@@ -63,7 +62,7 @@ function sfTests-rerun-tests () {
     foreach ($testGroupKey in $testsToRerun.Keys) {
         Write-Verbose "Resetting instance..."
         try {
-            _sfTests-reset-appDbp > $resetOutput
+            _sfTest-reset-appDbp > $resetOutput
         }
         catch {
             $resetOutput
@@ -73,12 +72,12 @@ function sfTests-rerun-tests () {
         Write-Verbose "Running fixture: $testGroupKey"
         foreach ($test in $testsToRerun[$testGroupKey]) {
             Write-Verbose "    Running method: $($test.TestMethodName)"
-            sfTests-run-tests -tests $test.TestMethodName > $Null
+            sfTest-run-tests -tests $test.TestMethodName > $Null
         }
     }
 }
 
-function sfTests-run-tests {
+function sfTest-run-tests {
     Param(
         [string]$categories = "",
         [string]$tests = ""
@@ -87,15 +86,15 @@ function sfTests-run-tests {
     & $cmdTestRunnerPath Run /Url=$sitefinityUrl /RunName=test /tests=$tests /CategoriesFilter=$categories /TfisTokenEndpointUrl=$TfisTokenEndpointUrl /TfisTokenEndpointBasicAuth=$TfisTokenEndpointBasicAuth /UserName=$username /Password=$pass /TraceFilePath="${resultsDirectory}\results.xml" 2>&1
 }
 
-function _sfTests-reset-appDbp () {
+function _sfTest-reset-appDbp () {
     sf-reset-appDbp
     sf-set-storageMode Auto Default
-    _sfTests-setup-multilingual
+    _sfTest-setup-multilingual
     sf-set-storageMode Auto ReadOnlyConfigFile
 }
 
-function _sfTests-setup-multilingual () {
-    sfTests-run-tests -tests "DummyTest"
+function _sfTest-setup-multilingual () {
+    sfTest-run-tests -tests "DummyTest"
 }
 
 function _df-restore-db {

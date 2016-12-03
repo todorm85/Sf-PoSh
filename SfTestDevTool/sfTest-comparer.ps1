@@ -1,10 +1,9 @@
-. "${PSScriptRoot}\sf-tests-common.ps1"
 
 $localTestResultsPath = "D:\DF-test-results\local-results"
 $remoteTestResultsPath = "D:\DF-test-results\df-results"
 $traceOutputDir = "${Env:userprofile}\Desktop"
 
-function sfTests-compare-testResultsFoldersByCategory {
+function sfTest-compare-testResultsFoldersByCategory {
 
     $locResFiles = _get-allXmls $localTestResultsPath
 
@@ -21,7 +20,7 @@ function sfTests-compare-testResultsFoldersByCategory {
     }
 }
 
-function sfTests-compare-testResultsFolders {
+function sfTest-compare-testResultsFolders {
 
     $localTests = _load-testsFromPath $localTestResultsPath
     $remoteTests = _load-testsFromPath $remoteTestResultsPath
@@ -29,7 +28,7 @@ function sfTests-compare-testResultsFolders {
     _compare-tests $localTests $remoteTests
 }
 
-function sfTests-compare-testResultsFiles {
+function sfTest-compare-testResultsFiles {
     Param(
         $fileName = "Core"
         )
@@ -111,5 +110,5 @@ function _compare-tests {
     $failedTests | Export-Excel "${traceOutputDir}\${traceFileName}.xlsx"
 }
 
-#sfTests-compare-testResultsFiles Connectors
-# sfTests-compare-testResultsFolders
+#sfTest-compare-testResultsFiles Connectors
+# sfTest-compare-testResultsFolders

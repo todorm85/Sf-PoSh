@@ -1,8 +1,13 @@
-if (-not $sfToolLoaded) {
-    . "${PSScriptRoot}\..\sfTool.ps1"
-}
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-reset-pool {
+    [CmdletBinding()]
     Param([switch]$start)
 
     $context = _sf-get-context
@@ -18,7 +23,17 @@ function sf-reset-pool {
     }
 }
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-change-appPool {
+    [CmdletBinding()]
+    Param()
+
     $context = _sf-get-context
     $websiteName = $context.websiteName
 
@@ -51,7 +66,15 @@ function sf-change-appPool {
     }
 }
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-add-sitePort {
+    [CmdletBinding()]
     Param(
         [int]$port = 1111,
         [switch]$auto
@@ -71,7 +94,15 @@ function sf-add-sitePort {
     iis-add-sitePort -name $websiteName -port $port
 }
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-remove-sitePorts {
+    [CmdletBinding()]
     Param(
         [string]$port
         )
@@ -85,7 +116,15 @@ function sf-remove-sitePorts {
     }
 }
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-setup-asSubApp () {
+    [CmdletBinding()]
     Param(
         [switch]$revert
     )
@@ -104,7 +143,17 @@ function sf-setup-asSubApp () {
 
 }
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-get-appPoolId () {
+    [CmdletBinding()]
+    Param()
+    
     $context = _sf-get-context
 
     $appPools = iis-show-appPoolPid

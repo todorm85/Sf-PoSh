@@ -15,13 +15,10 @@ $sfToolLoaded = $true
 . "${PSScriptRoot}\core\sf-app.ps1"
 
 # Extensions
-. "${PSScriptRoot}\extensions\sfe-dbp.ps1"
-. "${PSScriptRoot}\extensions\sfe-tests.ps1"
 . "${PSScriptRoot}\extensions\sfe-configs.ps1"
 . "${PSScriptRoot}\extensions\sfe-app.ps1"
 . "${PSScriptRoot}\extensions\sfe-iis.ps1"
 . "${PSScriptRoot}\extensions\sfe-solution.ps1"
-. "${PSScriptRoot}\extensions\sfe-dec.ps1"
 . "${PSScriptRoot}\extensions\sfe-tfs.ps1"
 
 # Startup

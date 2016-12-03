@@ -1,15 +1,20 @@
-if (-not $sfToolLoaded) {
-    . "${PSScriptRoot}\..\sfTool.ps1"
-}
 
-function sf-copy-decModule {
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
+function sfDec-copy-decModule {
+    [CmdletBinding()]
     Param(
         [string]$decModuleDllsPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\bin\Debug",
         [string]$decIntegrationTestsDllsPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug",
         [switch]$revert
         )
 
-    $context = _sf-get-context
+    $context = _sfDec-get-context
     $targetPath = "$($context.webAppPath)\bin"
 
     $decModuleDllsToCopy = @("Telerik.Sitefinity.DataIntelligenceConnector", "Telerik.DigitalExperienceCloud.Client" )
@@ -39,7 +44,18 @@ function sf-copy-decModule {
     }
 }
 
-function sf-open-dec {
-
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
+function sfDec-open-dec {
+    [CmdletBinding()]
+    Param()
+    
     & "D:\DEC-Connector\data-intell-sitefinity-connector\DataIntellConnector.sln"
 }
+
+Export-ModuleMember -Function '*'

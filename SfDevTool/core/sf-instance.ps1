@@ -2,11 +2,11 @@
     .SYNOPSIS 
     Provisions a new sitefinity instance project. 
     .DESCRIPTION
-    Gets latest from the branch, builds and starts a sitefinity instance with default admin user username:admin pass:admin@2.
+    Gets latest from the branch, builds and starts a sitefinity instance with default admin user username:admin pass:admin@2. The local path where the project files are created is specified in the constants script file (EnvConstants.ps1).
     .PARAMETER name
-    The name of the new sitefinity instance, which is used to select it.
+    The name of the new sitefinity instance.
     .PARAMETER branch
-    The tfs branch from which the source code is downloaded.
+    The tfs branch from which the Sitefinity source code is downloaded.
     .PARAMETER buildSolution
     Builds the solution after downloading from tfs.
     .PARAMETER startWebApp
@@ -104,7 +104,20 @@ function sf-provision-sitefinity {
     os-popup-notification "Operation completed!"
 }
 
+<#
+    .SYNOPSIS 
+    Imports a new sitefinity instance project from given local path. 
+    .DESCRIPTION
+    A sitefinity web app project or Sitefinity solution can be imported. 
+    .PARAMETER displyName
+    The name of the imported sitefinity instance.
+    .PARAMETER path
+    The directory which contains either Telerik.Sitefinity.sln or SitefinityWebApp.csproj files. The app automatically detects whether the full Sitefinity source code or just the webapp that uses Sitefinity CMS is available.
+    .OUTPUTS
+    None
+#>
 function sf-import-sitefinity {
+    [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$true)][string]$displayName,
         [Parameter(Mandatory=$true)][string]$path
@@ -180,7 +193,20 @@ function sf-import-sitefinity {
     os-popup-notification "Operation completed!"
 }
 
+<#
+    .SYNOPSIS 
+    Deletes a sitefinity instance managed by the script.
+    .DESCRIPTION
+    Everything is deleted - local project files, database, TFS workspace if no switches are passed. 
+    .PARAMETER keepWorkspace
+    Keeps the workspace if one exists.
+    .PARAMETER keepProjectFiles
+    Keeps the project files.
+    .OUTPUTS
+    None
+#>
 function sf-delete-sitefinity {
+    [CmdletBinding()]
     Param(
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles
@@ -263,7 +289,17 @@ function sf-delete-sitefinity {
     sf-select-sitefinity
 }
 
+<#
+    .SYNOPSIS 
+    Displays a list of available sitefinities to select from.
+    .DESCRIPTION
+    Sitefinities that are displayed are displayed by their names. These are sitefinities that were either provisioned or imported by this script. 
+    .OUTPUTS
+    None
+#>
 function sf-select-sitefinity {
+    [CmdletBinding()]Param()
+
     $sitefinities = @(_sfData-get-allContexts)
 
     sf-show-allSitefinities
@@ -280,7 +316,16 @@ function sf-select-sitefinity {
     Set-Location $selectedSitefinity.webAppPath
 }
 
+<#
+    .SYNOPSIS 
+    Renames the current selected sitefinity.
+    .PARAMETER newName
+    The new name of the current sitefinity instance.
+    .OUTPUTS
+    None
+#>
 function sf-rename-sitefinity {
+    [CmdletBinding()]Param()
     Param([string]$newName)
 
     $context = _sf-get-context
@@ -299,6 +344,10 @@ function sf-rename-sitefinity {
     _sfData-save-context $context
 }
 
+<#
+    .SYNOPSIS 
+    Shows info for selected sitefinity.
+#>
 function sf-show-selectedSitefinity {
     $context = _sf-get-context
 
@@ -323,14 +372,18 @@ function sf-show-selectedSitefinity {
         [pscustomobject]@{id = 4; Parameter = "Workspace name"; Value = $workspaceName;},
         [pscustomobject]@{id = 5; Parameter = "Mapping"; Value = $context.branch;})
 
-    Write-Verbose "`n`nINSTANCE details:"
+    Write-Host "`n`nINSTANCE details:"
     $instanceDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
-    Write-Verbose "IIS details:"
+    Write-Host "IIS details:"
     $iisDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
-    Write-Verbose "TFS details:"
+    Write-Host "TFS details:"
     $tfsDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
 }
 
+<#
+    .SYNOPSIS 
+    Shows info for all sitefinities managed by the script.
+#>
 function sf-show-allSitefinities {
     $sitefinities = @(_sfData-get-allContexts)
     if ($sitefinities[0] -eq $null) {

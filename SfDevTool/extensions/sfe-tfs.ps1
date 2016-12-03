@@ -1,8 +1,15 @@
-if (-not $sfToolLoaded) {
-    . "${PSScriptRoot}\..\sfTool.ps1"
-}
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-undo-pendingChanges {
+    [CmdletBinding()]
+    Param()
+
     $context = _sf-get-context
     if (!(Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
@@ -11,7 +18,15 @@ function sf-undo-pendingChanges {
     tfs-undo-pendingChanges $context.solutionPath
 }
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-show-pendingChanges {
+    [CmdletBinding()]
     Param(
         [switch]$detailed
         )
@@ -27,7 +42,17 @@ function sf-show-pendingChanges {
     & tf.exe stat /workspace:$workspaceName /format:$($format)
 }
 
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
 function sf-get-latest {
+    [CmdletBinding()]
+    Param()
+    
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
