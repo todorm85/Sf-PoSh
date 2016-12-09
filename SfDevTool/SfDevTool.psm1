@@ -1,5 +1,3 @@
-$sfToolLoaded = $true
-
 # Dependencies
 . "${PSScriptRoot}\EnvConstants.ps1"
 . "${PSScriptRoot}\common\iis.ps1"

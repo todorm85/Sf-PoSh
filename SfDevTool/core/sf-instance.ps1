@@ -31,20 +31,20 @@ function sf-provision-sitefinity {
             throw "Path already exists:" + $defaultContext.solutionPath
         }
 
-        Write-Verbose "Creating solution path..."
+        Write-Host "Creating solution path..."
         New-Item $defaultContext.solutionPath -type directory > $null
         $newContext.solutionPath = $defaultContext.solutionPath;
 
         # create and map workspace
-        Write-Verbose "Creating workspace..."
+        Write-Host "Creating workspace..."
         $workspaceName = $defaultContext.displayName
         tfs-create-workspace $workspaceName $defaultContext.solutionPath
 
-        Write-Verbose "Creating workspace mappings..."
+        Write-Host "Creating workspace mappings..."
         tfs-create-mappings -branch $branch -branchMapPath $defaultContext.solutionPath -workspaceName $workspaceName
         $newContext.branch = $branch
 
-        Write-Verbose "Getting latest workspace changes..."
+        Write-Host "Getting latest workspace changes..."
         tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
 
         # persist current context to script data
@@ -55,25 +55,32 @@ function sf-provision-sitefinity {
         _sfData-set-currentContext $newContext
         _sfData-save-context $newContext
     } catch {
-        Write-Verbose "############ CLEANING UP ############"
+        Write-Error "############ CLEANING UP ############"
         Set-Location $PSScriptRoot
+
+        
         if ($newContext.solutionPath -ne '' -and $newContext.solutionPath -ne $null) {
-            Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+            if (tfs-get-workspaceName -ne '') {
+                tfs-delete-workspace $workspaceName
+            }
+
+            Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
             if ($ProcessError) {
-                Write-Verbose $ProcessError
+                Write-Error $ProcessError
             }
         }
+        
 
         if ($oldContext -ne '') {
             _sfData-set-currentContext $oldContext
         }
 
-        throw "Nothing created. Try again. Error: $_.Exception.Message"
+        throw "Nothing created. Try again. Error: $_"
     }
 
     try {
         if ($buildSolution) {
-            Write-Verbose "Building solution..."
+            Write-Host "Building solution..."
             sf-build-solution
         }
     } catch {
@@ -82,7 +89,7 @@ function sf-provision-sitefinity {
     }
 
     try {
-        Write-Verbose "Creating website..."
+        Write-Host "Creating website..."
         _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
     } catch {
         $startWebApp = $false
@@ -91,7 +98,7 @@ function sf-provision-sitefinity {
 
     if ($startWebApp) {
         try {
-            Write-Verbose "Initializing Sitefinity"
+            Write-Host "Initializing Sitefinity"
             _sf-create-startupConfig
             _sf-start-sitefinity
         } catch {
@@ -177,7 +184,7 @@ function sf-import-sitefinity {
         }
     } else {
         try {
-            Write-Verbose "Creating website..."
+            Write-Host "Creating website..."
             _sfData-set-currentContext $newContext
             _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
         } catch {
@@ -232,37 +239,37 @@ function sf-delete-sitefinity {
 
     # Del workspace
     if ($workspaceName -ne '' -and !($keepWorkspace)) {
-        Write-Verbose "Deleting workspace..."
+        Write-Host "Deleting workspace..."
         try {
             tfs-delete-workspace $workspaceName
         } catch {
-            Write-Verbose "Could not delete workspace $_.Exception.Message"
+            Write-Host "Could not delete workspace $_.Exception.Message"
         }
     }
 
     # Del db
-    Write-Verbose "Deleting sitefinity database..."
+    Write-Host "Deleting sitefinity database..."
     if ($dbName -ne '') {
         try {
             sql-delete-database -dbName $dbName
         } catch {
-            Write-Verbose "Could not delete database: ${dbName}. $_.Exception.Message"
+            Write-Host "Could not delete database: ${dbName}. $_.Exception.Message"
         }
     }
 
     # Del Website
-    Write-Verbose "Deleting website..."
+    Write-Host "Deleting website..."
     if ($websiteName -ne '') {
         try {
             _sf-delete-website
         } catch {
-            Write-Verbose "Could not delete website ${websiteName}. $_.Exception.Message"
+            Write-Host "Could not delete website ${websiteName}. $_.Exception.Message"
         }
     }
 
     # Del dir
     if (!($keepProjectFiles)) {
-        Write-Verbose "Resetting IIS and deleting solution directory..."
+        Write-Host "Resetting IIS and deleting solution directory..."
         try {
             iisreset.exe > $null
             if ($solutionPath -ne "") {
@@ -275,11 +282,11 @@ function sf-delete-sitefinity {
                 throw $ProcessError
             }
         } catch {
-            Write-Verbose "Errors deleting sitefinity directory. $_.Exception.Message"
+            Write-Host "Errors deleting sitefinity directory. $_.Exception.Message"
         }
     }
 
-    Write-Verbose "Deleting data entry..."
+    Write-Host "Deleting data entry..."
     _sfData-delete-context $context
     _sfData-set-currentContext $null
 
@@ -325,7 +332,7 @@ function sf-select-sitefinity {
     None
 #>
 function sf-rename-sitefinity {
-    [CmdletBinding()]Param()
+    [CmdletBinding()]
     Param([string]$newName)
 
     $context = _sf-get-context
@@ -387,7 +394,7 @@ function sf-show-selectedSitefinity {
 function sf-show-allSitefinities {
     $sitefinities = @(_sfData-get-allContexts)
     if ($sitefinities[0] -eq $null) {
-        Write-Verbose "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
+        Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return
     }
     

@@ -35,18 +35,18 @@ function sf-reset-app {
     }
 
     $context = _sf-get-context
-    # Write-Verbose "Restarting app pool..."
+    # Write-Host "Restarting app pool..."
     # Restart-WebItem ("IIS:\AppPools\" + $appPool)
     # iisreset.exe
 
-    Write-Verbose "Deleting App_Data files..."
+    Write-Host "Deleting App_Data files..."
     try {
         _sf-delete-appDataFiles
     } catch {
         Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_.Exception.Message"
     }
 
-    Write-Verbose "Deleting database..."
+    Write-Host "Deleting database..."
     try {
         sql-delete-database -dbName $context.dbName
     } catch {
@@ -61,7 +61,7 @@ function sf-reset-app {
         }
     }
     
-    Write-Verbose "Restarting app threads..."
+    Write-Host "Restarting app threads..."
     sf-reset-thread
 
     if ($start) {
@@ -70,7 +70,7 @@ function sf-reset-app {
             $port = @(iis-get-websitePort $context.websiteName)[0]
             _sf-start-sitefinity -url "http://localhost:$($port)"
         } catch {
-            Write-Verbose "`n`n"
+            Write-Host "`n`n"
             Write-Warning "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`n"
 
             _sf-delete-startupConfig
@@ -78,7 +78,7 @@ function sf-reset-app {
             $choice = Read-Host "Display stack trace? [y/n]"
             while($true) {
                 if ($choice -eq 'y') {
-                    Write-Verbose "`n`nException: $_.Exception"
+                    Write-Host "`n`nException: $_.Exception"
                     break
                 }
 
@@ -125,7 +125,7 @@ function _sf-start-sitefinity {
         $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
         $statusUrl = "$url/appstatus"
 
-        Write-Verbose "Attempt[$attempt] Starting Sitefinity..."
+        Write-Host "Attempt[$attempt] Starting Sitefinity..."
         $retryCount = 0
 
         try
@@ -136,12 +136,12 @@ function _sf-start-sitefinity {
             # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
             if($response.StatusCode -eq 200)
             {
-                Write-Verbose "Sitefinity is starting..."
+                Write-Host "Sitefinity is starting..."
             }
 
             while($response.StatusCode -eq 200)
             {
-                Write-Verbose "Retry[$retryCount] Checking Sitefinity status: '$statusUrl'"
+                Write-Host "Retry[$retryCount] Checking Sitefinity status: '$statusUrl'"
                 $retryCount++
 
                 # Checking for error status info
@@ -184,9 +184,9 @@ function _sf-start-sitefinity {
                }
 
             } else {
-               Write-Verbose "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"
-               # Write-Verbose $_ | Format-List -Force
-               # Write-Verbose $_.Exception | Format-List -Force
+               Write-Host "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"
+               # Write-Host $_ | Format-List -Force
+               # Write-Host $_.Exception | Format-List -Force
                throw $_
            }
         }
@@ -209,7 +209,7 @@ function _sf-create-startupConfig {
     $context = _sf-get-context
     $webAppPath = $context.webAppPath
     
-    Write-Verbose "Creating StartupConfig..."
+    Write-Host "Creating StartupConfig..."
     try {
         $appConfigPath = "${webAppPath}\App_Data\Sitefinity\Configuration"
         if (-not (Test-Path $appConfigPath)) {

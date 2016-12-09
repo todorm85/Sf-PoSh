@@ -14,7 +14,7 @@ function sfDec-copy-decModule {
         [switch]$revert
         )
 
-    $context = _sfDec-get-context
+    $context = _sf-get-context
     $targetPath = "$($context.webAppPath)\bin"
 
     $decModuleDllsToCopy = @("Telerik.Sitefinity.DataIntelligenceConnector", "Telerik.DigitalExperienceCloud.Client" )

@@ -63,7 +63,7 @@ function sf-get-latest {
         throw "Solution path is not set."
     }
 
-    Write-Verbose "Getting latest changes for path ${solutionPath}."
+    Write-Host "Getting latest changes for path ${solutionPath}."
     tfs-get-latestChanges -branchMapPath $solutionPath
-    Write-Verbose "Getting latest changes complete."
+    Write-Host "Getting latest changes complete."
 }

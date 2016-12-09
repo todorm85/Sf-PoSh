@@ -1,4 +1,11 @@
 
+function _iis-load-webAdministrationModule () {
+    $mod = Get-Module WebAdministration
+    if ($null -eq $mod -or '' -eq $mod) {
+        Import-Module WebAdministration
+    }
+}
+
 function iis-get-websitePort {
     Param (
         [Parameter(Mandatory=$true)][string] $webAppName
@@ -6,12 +13,6 @@ function iis-get-websitePort {
 
     _iis-load-webAdministrationModule
     Get-WebBinding -Name $webAppName | select -expand bindingInformation | %{$_.split(':')[-2]}
-}
-
-function _iis-load-webAdministrationModule () {
-    if (Get-Module "WebAdministration" -ne $null) {
-        Import-Module "WebAdministration"
-    }
 }
 
 function iis-show-appPoolPid {
@@ -60,7 +61,7 @@ function iis-delete-appPool ($appPoolName) {
 
         foreach ($pool in $appPools) {
             $index = [array]::IndexOf($appPools, $pool)
-            Write-Verbose  $index : $pool.name
+            Write-Host  $index : $pool.name
         }
 
         while ($true) {
@@ -76,7 +77,7 @@ function iis-delete-appPool ($appPoolName) {
     
     $apps = iis-get-appPoolApps $appPoolName
     if ($apps.Length -gt 0) {
-        Write-Verbose 'CANNOT DELETE APP POOL! AppPool has websites and apps hosted'
+        Write-Host 'CANNOT DELETE APP POOL! AppPool has websites and apps hosted'
     } else {
         Remove-WebAppPool -Name $appPoolName
     }
@@ -97,7 +98,7 @@ function iis-create-website {
         # select appPool
         ForEach ($pool in $availablePools) {
             $index = [array]::IndexOf($availablePools, $pool)
-            Write-Verbose $index : $pool.Name
+            Write-Host $index : $pool.Name
         }
 
         while ($true) {
@@ -120,7 +121,7 @@ function iis-create-website {
         $isDuplicateSite = $false
         ForEach ($site in $availableSites) {
             if ($site.name.ToLower() -eq $newWebsiteName) {
-                Write-Verbose "Site exists"
+                Write-Host "Site exists"
                 $isDuplicateSite = $true
                 break
             }
@@ -143,7 +144,7 @@ function iis-create-website {
         $isReserved = $false
         ForEach ($reservedPort in $reservedPorts) {
             if ($reservedPort -eq $newPort) {
-                Write-Verbose "Port ${newPort} already used"
+                Write-Host "Port ${newPort} already used"
                 $isReserved = $true
                 break
             }

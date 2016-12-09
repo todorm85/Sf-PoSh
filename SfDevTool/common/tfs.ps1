@@ -110,7 +110,7 @@ function tfs-get-latestChanges {
     {
         throw "Error getting latest changes. Message: $output"
     } else {
-        Write-Verbose $output
+        Write-Host "Success getting latest changes from tfs branch."
     }
 }
 
@@ -125,7 +125,7 @@ function tfs-undo-pendingChanges {
     {
         throw "Error undoing pending changes. Message: $output"
     } else {
-        Write-Verbose $output
+        Write-Host $output
     }       
 }
 

@@ -86,7 +86,7 @@ function _sf-delete-website {
     $context.websiteName = ''
     try {
         _sfData-save-context $context
-        New-Item ("iis:\Sites\${websiteName}")
+        Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
     } catch {
         $context.websiteName = $oldWebsiteName
         _sfData-save-context $context

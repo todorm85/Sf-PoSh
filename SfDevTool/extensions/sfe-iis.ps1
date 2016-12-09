@@ -47,7 +47,7 @@ function sf-change-appPool {
 
     foreach ($pool in $appPools) {
         $index = [array]::IndexOf($appPools, $pool)
-        Write-Verbose  $index : $pool.name
+        Write-Host  $index : $pool.name
     }
 
     while ($true) {
@@ -162,7 +162,7 @@ function sf-get-appPoolId () {
         $entry -match "\(applicationPool:(?<pool>.*?)\)" > $Null
         $entryPool = $matches["pool"]
         if ($entryPool -eq $currentAppPool) {
-            Write-Verbose $entry
+            Write-Host $entry
             return
         }
     }

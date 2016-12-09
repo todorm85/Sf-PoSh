@@ -8,7 +8,7 @@ function sfTest-run-configuredCategories {
 
     forEach ($cat in $categories) {
         try {
-            Write-Verbose "$cat started."
+            Write-Host "$cat started."
     
             if ($restoreDfDb) {
                 try {
@@ -20,9 +20,9 @@ function sfTest-run-configuredCategories {
 
             sfTest-run-tests -categories $cat
 
-            Write-Verbose "$cat completed."
+            Write-Host "$cat completed."
         } catch {
-            Write-Verbose "Stopping all runs... Error: " + $_
+            Write-Host "Stopping all runs... Error: " + $_
             break
         }
     }
@@ -32,13 +32,13 @@ function sfTest-run-configuredTests {
 
     forEach ($test in $tests) {
         try {
-            Write-Verbose "$test started."
+            Write-Host "$test started."
 
             sfTest-run-tests -tests $test
 
-            Write-Verbose "$test completed."
+            Write-Host "$test completed."
         } catch {
-            Write-Verbose "Stopping all runs... Error: " + $_
+            Write-Host "Stopping all runs... Error: " + $_
             break
         }
     }
@@ -60,7 +60,7 @@ function sfTest-rerun-tests () {
     }
 
     foreach ($testGroupKey in $testsToRerun.Keys) {
-        Write-Verbose "Resetting instance..."
+        Write-Host "Resetting instance..."
         try {
             _sfTest-reset-appDbp > $resetOutput
         }
@@ -69,9 +69,9 @@ function sfTest-rerun-tests () {
             return            
         }
 
-        Write-Verbose "Running fixture: $testGroupKey"
+        Write-Host "Running fixture: $testGroupKey"
         foreach ($test in $testsToRerun[$testGroupKey]) {
-            Write-Verbose "    Running method: $($test.TestMethodName)"
+            Write-Host "    Running method: $($test.TestMethodName)"
             sfTest-run-tests -tests $test.TestMethodName > $Null
         }
     }
@@ -87,7 +87,7 @@ function sfTest-run-tests {
 }
 
 function _sfTest-reset-appDbp () {
-    sf-reset-appDbp
+    sfDbp-reset-appDbp
     sf-set-storageMode Auto Default
     _sfTest-setup-multilingual
     sf-set-storageMode Auto ReadOnlyConfigFile
@@ -111,7 +111,7 @@ function _df-restore-db {
 
     if($response.StatusCode -eq 202)
     {
-        Write-Verbose "Database is restoring..."
+        Write-Host "Database is restoring..."
     } else {
         throw "Not accepted restore of Database on DF"
     }
