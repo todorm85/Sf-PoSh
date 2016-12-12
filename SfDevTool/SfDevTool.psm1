@@ -1,9 +1,9 @@
 # Dependencies
 . "${PSScriptRoot}\EnvConstants.ps1"
 . "${PSScriptRoot}\common\iis.ps1"
-. "${PSScriptRoot}\common\sql.ps1" $sqlServerInstance
+. "${PSScriptRoot}\common\sql.ps1"
 . "${PSScriptRoot}\common\os.ps1"
-. "${PSScriptRoot}\common\tfs.ps1" $tfPath
+. "${PSScriptRoot}\common\tfs.ps1"
 
 # Core
 . "${PSScriptRoot}\core\sf-data.ps1"

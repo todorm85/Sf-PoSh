@@ -1,7 +1,3 @@
-Param(
-    [Parameter(Mandatory=$true)][string]$tfPath
-    )
-
 function tfs-get-workspaces {
         
     [void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.TeamFoundation.Client");
