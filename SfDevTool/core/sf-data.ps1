@@ -1,14 +1,15 @@
 $dataPath = "${PSScriptRoot}\..\db.xml"
 
 function _sf-get-context {
-    $context = _sfData-get-currentContext
-    if ($context -eq '') {
+    $currentContext = _sfData-get-currentContext
+    if ($currentContext -eq '') {
         throw "Invalid context object."
-    } elseif ($null -eq $context) {
+    } elseif ($null -eq $currentContext) {
         throw "No sitefinity selected."
-    } else {
-        return $context
     }
+
+    $context = $currentContext.PsObject.Copy()
+    return $context
 }
 
 function _sfData-validate-context {
@@ -175,7 +176,7 @@ function _sfData-delete-context {
     $name = $context.name
     try {
         $data = New-Object XML
-        $data.Load($dataPath)
+        $data.Load($dataPath) > $null
         $sitefinities = $data.data.sitefinities.sitefinity
         ForEach($sitefinity in $sitefinities) {
             if ($sitefinity.name -eq $name) {
@@ -196,7 +197,7 @@ function _sfData-save-context {
     _sfData-validate-context $context
     try {
         $data = New-Object XML
-        $data.Load($dataPath)
+        $data.Load($dataPath) > $null
         $sitefinities = $data.data.sitefinities.sitefinity
         ForEach($sitefinity in $sitefinities) {
             if ($sitefinity.name -eq $context.name) {
@@ -218,6 +219,7 @@ function _sfData-save-context {
         $sitefinityEntry.SetAttribute("dbName", $context.dbName)
         $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
         $sitefinityEntry.SetAttribute("branch", $context.branch)
+        $sitefinityEntry.SetAttribute("description", $context.description)
         # $sitefinityEntry.SetAttribute("port", $context.port)
         # $sitefinityEntry.SetAttribute("appPool", $context.appPool)
 
@@ -225,6 +227,8 @@ function _sfData-save-context {
     } catch {
         throw "Error creating sitefinity in ${dataPath} database file"
     }
+
+    _sfData-set-currentContext $context
 }
 
 function _sfData-init-data {

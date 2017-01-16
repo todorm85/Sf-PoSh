@@ -1,5 +1,5 @@
 
-$dbpAccountId = "02853754-a710-481f-8423-2fa62e45b215"
+$dbpAccountId = "dce32661-b47d-48a2-882b-326a802fe786"
 $dbpPort = 4080
 $dbpEnv = "uat"
 
@@ -60,8 +60,8 @@ function sfDbp-reset-appDbp {
 
     $context = _sf-get-context
 
-    $oldConfigStorageSettings = sfDbp-get-storageMode
-    sfDbp-set-storageMode -storageMode $oldConfigStorageSettings.StorageMode -restrictionLevel "Default"
+    $oldConfigStorageSettings = sf-get-storageMode
+    sf-set-storageMode -storageMode $oldConfigStorageSettings.StorageMode -restrictionLevel "Default"
 
     try {
         try {
@@ -73,7 +73,7 @@ function sfDbp-reset-appDbp {
 
         Write-Host "Resetting sitefinity web app..."
         try {
-            $output = sfDbp-reset-app -start
+            $output = sf-reset-app -start
         } catch {
             Write-Warning "Some errors ocurred during resetting of sitefinity web app... Message: $output"
         }
@@ -88,13 +88,13 @@ function sfDbp-reset-appDbp {
         Write-Host "Resetting app threads in IIS..."
         sf-reset-thread
 
-        Write-Host "Starting sitefinity..."
-        $port = @(iis-get-websitePort $context.websiteName)[0]
-        _sfDbp-start-sitefinity -url "http://localhost:$($port)"
+        # Write-Host "Starting sitefinity..."
+        # $port = @(iis-get-websitePort $context.websiteName)[0]
+        # _sf-start-sitefinity -url "http://localhost:$($port)"
     } catch {
         Write-Error "`n`nException: $_.Exception"
     } finally {
-        sfDbp-set-storageMode -storageMode $oldConfigStorageSettings.StorageMode -restrictionLevel $oldConfigStorageSettings.RestrictionLevel
+        sf-set-storageMode -storageMode $oldConfigStorageSettings.StorageMode -restrictionLevel $oldConfigStorageSettings.RestrictionLevel
     }
 }
 

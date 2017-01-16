@@ -111,6 +111,8 @@ function sf-provision-sitefinity {
     os-popup-notification "Operation completed!"
 }
 
+New-Alias -name ns -value sf-provision-sitefinity
+
 <#
     .SYNOPSIS 
     Imports a new sitefinity instance project from given local path. 
@@ -209,6 +211,8 @@ function sf-import-sitefinity {
     Keeps the workspace if one exists.
     .PARAMETER keepProjectFiles
     Keeps the project files.
+    .PARAMETER keepProjectFiles
+    Forces the deletion by resetting IIS to free any locked files by the app.
     .OUTPUTS
     None
 #>
@@ -216,7 +220,8 @@ function sf-delete-sitefinity {
     [CmdletBinding()]
     Param(
         [switch]$keepWorkspace,
-        [switch]$keepProjectFiles
+        [switch]$keepProjectFiles,
+        [switch]$force
         )
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
@@ -269,9 +274,14 @@ function sf-delete-sitefinity {
 
     # Del dir
     if (!($keepProjectFiles)) {
-        Write-Host "Resetting IIS and deleting solution directory..."
         try {
-            iisreset.exe > $null
+            if ($force) {
+                Write-Host "Resetting IIS..."
+                iisreset.exe > $null
+            }
+
+            Write-Host "Deleting solution directory..."
+            
             if ($solutionPath -ne "") {
                 Remove-Item $solutionPath -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
             } else {
@@ -323,69 +333,116 @@ function sf-select-sitefinity {
     Set-Location $selectedSitefinity.webAppPath
 }
 
+New-Alias -name ss -value sf-select-sitefinity
+
 <#
     .SYNOPSIS 
     Renames the current selected sitefinity.
-    .PARAMETER newName
-    The new name of the current sitefinity instance.
+    .PARAMETER markUnused
+    If set renames the instanse to '-' and the workspace name to 'unused_{current date}.
+    .OUTPUTS
+    None
+#>
+function sf-set-description {
+    $context = _sf-get-context
+
+    $context.description = $(Read-Host -Prompt "Enter description: ").ToString()
+
+    _sfData-save-context $context
+}
+
+New-Alias -name sd -value sf-set-description
+
+<#
+    .SYNOPSIS 
+    Renames the current selected sitefinity.
+    .PARAMETER markUnused
+    If set renames the instanse to '-' and the workspace name to 'unused_{current date}.
     .OUTPUTS
     None
 #>
 function sf-rename-sitefinity {
     [CmdletBinding()]
-    Param([string]$newName)
+    Param(
+        [switch]$markUnused,
+        [switch]$setDescription
+    )
 
     $context = _sf-get-context
 
-    if ([string]::IsNullOrEmpty($newName)) {
-        $newName = $context.name
+    if ($markUnused) {
+        $newName = "-"
+        $context.description = ""
+    } else {
+        while ([string]::IsNullOrEmpty($newName)) {
+            $newName = $(Read-Host -Prompt "Enter new name: ").ToString()
+        }
+        
+        if ($setDescription) {
+            $context.description = $(Read-Host -Prompt "Enter description:`n").ToString()
+        }
     }
 
     $context.displayName = $newName
+
     $workspaceName = tfs-get-workspaceName $context.webAppPath
-    if ($workspaceName -ne "") {
-        & $tfPath workspace /newname:$newName $workspaceName /noprompt
-        $workspaceName = $newName
+    $newWorkspaceName = $newName
+    if ($workspaceName -ne "" -and $markUnused) {
+        $newWorkspaceName = "unused_$(Get-Date | ForEach { $_.Ticks })"
     }
+
+    try {
+        & $tfPath workspace /newname:$newWorkspaceName $workspaceName /noprompt
+    }
+    catch {
+        Write-Error "Failed to rename sitefinity. Error: $($_.Exception)"
+        return
+    }
+
+    $workspaceName = $newName
     
     _sfData-save-context $context
 }
+
+New-Alias -name rs -value sf-rename-sitefinity
 
 <#
     .SYNOPSIS 
     Shows info for selected sitefinity.
 #>
-function sf-show-selectedSitefinity {
+function sf-show-currentSitefinity {
+    [CmdletBinding()]
+    Param([switch]$detail)
     $context = _sf-get-context
+
+    if (-not $detail) {
+        Write-Host "$($context.displayName) | $($context.branch)"
+        return    
+    }
 
     $ports = @(iis-get-websitePort $context.websiteName)
     $appPool = @(iis-get-siteAppPool $context.websiteName)
     $workspaceName = tfs-get-workspaceName $context.webAppPath
     # $mapping = tfs-get-mappings $context.webAppPath
 
-    $instanceDetails = @(
-        [pscustomobject]@{id = 1; Parameter = "Sitefinity name"; Value = $context.displayName;},
-        [pscustomobject]@{id = 2; Parameter = "Solution path"; Value = $context.solutionPath;},
-        [pscustomobject]@{id = 3; Parameter = "Web app path"; Value = $context.webAppPath;},
-        [pscustomobject]@{id = 6; Parameter = "Database Name"; Value = $context.dbName;}
+    $otherDetails = @(
+        [pscustomobject]@{id = 1; Parameter = "Solution path"; Value = $context.solutionPath;},
+        [pscustomobject]@{id = 2; Parameter = "Web app path"; Value = $context.webAppPath;},
+        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = $context.dbName;},
+        [pscustomobject]@{id = 1; Parameter = "Website Name in IIS"; Value = $context.websiteName;},
+        [pscustomobject]@{id = 2; Parameter = "Ports"; Value = $ports;},
+        [pscustomobject]@{id = 3; Parameter = "Application Pool Name"; Value = $appPool;},
+        [pscustomobject]@{id = 1; Parameter = "Workspace name"; Value = $workspaceName;},
+        [pscustomobject]@{id = 2; Parameter = "Mapping"; Value = $context.branch;}
     )
 
-    $iisDetails = @(
-        [pscustomobject]@{id = 7; Parameter = "Website Name in IIS"; Value = $context.websiteName;},
-        [pscustomobject]@{id = 8; Parameter = "Ports"; Value = $ports;},
-        [pscustomobject]@{id = 9; Parameter = "Application Pool Name"; Value = $appPool;})
+    cls
 
-    $tfsDetails = @(
-        [pscustomobject]@{id = 4; Parameter = "Workspace name"; Value = $workspaceName;},
-        [pscustomobject]@{id = 5; Parameter = "Mapping"; Value = $context.branch;})
-
-    Write-Host "`n`nINSTANCE details:"
-    $instanceDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
-    Write-Host "IIS details:"
-    $iisDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
-    Write-Host "TFS details:"
-    $tfsDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
+    Write-Host "`n$($context.displayName)`n`nDescription:`n $($context.description)`n"
+    $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
 }
+
+New-Alias -name s -value sf-show-currentSitefinity
 
 <#
     .SYNOPSIS 
@@ -413,3 +470,5 @@ function sf-show-allSitefinities {
 
     $output | Sort-Object -Property id | Format-Table -Property Title, Branch, Ports -auto
 }
+
+New-Alias -name sa -value sf-show-allSitefinities

@@ -20,6 +20,6 @@
 . "${PSScriptRoot}\extensions\sfe-tfs.ps1"
 
 # Startup
-# Start-Sleep 2
 _sfData-init-data
-# sf-select-sitefinity
+
+Export-ModuleMember -Function * -Alias *

@@ -97,6 +97,8 @@ function sf-reset-app {
     }
 }
 
+New-Alias -name ra -value sf-reset-app
+
 function _sf-start-sitefinity {
     param(
         [string]$url,
@@ -229,11 +231,11 @@ function _sf-create-startupConfig {
         $xmlWriter.WriteStartDocument()
             $xmlWriter.WriteStartElement("startupConfig")
                 $XmlWriter.WriteAttributeString("dbName", $context.dbName)
-                $XmlWriter.WriteAttributeString("username", "admin")
+                $XmlWriter.WriteAttributeString("username", "admin@test.test")
                 $XmlWriter.WriteAttributeString("password", "admin@2")
                 $XmlWriter.WriteAttributeString("enabled", "True")
                 $XmlWriter.WriteAttributeString("initialized", "False")
-                $XmlWriter.WriteAttributeString("email", "admin@adminov.com")
+                $XmlWriter.WriteAttributeString("email", "admin@test.test")
                 $XmlWriter.WriteAttributeString("firstName", "Admin")
                 $XmlWriter.WriteAttributeString("lastName", "Adminov")
                 $XmlWriter.WriteAttributeString("dbType", "SqlServer")

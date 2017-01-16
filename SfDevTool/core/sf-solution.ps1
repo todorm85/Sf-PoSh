@@ -19,6 +19,8 @@ function sf-open-solution {
     & $vsPath "${solutionPath}\telerik.sitefinity.sln"
 }
 
+New-Alias -name os -value sf-open-solution
+
 <#
     .SYNOPSIS 
     Builds the current sitefinity instance solution.

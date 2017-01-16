@@ -13,7 +13,7 @@ function sf-goto-configs {
     $context = _sf-get-context
     $webAppPath = $context.webAppPath
 
-    cd "${webAppPath}\App_Data\Sitefinity\Configurations"
+    cd "${webAppPath}\App_Data\Sitefinity\Configuration"
     ls
 }
 

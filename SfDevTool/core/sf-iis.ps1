@@ -26,6 +26,8 @@ function sf-browse-webSite {
     & $browserPath "http://localhost:${port}/Sitefinity" -noframemerging
 }
 
+New-Alias -name bw -value sf-browse-webSite
+
 <#
     .SYNOPSIS 
     Resets the current sitefinity web app threads in the app pool in IIS, without resetting the app pool.
@@ -49,6 +51,8 @@ function sf-reset-thread {
         _sf-start-sitefinity
     }
 }
+
+New-Alias -name rt -value sf-reset-thread
 
 function _sf-create-website {
     Param(
