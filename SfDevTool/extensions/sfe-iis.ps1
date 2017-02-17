@@ -23,7 +23,7 @@ function sf-reset-pool {
     }
 }
 
-New-Alias -name rspl -value sf-reset-pool
+New-Alias -name rep -value sf-reset-pool
 
 <#
     .SYNOPSIS 

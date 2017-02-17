@@ -19,6 +19,9 @@
 . "${PSScriptRoot}\extensions\sfe-solution.ps1"
 . "${PSScriptRoot}\extensions\sfe-tfs.ps1"
 
+# Tests tooling
+. "${PSScriptRoot}\tests\load.ps1"
+
 # Startup
 _sfData-init-data
 

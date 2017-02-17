@@ -1,10 +1,7 @@
 
-$localTestResultsPath = "D:\DF-test-results\local-results"
-$remoteTestResultsPath = "D:\DF-test-results\df-results"
-$traceOutputDir = "${Env:userprofile}\Desktop"
-
 function sfTest-compare-testResultsFoldersByCategory {
-
+    . "${PSScriptRoot}\sfTest-comparer-config.ps1"
+    
     $locResFiles = _get-allXmls $localTestResultsPath
 
     forEach($resFile in $locResFiles) {
@@ -21,6 +18,7 @@ function sfTest-compare-testResultsFoldersByCategory {
 }
 
 function sfTest-compare-testResultsFolders {
+    . "${PSScriptRoot}\sfTest-comparer-config.ps1"
 
     $localTests = _load-testsFromPath $localTestResultsPath
     $remoteTests = _load-testsFromPath $remoteTestResultsPath
@@ -32,6 +30,7 @@ function sfTest-compare-testResultsFiles {
     Param(
         $fileName = "Core"
         )
+    . "${PSScriptRoot}\sfTest-comparer-config.ps1"
 
     $localTests = _load-testsFromXml "${localTestResultsPath}\${fileName}.xml"
     $remoteTests = _load-testsFromXml "${remoteTestResultsPath}\${fileName}.xml"
@@ -41,6 +40,7 @@ function sfTest-compare-testResultsFiles {
 
 function _compare-tests {
     Param($localTests, $remoteTests, $traceFileName = "compare-result")
+    . "${PSScriptRoot}\sfTest-comparer-config.ps1"
 
     $failedTests = [System.Collections.ArrayList]@()
     $localTestMessages = [System.Collections.ArrayList]@()

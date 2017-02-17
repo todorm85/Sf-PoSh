@@ -25,6 +25,25 @@ function sql-delete-database {
     }
 }
 
+function sql-rename-database {
+    Param (
+            [Parameter(Mandatory=$true)][string] $oldName,
+            [Parameter(Mandatory=$true)][string] $newName
+        )
+
+    _sql-load-module
+
+    $Databases = Invoke-SQLcmd -ServerInstance $sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$oldName'")
+
+    ForEach ($Database in $Databases)
+    { 
+        Invoke-SQLcmd -ServerInstance $sqlServerInstance -Query (
+            "alter database [" + $Database.Name + "] set single_user with rollback immediate
+            EXEC sp_renamedb '$oldName', '$newName'
+            ALTER DATABASE [$newName] SET MULTI_USER")
+    }
+}
+
 function sql-get-dbs {
     _sql-load-module
 

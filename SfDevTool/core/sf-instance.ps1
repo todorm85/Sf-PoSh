@@ -373,6 +373,7 @@ function sf-rename-sitefinity {
     if ($markUnused) {
         $newName = "-"
         $context.description = ""
+        $newDbName = "unused_$(Get-Date | ForEach { $_.Ticks })"
     } else {
         while ([string]::IsNullOrEmpty($newName)) {
             $newName = $(Read-Host -Prompt "Enter new name: ").ToString()
@@ -392,19 +393,58 @@ function sf-rename-sitefinity {
     }
 
     try {
-        & $tfPath workspace /newname:$newWorkspaceName $workspaceName /noprompt
+        $oldLocation = Get-Location
+        Set-Location $context.webAppPath
+        & $tfPath workspace /newname:$newWorkspaceName /noprompt
+        Set-Location $oldLocation
     }
     catch {
-        Write-Error "Failed to rename sitefinity. Error: $($_.Exception)"
+        Write-Error "Failed to rename workspace. Error: $($_.Exception)"
         return
     }
 
-    $workspaceName = $newName
-    
     _sfData-save-context $context
+    
+    sf-rename-db $newName
 }
 
 New-Alias -name rs -value sf-rename-sitefinity
+
+function sf-rename-db {
+    Param($newName)
+    
+    $context = _sf-get-context
+    if ([string]::IsNullOrEmpty($context.dbName)) {
+        throw "No current database set"
+    }
+
+    while (sql-test-isDbNameDuplicate $newName) {
+        $newName = $(Read-Host -Prompt "Db name duplicate in sql server! Enter new db name: ").ToString()
+    }
+
+    try {
+        sql-rename-database $context.dbName $newName
+    }
+    catch {
+        Write-Error "Failed renaming database in sql server."        
+    }
+
+    try {
+        $data = New-Object XML
+        $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
+        $data.Load($dataConfigPath) > $null
+        $conStrElement = $data.dataConfig.connectionStrings.add
+        $newString = $conStrElement.connectionString -replace $context.dbName, $newName
+        $conStrElement.SetAttribute("connectionString", $newString)
+        $data.Save($dataConfigPath) > $null
+    }
+    catch {
+        Write-Error "Failed renaming database in dataConfig"
+    }
+
+    $context.dbName = $newName
+    _sfData-save-context $context
+}
 
 <#
     .SYNOPSIS 
@@ -435,8 +475,6 @@ function sf-show-currentSitefinity {
         [pscustomobject]@{id = 1; Parameter = "Workspace name"; Value = $workspaceName;},
         [pscustomobject]@{id = 2; Parameter = "Mapping"; Value = $context.branch;}
     )
-
-    cls
 
     Write-Host "`n$($context.displayName)`n`nDescription:`n $($context.description)`n"
     $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
