@@ -181,21 +181,30 @@ function sf-import-sitefinity {
         $isDuplicate = $false
         while (!$isDuplicate) {
             $websiteName = Read-Host -Prompt 'Enter website name: '
-            $isDuplicate = sql-test-isDbNameDuplicate $dbName
+            $isDuplicate = iis-test-isSiteNameDuplicate $websiteName
             $newContext.websiteName = $websiteName
         }
     } else {
         try {
             Write-Host "Creating website..."
+            
+            $isDuplicateSite = $true
+            while ($isDuplicateSite) {
+                $isDuplicateSite = iis-test-isSiteNameDuplicate $defaultContext.websiteName
+                if ($isDuplicateSite) {
+                    $defaultContext.websiteName = Read-Host -Prompt "Enter site name"
+                }
+            }
+
             _sfData-set-currentContext $newContext
             _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
+            $newContext.websiteName = $defaultContext.websiteName
         } catch {
             $startWebApp = $false
             Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
         }
     }
 
-    _sfData-set-currentContext $newContext
     _sfData-save-context $newContext
 
     # Display message

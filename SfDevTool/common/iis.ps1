@@ -116,24 +116,6 @@ function iis-create-website {
         $newWebsiteName = Read-Host -Prompt "Enter site name"
     }
 
-    $availableSites = @(Get-ChildItem -Path "IIS:\Sites")
-    while ($true) {
-        $isDuplicateSite = $false
-        ForEach ($site in $availableSites) {
-            if ($site.name.ToLower() -eq $newWebsiteName) {
-                Write-Host "Site exists"
-                $isDuplicateSite = $true
-                break
-            }
-        }
-
-        if (!$isDuplicateSite) {
-            break
-        }
-
-        $newWebsiteName = Read-Host -Prompt "Enter site name"
-    }
-
     if ($newPort -eq '') {
         $newPort = Read-Host -Prompt 'Enter localhost port on which app will be hosted in IIS'
     }
@@ -220,4 +202,22 @@ function iis-add-sitePort {
 
     _iis-load-webAdministrationModule
     New-WebBinding -Name $websiteName -port $port
+}
+
+function iis-test-isSiteNameDuplicate {
+    Param(
+        [string]$name
+    )
+
+    $availableSites = @(Get-ChildItem -Path "IIS:\Sites")
+    $isDuplicateSite = $false
+    ForEach ($site in $availableSites) {
+        if ($site.name.ToLower() -eq $name) {
+            Write-Host "Site exists"
+            $isDuplicateSite = $true
+            break
+        }
+    }
+
+    return $isDuplicateSite
 }
