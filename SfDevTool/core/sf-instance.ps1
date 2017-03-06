@@ -414,7 +414,7 @@ function sf-rename-sitefinity {
 
     _sfData-save-context $context
     
-    sf-rename-db $newName
+    sf-rename-db $newDbName
 }
 
 New-Alias -name rs -value sf-rename-sitefinity

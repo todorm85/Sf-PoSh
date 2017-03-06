@@ -18,6 +18,8 @@ function sf-undo-pendingChanges {
     tfs-undo-pendingChanges $context.solutionPath
 }
 
+New-Alias -name up -value sf-undo-pendingChanges
+
 <#
     .SYNOPSIS 
     .DESCRIPTION
@@ -41,6 +43,8 @@ function sf-show-pendingChanges {
     $workspaceName = tfs-get-workspaceName $context.webAppPath
     & tf.exe stat /workspace:$workspaceName /format:$($format)
 }
+
+New-Alias -name sp -value sf-show-pendingChanges
 
 <#
     .SYNOPSIS 
@@ -67,3 +71,5 @@ function sf-get-latest {
     tfs-get-latestChanges -branchMapPath $solutionPath
     Write-Host "Getting latest changes complete."
 }
+
+New-Alias -name gl -value sf-get-latest

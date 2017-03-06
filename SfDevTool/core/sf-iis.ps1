@@ -9,21 +9,15 @@
     None
 #>
 function sf-browse-webSite {
-    
     [CmdletBinding()]
     Param([switch]$useExistingBrowser)
-
-    $context = _sf-get-context
-    $port = @(iis-get-websitePort $context.websiteName)[0]
-    if ($port -eq '' -or $null -eq $port) {
-        throw "No sitefinity port set."
-    }
 
     if (-not $useExistingBrowser) {
         & start $browserPath
     }
 
-    & $browserPath "http://localhost:${port}/Sitefinity" -noframemerging
+    $appUrl = _sf-get-appUrl
+    & $browserPath "${appUrl}/Sitefinity" -noframemerging
 }
 
 New-Alias -name bw -value sf-browse-webSite
@@ -95,5 +89,20 @@ function _sf-delete-website {
         $context.websiteName = $oldWebsiteName
         _sfData-save-context $context
         throw "Error: $_.Exception.Message"
+    }
+}
+
+function _sf-get-appUrl {
+    $context = _sf-get-context
+    $port = @(iis-get-websitePort $context.websiteName)[0]
+    if ($port -eq '' -or $null -eq $port) {
+        throw "No sitefinity port set."
+    }
+
+    $subAppName = iis-get-subAppName
+    if ($subAppName -ne $null) {
+        return "http://localhost:${port}/${subAppName}"
+    } else {
+        return "http://localhost:${port}"
     }
 }

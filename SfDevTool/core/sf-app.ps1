@@ -67,18 +67,18 @@ function sf-reset-app {
     if ($start) {
         Start-Sleep -s 2
         try {
-            $port = @(iis-get-websitePort $context.websiteName)[0]
-            _sf-start-sitefinity -url "http://localhost:$($port)"
+            $appUrl = _sf-get-appUrl
+            _sf-start-sitefinity -url $appUrl
         } catch {
             Write-Host "`n`n"
             Write-Warning "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`n"
 
             _sf-delete-startupConfig
-
+            
             $choice = Read-Host "Display stack trace? [y/n]"
             while($true) {
                 if ($choice -eq 'y') {
-                    Write-Host "`n`nException: $_.Exception"
+                    Write-Host "`n`nException: $($_.Exception)"
                     break
                 }
 

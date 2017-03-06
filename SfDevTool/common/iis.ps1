@@ -221,3 +221,9 @@ function iis-test-isSiteNameDuplicate {
 
     return $isDuplicateSite
 }
+
+function iis-get-subAppName {
+    $context = _sf-get-context
+    $appNames = Get-Item "iis:\Sites\$($context.websiteName)\*" | where { $_.GetType().Name -eq "ConfigurationElement" } | foreach { $_.Name }
+    return @($appNames)[0]
+}

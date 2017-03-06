@@ -6,15 +6,30 @@
     .OUTPUTS
     None
 #>
-function sf-goto-configs {
+function sf-goto {
     [CmdletBinding()]
-    Param()
+    Param(
+        [switch]$configs,
+        [switch]$logs,
+        [switch]$root,
+        [switch]$webConfig
+    )
 
     $context = _sf-get-context
     $webAppPath = $context.webAppPath
 
-    cd "${webAppPath}\App_Data\Sitefinity\Configuration"
-    ls
+    if ($configs) {
+        cd "${webAppPath}\App_Data\Sitefinity\Configuration"
+        ls
+    } elseif ($logs) {
+        cd "${webAppPath}\App_Data\Sitefinity\Logs"
+        ls
+    } elseif ($root) {
+        cd "${webAppPath}"
+        ls
+    } elseif ($webConfig) {
+        & "${webAppPath}\Web.config"
+    }
 }
 
 <#

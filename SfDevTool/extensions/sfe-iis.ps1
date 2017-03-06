@@ -23,7 +23,7 @@ function sf-reset-pool {
     }
 }
 
-New-Alias -name rep -value sf-reset-pool
+New-Alias -name rp -value sf-reset-pool
 
 <#
     .SYNOPSIS 
@@ -128,17 +128,27 @@ function sf-remove-sitePorts {
 function sf-setup-asSubApp () {
     [CmdletBinding()]
     Param(
+        [string]$subAppName,
         [switch]$revert
     )
 
     $context = _sf-get-context
     if (-not $revert) {
-        
-        Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value "c:\"
+        $dummyPath = "c:\dummySubApp"
+        if (-not (Test-Path $dummyPath)) {
+            New-Item $dummyPath -ItemType Directory
+        }
 
-        New-Item "IIS:\Sites\$($context.websiteName)\subApp" -physicalPath $context.webAppPath -type "Application"
+        Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value $dummyPath
+
+        New-Item "IIS:\Sites\$($context.websiteName)\${subAppName}" -physicalPath $context.webAppPath -type "Application"
     } else {
-        Remove-Item "IIS:\Sites\$($context.websiteName)\subApp" -force -recurse -Confirm:$false
+        $subAppName = iis-get-subAppName
+        if ($subAppName -eq $null) {
+            return
+        }
+
+        Remove-Item "IIS:\Sites\$($context.websiteName)\${subAppName}" -force -recurse -Confirm:$false
 
         Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value $context.webAppPath
     }
