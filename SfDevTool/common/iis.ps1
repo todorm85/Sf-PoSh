@@ -227,3 +227,12 @@ function iis-get-subAppName {
     $appNames = Get-Item "iis:\Sites\$($context.websiteName)\*" | where { $_.GetType().Name -eq "ConfigurationElement" } | foreach { $_.Name }
     return @($appNames)[0]
 }
+
+function iis-rename-website {
+    Param(
+        [string]$name,
+        [string]$newName
+    )
+    
+    Rename-Item "IIS:\Sites\$name" "$newName"
+}

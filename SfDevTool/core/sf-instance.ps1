@@ -374,7 +374,8 @@ function sf-rename-sitefinity {
     [CmdletBinding()]
     Param(
         [switch]$markUnused,
-        [switch]$setDescription
+        [switch]$setDescription,
+        [switch]$full
     )
 
     $context = _sf-get-context
@@ -382,10 +383,18 @@ function sf-rename-sitefinity {
     if ($markUnused) {
         $newName = "-"
         $context.description = ""
-        $newDbName = "unused_$(Get-Date | ForEach { $_.Ticks })"
+        $unusedName = "unused_$(Get-Date | ForEach { $_.Ticks })"
+        $newDbName = $unusedName
+        $newWebsiteName = $unusedName
+        $newProjectName = $unusedName
+        $newWsName = $unusedName
     } else {
         while ([string]::IsNullOrEmpty($newName)) {
             $newName = $(Read-Host -Prompt "Enter new name: ").ToString()
+            $newDbName = $newName
+            $newWebsiteName = $newName
+            $newProjectName = $newName
+            $newWsName = $newName
         }
         
         if ($setDescription) {
@@ -394,27 +403,24 @@ function sf-rename-sitefinity {
     }
 
     $context.displayName = $newName
+    _sfData-save-context $context
 
-    $workspaceName = tfs-get-workspaceName $context.webAppPath
-    $newWorkspaceName = $newName
-    if ($workspaceName -ne "" -and $markUnused) {
-        $newWorkspaceName = "unused_$(Get-Date | ForEach { $_.Ticks })"
+    if (-not $full) {
+        return
+    }
+    
+    while($confirmed -ne 'y' -and $confirmed -ne 'n') {
+        $confirmed = Read-Host -Prompt "Full rename will also rename project directory which requires fixing the workspace mapping. Confirm? y/n"
     }
 
-    try {
-        $oldLocation = Get-Location
-        Set-Location $context.webAppPath
-        & $tfPath workspace /newname:$newWorkspaceName /noprompt
-        Set-Location $oldLocation
-    }
-    catch {
-        Write-Error "Failed to rename workspace. Error: $($_.Exception)"
+    if ($confirmed -ne 'y') {
         return
     }
 
-    _sfData-save-context $context
-    
     sf-rename-db $newDbName
+    sf-rename-website $newWebsiteName
+    tfs-rename-workspace $context.solutionPath $newWsName
+    sf-rename-projectDir $newProjectName
 }
 
 New-Alias -name rs -value sf-rename-sitefinity
@@ -435,7 +441,8 @@ function sf-rename-db {
         sql-rename-database $context.dbName $newName
     }
     catch {
-        Write-Error "Failed renaming database in sql server."        
+        Write-Error "Failed renaming database in sql server.Message: $($_.Exception)"        
+        return
     }
 
     try {
@@ -449,10 +456,56 @@ function sf-rename-db {
     }
     catch {
         Write-Error "Failed renaming database in dataConfig"
+        sql-rename-database $newName $context.dbName
+        return
     }
 
     $context.dbName = $newName
     _sfData-save-context $context
+}
+
+function sf-rename-projectDir {
+    Param(
+        [string]$newName
+    )
+
+    $context = _sf-get-context
+
+    sf-reset-pool
+    $hasSolution = $context.solutionPath -ne "" -and $context.solutionPath -ne $null
+    try {
+        Set-Location -Path $Env:HOMEDRIVE
+        if ($hasSolution) {
+            $confirmed = Read-Host -Prompt "Renaming the project directory will loose tfs workspace mapping if there is one. You need to manually fix it later. Are you sure? y/n"
+            if ($confirmed -ne 'y') {
+                return
+            }
+
+            # $oldWorkspaceName = tfs-get-workspaceName $context.webAppPath
+
+            $parentPath = (Get-Item $context.solutionPath).Parent
+            Rename-Item -Path $context.solutionPath -NewName $newName -Force
+            $context.solutionPath = "$($parentPath.FullName)\${newName}"
+            $context.webAppPath = "$($context.solutionPath)\SitefinityWebApp"
+
+            # tfs-delete-workspace $oldWorkspaceName
+            # tfs-create-workspace $oldWorkspaceName $context.solutionPath
+            # tfs-create-mappings -branch $context.branch -branchMapPath $context.solutionPath -workspaceName $oldWorkspaceName
+        } else {
+            $parentPath = (Get-Item $context.webAppPath).Parent
+            Rename-Item -Path $context.webAppPath -NewName $newName -Force
+            $context.webAppPath = "$($parentPath.FullName)\${newName}"
+        }
+    }
+    catch {
+        Write-Error "Error renaming solution. Message: $($_.Exception)"
+        return
+    }
+
+    Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value $context.webAppPath
+
+    _sfData-save-context $context
+    # sf-get-latest -overwrite
 }
 
 <#
@@ -465,7 +518,7 @@ function sf-show-currentSitefinity {
     $context = _sf-get-context
 
     if (-not $detail) {
-        Write-Host "$($context.displayName) | $($context.branch)"
+        Write-Host "$($context.displayName) | $($context.branch) | $($context.name)"
         return    
     }
 
@@ -475,6 +528,8 @@ function sf-show-currentSitefinity {
     # $mapping = tfs-get-mappings $context.webAppPath
 
     $otherDetails = @(
+        [pscustomobject]@{id = -1; Parameter = "Title"; Value = $context.displayName;},
+        [pscustomobject]@{id = 0; Parameter = "Id"; Value = $context.name;},
         [pscustomobject]@{id = 1; Parameter = "Solution path"; Value = $context.solutionPath;},
         [pscustomobject]@{id = 2; Parameter = "Web app path"; Value = $context.webAppPath;},
         [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = $context.dbName;},
@@ -485,8 +540,8 @@ function sf-show-currentSitefinity {
         [pscustomobject]@{id = 2; Parameter = "Mapping"; Value = $context.branch;}
     )
 
-    Write-Host "`n$($context.displayName)`n`nDescription:`n $($context.description)`n"
     $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -auto -HideTableHeaders
+    Write-Host "Description:`n$($context.description)`n"
 }
 
 New-Alias -name s -value sf-show-currentSitefinity
@@ -512,10 +567,10 @@ function sf-show-allSitefinities {
 
         $index = [array]::IndexOf($sitefinities, $sitefinity)
 
-        $output.add([pscustomobject]@{id = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports";}) > $null
+        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.name)";}) > $null
     }
 
-    $output | Sort-Object -Property id | Format-Table -Property Title, Branch, Ports -auto
+    $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id -auto
 }
 
 New-Alias -name sa -value sf-show-allSitefinities

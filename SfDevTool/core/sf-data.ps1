@@ -107,24 +107,23 @@ function _sfData-get-defaultContext {
         return $true;
     }
 
-    # if (-not([string]::IsNullOrEmpty($displayName))) {
-    #     $sitefinities = @(_sfData-get-allContexts)
-    #     foreach ($sitefinity in $sitefinities) {
-    #         if ($sitefinity.displayName -eq $displayName) {
-    #             Write-Host "Sitefinity display name already used. ${displayName}"
-    #             $displayName = Read-Host -Prompt 'Enter new sitefinity name: '
-    #             _sfData-get-defaultContext $displayName
-    #             return
-    #         }
-    #     }
-    # } else {
-    #     $displayName = "sitefinity"
-    # }
+    $i = 0;
+    while($true) {
+        $name = "instance_$i"
+        $isValid = (validateName $name)
+        if ($isValid) {
+            break;
+        }
+
+        # $i++;
+        # $displayName = "${displayName}_${i}"
+        $i++
+    }
 
     # set valid display name
     $i = 0;
     while($true) {
-        $isValid = (validateDisplayName $displayName) -and (validateName $displayName)
+        $isValid = (validateDisplayName $displayName)
         if ($isValid) {
             break;
         }
@@ -134,8 +133,6 @@ function _sfData-get-defaultContext {
         $displayName = Read-Host -Prompt "Display name $displayName used. Enter new display name: "
     }
 
-    $name = $displayName
-    
     # build default context object
     $defaultContext = @{
         displayName = $displayName;

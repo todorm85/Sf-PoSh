@@ -179,3 +179,22 @@ function sf-get-appPoolId () {
         }
     }
 }
+
+function sf-rename-website {
+    Param(
+        [string]$newName
+    )
+
+    $context = _sf-get-context
+    try {
+        iis-rename-website $context.websiteName $newName
+    }
+    catch {
+        Write-Host "Error renaming site in IIS. Message: $_.Message"
+        throw
+    }
+    
+    $context.websiteName = $newName
+    _sfData-save-context $context
+
+}

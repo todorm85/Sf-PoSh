@@ -55,7 +55,9 @@ New-Alias -name sp -value sf-show-pendingChanges
 #>
 function sf-get-latest {
     [CmdletBinding()]
-    Param()
+    Param(
+        [switch]$overwrite
+    )
     
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
@@ -68,7 +70,12 @@ function sf-get-latest {
     }
 
     Write-Host "Getting latest changes for path ${solutionPath}."
-    tfs-get-latestChanges -branchMapPath $solutionPath
+    if ($overwrite) {
+        tfs-get-latestChanges -branchMapPath $solutionPath -overwrite
+    } else {
+        tfs-get-latestChanges -branchMapPath $solutionPath
+    }
+    
     Write-Host "Getting latest changes complete."
 }
 

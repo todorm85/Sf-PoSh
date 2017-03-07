@@ -63,6 +63,24 @@ function tfs-create-workspace {
     }
 }
 
+function tfs-rename-workspace {
+    Param(
+        [Parameter(Mandatory=$true)][string]$path,
+        [Parameter(Mandatory=$true)][string]$newWorkspaceName
+        )
+    
+    try {
+        $oldLocation = Get-Location
+        Set-Location $path
+        & $tfPath workspace /newname:$newWorkspaceName /noprompt
+        Set-Location $oldLocation
+    }
+    catch {
+        Write-Error "Failed to rename workspace. Error: $($_.Exception)"
+        return
+    }
+}
+
 function tfs-create-mappings {
     Param(
         [Parameter(Mandatory=$true)][string]$branch,
@@ -90,7 +108,8 @@ function tfs-create-mappings {
 
 function tfs-get-latestChanges {
     Param(
-        [Parameter(Mandatory=$true)][string]$branchMapPath
+        [Parameter(Mandatory=$true)][string]$branchMapPath,
+        [switch]$overwrite
         )
 
     if (-not(Test-Path -Path $branchMapPath)) {
@@ -99,7 +118,12 @@ function tfs-get-latestChanges {
 
     $oldLocation = Get-Location
     Set-Location -Path $branchMapPath
-    $output = & $tfPath get 2>&1
+    if ($overwrite) {
+        $output = & $tfPath get /overwrite /noprompt 2>&1
+    } else {
+        $output = & $tfPath get 2>&1
+    }
+
     Set-Location $oldLocation
 
     if ($LastExitCode -ne 0)
