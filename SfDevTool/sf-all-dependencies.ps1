@@ -12,13 +12,10 @@ Set-Location ${PSScriptRoot} # need to be loaded like this for intelisense in VS
 . .\core\sf-instance.ps1
 . .\core\sf-solution.ps1
 . .\core\sf-app.ps1
+. .\core\sf-configs.ps1
+. .\core\sf-tfs.ps1
 
 # Extensions
-. .\extensions\sfe-configs.ps1
-. .\extensions\sfe-app.ps1
-. .\extensions\sfe-solution.ps1
-. .\extensions\sfe-tfs.ps1
-. .\extensions\sfe-iis.ps1
 
 # Tests tooling
 . .\tests\sfTest-common.ps1

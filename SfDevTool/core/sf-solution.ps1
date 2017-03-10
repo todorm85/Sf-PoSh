@@ -4,29 +4,6 @@ if ($false) {
 
 <#
     .SYNOPSIS 
-    Opens the selected sitefinity solution.
-    .DESCRIPTION
-    If a webapp without solution was imported nothing is opened.
-    .OUTPUTS
-    None
-#>
-function sf-open-solution {
-    
-    [CmdletBinding()]param()
-    
-    $context = _sf-get-context
-    $solutionPath = $context.solutionPath
-    if ($solutionPath -eq '') {
-        throw "invalid or no solution path"
-    }
-
-    & $vsPath "${solutionPath}\telerik.sitefinity.sln"
-}
-
-New-Alias -name os -value sf-open-solution
-
-<#
-    .SYNOPSIS 
     Builds the current sitefinity instance solution.
     .PARAMETER useOldMsBuild
     If switch is passed msbuild 4.0 tools will be used. (The one used by VS2012), Otherwise the default msbuild tools version is used, which for vs2015 is 14.0
@@ -63,27 +40,6 @@ function sf-rebuild-solution {
     }
 
     sf-build-solution
-}
-
-<#
-    .SYNOPSIS 
-    Builds the current sitefinity instance webapp project file.
-    .PARAMETER useOldMsBuild
-    If switch is passed msbuild 4.0 tools will be used. (The one used by VS2012), Otherwise the default msbuild tools version is used, which for vs2015 is 14.0
-    .OUTPUTS
-    None
-#>
-function sf-build-webAppProj () {
-    [CmdletBinding()]
-    Param([switch]$useOldMsBuild)
-
-    $context = _sf-get-context
-    $path = "$($context.webAppPath)\SitefinityWebApp.cproj"
-    if (!(Test-Path $path)) {
-        throw "invalid or no solution or path"
-    }
-
-    _sf-build-proj $path $useOldMsBuild
 }
 
 function _sf-build-proj () {
@@ -171,4 +127,100 @@ function _sf-delete-appDataFiles {
     if ($errorMessage -ne '') {
         throw $errorMessage
     }
+}
+
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
+function sf-goto {
+    [CmdletBinding()]
+    Param(
+        [switch]$configs,
+        [switch]$logs,
+        [switch]$root,
+        [switch]$webConfig
+    )
+
+    $context = _sf-get-context
+    $webAppPath = $context.webAppPath
+
+    if ($configs) {
+        cd "${webAppPath}\App_Data\Sitefinity\Configuration"
+        ls
+    } elseif ($logs) {
+        cd "${webAppPath}\App_Data\Sitefinity\Logs"
+        ls
+    } elseif ($root) {
+        cd "${webAppPath}"
+        ls
+    } elseif ($webConfig) {
+        & "${webAppPath}\Web.config"
+    }
+}
+
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
+function sf-clear-nugetCache {
+    [CmdletBinding()]
+    Param()
+    
+    $context = _sf-get-context
+    if (!(Test-Path $context.solutionPath)) {
+        throw "invalid or no solution path"
+    }
+
+    & "$($context.solutionPath)\.nuget\nuget.exe" locals all -clear
+}
+
+<#
+    .SYNOPSIS 
+    Opens the selected sitefinity solution.
+    .DESCRIPTION
+    If a webapp without solution was imported nothing is opened.
+    .OUTPUTS
+    None
+#>
+function sf-open-solution {
+    
+    [CmdletBinding()]param()
+    
+    $context = _sf-get-context
+    $solutionPath = $context.solutionPath
+    if ($solutionPath -eq '') {
+        throw "invalid or no solution path"
+    }
+
+    & $vsPath "${solutionPath}\telerik.sitefinity.sln"
+}
+
+New-Alias -name os -value sf-open-solution
+
+<#
+    .SYNOPSIS 
+    Builds the current sitefinity instance webapp project file.
+    .PARAMETER useOldMsBuild
+    If switch is passed msbuild 4.0 tools will be used. (The one used by VS2012), Otherwise the default msbuild tools version is used, which for vs2015 is 14.0
+    .OUTPUTS
+    None
+#>
+function sf-build-webAppProj () {
+    [CmdletBinding()]
+    Param([switch]$useOldMsBuild)
+
+    $context = _sf-get-context
+    $path = "$($context.webAppPath)\SitefinityWebApp.cproj"
+    if (!(Test-Path $path)) {
+        throw "invalid or no solution or path"
+    }
+
+    _sf-build-proj $path $useOldMsBuild
 }
