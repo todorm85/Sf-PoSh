@@ -37,9 +37,3 @@ $script:tfPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\ID
 if (-not (Test-Path $tfPath)) {
     throw "Team foundation tool path not set in SfDevTool\EnvConstants.ps1 or it does not exist. (Used for tfs automation)"
 }
-
-# needed if you use precompiled templates functions can be found at $/CMS/Sitefinity 4.0/Tools/Telerik.WebTestRunner
-$script:sitefinityCompiler = "D:\Tools\SitefinityCompiler\SitefinityCompiler\bin\Release\Telerik.Sitefinity.Compiler.exe"
-
-# the path to webtestrunner used to run integration tests
-$script:WebTestRunner = "D:\Tools\Telerik.WebTestRunner\Telerik.WebTestRunner.Client\bin\Debug\Telerik.WebTestRunner.Client.exe"

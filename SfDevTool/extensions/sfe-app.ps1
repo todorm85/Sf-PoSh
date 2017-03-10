@@ -17,7 +17,14 @@ function sf-add-precompiledTemplates {
     param(
         [switch]$revert
     )
+    
+    # path to sitefinity compiler tool
+    $sitefinityCompiler = "D:\Tools\SitefinityCompiler\SitefinityCompiler\bin\Release\Telerik.Sitefinity.Compiler.exe"
 
+    if (-not (Test-Path $sitefinityCompiler)) {
+        Write-Warning "Sitefinity compiler tool not found. You need to set the path to it inside the function"
+    }
+    
     $context = _sf-get-context
     $webAppPath = $context.webAppPath
 
