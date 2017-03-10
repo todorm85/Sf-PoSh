@@ -1,6 +1,7 @@
 if ($false) {
     . .\..\sf-all-dependencies.ps1 # needed for intellisense
 }
+
 <#
     .SYNOPSIS 
     Sets the config storage mode of selected sitefinity

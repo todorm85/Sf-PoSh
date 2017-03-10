@@ -1,3 +1,8 @@
+if ($false) {
+    . .\..\sf-all-dependencies.ps1 # needed for intellisense
+}
+
+$DecSolutionPath = "D:\DEC-Connector\data-intell-sitefinity-connector"
 
 <#
     .SYNOPSIS 
@@ -9,8 +14,8 @@
 function sfDec-copy-decModule {
     [CmdletBinding()]
     Param(
-        [string]$decModuleDllsPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector\bin\Debug",
-        [string]$decIntegrationTestsDllsPath = "D:\DEC-Connector\data-intell-sitefinity-connector\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug",
+        [string]$decModuleDllsPath = "${DecSolutionPath}\Telerik.Sitefinity.DataIntelligenceConnector\bin\Debug",
+        [string]$decIntegrationTestsDllsPath = "${DecSolutionPath}\Telerik.Sitefinity.DataIntelligenceConnector.IntegrationTests\bin\Debug",
         [switch]$revert,
         [switch]$copyTestDlls
         )
@@ -72,7 +77,7 @@ function sfDec-open-dec {
     [CmdletBinding()]
     Param()
     
-    & "D:\DEC-Connector\data-intell-sitefinity-connector\DataIntellConnector.sln"
+    & "${DecSolutionPath}\DataIntellConnector.sln"
 }
 
 Export-ModuleMember -Function '*'

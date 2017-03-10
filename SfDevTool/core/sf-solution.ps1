@@ -48,6 +48,25 @@ function sf-build-solution {
 
 <#
     .SYNOPSIS 
+    Does a true rebuild of the current sitefinity instance solution by deleteing all bin and obj folders and then builds.
+    .OUTPUTS
+    None
+#>
+function sf-rebuild-solution {
+    [CmdletBinding()]param()
+    
+    Write-Host "Rebuilding solution..."
+    try {
+        _sf-clean-solution
+    } catch {
+        Write-Warning "Errors while cleaning solution: $_.Exception.Message"
+    }
+
+    sf-build-solution
+}
+
+<#
+    .SYNOPSIS 
     Builds the current sitefinity instance webapp project file.
     .PARAMETER useOldMsBuild
     If switch is passed msbuild 4.0 tools will be used. (The one used by VS2012), Otherwise the default msbuild tools version is used, which for vs2015 is 14.0
@@ -89,25 +108,6 @@ function _sf-build-proj () {
     {
         throw "$output"
     }
-}
-
-<#
-    .SYNOPSIS 
-    Does a true rebuild of the current sitefinity instance solution by deleteing all bin and obj folders and then builds.
-    .OUTPUTS
-    None
-#>
-function sf-rebuild-solution {
-    [CmdletBinding()]param()
-    
-    Write-Host "Rebuilding solution..."
-    try {
-        _sf-clean-solution
-    } catch {
-        Write-Warning "Errors while cleaning solution: $_.Exception.Message"
-    }
-
-    sf-build-solution
 }
 
 function _sf-clean-solution {
