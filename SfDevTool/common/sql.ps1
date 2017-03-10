@@ -1,4 +1,3 @@
-
 function _sql-load-module {
     $mod = Get-Module SQLPS
     if ($null -eq $mod -or '' -eq $mod) {

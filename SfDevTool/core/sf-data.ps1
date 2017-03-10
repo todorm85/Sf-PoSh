@@ -1,3 +1,7 @@
+if ($false) {
+    . .\..\sf-all-dependencies.ps1 # needed for intellisense
+}
+
 $dataPath = "${PSScriptRoot}\..\db.xml"
 
 function _sf-get-context {

@@ -1,4 +1,6 @@
-
+if ($false) {
+    . .\..\sf-all-dependencies.ps1 # needed for intellisense
+}
 function sfTest-compare-testResultsFoldersByCategory {
     . "${PSScriptRoot}\sfTest-comparer-config.ps1"
     

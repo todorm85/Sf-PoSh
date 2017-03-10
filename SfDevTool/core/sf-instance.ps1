@@ -1,3 +1,7 @@
+if ($false) {
+    . .\..\sf-all-dependencies.ps1 # needed for intellisense
+}
+
 <#
     .SYNOPSIS 
     Provisions a new sitefinity instance project. 
@@ -405,22 +409,25 @@ function sf-rename-sitefinity {
     $context.displayName = $newName
     _sfData-save-context $context
 
-    if (-not $full) {
-        return
-    }
-    
-    while($confirmed -ne 'y' -and $confirmed -ne 'n') {
-        $confirmed = Read-Host -Prompt "Full rename will also rename project directory which requires fixing the workspace mapping. Confirm? y/n"
-    }
+    if ($full) {
+        
+        while($confirmed -ne 'y' -and $confirmed -ne 'n') {
+            $confirmed = Read-Host -Prompt "Full rename will also rename project directory which requires fixing the workspace mapping. Confirm? y/n"
+        }
 
-    if ($confirmed -ne 'y') {
-        return
-    }
+        if ($confirmed -ne 'y') {
+            return
+        }
 
-    sf-rename-db $newDbName
-    sf-rename-website $newWebsiteName
-    tfs-rename-workspace $context.solutionPath $newWsName
-    sf-rename-projectDir $newProjectName
+        sf-rename-db $newDbName
+        sf-rename-website $newWebsiteName
+        sf-rename-projectDir $newProjectName
+
+        $wsName = tfs-get-workspaceName $context.solutionPath
+        tfs-delete-workspace $wsName
+        tfs-create-workspace $newWsName $context.solutionPath
+        sf-get-latest -overwrite
+    }
 }
 
 New-Alias -name rs -value sf-rename-sitefinity
@@ -518,7 +525,7 @@ function sf-show-currentSitefinity {
     $context = _sf-get-context
 
     if (-not $detail) {
-        Write-Host "$($context.displayName) | $($context.branch) | $($context.name)"
+        Write-Host "`n$($colntext.name) | $($context.displayName) | $($context.branch) | $($context.port)`n"
         return    
     }
 

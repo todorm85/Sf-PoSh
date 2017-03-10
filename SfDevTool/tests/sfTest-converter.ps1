@@ -1,3 +1,6 @@
+if ($false) {
+    . .\..\sf-all-dependencies.ps1 # needed for intellisense
+}
 # to use in PS5 type "Install-Module ImportExcel" GitHub: dfinke/ImportExcel
 
 function sfTest-convert-xml2xls {

@@ -1,3 +1,6 @@
+if ($false) {
+    . .\..\sf-all-dependencies.ps1 # needed for intellisense
+}
 function sfTest-run-tests {
     . "${PSScriptRoot}\SfTest-runner-config.ps1"
     $sitefinityUrl

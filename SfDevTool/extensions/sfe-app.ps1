@@ -1,3 +1,7 @@
+if ($false) {
+    . .\..\sf-all-dependencies.ps1 # needed for intellisense
+}
+
 <#
     .SYNOPSIS 
     Generates and adds precompiled templates to selected sitefinity solution.

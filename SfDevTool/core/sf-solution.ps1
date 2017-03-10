@@ -1,3 +1,7 @@
+if ($false) {
+    . .\..\sf-all-dependencies.ps1 # needed for intellisense
+}
+
 <#
     .SYNOPSIS 
     Opens the selected sitefinity solution.
