@@ -1,5 +1,2 @@
-/**/db.xml
-/**/.vscode
-/**/manifest-generator.ps1
-/**/generate-commentbasedhelp.txt
-/feather/*.*
+.vscode
+*.log

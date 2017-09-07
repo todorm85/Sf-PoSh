@@ -1,7 +1,3 @@
-if ($false) {
-    . .\..\sf-all-dependencies.ps1 # needed for intellisense
-}
-
 <#
     .SYNOPSIS 
     Resets the current sitefinity instance state to its default.
@@ -15,6 +11,8 @@ if ($false) {
     Rebuilds the solution.
     .PARAMETER build
     Builds the solution.
+    .PARAMETER user
+    The username that will be used to initialize sitefinity if -start switch is passed as well.
     .PARAMETER silentFinish
     Does not display a toaster notification when done.
     .OUTPUTS
@@ -24,12 +22,15 @@ function sf-reset-app {
     [CmdletBinding()]
     Param(
         [switch]$start,
-        [switch]$configRestrictionSafe,
         [switch]$rebuild,
+        [switch]$precompile,
         [switch]$build,
-        [switch]$silentFinish
+        [string]$user = "admin@test.test",
+        [switch]$configRestrictionSafe
         )
 
+    $dbName = sf-get-dbName # this needs to be here before DataConfig.config gets deleted!!!
+    
     if ($rebuild) {
         sf-rebuild-solution
     }
@@ -50,26 +51,27 @@ function sf-reset-app {
         Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_.Exception.Message"
     }
 
-    Write-Host "Deleting database..."
-    try {
-        sql-delete-database -dbName $context.dbName
-    } catch {
-        Write-Warning "Erros while deleting database: $_.Exception.Message"
-    }
-
-    if ($start) {
+    if (-not [string]::IsNullOrEmpty($dbName)) {
+        Write-Host "Deleting database..."
         try {
-            _sf-create-startupConfig
+            sql-delete-database -dbName $dbName
         } catch {
-            throw "Erros while creating startupConfig: $_.Exception.Message"
+            Write-Warning "Erros while deleting database: $_.Exception.Message"
         }
     }
-    
+
     Write-Host "Restarting app threads..."
     sf-reset-thread
 
     if ($start) {
         Start-Sleep -s 2
+
+        try {
+            _sf-create-startupConfig $user $dbName
+        } catch {
+            throw "Erros while creating startupConfig: $_.Exception.Message"
+        }
+
         try {
             $appUrl = _sf-get-appUrl
             _sf-start-sitefinity -url $appUrl
@@ -95,13 +97,170 @@ function sf-reset-app {
         }
     }
 
-    if (-not $silentFinish) {
-        # display message
-        os-popup-notification -msg "Operation completed!"
+    if ($precompile) {
+        sf-add-precompiledTemplates
+    }
+    
+    os-popup-notification -msg "Operation completed!"
+}
+
+function sf-save-appState {
+    $context = _sf-get-context
+    
+    $dbName = sf-get-dbName
+    if (-not $dbName) {
+        throw "Current app is not initialized with a database. No databse name found in dataConfig.config"
+    }
+    
+    while ($true) {
+        $stateName = Read-Host -Prompt "Enter state name:"
+        $statePath = "$($context.webAppPath)/states/$stateName"
+        $configStatePath = "$statePath/configs"
+        if(-not (Test-Path $configStatePath)) {
+            New-Item $configStatePath -ItemType Directory > $null
+            break;
+        }
+    }
+
+    Backup-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
+    
+    $stateDataPath = "$statePath/data.xml"
+    New-Item $stateDataPath > $null
+    $stateData = New-Object XML
+    $root = $stateData.CreateElement("root")
+    $stateData.AppendChild($root) > $null
+    $root.SetAttribute("dbName", $dbName)
+    $stateData.Save($stateDataPath) > $null
+
+    $configsPath = "$($context.webAppPath)/App_Data/Sitefinity/Configuration"
+    Copy-Item "$configsPath/*.*" $configStatePath
+    
+}
+
+function sf-restore-appState {
+    $context = _sf-get-context
+    
+    $stateName = sf-select-state
+
+    $statePath = "$($context.webAppPath)/states/$stateName"
+    $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
+    sql-delete-database $dbName
+    Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
+
+    $configStatePath = "$statePath/configs"
+    $configsPath = "$($context.webAppPath)/App_Data/Sitefinity/Configuration"
+    Remove-Item "$configsPath/*" -Force -ErrorAction SilentlyContinue -Recurse
+    Copy-Item "$configStatePath/*.*" $configsPath
+
+    sf-reset-pool
+}
+
+function sf-delete-state {
+    $context = _sf-get-context
+    
+    $stateName = sf-select-state
+    $statePath = "$($context.webAppPath)/states/$stateName"
+    Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse    
+}
+
+function sf-select-state {
+    $context = _sf-get-context
+
+    $states = Get-Item "$($context.webAppPath)/states/*"
+    
+    $i = 0
+    foreach ($state in $states) {
+        Write-Host :"$i : $($state.Name)"
+        $i++
+    }
+
+    while ($true) {
+        [int]$choice = Read-Host -Prompt 'Choose state'
+        $stateName = $states[$choice].Name
+        if ($stateName -ne $null) {
+            break;
+        }
+    }
+
+    return $stateName
+}
+
+<#
+    .SYNOPSIS 
+    Generates and adds precompiled templates to selected sitefinity solution.
+    .DESCRIPTION
+    Precompiled templates give much faster page loads when web app is restarted (when building or rebuilding solution) on first load of the page. Useful with local sitefinity development. WARNING: Any changes to markup are ignored when precompiled templates are added to the project, meaning the markup at the time of precompilation is always used. In order to see new changes to markup you need to remove the precompiled templates and generate them again.
+    .PARAMETER revert
+    Reverts previous changes
+    .OUTPUTS
+    None
+#>
+function sf-add-precompiledTemplates {
+    [CmdletBinding()]
+    param(
+        [switch]$revert
+    )
+    
+    # path to sitefinity compiler tool
+    $sitefinityCompiler = "${PSScriptRoot}\..\external-tools\Telerik.Sitefinity.Compiler.exe"
+
+    if (-not (Test-Path $sitefinityCompiler)) {
+        Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
+    }
+    
+    $context = _sf-get-context
+    $webAppPath = $context.webAppPath
+    $appUrl = _sf-get-appUrl
+    if ($revert) {
+        $dlls = Get-ChildItem -Force "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
+        try {
+            os-del-filesAndDirsRecursive $dlls
+        } catch {
+            throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
+        }
+    } else {
+        & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default" /url="${appUrl}"
     }
 }
 
-New-Alias -name ra -value sf-reset-app
+function sf-rename-db {
+    Param($newName)
+    
+    $context = _sf-get-context
+    $dbName = sf-get-dbName
+    if ([string]::IsNullOrEmpty($dbName)) {
+        throw "Sitefinity not initiliazed with a database. No database found in DataConfig.config"
+    }
+
+    while (sql-test-isDbNameDuplicate $newName -or ([string]::IsNullOrEmpty($newName))) {
+        $newName = $(Read-Host -Prompt "Db name duplicate in sql server! Enter new db name: ").ToString()
+    }
+
+    try {
+        sql-rename-database $dbName $newName
+    }
+    catch {
+        Write-Error "Failed renaming database in sql server.Message: $($_.Exception)"        
+        return
+    }
+
+    try {
+        $data = New-Object XML
+        $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
+        $data.Load($dataConfigPath) > $null
+        $conStrElement = $data.dataConfig.connectionStrings.add
+        $newString = $conStrElement.connectionString -replace $dbName, $newName
+        $conStrElement.SetAttribute("connectionString", $newString)
+        $data.Save($dataConfigPath) > $null
+    }
+    catch {
+        Write-Error "Failed renaming database in dataConfig"
+        sql-rename-database $newName $dbName
+        return
+    }
+
+    _sfData-save-context $context
+}
 
 function _sf-start-sitefinity {
     param(
@@ -212,6 +371,11 @@ function _sf-delete-startupConfig {
 }
 
 function _sf-create-startupConfig {
+    param(
+        [string]$user = 'admin@test.test',
+        [string]$dbName = $null
+    )
+
     $context = _sf-get-context
     $webAppPath = $context.webAppPath
     
@@ -230,18 +394,27 @@ function _sf-create-startupConfig {
                 throw "Could not remove old StartupConfig $ProcessError"
             }
         }
+        
+        $username = $user.split('@')[0]
+        if ([string]::IsNullOrEmpty($dbName)) {
+            $dbName = $context.name
+        }
+
+        while (sql-test-isDbNameDuplicate($dbName) -or [string]::IsNullOrEmpty($dbName)) {
+            $dbName = Read-Host -Prompt "Database with name $dbName already exists. Enter a different name:"
+        }
 
         $XmlWriter = New-Object System.XMl.XmlTextWriter($configPath,$Null)
         $xmlWriter.WriteStartDocument()
             $xmlWriter.WriteStartElement("startupConfig")
-                $XmlWriter.WriteAttributeString("dbName", $context.dbName)
-                $XmlWriter.WriteAttributeString("username", "admin@test.test")
-                $XmlWriter.WriteAttributeString("password", "admin@2")
+                $XmlWriter.WriteAttributeString("username", $user)
+                $XmlWriter.WriteAttributeString("password", $user)
                 $XmlWriter.WriteAttributeString("enabled", "True")
                 $XmlWriter.WriteAttributeString("initialized", "False")
-                $XmlWriter.WriteAttributeString("email", "admin@test.test")
-                $XmlWriter.WriteAttributeString("firstName", "Admin")
-                $XmlWriter.WriteAttributeString("lastName", "Adminov")
+                $XmlWriter.WriteAttributeString("email", $user)
+                $XmlWriter.WriteAttributeString("firstName", $username)
+                $XmlWriter.WriteAttributeString("lastName", $username)
+                $XmlWriter.WriteAttributeString("dbName", $dbName)
                 $XmlWriter.WriteAttributeString("dbType", "SqlServer")
                 $XmlWriter.WriteAttributeString("sqlInstance", $sqlServerInstance)
             $xmlWriter.WriteEndElement()
@@ -250,43 +423,5 @@ function _sf-create-startupConfig {
         $xmlWriter.Close() > $null
     } catch {
         throw "Error creating startupConfig. Message: $_.Exception.Message"
-    }
-}
-
-<#
-    .SYNOPSIS 
-    Generates and adds precompiled templates to selected sitefinity solution.
-    .DESCRIPTION
-    Precompiled templates give much faster page loads when web app is restarted (when building or rebuilding solution) on first load of the page. Useful with local sitefinity development. WARNING: Any changes to markup are ignored when precompiled templates are added to the project, meaning the markup at the time of precompilation is always used. In order to see new changes to markup you need to remove the precompiled templates and generate them again.
-    .PARAMETER revert
-    Reverts previous changes
-    .OUTPUTS
-    None
-#>
-function sf-add-precompiledTemplates {
-    [CmdletBinding()]
-    param(
-        [switch]$revert
-    )
-    
-    # path to sitefinity compiler tool
-    $sitefinityCompiler = "D:\Tools\SitefinityCompiler\SitefinityCompiler\bin\Release\Telerik.Sitefinity.Compiler.exe"
-
-    if (-not (Test-Path $sitefinityCompiler)) {
-        Write-Warning "Sitefinity compiler tool not found. You need to set the path to it inside the function"
-    }
-    
-    $context = _sf-get-context
-    $webAppPath = $context.webAppPath
-
-    if ($revert) {
-        $dlls = Get-ChildItem -Force "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
-        try {
-            os-del-filesAndDirsRecursive $dlls
-        } catch {
-            throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
-        }
-    } else {
-        & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default"
     }
 }

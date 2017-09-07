@@ -2,7 +2,7 @@ function _sql-load-module {
     $mod = Get-Module SQLPS
     if ($null -eq $mod -or '' -eq $mod) {
         $oldLocation = Get-Location
-        Import-Module SQLPS -DisableNameChecking
+        Import-Module SQLPS -DisableNameChecking 3>&1 | out-null
         if (Test-Path $oldLocation) {
             Set-Location $oldLocation
         }

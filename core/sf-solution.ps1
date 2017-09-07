@@ -1,7 +1,3 @@
-if ($false) {
-    . .\..\sf-all-dependencies.ps1 # needed for intellisense
-}
-
 <#
     .SYNOPSIS 
     Builds the current sitefinity instance solution.
@@ -17,7 +13,7 @@ function sf-build-solution {
     $context = _sf-get-context
     $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     if (!(Test-Path $solutionPath)) {
-        throw "invalid or no solution or path"
+        sf-build-webAppProj
     }
 
     _sf-build-proj $solutionPath $useOldMsBuild
@@ -34,20 +30,21 @@ function sf-rebuild-solution {
     
     Write-Host "Rebuilding solution..."
     try {
-        _sf-clean-solution
-    } catch {
+        sf-clean-solution
+    }
+    catch {
         Write-Warning "Errors while cleaning solution: $_.Exception.Message"
     }
 
     sf-build-solution
 }
 
-function _sf-build-proj () {
+function _sf-build-proj {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory)][string]$path, 
         [bool]$useOldMsBuild
-        )
+    )
 
     if (!(Test-Path $path)) {
         throw "invalid or no proj path"
@@ -55,18 +52,20 @@ function _sf-build-proj () {
 
     Write-Host "Building ${path}"
     if ($useOldMsBuild) {
-        $output = & $msBUildPath /verbosity:quiet /nologo /tv:"4.0" $path 2>&1
-    } else {
-        $output = & $msBUildPath /verbosity:quiet /nologo $path 2>&1
+        $output = & $msBuildPath /verbosity:quiet /nologo /tv:"4.0" $path 2>&1
+    }
+    else {
+        $output = & $msBuildPath /verbosity:quiet /nologo $path 2>&1
     }
 
-    if ($LastExitCode -ne 0)
-    {
+    if ($LastExitCode -ne 0) {
         throw "$output"
     }
 }
 
-function _sf-clean-solution {
+function sf-clean-solution {
+    Param([switch]$keepPackages)
+
     Write-Host "Cleaning solution..."
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
@@ -80,7 +79,8 @@ function _sf-clean-solution {
     $dirs = Get-ChildItem -force -recurse $solutionPath | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "bin") -or ($_.Name -like "obj")) }
     try {
         os-del-filesAndDirsRecursive $dirs
-    } catch {
+    }
+    catch {
         $errorMessage = "Errors while deleting bins and objs:`n" + $_.Exception.Message
     }
 
@@ -88,12 +88,16 @@ function _sf-clean-solution {
         $errorMessage = "Errors while deleting bins and objs:`n$errorMessage"
     }
 
-    Write-Host "Deleting packages..."
-    $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
-    try {
-        os-del-filesAndDirsRecursive $dirs
-    } catch {
-        $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_.Exception.Message
+    if (-not $keepPackages) {
+        
+        Write-Host "Deleting packages..."
+        $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
+        try {
+            os-del-filesAndDirsRecursive $dirs
+        }
+        catch {
+            $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_.Exception.Message
+        }
     }
 
     if ($errorMessage -ne '') {
@@ -110,7 +114,8 @@ function _sf-delete-appDataFiles {
         $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
         try {
             os-del-filesAndDirsRecursive $dirs
-        } catch {
+        }
+        catch {
             $errorMessage = "${errorMessage}`n" + $_.Exception.Message
         }
     }
@@ -119,7 +124,8 @@ function _sf-delete-appDataFiles {
         $files = Get-ChildItem "${webAppPath}\App_Data\Telerik\Configuration" | Where-Object { ($_.PSIsContainer -eq $false) -and ($_.Name -like "sso.config") }
         try {
             os-del-filesAndDirsRecursive $files
-        } catch {
+        }
+        catch {
             $errorMessage = "${errorMessage}`n" + $_.Exception.Message
         }
     }
@@ -151,13 +157,16 @@ function sf-goto {
     if ($configs) {
         cd "${webAppPath}\App_Data\Sitefinity\Configuration"
         ls
-    } elseif ($logs) {
+    }
+    elseif ($logs) {
         cd "${webAppPath}\App_Data\Sitefinity\Logs"
         ls
-    } elseif ($root) {
+    }
+    elseif ($root) {
         cd "${webAppPath}"
         ls
-    } elseif ($webConfig) {
+    }
+    elseif ($webConfig) {
         & "${webAppPath}\Web.config"
     }
 }
@@ -202,8 +211,6 @@ function sf-open-solution {
     & $vsPath "${solutionPath}\telerik.sitefinity.sln"
 }
 
-New-Alias -name os -value sf-open-solution
-
 <#
     .SYNOPSIS 
     Builds the current sitefinity instance webapp project file.
@@ -217,9 +224,9 @@ function sf-build-webAppProj () {
     Param([switch]$useOldMsBuild)
 
     $context = _sf-get-context
-    $path = "$($context.webAppPath)\SitefinityWebApp.cproj"
+    $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
-        throw "invalid or no solution or path"
+        throw "invalid or no solution or web app project path"
     }
 
     _sf-build-proj $path $useOldMsBuild

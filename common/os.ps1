@@ -2,6 +2,9 @@ function os-popup-notification {
     Param (
             [Parameter(Mandatory=$false)][string] $msg = "No message provided."
         )
+        
+    # Stopping for now as it is very annoying how taskbar icons are left out and cannot be hidden.
+    return;
 
     [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 

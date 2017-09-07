@@ -1,9 +1,3 @@
-if ($false) {
-    . .\..\sf-all-dependencies.ps1 # needed for intellisense
-}
-
-$dataPath = "${PSScriptRoot}\..\db.xml"
-
 function _sf-get-context {
     $currentContext = _sfData-get-currentContext
     if ($currentContext -eq '') {
@@ -21,7 +15,7 @@ function _sfData-validate-context {
 
     if ($context -eq '') {
         throw "Invalid sitefinity context. Cannot be empty string."
-    } elseif ($null  -ne $context){
+    } elseif ($null -ne $context){
         if ($context.name -eq '') {
             throw "Invalid sitefinity context. No sitefinity name."
         }
@@ -50,6 +44,7 @@ function _sfData-set-currentContext {
     _sfData-validate-context $newContext
 
     $script:globalContext = $newContext
+    [System.Console]::Title = $newContext.displayName
 }
 
 function _sfData-apply-contextConventions {
@@ -69,16 +64,8 @@ function _sfData-apply-contextConventions {
         $port++
     }
 
-    $dbName = $name
-    $i = 0
-    while ((sql-test-isDbNameDuplicate $dbName)) {
-        $dbName = $name + '_' + $i
-        $i++
-    }
-
     $defaultContext.solutionPath = $solutionPath
     $defaultContext.webAppPath = $webAppPath
-    $defaultContext.dbName = $dbName
     $defaultContext.websiteName = $websiteName
     $defaultContext.appPool = $appPool
     $defaultContext.port = $port
@@ -125,17 +112,17 @@ function _sfData-get-defaultContext {
     }
 
     # set valid display name
-    $i = 0;
-    while($true) {
-        $isValid = (validateDisplayName $displayName)
-        if ($isValid) {
-            break;
-        }
+    # $i = 0;
+    # while($true) {
+    #     $isValid = (validateDisplayName $displayName)
+    #     if ($isValid) {
+    #         break;
+    #     }
 
-        # $i++;
-        # $displayName = "${displayName}_${i}"
-        $displayName = Read-Host -Prompt "Display name $displayName used. Enter new display name: "
-    }
+    #     # $i++;
+    #     # $displayName = "${displayName}_${i}"
+    #     $displayName = Read-Host -Prompt "Display name $displayName used. Enter new display name: "
+    # }
 
     # build default context object
     $defaultContext = @{
@@ -217,7 +204,6 @@ function _sfData-save-context {
         $sitefinityEntry.SetAttribute("displayName", $context.displayName)
         $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
         $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
-        $sitefinityEntry.SetAttribute("dbName", $context.dbName)
         $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
         $sitefinityEntry.SetAttribute("branch", $context.branch)
         $sitefinityEntry.SetAttribute("description", $context.description)

@@ -1,7 +1,3 @@
-if ($false) {
-    . .\..\sf-all-dependencies.ps1 # needed for intellisense
-}
-
 <#
     .SYNOPSIS 
     .DESCRIPTION
@@ -20,8 +16,6 @@ function sf-undo-pendingChanges {
 
     tfs-undo-pendingChanges $context.solutionPath
 }
-
-New-Alias -name up -value sf-undo-pendingChanges
 
 <#
     .SYNOPSIS 
@@ -43,11 +37,13 @@ function sf-show-pendingChanges {
     }
 
     $context = _sf-get-context
-    $workspaceName = tfs-get-workspaceName $context.webAppPath
-    & tf.exe stat /workspace:$workspaceName /format:$($format)
+    if (!(Test-Path $context.solutionPath)) {
+        throw "invalid or no solution path"
+    }
+    
+    $workspaceName = tfs-get-workspaceName $context.solutionPath
+    & $tfPath stat /workspace:$workspaceName /format:$($format)
 }
-
-New-Alias -name sp -value sf-show-pendingChanges
 
 <#
     .SYNOPSIS 
@@ -81,5 +77,3 @@ function sf-get-latest {
     
     Write-Host "Getting latest changes complete."
 }
-
-New-Alias -name gl -value sf-get-latest

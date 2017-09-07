@@ -128,7 +128,7 @@ function tfs-get-latestChanges {
 
     if ($LastExitCode -ne 0)
     {
-        throw "Error getting latest changes. Message: $output"
+        throw "Error getting latest changes. Message: $output `n"
     } else {
         Write-Host "Success getting latest changes from tfs branch."
     }
@@ -164,6 +164,7 @@ function tfs-get-workspaceName {
         $wsInfo = $wsInfo[2].split('(')
         $wsInfo = $wsInfo[0].trim()
     } catch {
+        Write-Warning "No workspace info from TFS! If that is unexpected your credentials could have expired. To renew them login from visual studio..."
         $wsInfo = ''
     }
 

@@ -1,7 +1,3 @@
-if ($false) {
-    . .\..\sf-all-dependencies.ps1 # needed for intellisense
-}
-
 <#
     .SYNOPSIS 
     Sets the config storage mode of selected sitefinity
@@ -160,8 +156,8 @@ function sf-get-configContentFromDb {
         $filePath="${Env:userprofile}\Desktop\dbExport.xml"
         )
 
-    $context = _sf-get-context
-    $config = sql-get-items -dbName $context.dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
+    $dbName = sf-get-dbName
+    $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
 
     if ($null -ne $config -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -187,8 +183,8 @@ function sf-clear-configContentInDb {
         [Parameter(Mandatory=$true)]$configName
         )
 
-    $context = _sf-get-context
-    sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value "<${configName}/>" -whereFilter "path='${configName}.config'"
+    $dbName = sf-get-dbName
+    sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value "<${configName}/>" -whereFilter "path='${configName}.config'"
 }
 
 <#
@@ -210,8 +206,8 @@ function sf-insert-configContentInDb {
         $filePath="${Env:userprofile}\Desktop\dbImport.xml"
         )
 
-    $context = _sf-get-context
+    $dbName = sf-get-dbName
     $xmlString = Get-Content $filePath -Raw
 
-    $config = sql-update-items -dbName $context.dbName -tableName 'sf_xml_config_items' -value $xmlString -whereFilter "path='${configName}.config'"
+    $config = sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value $xmlString -whereFilter "path='${configName}.config'"
 }

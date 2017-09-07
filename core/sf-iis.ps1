@@ -1,7 +1,3 @@
-if ($false) {
-    . .\..\sf-all-dependencies.ps1 # needed for intellisense
-}
-
 <#
     .SYNOPSIS 
     Resets the current sitefinity web app threads in the app pool in IIS, without resetting the app pool.
@@ -26,8 +22,6 @@ function sf-reset-thread {
     }
 }
 
-New-Alias -name rt -value sf-reset-thread
-
 <#
     .SYNOPSIS 
     .DESCRIPTION
@@ -51,8 +45,6 @@ function sf-reset-pool {
         _sf-start-sitefinity
     }
 }
-
-New-Alias -name rp -value sf-reset-pool
 
 function sf-rename-website {
     Param(
@@ -94,8 +86,6 @@ function sf-browse-webSite {
     $appUrl = _sf-get-appUrl
     & $browserPath "${appUrl}/Sitefinity" -noframemerging
 }
-
-New-Alias -name bw -value sf-browse-webSite
 
 <#
     .SYNOPSIS 
@@ -215,7 +205,7 @@ function sf-setup-asSubApp {
 
         New-Item "IIS:\Sites\$($context.websiteName)\${subAppName}" -physicalPath $context.webAppPath -type "Application"
     } else {
-        $subAppName = iis-get-subAppName
+        $subAppName = iis-get-subAppName $context.websiteName
         if ($subAppName -eq $null) {
             return
         }
@@ -303,7 +293,7 @@ function _sf-get-appUrl {
         throw "No sitefinity port set."
     }
 
-    $subAppName = iis-get-subAppName
+    $subAppName = iis-get-subAppName $context.websiteName
     if ($subAppName -ne $null) {
         return "http://localhost:${port}/${subAppName}"
     } else {
