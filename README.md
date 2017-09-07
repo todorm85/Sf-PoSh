@@ -91,6 +91,9 @@ sf-select-sitefinity
 ss
 ```
 
+10. To save the app state - saves the database and config files and later you can restore it. Useful when testing some operations that break the current app state so you don\`t  have to do a full restart and reinit of db.
+sf-save-appState and sf-restore-appState
+
 ## Use existing sitefinity web app with the tool
 
 To do that you need to import it.
