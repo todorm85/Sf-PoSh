@@ -48,22 +48,19 @@ $script:dataPath = "$($env:USERPROFILE)\db.xml"
 New-Alias -name ra -value sf-reset-app
 New-Alias -name bw -value sf-browse-webSite
 New-Alias -name rt -value sf-reset-thread
-Remove-Item alias:rp -Force
-New-Alias -name rp -value sf-reset-pool
+New-Alias -name rpo -value sf-reset-pool
 New-Alias -name ns -value sf-new-sitefinity
 New-Alias -name ss -value sf-select-sitefinity
 New-Alias -name sd -value sf-set-description
 New-Alias -name rs -value sf-rename-sitefinity
-New-Alias -name sc -value sf-show-currentSitefinity
+New-Alias -name s -value sf-show-currentSitefinity
 New-Alias -name sa -value sf-show-allSitefinities
 New-Alias -name os -value sf-open-solution
 New-Alias -name up -value sf-undo-pendingChanges
-Remove-Item alias:sp -Force
-New-Alias -name sp -value sf-show-pendingChanges
-Remove-Item alias:gl -Force
-New-Alias -name gl -value sf-get-latest
+New-Alias -name spc -value sf-show-pendingChanges
+New-Alias -name gla -value sf-get-latest
 New-Alias -name go -value sf-goto
-Remove-Item alias:gp -Force
-New-Alias -name gp -value sf-get-poolId
+New-Alias -name gpi -value sf-get-poolId
 New-Alias -name sas -value sf-save-appState
 New-Alias -name ras -value sf-restore-appState
+New-Alias -name das -value sf-delete-appState

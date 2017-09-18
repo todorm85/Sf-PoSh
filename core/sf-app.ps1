@@ -149,13 +149,18 @@ function sf-restore-appState {
 
     $configStatePath = "$statePath/configs"
     $configsPath = "$($context.webAppPath)/App_Data/Sitefinity/Configuration"
-    Remove-Item "$configsPath/*" -Force -ErrorAction SilentlyContinue -Recurse
+    if (Test-Path $configsPath) {
+        Remove-Item "$configsPath/*" -Force -ErrorAction SilentlyContinue -Recurse
+    } else {
+        New-Item $configsPath -ItemType Directory > $null
+    }
+    
     Copy-Item "$configStatePath/*.*" $configsPath
 
     sf-reset-pool
 }
 
-function sf-delete-state {
+function sf-delete-appState {
     $context = _sf-get-context
     
     $stateName = sf-select-state
