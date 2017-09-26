@@ -99,6 +99,8 @@ function _sfData-get-defaultContext {
             
             $i++
         }
+
+        return $name
     }
 
     function validateName ($context) {

@@ -17,7 +17,7 @@
 function sf-new-sitefinity {
     [CmdletBinding()]
     Param(
-        [string]$name,
+        [string]$displayName,
         [ValidateSet(
             "$/CMS/Sitefinity 4.0/Code Base",
             "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base",
@@ -29,7 +29,7 @@ function sf-new-sitefinity {
         [switch]$precompile
     )
 
-    $defaultContext = _sfData-get-defaultContext $name
+    $defaultContext = _sfData-get-defaultContext -displayName $displayName
     try {
         $newContext = @{ name = $defaultContext.name }
         $newContext.displayName = $defaultContext.displayName
