@@ -439,8 +439,10 @@ function sf-rename-sitefinity {
         $newWsName = $unusedName
     }
     else {
+        $oldName = $context.displayName
+        $oldName | Set-Clipboard
         while ([string]::IsNullOrEmpty($newName)) {
-            $newName = $(Read-Host -Prompt "Old name: $($context.displayName). New name: ").ToString()
+            $newName = $(Read-Host -Prompt "New name: ").ToString()
             $newDbName = $newName
             $newWebsiteName = $newName
             $newProjectName = $newName
