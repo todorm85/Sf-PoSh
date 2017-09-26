@@ -137,12 +137,17 @@ function sf-save-appState {
     
 }
 
+function _sf-get-statesPath {
+    $context = _sf-get-context
+    return "$($context.webAppPath)/states"
+}
+
 function sf-restore-appState {
     $context = _sf-get-context
     
-    $stateName = sf-select-state
-
-    $statePath = "$($context.webAppPath)/states/$stateName"
+    $stateName = _sf-select-appState
+    $statesPath = _sf-get-statesPath
+    $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
     sql-delete-database $dbName
     Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
@@ -160,18 +165,31 @@ function sf-restore-appState {
     sf-reset-pool
 }
 
-function sf-delete-appState {
+function sf-delete-appState ($stateName) {
     $context = _sf-get-context
     
-    $stateName = sf-select-state
-    $statePath = "$($context.webAppPath)/states/$stateName"
+    if ([string]::IsNullOrEmpty($stateName)) {
+        $stateName = _sf-select-appState
+    }
+
+    $statesPath = _sf-get-statesPath
+    $statePath = "${statesPath}/$stateName"
     Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse    
 }
 
-function sf-select-state {
+function sf-delete-allAppStates {
+    $statesPath = _sf-get-statesPath
+    $states = Get-Item "${statesPath}/*"
+    foreach ($state in $states) {
+        sf-delete-appState $state.Name
+    }
+}
+
+function _sf-select-appState {
     $context = _sf-get-context
 
-    $states = Get-Item "$($context.webAppPath)/states/*"
+    $statesPath = _sf-get-statesPath
+    $states = Get-Item "${statesPath}/*"
     
     $i = 0
     foreach ($state in $states) {
@@ -228,6 +246,22 @@ function sf-add-precompiledTemplates {
     }
 }
 
+function sf-get-dbName {
+    $context = _sf-get-context
+
+    $data = New-Object XML
+    $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
+    if (Test-Path -Path $dataConfigPath) {
+        $data.Load($dataConfigPath) > $null
+        $conStr = $data.dataConfig.connectionStrings.add.connectionString
+        $conStr -match 'initial catalog=(?<dbName>.*?)(;|$)' > $null
+        $dbName = $matches['dbName']
+        return $dbName
+    } else {
+        return $null
+    }
+}
+
 function sf-rename-db {
     Param($newName)
     
@@ -237,7 +271,7 @@ function sf-rename-db {
         throw "Sitefinity not initiliazed with a database. No database found in DataConfig.config"
     }
 
-    while (sql-test-isDbNameDuplicate $newName -or ([string]::IsNullOrEmpty($newName))) {
+    while (([string]::IsNullOrEmpty($newName)) -or (sql-test-isDbNameDuplicate $newName)) {
         $newName = $(Read-Host -Prompt "Db name duplicate in sql server! Enter new db name: ").ToString()
     }
 
@@ -250,13 +284,7 @@ function sf-rename-db {
     }
 
     try {
-        $data = New-Object XML
-        $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
-        $data.Load($dataConfigPath) > $null
-        $conStrElement = $data.dataConfig.connectionStrings.add
-        $newString = $conStrElement.connectionString -replace $dbName, $newName
-        $conStrElement.SetAttribute("connectionString", $newString)
-        $data.Save($dataConfigPath) > $null
+        sf-set-dbName $newName
     }
     catch {
         Write-Error "Failed renaming database in dataConfig"
@@ -265,6 +293,22 @@ function sf-rename-db {
     }
 
     _sfData-save-context $context
+}
+
+function sf-set-dbName ($newName) {
+    $context = _sf-get-context
+    $dbName = sf-get-dbName
+    if (-not $dbName) {
+        Write-Host "No database configured for sitefinity."
+    }
+
+    $data = New-Object XML
+    $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
+    $data.Load($dataConfigPath) > $null
+    $conStrElement = $data.dataConfig.connectionStrings.add
+    $newString = $conStrElement.connectionString -replace $dbName, $newName
+    $conStrElement.SetAttribute("connectionString", $newString)
+    $data.Save($dataConfigPath) > $null
 }
 
 function _sf-start-sitefinity {

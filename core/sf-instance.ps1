@@ -18,11 +18,16 @@ function sf-new-sitefinity {
     [CmdletBinding()]
     Param(
         [string]$name,
-        [string]$branch = "$/CMS/Sitefinity 4.0/Code Base",
+        [ValidateSet(
+            "$/CMS/Sitefinity 4.0/Code Base",
+            "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base",
+            "$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_1_Fixes"
+        )]
+        [string]$branch,
         [switch]$buildSolution,
         [switch]$startWebApp,
         [switch]$precompile
-        )
+    )
 
     $defaultContext = _sfData-get-defaultContext $name
     try {
@@ -54,7 +59,8 @@ function sf-new-sitefinity {
         $oldContext = _sfData-get-currentContext
         _sfData-set-currentContext $newContext
         _sfData-save-context $newContext
-    } catch {
+    }
+    catch {
         Write-Error "############ CLEANING UP ############"
         Set-Location $PSScriptRoot
         
@@ -90,7 +96,8 @@ function sf-new-sitefinity {
             Write-Host "Building solution..."
             sf-build-solution
         }
-    } catch {
+    }
+    catch {
         $startWebApp = $false
         Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
     }
@@ -98,7 +105,8 @@ function sf-new-sitefinity {
     try {
         Write-Host "Creating website..."
         _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
-    } catch {
+    }
+    catch {
         $startWebApp = $false
         Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
     }
@@ -108,7 +116,8 @@ function sf-new-sitefinity {
             Write-Host "Initializing Sitefinity"
             _sf-create-startupConfig
             _sf-start-sitefinity
-        } catch {
+        }
+        catch {
             Write-Warning "APP WAS NOT INITIALIZED. $_.Exception.Message"
             _sf-delete-startupConfig
         }
@@ -122,6 +131,26 @@ function sf-new-sitefinity {
     os-popup-notification "Operation completed!"
 }
 
+function sf-clone-sitefinity {
+    $context = _sf-get-context
+    $sourcePath = $context.solutionPath 
+    if (-not (Test-Path $sourcePath)) {
+        $sourcePath = $context.webAppPath
+    }
+
+    $targetName = "$($context.name)_clone"
+    $targetPath = $script:projectsDirectory + "\${targetName}_0"
+    $i = 0
+    while (Test-Path $targetPath) {
+        $i++
+        $targetPath = "$($script:projectsDirectory)\$($targetName)_$i"
+    }
+
+    New-Item $targetPath -ItemType Directory > $null
+    Copy-Item "${sourcePath}\*" $targetPath -Recurse
+    sf-import-sitefinity -displayName "[clone_$i]_$($context.displayName)" -path $targetPath -name "$($targetName)_$i"
+    sf-delete-allAppStates
+}
 <#
     .SYNOPSIS 
     Imports a new sitefinity instance project from given local path. 
@@ -137,9 +166,10 @@ function sf-new-sitefinity {
 function sf-import-sitefinity {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true)][string]$displayName,
-        [Parameter(Mandatory=$true)][string]$path
-        )
+        [Parameter(Mandatory = $true)][string]$displayName,
+        [Parameter(Mandatory = $true)][string]$path,
+        [string]$name
+    )
 
     if (!(Test-Path $path)) {
         throw "Invalid path"
@@ -155,57 +185,78 @@ function sf-import-sitefinity {
         throw "Cannot determine whether webapp or solution."
     }
 
-    $defaultContext = _sfData-get-defaultContext $displayName
+    $oldContext = _sf-get-context
+    $defaultContext = _sfData-get-defaultContext $displayName $name
     $newContext = @{ name = $defaultContext.name }
     $newContext.displayName = $defaultContext.displayName
     if ($isSolution) {
         $newContext.solutionPath = $path
         $newContext.webAppPath = $path + '\SitefinityWebApp'
-    } else {
+    }
+    else {
         $newContext.solutionPath = ''
         $newContext.webAppPath = $path
     }
 
-    # while ($appInitialized -ne 'y' -and $appInitialized -ne 'n') {
-    #     $appInitialized = Read-Host -Prompt 'Is your app initialized with a database? [y/n]'
-    # }
+    _sfData-set-currentContext $newContext
 
-    while ($hasWebSite -ne 'y' -and $hasWebSite -ne 'n') {
-        $hasWebSite = Read-Host -Prompt 'Does your app has a website created for it? [y/n]'
-    }
-
-    if ($hasWebSite -eq 'y') {
-        $isDuplicate = $false
-        while (!$isDuplicate) {
-            $websiteName = Read-Host -Prompt 'Enter website name: '
-            $isDuplicate = iis-test-isSiteNameDuplicate $websiteName
-            $newContext.websiteName = $websiteName
+    try {
+        
+        while ($hasWebSite -ne 'y' -and $hasWebSite -ne 'n') {
+            $hasWebSite = Read-Host -Prompt 'Does your app has a website created for it? [y/n]'
         }
-    } else {
-        try {
-            Write-Host "Creating website..."
+
+        if ($hasWebSite -eq 'y') {
+            $isDuplicate = $false
+            while (!$isDuplicate) {
+                $websiteName = Read-Host -Prompt 'Enter website name: '
+                $isDuplicate = iis-test-isSiteNameDuplicate $websiteName
+                $newContext.websiteName = $websiteName
+            }
+        }
+        else {
+            try {
+                Write-Host "Creating website..."
             
-            $isDuplicateSite = $true
-            while ($isDuplicateSite) {
-                $isDuplicateSite = iis-test-isSiteNameDuplicate $defaultContext.websiteName
-                if ($isDuplicateSite) {
-                    $defaultContext.websiteName = Read-Host -Prompt "Enter site name"
+                $isDuplicateSite = $true
+                while ($isDuplicateSite) {
+                    $isDuplicateSite = iis-test-isSiteNameDuplicate $defaultContext.websiteName
+                    if ($isDuplicateSite) {
+                        $defaultContext.websiteName = Read-Host -Prompt "Enter site name"
+                    }
                 }
+
+                _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool > $null
+                $newContext.websiteName = $defaultContext.websiteName
+            }
+            catch {
+                $startWebApp = $false
+                Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
+            }
+        }
+
+        $oldDbName = sf-get-dbName
+        if ($oldDbName) {
+            while ($useCopy -ne 'y' -and $useCopy -ne 'n') {
+                $useCopy = Read-Host -Prompt 'Use copy of configured database? [y/n]'
             }
 
-            _sfData-set-currentContext $newContext
-            _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
-            $newContext.websiteName = $defaultContext.websiteName
-        } catch {
-            $startWebApp = $false
-            Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
+            if ($useCopy -eq 'y') {
+                sf-set-dbName $newContext.name
+                sql-copy-db $oldDbName $newContext.name
+            }
         }
+
+        _sfData-save-context $newContext
+
+        # Display message
+        os-popup-notification "Operation completed!"
     }
-
-    _sfData-save-context $newContext
-
-    # Display message
-    os-popup-notification "Operation completed!"
+    catch {
+        Write-Host "Could not import sitefinity: $($_.Exception.Message)"
+        sf-delete-sitefinity
+        _sfData-set-currentContext $oldContext
+    }
 }
 
 <#
@@ -228,7 +279,7 @@ function sf-delete-sitefinity {
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles,
         [switch]$force
-        )
+    )
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
     $workspaceName = tfs-get-workspaceName $context.webAppPath
@@ -253,7 +304,8 @@ function sf-delete-sitefinity {
         Write-Host "Deleting workspace..."
         try {
             tfs-delete-workspace $workspaceName
-        } catch {
+        }
+        catch {
             Write-Host "Could not delete workspace $_.Exception.Message"
         }
     }
@@ -263,7 +315,8 @@ function sf-delete-sitefinity {
         Write-Host "Deleting sitefinity database..."
         try {
             sql-delete-database -dbName $dbName
-        } catch {
+        }
+        catch {
             Write-Host "Could not delete database: ${dbName}. $_.Exception.Message"
         }
     }
@@ -273,7 +326,8 @@ function sf-delete-sitefinity {
     if ($websiteName -ne '') {
         try {
             _sf-delete-website
-        } catch {
+        }
+        catch {
             Write-Host "Could not delete website ${websiteName}. $_.Exception.Message"
         }
     }
@@ -290,14 +344,16 @@ function sf-delete-sitefinity {
             
             if ($solutionPath -ne "") {
                 Remove-Item $solutionPath -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
-            } else {
+            }
+            else {
                 Remove-Item $context.webAppPath -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
             }
 
             if ($ProcessError) {
                 throw $ProcessError
             }
-        } catch {
+        }
+        catch {
             Write-Host "Errors deleting sitefinity directory. $_.Exception.Message"
         }
     }
@@ -381,7 +437,8 @@ function sf-rename-sitefinity {
         $newWebsiteName = $unusedName
         $newProjectName = $unusedName
         $newWsName = $unusedName
-    } else {
+    }
+    else {
         while ([string]::IsNullOrEmpty($newName)) {
             $newName = $(Read-Host -Prompt "Old name: $($context.displayName). New name: ").ToString()
             $newDbName = $newName
@@ -400,7 +457,7 @@ function sf-rename-sitefinity {
 
     if ($full) {
         
-        while($confirmed -ne 'y' -and $confirmed -ne 'n') {
+        while ($confirmed -ne 'y' -and $confirmed -ne 'n') {
             $confirmed = Read-Host -Prompt "Full rename will also rename project directory which requires fixing the workspace mapping. Confirm? y/n"
         }
 
@@ -416,22 +473,6 @@ function sf-rename-sitefinity {
         tfs-delete-workspace $wsName
         tfs-create-workspace $newWsName $context.solutionPath
         sf-get-latest -overwrite
-    }
-}
-
-function sf-get-dbName {
-    $context = _sf-get-context
-
-    $data = New-Object XML
-    $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
-    if (Test-Path -Path $dataConfigPath) {
-        $data.Load($dataConfigPath) > $null
-        $conStr = $data.dataConfig.connectionStrings.add.connectionString
-        $conStr -match 'initial catalog=(?<dbName>.*?)(;|$)' > $null
-
-        return $matches['dbName']
-    } else {
-        return $null
     }
 }
 
@@ -456,16 +497,16 @@ function sf-show-currentSitefinity {
     # $mapping = tfs-get-mappings $context.webAppPath
 
     $otherDetails = @(
-        [pscustomobject]@{id = -1; Parameter = "Title"; Value = $context.displayName;},
-        [pscustomobject]@{id = 0; Parameter = "Id"; Value = $context.name;},
-        [pscustomobject]@{id = 1; Parameter = "Solution path"; Value = $context.solutionPath;},
-        [pscustomobject]@{id = 2; Parameter = "Web app path"; Value = $context.webAppPath;},
-        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sf-get-dbName;},
-        [pscustomobject]@{id = 1; Parameter = "Website Name in IIS"; Value = $context.websiteName;},
-        [pscustomobject]@{id = 2; Parameter = "Ports"; Value = $ports;},
-        [pscustomobject]@{id = 3; Parameter = "Application Pool Name"; Value = $appPool;},
-        [pscustomobject]@{id = 1; Parameter = "TFS workspace name"; Value = $workspaceName;},
-        [pscustomobject]@{id = 2; Parameter = "Mapping"; Value = $context.branch;}
+        [pscustomobject]@{id = -1; Parameter = "Title"; Value = $context.displayName; },
+        [pscustomobject]@{id = 0; Parameter = "Id"; Value = $context.name; },
+        [pscustomobject]@{id = 1; Parameter = "Solution path"; Value = $context.solutionPath; },
+        [pscustomobject]@{id = 2; Parameter = "Web app path"; Value = $context.webAppPath; },
+        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sf-get-dbName; },
+        [pscustomobject]@{id = 1; Parameter = "Website Name in IIS"; Value = $context.websiteName; },
+        [pscustomobject]@{id = 2; Parameter = "Ports"; Value = $ports; },
+        [pscustomobject]@{id = 3; Parameter = "Application Pool Name"; Value = $appPool; },
+        [pscustomobject]@{id = 1; Parameter = "TFS workspace name"; Value = $workspaceName; },
+        [pscustomobject]@{id = 2; Parameter = "Mapping"; Value = $context.branch; }
     )
 
     $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders
@@ -493,7 +534,7 @@ function sf-show-allSitefinities {
 
         $index = [array]::IndexOf($sitefinities, $sitefinity)
 
-        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.name)";}) > $null
+        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.name)"; }) > $null
     }
 
     $output | Sort-Object -Property order | Format-Table -AutoSize -Property Title, Branch, Ports, Id
@@ -526,7 +567,8 @@ function _sf-rename-projectDir {
             # tfs-delete-workspace $oldWorkspaceName
             # tfs-create-workspace $oldWorkspaceName $context.solutionPath
             # tfs-create-mappings -branch $context.branch -branchMapPath $context.solutionPath -workspaceName $oldWorkspaceName
-        } else {
+        }
+        else {
             $parentPath = (Get-Item $context.webAppPath).Parent
             Rename-Item -Path $context.webAppPath -NewName $newName -Force
             $context.webAppPath = "$($parentPath.FullName)\${newName}"

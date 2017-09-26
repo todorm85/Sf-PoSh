@@ -26,7 +26,7 @@ function _sfData-validate-context {
             }
         }
         
-        if (-not(Test-Path $context.webAppPath)) {
+        if (-not $context.webAppPath -and -not(Test-Path $context.webAppPath)) {
             throw "Invalid sitefinity context. No web app path or it does not exist."
         }
     }
@@ -47,84 +47,82 @@ function _sfData-set-currentContext {
     [System.Console]::Title = $newContext.displayName
 }
 
-function _sfData-apply-contextConventions {
-    Param(
-        $defaultContext
-        )
-
-    $name = $defaultContext.name
-    $solutionPath = "${projectsDirectory}\${name}";
-    $webAppPath = "${projectsDirectory}\${name}\SitefinityWebApp";
-    $websiteName = $name
-    $appPool = "DefaultAppPool"
-
-    # initial port to start checking from
-    $port = 1111
-    while(!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
-        $port++
-    }
-
-    $defaultContext.solutionPath = $solutionPath
-    $defaultContext.webAppPath = $webAppPath
-    $defaultContext.websiteName = $websiteName
-    $defaultContext.appPool = $appPool
-    $defaultContext.port = $port
-}
-
 function _sfData-get-defaultContext {
     Param(
-        [string]$displayName
+        [string]$displayName,
+        [string]$name
         )
+        
+    function applyContextConventions {
+        Param(
+            $defaultContext
+            )
 
-    function validateName ($name) {
+        $name = $defaultContext.name
+        $solutionPath = "${projectsDirectory}\${name}";
+        $webAppPath = "${projectsDirectory}\${name}\SitefinityWebApp";
+        $websiteName = $name
+        $appPool = "DefaultAppPool"
+
+        # initial port to start checking from
+        $port = 1111
+        while(!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
+            $port++
+        }
+
+        $defaultContext.solutionPath = $solutionPath
+        $defaultContext.webAppPath = $webAppPath
+        $defaultContext.websiteName = $websiteName
+        $defaultContext.appPool = $appPool
+        $defaultContext.port = $port
+    }
+
+    function isNameDuplicate ($name) {
         $sitefinities = @(_sfData-get-allContexts)
         foreach ($sitefinity in $sitefinities) {
             if ($sitefinity.name -eq $name) {
-                return $false;
+                return $true;
             }
         }    
 
-        return $true;
+        return $false;
     }
 
-    function validateDisplayName ($name) {
-        $sitefinities = @(_sfData-get-allContexts)
-        foreach ($sitefinity in $sitefinities) {
-            if ($sitefinity.displayName -eq $name) {
-                return $false;
+    function generateName {
+        $i = 0;
+        while($true) {
+            $name = "instance_$i"
+            $isDuplicate = (isNameDuplicate $name)
+            if (-not $isDuplicate) {
+                break;
             }
-        }    
-
-        return $true;
-    }
-
-    $i = 0;
-    while($true) {
-        $name = "instance_$i"
-        $isValid = (validateName $name)
-        if ($isValid) {
-            break;
+            
+            $i++
         }
-
-        # $i++;
-        # $displayName = "${displayName}_${i}"
-        $i++
     }
 
-    # set valid display name
-    # $i = 0;
-    # while($true) {
-    #     $isValid = (validateDisplayName $displayName)
-    #     if ($isValid) {
-    #         break;
-    #     }
+    function validateName ($context) {
+        $name = $context.name
+        while ($true) {
+            $isDuplicate = (isNameDuplicate $name)
+            $isValid = $name -match "^[a-zA-Z]+\w*$"
+            if (-not $isValid) {
+                Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
+                $name = Read-Host "Enter new name: "
+            } elseif ($isDuplicate) {
+                Write-Host "Duplicate sitefinity naem."
+                $name = Read-Host "Enter new name: "
+            } else {
+                $context.name = $name
+                break
+            }
+        }
+    }
 
-    #     # $i++;
-    #     # $displayName = "${displayName}_${i}"
-    #     $displayName = Read-Host -Prompt "Display name $displayName used. Enter new display name: "
-    # }
-
-    # build default context object
+    if ([string]::IsNullOrEmpty($name)) {
+        $name = generateName    
+    }
+    
     $defaultContext = @{
         displayName = $displayName;
         name = $name;
@@ -136,18 +134,9 @@ function _sfData-get-defaultContext {
         appPool = '';
     }
 
-    # check sitefinity name
-    while($true) {
-        if ($name -notmatch "^[a-zA-Z]+\w*$") {
-           Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
-           $name = Read-Host "Enter new name: "
-        } else {
-            $defaultContext.name = $name
-            break
-        }
-    }
+    validateName $defaultContext
 
-    _sfData-apply-contextConventions $defaultContext
+    applyContextConventions $defaultContext
 
     return $defaultContext
 }
