@@ -90,6 +90,20 @@ sf-select-sitefinity
 #or
 ss
 ```
+10. To save the app state for faster restoration later (Database and config files)
+```powershell
+sf-save-appState #or
+sas
+```
+11. To restore previous app state (Database and config files)
+```powershell
+sf-restore-appState #or
+ras
+```
+12. To clone the instance (Sitefinity + database) to a new instance, hosted on new website.
+```powershell
+sf-clone-sitefinity
+```
 
 ## Use existing sitefinity web app with the tool
 
