@@ -25,7 +25,7 @@ function sf-reset-app {
         [switch]$rebuild,
         [switch]$precompile,
         [switch]$build,
-        [string]$user = "admin@test.test",
+        [string]$user = $defaultUser,
         [switch]$configRestrictionSafe
         )
 
@@ -458,7 +458,7 @@ function _sf-create-startupConfig {
         $xmlWriter.WriteStartDocument()
             $xmlWriter.WriteStartElement("startupConfig")
                 $XmlWriter.WriteAttributeString("username", $user)
-                $XmlWriter.WriteAttributeString("password", $user)
+                $XmlWriter.WriteAttributeString("password", $password)
                 $XmlWriter.WriteAttributeString("enabled", "True")
                 $XmlWriter.WriteAttributeString("initialized", "False")
                 $XmlWriter.WriteAttributeString("email", $user)
