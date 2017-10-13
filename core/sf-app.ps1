@@ -421,8 +421,9 @@ function _sf-delete-startupConfig {
 
 function _sf-create-startupConfig {
     param(
-        [string]$user = 'admin@test.test',
-        [string]$dbName = $null
+        [string]$user = $defaultUser,
+        [string]$dbName = $null,
+        [string]$password = $defaultPassword
     )
 
     $context = _sf-get-context

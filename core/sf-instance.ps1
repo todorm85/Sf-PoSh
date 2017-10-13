@@ -6,7 +6,7 @@
     .PARAMETER name
     The name of the new sitefinity instance.
     .PARAMETER branch
-    The tfs branch from which the Sitefinity source code is downloaded.
+    The tfs branch from which the Sitefinity source code is downloaded. It has predefined values that can be iterated by pressing tab repeatedly.
     .PARAMETER buildSolution
     Builds the solution after downloading from tfs.
     .PARAMETER startWebApp
@@ -18,117 +18,148 @@ function sf-new-sitefinity {
     [CmdletBinding()]
     Param(
         [string]$displayName,
-        [ValidateSet(
-            "$/CMS/Sitefinity 4.0/Code Base",
-            "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base",
-            "$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_1_Fixes"
-        )]
-        [string]$branch,
         [switch]$buildSolution,
         [switch]$startWebApp,
         [switch]$precompile
     )
 
-    $defaultContext = _sfData-get-defaultContext -displayName $displayName
-    try {
-        $newContext = @{ name = $defaultContext.name }
-        $newContext.displayName = $defaultContext.displayName
-        if (Test-Path $defaultContext.solutionPath) {
-            throw "Path already exists:" + $defaultContext.solutionPath
-        }
-
-        Write-Host "Creating solution path..."
-        New-Item $defaultContext.solutionPath -type directory > $null
-        $newContext.solutionPath = $defaultContext.solutionPath;
-
-        # create and map workspace
-        Write-Host "Creating workspace..."
-        $workspaceName = $defaultContext.name
-        tfs-create-workspace $workspaceName $defaultContext.solutionPath
-
-        Write-Host "Creating workspace mappings..."
-        tfs-create-mappings -branch $branch -branchMapPath $defaultContext.solutionPath -workspaceName $workspaceName
-        $newContext.branch = $branch
-
-        Write-Host "Getting latest workspace changes..."
-        tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
-
-        # persist current context to script data
-        $newContext.webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
-        $oldContext = ''
-        $oldContext = _sfData-get-currentContext
-        _sfData-set-currentContext $newContext
-        _sfData-save-context $newContext
-    }
-    catch {
-        Write-Error "############ CLEANING UP ############"
-        Set-Location $PSScriptRoot
+    DynamicParam {
+        # Set the dynamic parameters' name
+        $ParameterName = 'branch'
         
-        if ($newContext.solutionPath -ne '' -and $newContext.solutionPath -ne $null) {
-            try {
-                Write-Host "Deleting workspace..."
-                tfs-delete-workspace $workspaceName
-            }
-            catch {
-                Write-Warning "No workspace created to delete."
-            }
-            
-            Write-Host "Deleting solution..."
-            Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
-            if ($ProcessError) {
-                Write-Warning "Could not delete solution directory".
-                # Write-Error $ProcessError
-            }
-        }
+        # Create the dictionary 
+        $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
 
-        if ($oldContext -ne '') {
-            _sfData-set-currentContext $oldContext
-        }
+        # Create the collection of attributes
+        $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
         
-        $displayInnerError = Read-Host "Display inner error?"
-        if ($displayInnerError) {
-            Write-Host $_
-        }
+        # Create and set the parameters' attributes
+        $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+        $ParameterAttribute.Mandatory = $true
+        $ParameterAttribute.Position = 1
+
+        # Add the attributes to the attributes collection
+        $AttributeCollection.Add($ParameterAttribute)
+
+        # Generate and set the ValidateSet 
+        $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($predefinedBranches)
+
+        # Add the ValidateSet to the attributes collection
+        $AttributeCollection.Add($ValidateSetAttribute)
+
+        # Create and return the dynamic parameter
+        $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
+        $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
+        return $RuntimeParameterDictionary
     }
 
-    try {
-        if ($buildSolution) {
-            Write-Host "Building solution..."
-            sf-build-solution
-        }
-    }
-    catch {
-        $startWebApp = $false
-        Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
+    begin {
+        # Bind the parameter to a friendly variable
+        $branch = $PsBoundParameters[$ParameterName]
     }
 
-    try {
-        Write-Host "Creating website..."
-        _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
-    }
-    catch {
-        $startWebApp = $false
-        Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
-    }
-
-    if ($startWebApp) {
+    process {
+        $defaultContext = _sfData-get-defaultContext -displayName $displayName
         try {
-            Write-Host "Initializing Sitefinity"
-            _sf-create-startupConfig
-            _sf-start-sitefinity
+            $newContext = @{ name = $defaultContext.name }
+            $newContext.displayName = $defaultContext.displayName
+            if (Test-Path $defaultContext.solutionPath) {
+                throw "Path already exists:" + $defaultContext.solutionPath
+            }
+
+            Write-Host "Creating solution path..."
+            New-Item $defaultContext.solutionPath -type directory > $null
+            $newContext.solutionPath = $defaultContext.solutionPath;
+
+            # create and map workspace
+            Write-Host "Creating workspace..."
+            $workspaceName = $defaultContext.name
+            tfs-create-workspace $workspaceName $defaultContext.solutionPath
+
+            Write-Host "Creating workspace mappings..."
+            tfs-create-mappings -branch $branch -branchMapPath $defaultContext.solutionPath -workspaceName $workspaceName
+            $newContext.branch = $branch
+
+            Write-Host "Getting latest workspace changes..."
+            tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
+
+            # persist current context to script data
+            $newContext.webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
+            $oldContext = ''
+            $oldContext = _sfData-get-currentContext
+            _sfData-set-currentContext $newContext
+            _sfData-save-context $newContext
         }
         catch {
-            Write-Warning "APP WAS NOT INITIALIZED. $_.Exception.Message"
-            _sf-delete-startupConfig
-        }
-    }
-    
-    if ($precompile) {
-        sf-add-precompiledTemplates
-    }
+            Write-Error "############ CLEANING UP ############"
+            Set-Location $PSScriptRoot
+        
+            if ($newContext.solutionPath -ne '' -and $newContext.solutionPath -ne $null) {
+                try {
+                    Write-Host "Deleting workspace..."
+                    tfs-delete-workspace $workspaceName
+                }
+                catch {
+                    Write-Warning "No workspace created to delete."
+                }
+            
+                Write-Host "Deleting solution..."
+                Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
+                if ($ProcessError) {
+                    Write-Warning "Could not delete solution directory".
+                    # Write-Error $ProcessError
+                }
+            }
 
-    # Display message
-    os-popup-notification "Operation completed!"
+            if ($oldContext -ne '') {
+                _sfData-set-currentContext $oldContext
+            }
+        
+            $displayInnerError = Read-Host "Display inner error?"
+            if ($displayInnerError) {
+                Write-Host $_
+            }
+        }
+
+        try {
+            if ($buildSolution) {
+                Write-Host "Building solution..."
+                sf-build-solution
+            }
+        }
+        catch {
+            $startWebApp = $false
+            Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
+        }
+
+        try {
+            Write-Host "Creating website..."
+            _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
+        }
+        catch {
+            $startWebApp = $false
+            Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
+        }
+
+        if ($startWebApp) {
+            try {
+                Write-Host "Initializing Sitefinity"
+                _sf-create-startupConfig
+                _sf-start-sitefinity
+            }
+            catch {
+                Write-Warning "APP WAS NOT INITIALIZED. $_.Exception.Message"
+                _sf-delete-startupConfig
+            }
+        }
+    
+        if ($precompile) {
+            sf-add-precompiledTemplates
+        }
+
+        # Display message
+        os-popup-notification "Operation completed!"
+    }
 }
 
 function sf-clone-sitefinity {

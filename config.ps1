@@ -64,3 +64,13 @@ New-Alias -name gpi -value sf-get-poolId
 New-Alias -name sas -value sf-save-appState
 New-Alias -name ras -value sf-restore-appState
 New-Alias -name das -value sf-delete-appState
+New-Alias -name ds -value sf-delete-sitefinity
+
+# Global settings
+$defaultUser = 'admin@test.test'
+$defaultPassword = 'admin@2'
+
+$predefinedBranches = @("$/CMS/Sitefinity 4.0/Code Base",
+"$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base",
+"$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_1_Fixes",
+"$/CMS/Sitefinity 4.0/TeamBranches/U3/XSS")
