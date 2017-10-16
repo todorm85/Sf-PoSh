@@ -2,9 +2,10 @@
 
 # the path where provisioned sitefinity projects by the script will be created in
 $script:projectsDirectory = "e:\sitefinities"
+$script:projectsDirectory = "D:\Sitefinities"
 
 if (-not (Test-Path $projectsDirectory)) {
-    throw "Projects directory not set in SfDevTool\EnvConstants.ps1 or it does not exist."
+    throw "Project directory $projectsDirectory is not set in config.ps1 or does not exist."
 }
 
 # the sql server name that you use to connect to sql server. This db server will be used to created provisioned sitefinity dbs
@@ -14,7 +15,7 @@ $script:sqlServerInstance = '.'
 $script:browserPath = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 
 if (-not (Test-Path $browserPath)) {
-    throw "Browser path not set in SfDevTool\EnvConstants.ps1 or it does not exist."
+    throw "Chrome browser path is not set in config.ps1 or does not exist."
 }
 
 # path to visual studio used to launch projects from the script
@@ -22,7 +23,7 @@ $script:vsPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\ID
 # $script:vsPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe" #VS2017
 
 if (-not (Test-Path $vsPath)) {
-    throw "Visual studio path not set in SfDevTool\EnvConstants.ps1 or it does not exist."
+    throw "Visual studio path is not set in config.ps1 or does not exist."
 }
 
 # msbuild used by the script to build projects.
@@ -30,7 +31,7 @@ $script:msBuildPath = "C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe"  # V
 # $script:msBuildPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe" VS2017
 
 if (-not (Test-Path $msBuildPath)) {
-    throw "MSBuild path not set in SfDevTool\EnvConstants.ps1 or it does not exist."
+    throw "MSBuild path is not set in config.ps1 or does not exist."
 }
 
 # used for tfs workspace manipulations, installed with Visual Studio
@@ -38,7 +39,7 @@ $script:tfPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\ID
 # $script:tfPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\TF.exe" #VS2017
 
 if (-not (Test-Path $tfPath)) {
-    throw "Team foundation tool path not set in SfDevTool\EnvConstants.ps1 or it does not exist. (Used for tfs automation)"
+    throw "Team foundation tool path is not set config.ps1 or does not exist."
 }
 
 # where info about created and imported sitefinities will be stored
