@@ -1,7 +1,6 @@
 # Environment Constants
 
 # the path where provisioned sitefinity projects by the script will be created in
-$script:projectsDirectory = "e:\sitefinities"
 $script:projectsDirectory = "D:\Sitefinities"
 
 if (-not (Test-Path $projectsDirectory)) {
