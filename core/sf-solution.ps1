@@ -12,11 +12,13 @@ function sf-build-solution {
 
     $context = _sf-get-context
     $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    $solutionPathUI = "$($context.solutionPath)\Telerik.Sitefinity.MS.TestUI.sln"
     if (!(Test-Path $solutionPath)) {
         sf-build-webAppProj
     }
 
     _sf-build-proj $solutionPath $useOldMsBuild
+    _sf-build-proj $solutionPathUI $useOldMsBuild
 }
 
 <#
@@ -200,15 +202,21 @@ function sf-clear-nugetCache {
 #>
 function sf-open-solution {
     
-    [CmdletBinding()]param()
+    [CmdletBinding()]
+    Param([switch]$openUISln)
     
     $context = _sf-get-context
     $solutionPath = $context.solutionPath
     if ($solutionPath -eq '') {
         throw "invalid or no solution path"
     }
-
-    & $vsPath "${solutionPath}\telerik.sitefinity.sln"
+    if ($openUISln) {
+        & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
+        & $vsPath "${solutionPath}\Telerik.Sitefinity.MS.TestUI.sln"
+    } else {
+        & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
+    }
+    
 }
 
 <#
