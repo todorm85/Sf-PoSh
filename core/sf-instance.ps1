@@ -424,6 +424,7 @@ function sf-select-sitefinity {
 
     _sfData-set-currentContext $selectedSitefinity
     Set-Location $selectedSitefinity.webAppPath
+    sf-show-currentSitefinity
 }
 
 <#
