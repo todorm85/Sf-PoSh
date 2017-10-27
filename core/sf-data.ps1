@@ -1,9 +1,11 @@
 function _sf-get-context {
     $currentContext = _sfData-get-currentContext
     if ($currentContext -eq '') {
-        throw "Invalid context object."
+        Write-Warning "Invalid selected sitefinity."
+        return $null
     } elseif ($null -eq $currentContext) {
-        throw "No sitefinity selected."
+        Write-Warning "No selected sitefinity."
+        return $null
     }
 
     $context = $currentContext.PsObject.Copy()
