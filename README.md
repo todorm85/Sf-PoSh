@@ -33,7 +33,7 @@ Get-Module -All | where {$_.Name.Contains('SfDevTool')}
 
 4. Create a new isntance locally called testInstance from a specific branch, build it, initiate the web app with default user admin@test.test (pass:admin@test.test), and add precompiled tempaltes
 ```powershell
-sf-new-sitefinity -name "testInstance" -branch "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base" -buildSolution -startWebApp -precompile
+sf-new-sitefinity -displayName "testInstance" -branch "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base" -buildSolution -startWebApp -precompile
 ```
 This will take some time so go grab a coffee. The webapp will be tracked in a separate private workspace in TFS with the same name as the identifier.
 
