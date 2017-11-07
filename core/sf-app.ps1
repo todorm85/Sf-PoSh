@@ -246,6 +246,11 @@ function sf-add-precompiledTemplates {
     }
 }
 
+function sf-add-secondSite {
+    $appUrl = _sf-get-appUrl
+    Invoke-WebRequest -Uri $appUrl/AutomationTests/AutomationTestsArrangemets.svc/ExecuteArrangement/SetupSitefinityForMultisiteMultilingual/CreateMultilingualSite -Method POST
+}
+
 function sf-get-dbName {
     $context = _sf-get-context
 
