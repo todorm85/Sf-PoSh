@@ -147,7 +147,12 @@ Resets just the app threads not the entire pool process. Useful when multiple si
 ```powershell
 sf-setup-asSubApp
 ```
-Sets up the current app in sub application mode in iis. Use the revert switch to undo this.
+Sets up the current app in sub application mode in iis.
+
+```powershell
+sf-remove-subApp
+```
+Undo sub application mode in iis.
 
 ```powershell
 sf-get-poolId

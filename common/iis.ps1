@@ -175,8 +175,9 @@ function iis-get-siteAppPool {
     Param(
         [Parameter(Mandatory=$true)][string]$websiteName
         )
-
-    Get-ItemProperty "IIS:\Sites\${websiteName}" -Name "applicationPool"
+    
+        _iis-load-webAdministrationModule
+        Get-ItemProperty "IIS:\Sites\${websiteName}" -Name "applicationPool"
 }
 
 function iis-test-isPortFree {
@@ -237,4 +238,39 @@ function iis-rename-website {
     )
     
     Rename-Item "IIS:\Sites\$name" "$newName"
+}
+
+function iis-new-subApp {
+    Param(
+        [string]$siteName,
+        [string]$appName,
+        [string]$path
+    )
+
+    _iis-load-webAdministrationModule
+    New-Item "IIS:\Sites\$($siteName)\${appName}" -physicalPath $path -type "Application"
+}
+
+function iis-remove-subApp {
+    Param(
+        [string]$siteName,
+        [string]$appName
+    )
+
+    if ([String]::IsNullOrEmpty($appName) -or [string]::IsNullOrWhiteSpace($appName)) {
+        throw "Invalid app name"
+    }
+
+    _iis-load-webAdministrationModule
+    Remove-Item "IIS:\Sites\$($siteName)\${appName}" -force -recurse -Confirm:$false
+}
+
+function iis-set-sitePath {
+    Param(
+        [string]$siteName,
+        [string]$path
+    )
+
+    _iis-load-webAdministrationModule
+    Get-Item ("iis:\Sites\$($siteName)") | Set-ItemProperty -Name "physicalPath" -Value $path
 }

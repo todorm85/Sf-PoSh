@@ -190,31 +190,28 @@ function sf-remove-sitePorts {
 function sf-setup-asSubApp {
     [CmdletBinding()]
     Param(
-        [string]$subAppName,
-        [switch]$revert
+        [Parameter(Mandatory=$true)][string]$subAppName
     )
 
     $context = _sf-get-context
-    if (-not $revert) {
-        $dummyPath = "c:\dummySubApp"
-        if (-not (Test-Path $dummyPath)) {
-            New-Item $dummyPath -ItemType Directory
-        }
+    $dummyPath = "c:\dummySubApp"
+    if (-not (Test-Path $dummyPath)) {
+        New-Item $dummyPath -ItemType Directory
+    }
+        
+    iis-set-sitePath $context.websiteName $dummyPath
+    iis-new-subApp $context.websiteName $subAppName $context.webAppPath
+}
 
-        Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value $dummyPath
-
-        New-Item "IIS:\Sites\$($context.websiteName)\${subAppName}" -physicalPath $context.webAppPath -type "Application"
-    } else {
-        $subAppName = iis-get-subAppName $context.websiteName
-        if ($subAppName -eq $null) {
-            return
-        }
-
-        Remove-Item "IIS:\Sites\$($context.websiteName)\${subAppName}" -force -recurse -Confirm:$false
-
-        Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value $context.webAppPath
+function sf-remove-subApp {
+    $context = _sf-get-context
+    $subAppName = iis-get-subAppName $context.websiteName
+    if ($subAppName -eq $null) {
+        return
     }
 
+    iis-remove-subApp $context.websiteName $subAppName
+    iis-set-sitePath $context.websiteName $context.webAppPath
 }
 
 <#
