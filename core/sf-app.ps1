@@ -162,7 +162,7 @@ function sf-restore-appState {
     
     Copy-Item "$configStatePath/*.*" $configsPath
 
-    sf-reset-pool
+    sf-reset-thread
 }
 
 function sf-delete-appState ($stateName) {
