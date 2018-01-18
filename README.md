@@ -17,7 +17,7 @@ This tool allows easy sitefinity web apps provisioning and orchestration on a lo
 ALWAYS RUN THE MODULE IN AN ELEVATED POWERSHELL INSTANCE
 
 1. The annoying part... setup environment constants 
-Enter your env specific paths in `.\SfDevTool\config.ps1.`
+Enter your env specific paths in `.\config.ps1.`
 
 1.1. Run powershell as Administrator
 
@@ -31,28 +31,20 @@ Import-Module {path to SfDevTool.psd1}
 Get-Module -All | where {$_.Name.Contains('SfDevTool')}
 ```
 
-4. Create a new isntance locally called testInstance from a specific branch, build it, initiate the web app with default user admin@test.test (pass:admin@test.test), and add precompiled tempaltes
+4. Create a new isntance locally called testInstance from a specific branch, build it, initiate the web app with default user and pass as in config.ps1 and add precompiled tempaltes
 ```powershell
 sf-new-project -displayName "testInstance" -branch "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base" -buildSolution -startWebApp -precompile
 ```
-This will take some time so go grab a coffee. The webapp will be tracked in a separate private workspace in TFS with the same name as the identifier.
+This will take some time so go grab a coffee. The webapp will be tracked in a separate private workspace in TFS with the same name as the identifier. Projects in the tool are identified by following convention: instance_0, instance_1 etc...
 
 5. To get more info about the created sitefinity instance type:
 ```powershell
 sf-show-currentProject -detail
 ```
-or
-```powershell
-s -detail
-```
 
 6. To browse to the newly created app type
 ```powershell
 sf-browse-webSite
-```
-or
-```powershell
-bw
 ```
 
 7. To reset the app
@@ -78,34 +70,30 @@ sf-reset-app -start -build
 ```
 This will also build the app besides resetting it.
 
-8. To delete the provisioned sitefinity
+8. To delete the current selected sitefinity
 ```powershell
 sf-delete-project
 ```
 Will remove everything associated with current selected sitefinity instance (db/iis site/ local directory/tfs workspace)
 
-9. To select a different sitefinity instance that is managed by the tool type:
+9. To select a different sitefinity that is managed by the tool type:
 ```powershell
-sf-rename-project
-#or
-ss
+sf-select-project
 ```
 10. To save the app state for faster restoration later (Database and config files)
 ```powershell
-sf-save-appState #or
-sas
+sf-save-appState
 ```
 11. To restore previous app state (Database and config files)
 ```powershell
-sf-restore-appState #or
-ras
+sf-restore-appState
 ```
 12. To clone the instance (Sitefinity + database) to a new instance, hosted on new website.
 ```powershell
 sf-clone-project
 ```
 
-## Use existing sitefinity web app with the tool
+## Import existing sitefinity web app to manage
 
 To do that you need to import it.
 ```powershell
@@ -121,15 +109,11 @@ WARNING: If your imported sitefinity is a copy of another that is initialized wi
 
 ```powershell
 sf-show-currentProject -detail
-#or
-s -detail
 ```
 Shows the current selected sitefinity instance for that powershell window.
 
 ```powershell
 sf-open-solution
-#or
-os
 ```
 Opens Telerik.Sitefinity.sln if there is one or the SitefinityWebApp.csproj
 
@@ -139,8 +123,7 @@ sf-add-precompiledTemplates
 Adds precompiled templates to the app, use the -revert switch to remove them.
 
 ```powershell
-sf-reset-thread #or
-rt
+sf-reset-thread
 ```
 Resets just the app threads not the entire pool process. Useful when multiple sitefinities use same app pool instance. Other apps don`t get reset.
 
