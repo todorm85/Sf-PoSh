@@ -1,49 +1,14 @@
-function _sf-get-context {
-    $currentContext = _sfData-get-currentContext
-    if ($currentContext -eq '') {
-        Write-Warning "Invalid selected sitefinity."
-        return $null
-    } elseif ($null -eq $currentContext) {
-        Write-Warning "No selected sitefinity."
-        return $null
-    }
-
-    $context = $currentContext.PsObject.Copy()
-    return $context
-}
-
-function _sfData-validate-context {
-    Param($context)
-
-    if ($context -eq '') {
-        throw "Invalid sitefinity context. Cannot be empty string."
-    } elseif ($null -ne $context){
-        if ($context.name -eq '') {
-            throw "Invalid sitefinity context. No sitefinity name."
-        }
-
-        if ($context.solutionPath -ne '') {
-            if (-not (Test-Path $context.solutionPath)) {
-                throw "Invalid sitefinity context. Solution path does not exist."
-            }
-        }
-        
-        if (-not $context.webAppPath -and -not(Test-Path $context.webAppPath)) {
-            throw "Invalid sitefinity context. No web app path or it does not exist."
-        }
-    }
-}
 
 function _sfData-get-currentContext {
 
-    _sfData-validate-context $script:globalContext
+    _validate-project $script:globalContext
     return $script:globalContext
 }
 
 function _sfData-set-currentContext {
     Param($newContext)
 
-    _sfData-validate-context $newContext
+    _validate-project $newContext
 
     $script:globalContext = $newContext
     [System.Console]::Title = $newContext.displayName
@@ -147,7 +112,7 @@ function _sfData-get-defaultContext {
 
 function _sfData-get-allContexts {
     $data = New-Object XML
-    $data.Load($dataPath)
+    $data.Load($script:dataPath)
     return $data.data.sitefinities.sitefinity
 }
 
@@ -157,7 +122,7 @@ function _sfData-delete-context {
     $name = $context.name
     try {
         $data = New-Object XML
-        $data.Load($dataPath) > $null
+        $data.Load($script:dataPath) > $null
         $sitefinities = $data.data.sitefinities.sitefinity
         ForEach($sitefinity in $sitefinities) {
             if ($sitefinity.name -eq $name) {
@@ -166,60 +131,21 @@ function _sfData-delete-context {
             }
         }
 
-        $data.Save($dataPath) > $null
+        $data.Save($script:dataPath) > $null
     } catch {
         throw "Error deleting sitefinity from ${dataPath}. Message: $_.Exception.Message"
     }
 }
 
-function _sfData-save-context {
-    Param($context)
-
-    _sfData-validate-context $context
-    try {
-        $data = New-Object XML
-        $data.Load($dataPath) > $null
-        $sitefinities = $data.data.sitefinities.sitefinity
-        ForEach($sitefinity in $sitefinities) {
-            if ($sitefinity.name -eq $context.name) {
-                $sitefinityEntry = $sitefinity
-                break
-            }
-        }
-
-        if ($sitefinityEntry -eq $null) {
-            $sitefinityEntry = $data.CreateElement("sitefinity");
-            $sitefinities = $data.SelectSingleNode('/data/sitefinities')
-            $sitefinities.AppendChild($sitefinityEntry)
-        }
-
-        $sitefinityEntry.SetAttribute("name", $context.name)
-        $sitefinityEntry.SetAttribute("displayName", $context.displayName)
-        $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
-        $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
-        $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
-        $sitefinityEntry.SetAttribute("branch", $context.branch)
-        $sitefinityEntry.SetAttribute("description", $context.description)
-        # $sitefinityEntry.SetAttribute("port", $context.port)
-        # $sitefinityEntry.SetAttribute("appPool", $context.appPool)
-
-        $data.Save($dataPath) > $null
-    } catch {
-        throw "Error creating sitefinity in ${dataPath} database file"
-    }
-
-    _sfData-set-currentContext $context
-}
-
 function _sfData-init-data {
-    _sfData-set-currentContext $null
+    # _sfData-set-currentContext $null
     
-    if (!(Test-Path $dataPath)) {
+    if (!(Test-Path $script:dataPath)) {
         Write-Host "Initializing script data..."
-        New-Item -ItemType file -Path $dataPath
+        New-Item -ItemType file -Path $script:dataPath
 
         # Create The Document
-        $XmlWriter = New-Object System.XMl.XmlTextWriter($dataPath,$Null)
+        $XmlWriter = New-Object System.XMl.XmlTextWriter($script:dataPath,$Null)
 
         # Set The Formatting
         $xmlWriter.Formatting = "Indented"
@@ -237,3 +163,5 @@ function _sfData-init-data {
         $xmlWriter.Close()
     }
 }
+
+_sfData-init-data

@@ -11,7 +11,7 @@ $functionNamePattern = "^\s*?function\s+?(?<name>(sf-|sfTest-).+?)\s+({|\().*$"
 $filteredNames = $functionsLines | where { $_ -match $functionNamePattern } | % { $Matches["name"] }
 $functionNames = New-Object System.Collections.ArrayList($null)
 $functionNames.AddRange($filteredNames) > $null
-$functionNames.Add("_sf-get-context") > $null
+$functionNames.Add("_get-selectedProject") > $null
 
 # generate manifest
 New-ModuleManifest `

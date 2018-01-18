@@ -39,7 +39,7 @@ function sf-reset-app {
         sf-build-solution
     }
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     # Write-Host "Restarting app pool..."
     # Restart-WebItem ("IIS:\AppPools\" + $appPool)
     # iisreset.exe
@@ -105,7 +105,7 @@ function sf-reset-app {
 }
 
 function sf-save-appState {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     
     $dbName = sf-get-dbName
     if (-not $dbName) {
@@ -138,12 +138,12 @@ function sf-save-appState {
 }
 
 function _sf-get-statesPath {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     return "$($context.webAppPath)/states"
 }
 
 function sf-restore-appState {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     
     $stateName = _sf-select-appState
     $statesPath = _sf-get-statesPath
@@ -166,7 +166,7 @@ function sf-restore-appState {
 }
 
 function sf-delete-appState ($stateName) {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = _sf-select-appState
@@ -186,7 +186,7 @@ function sf-delete-allAppStates {
 }
 
 function _sf-select-appState {
-    $context = _sf-get-context
+    $context = _get-selectedProject
 
     $statesPath = _sf-get-statesPath
     $states = Get-Item "${statesPath}/*"
@@ -231,7 +231,7 @@ function sf-add-precompiledTemplates {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
     
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $webAppPath = $context.webAppPath
     $appUrl = _sf-get-appUrl
     if ($revert) {
@@ -252,7 +252,7 @@ function sf-add-secondSite {
 }
 
 function sf-get-dbName {
-    $context = _sf-get-context
+    $context = _get-selectedProject
 
     $data = New-Object XML
     $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
@@ -270,7 +270,7 @@ function sf-get-dbName {
 function sf-rename-db {
     Param($newName)
     
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $dbName = sf-get-dbName
     if ([string]::IsNullOrEmpty($dbName)) {
         throw "Sitefinity not initiliazed with a database. No database found in DataConfig.config"
@@ -297,11 +297,11 @@ function sf-rename-db {
         return
     }
 
-    _sfData-save-context $context
+    _save-selectedProject $context
 }
 
 function sf-set-dbName ($newName) {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $dbName = sf-get-dbName
     if (-not $dbName) {
         Write-Host "No database configured for sitefinity."
@@ -323,7 +323,7 @@ function _sf-start-sitefinity {
         [Int32]$attempts = 1
     )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $port = @(iis-get-websitePort $context.websiteName)[0]
     if ($port -eq '' -or $port -eq $null) {
         throw "No port defined for selected sitefinity."
@@ -416,7 +416,7 @@ function _sf-start-sitefinity {
 }
 
 function _sf-delete-startupConfig {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
     if ($ProcessError) {
@@ -431,7 +431,7 @@ function _sf-create-startupConfig {
         [string]$password = $defaultPassword
     )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $webAppPath = $context.webAppPath
     
     Write-Host "Creating StartupConfig..."

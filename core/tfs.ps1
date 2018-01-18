@@ -9,7 +9,7 @@ function sf-undo-pendingChanges {
     [CmdletBinding()]
     Param()
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     if (!(Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
     }
@@ -36,7 +36,7 @@ function sf-show-pendingChanges {
         $format = "Brief"
     }
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     if (!(Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
     }
@@ -58,7 +58,7 @@ function sf-get-latest {
         [switch]$overwrite
     )
     
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"

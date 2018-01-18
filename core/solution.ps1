@@ -10,7 +10,7 @@ function sf-build-solution {
     [CmdletBinding()]
     Param([switch]$useOldMsBuild)
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     $solutionPathUI = "$($context.solutionPath)\Telerik.Sitefinity.MS.TestUI.sln"
     if (!(Test-Path $solutionPath)) {
@@ -69,7 +69,7 @@ function sf-clean-solution {
     Param([switch]$keepPackages)
 
     Write-Host "Cleaning solution..."
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
@@ -109,7 +109,7 @@ function sf-clean-solution {
 
 function _sf-delete-appDataFiles {
     Write-Host "Deleting sitefinity configs, logs, temps..."
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $webAppPath = $context.webAppPath
     $errorMessage = ''
     if (Test-Path "${webAppPath}\App_Data\Sitefinity") {
@@ -153,7 +153,7 @@ function sf-goto {
         [switch]$webConfig
     )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $webAppPath = $context.webAppPath
 
     if ($configs) {
@@ -184,7 +184,7 @@ function sf-clear-nugetCache {
     [CmdletBinding()]
     Param()
     
-    $context = _sf-get-context
+    $context = _get-selectedProject
     if (!(Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
     }
@@ -205,7 +205,7 @@ function sf-open-solution {
     [CmdletBinding()]
     Param([switch]$openUISln)
     
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $solutionPath = $context.solutionPath
     if ($solutionPath -eq '') {
         throw "invalid or no solution path"
@@ -231,7 +231,7 @@ function sf-build-webAppProj () {
     [CmdletBinding()]
     Param([switch]$useOldMsBuild)
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"

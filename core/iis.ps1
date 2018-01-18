@@ -10,7 +10,7 @@ function sf-reset-thread {
     [CmdletBinding()]
     Param([switch]$start)
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
 
     $binPath = "$($context.webAppPath)\bin\dummy.sf"
     New-Item -ItemType file -Path $binPath > $null
@@ -33,7 +33,7 @@ function sf-reset-pool {
     [CmdletBinding()]
     Param([switch]$start)
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $appPool = @(iis-get-siteAppPool $context.websiteName)
     if ($appPool -eq '') {
            throw "No app pool set."
@@ -51,7 +51,7 @@ function sf-rename-website {
         [string]$newName
     )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     try {
         iis-rename-website $context.websiteName $newName
     }
@@ -61,7 +61,7 @@ function sf-rename-website {
     }
     
     $context.websiteName = $newName
-    _sfData-save-context $context
+    _save-selectedProject $context
 
 }
 
@@ -98,7 +98,7 @@ function sf-change-pool {
     [CmdletBinding()]
     Param()
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $websiteName = $context.websiteName
 
     if ($websiteName -eq '') {
@@ -152,7 +152,7 @@ function sf-add-sitePort {
         }
     }
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $websiteName = $context.websiteName
 
     iis-add-sitePort -name $websiteName -port $port
@@ -171,7 +171,7 @@ function sf-remove-sitePorts {
         [string]$port
         )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $websiteName = $context.websiteName
 
     $ports = iis-get-websitePort $websiteName
@@ -193,7 +193,7 @@ function sf-setup-asSubApp {
         [Parameter(Mandatory=$true)][string]$subAppName
     )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $dummyPath = "c:\dummySubApp"
     if (-not (Test-Path $dummyPath)) {
         New-Item $dummyPath -ItemType Directory
@@ -204,7 +204,7 @@ function sf-setup-asSubApp {
 }
 
 function sf-remove-subApp {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $subAppName = iis-get-subAppName $context.websiteName
     if ($subAppName -eq $null) {
         return
@@ -225,7 +225,7 @@ function sf-get-poolId {
     [CmdletBinding()]
     Param()
     
-    $context = _sf-get-context
+    $context = _get-selectedProject
 
     $appPools = iis-show-appPoolPid
     $currentAppPool = @(iis-get-siteAppPool $context.websiteName)
@@ -246,7 +246,7 @@ function _sf-create-website {
         [string]$newAppPool
         )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $websiteName = $context.websiteName
 
     if ($context.websiteName -ne '' -and $null -ne $context.websiteName) {
@@ -257,7 +257,7 @@ function _sf-create-website {
     try {
         $site = iis-create-website -newWebsiteName $newWebsiteName -newPort $newPort -newAppPath $newAppPath -newAppPool $newAppPool
         $context.websiteName = $site.name
-        _sfData-save-context $context
+        _save-selectedProject $context
     } catch {
         $context.websiteName = ''
         throw "Error creating site: $_.Exception.Message"
@@ -265,7 +265,7 @@ function _sf-create-website {
 }
 
 function _sf-delete-website {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $websiteName = $context.websiteName
     if ($websiteName -eq '') {
         throw "Website name not set."
@@ -274,17 +274,17 @@ function _sf-delete-website {
     $oldWebsiteName = $context.websiteName
     $context.websiteName = ''
     try {
-        _sfData-save-context $context
+        _save-selectedProject $context
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
     } catch {
         $context.websiteName = $oldWebsiteName
-        _sfData-save-context $context
+        _save-selectedProject $context
         throw "Error: $_.Exception.Message"
     }
 }
 
 function _sf-get-appUrl {
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $port = @(iis-get-websitePort $context.websiteName)[0]
     if ($port -eq '' -or $null -eq $port) {
         throw "No sitefinity port set."

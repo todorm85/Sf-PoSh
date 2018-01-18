@@ -14,7 +14,7 @@
     .OUTPUTS
     None
 #>
-function sf-new-sitefinity {
+function sf-new-project {
     [CmdletBinding()]
     Param(
         [string]$displayName,
@@ -88,7 +88,7 @@ function sf-new-sitefinity {
             $oldContext = ''
             $oldContext = _sfData-get-currentContext
             _sfData-set-currentContext $newContext
-            _sfData-save-context $newContext
+            _save-selectedProject $newContext
         }
         catch {
             Write-Error "############ CLEANING UP ############"
@@ -162,8 +162,8 @@ function sf-new-sitefinity {
     }
 }
 
-function sf-clone-sitefinity {
-    $context = _sf-get-context
+function sf-clone-project {
+    $context = _get-selectedProject
     $sourcePath = $context.solutionPath 
     if (-not (Test-Path $sourcePath)) {
         $sourcePath = $context.webAppPath
@@ -179,7 +179,7 @@ function sf-clone-sitefinity {
 
     New-Item $targetPath -ItemType Directory > $null
     Copy-Item "${sourcePath}\*" $targetPath -Recurse
-    sf-import-sitefinity -displayName "[clone_$i]_$($context.displayName)" -path $targetPath -name "$($targetName)_$i"
+    sf-import-project -displayName "[clone_$i]_$($context.displayName)" -path $targetPath -name "$($targetName)_$i"
     sf-delete-allAppStates
 }
 <#
@@ -194,7 +194,7 @@ function sf-clone-sitefinity {
     .OUTPUTS
     None
 #>
-function sf-import-sitefinity {
+function sf-import-project {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
@@ -216,7 +216,7 @@ function sf-import-sitefinity {
         throw "Cannot determine whether webapp or solution."
     }
 
-    $oldContext = _sf-get-context
+    $oldContext = _get-selectedProject
     $defaultContext = _sfData-get-defaultContext $displayName $name
     $newContext = @{ name = $defaultContext.name }
     $newContext.displayName = $defaultContext.displayName
@@ -278,14 +278,14 @@ function sf-import-sitefinity {
             }
         }
 
-        _sfData-save-context $newContext
+        _save-selectedProject $newContext
 
         # Display message
         os-popup-notification "Operation completed!"
     }
     catch {
         Write-Host "Could not import sitefinity: $($_.Exception.Message)"
-        sf-delete-sitefinity
+        sf-delete-project
         _sfData-set-currentContext $oldContext
     }
 }
@@ -304,14 +304,14 @@ function sf-import-sitefinity {
     .OUTPUTS
     None
 #>
-function sf-delete-sitefinity {
+function sf-delete-project {
     [CmdletBinding()]
     Param(
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles,
         [switch]$force
     )
-    $context = _sf-get-context
+    $context = _get-selectedProject
     $solutionPath = $context.solutionPath
     $workspaceName = tfs-get-workspaceName $context.webAppPath
     $dbName = sf-get-dbName
@@ -396,7 +396,7 @@ function sf-delete-sitefinity {
     # Display message
     os-popup-notification -msg "Operation completed!"
 
-    sf-select-sitefinity
+    sf-select-project
 }
 
 <#
@@ -407,12 +407,12 @@ function sf-delete-sitefinity {
     .OUTPUTS
     None
 #>
-function sf-select-sitefinity {
+function sf-select-project {
     [CmdletBinding()]Param()
 
     $sitefinities = @(_sfData-get-allContexts)
 
-    sf-show-allSitefinities
+    sf-show-allProjects
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
@@ -424,7 +424,7 @@ function sf-select-sitefinity {
 
     _sfData-set-currentContext $selectedSitefinity
     Set-Location $selectedSitefinity.webAppPath
-    sf-show-currentSitefinity
+    sf-show-currentProject
 }
 
 <#
@@ -436,11 +436,11 @@ function sf-select-sitefinity {
     None
 #>
 function sf-set-description {
-    $context = _sf-get-context
+    $context = _get-selectedProject
 
     $context.description = $(Read-Host -Prompt "Enter description: ").ToString()
 
-    _sfData-save-context $context
+    _save-selectedProject $context
 }
 
 <#
@@ -451,7 +451,7 @@ function sf-set-description {
     .OUTPUTS
     None
 #>
-function sf-rename-sitefinity {
+function sf-rename-project {
     [CmdletBinding()]
     Param(
         [switch]$markUnused,
@@ -459,7 +459,7 @@ function sf-rename-sitefinity {
         [switch]$full
     )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
 
     if ($markUnused) {
         $newName = "-"
@@ -487,7 +487,7 @@ function sf-rename-sitefinity {
     }
 
     $context.displayName = $newName
-    _sfData-save-context $context
+    _save-selectedProject $context
 
     if ($full) {
         
@@ -514,10 +514,10 @@ function sf-rename-sitefinity {
     .SYNOPSIS 
     Shows info for selected sitefinity.
 #>
-function sf-show-currentSitefinity {
+function sf-show-currentProject {
     [CmdletBinding()]
     Param([switch]$detail)
-    $context = _sf-get-context
+    $context = _get-selectedProject
 
     $ports = @(iis-get-websitePort $context.websiteName)
     $appPool = @(iis-get-siteAppPool $context.websiteName)
@@ -551,7 +551,7 @@ function sf-show-currentSitefinity {
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
-function sf-show-allSitefinities {
+function sf-show-allProjects {
     $sitefinities = @(_sfData-get-allContexts)
     if ($sitefinities[0] -eq $null) {
         Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
@@ -574,12 +574,87 @@ function sf-show-allSitefinities {
     $output | Sort-Object -Property order | Format-Table -AutoSize -Property Title, Branch, Ports, Id
 }
 
+function _get-selectedProject {
+    $currentContext = $script:globalContext
+    if ($currentContext -eq '') {
+        Write-Warning "Invalid selected sitefinity."
+        return $null
+    } elseif ($null -eq $currentContext) {
+        Write-Warning "No selected sitefinity."
+        return $null
+    }
+
+    $context = $currentContext.PsObject.Copy()
+    return $context
+}
+
+function _save-selectedProject {
+    Param($context)
+
+    _validate-project $context
+    try {
+        $data = New-Object XML
+        $data.Load($dataPath) > $null
+        $sitefinities = $data.data.sitefinities.sitefinity
+        ForEach($sitefinity in $sitefinities) {
+            if ($sitefinity.name -eq $context.name) {
+                $sitefinityEntry = $sitefinity
+                break
+            }
+        }
+
+        if ($sitefinityEntry -eq $null) {
+            $sitefinityEntry = $data.CreateElement("sitefinity");
+            $sitefinities = $data.SelectSingleNode('/data/sitefinities')
+            $sitefinities.AppendChild($sitefinityEntry)
+        }
+
+        $sitefinityEntry.SetAttribute("name", $context.name)
+        $sitefinityEntry.SetAttribute("displayName", $context.displayName)
+        $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
+        $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
+        $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
+        $sitefinityEntry.SetAttribute("branch", $context.branch)
+        $sitefinityEntry.SetAttribute("description", $context.description)
+        # $sitefinityEntry.SetAttribute("port", $context.port)
+        # $sitefinityEntry.SetAttribute("appPool", $context.appPool)
+
+        $data.Save($dataPath) > $null
+    } catch {
+        throw "Error creating sitefinity in ${dataPath} database file"
+    }
+
+    _sfData-set-currentContext $context
+}
+
+function _validate-project {
+    Param($context)
+
+    if ($context -eq '') {
+        throw "Invalid sitefinity context. Cannot be empty string."
+    } elseif ($null -ne $context){
+        if ($context.name -eq '') {
+            throw "Invalid sitefinity context. No sitefinity name."
+        }
+
+        if ($context.solutionPath -ne '') {
+            if (-not (Test-Path $context.solutionPath)) {
+                throw "Invalid sitefinity context. Solution path does not exist."
+            }
+        }
+        
+        if (-not $context.webAppPath -and -not(Test-Path $context.webAppPath)) {
+            throw "Invalid sitefinity context. No web app path or it does not exist."
+        }
+    }
+}
+
 function _sf-rename-projectDir {
     Param(
         [string]$newName
     )
 
-    $context = _sf-get-context
+    $context = _get-selectedProject
 
     sf-reset-pool
     $hasSolution = $context.solutionPath -ne "" -and $context.solutionPath -ne $null
@@ -615,6 +690,6 @@ function _sf-rename-projectDir {
 
     Get-Item ("iis:\Sites\$($context.websiteName)") | Set-ItemProperty -Name "physicalPath" -Value $context.webAppPath
 
-    _sfData-save-context $context
+    _save-selectedProject $context
     # sf-get-latest -overwrite
 }

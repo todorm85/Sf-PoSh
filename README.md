@@ -33,13 +33,13 @@ Get-Module -All | where {$_.Name.Contains('SfDevTool')}
 
 4. Create a new isntance locally called testInstance from a specific branch, build it, initiate the web app with default user admin@test.test (pass:admin@test.test), and add precompiled tempaltes
 ```powershell
-sf-new-sitefinity -displayName "testInstance" -branch "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base" -buildSolution -startWebApp -precompile
+sf-new-project -displayName "testInstance" -branch "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base" -buildSolution -startWebApp -precompile
 ```
 This will take some time so go grab a coffee. The webapp will be tracked in a separate private workspace in TFS with the same name as the identifier.
 
 5. To get more info about the created sitefinity instance type:
 ```powershell
-sf-show-currentSitefinity -detail
+sf-show-currentProject -detail
 ```
 or
 ```powershell
@@ -80,13 +80,13 @@ This will also build the app besides resetting it.
 
 8. To delete the provisioned sitefinity
 ```powershell
-sf-delete-sitefinity
+sf-delete-project
 ```
 Will remove everything associated with current selected sitefinity instance (db/iis site/ local directory/tfs workspace)
 
 9. To select a different sitefinity instance that is managed by the tool type:
 ```powershell
-sf-select-sitefinity
+sf-rename-project
 #or
 ss
 ```
@@ -102,14 +102,14 @@ ras
 ```
 12. To clone the instance (Sitefinity + database) to a new instance, hosted on new website.
 ```powershell
-sf-clone-sitefinity
+sf-clone-project
 ```
 
 ## Use existing sitefinity web app with the tool
 
 To do that you need to import it.
 ```powershell
-sf-import-sitefinity [name] [path]
+sf-import-project [name] [path]
 ```
 Name is the identifier of the app in the tool.
 Path either the path to folder containing either the Telerik.Sitefinity.sln or SitefinityWebApp.csproj files.
@@ -120,7 +120,7 @@ WARNING: If your imported sitefinity is a copy of another that is initialized wi
 ## Other useful commands
 
 ```powershell
-sf-show-currentSitefinity -detail
+sf-show-currentProject -detail
 #or
 s -detail
 ```
