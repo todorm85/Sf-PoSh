@@ -59,7 +59,7 @@ function sf-new-project {
     }
 
     process {
-        $defaultContext = _sfData-get-defaultContext -displayName $displayName
+        $defaultContext = _sf-new-project -displayName $displayName
         try {
             $newContext = @{ name = $defaultContext.name }
             $newContext.displayName = $defaultContext.displayName
@@ -86,15 +86,15 @@ function sf-new-project {
             # persist current context to script data
             $newContext.webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
             $oldContext = ''
-            $oldContext = _sfData-get-currentContext
-            _sfData-set-currentContext $newContext
+            $oldContext = _get-selectedProject
+            _sf-set-currentProject $newContext
             _save-selectedProject $newContext
         }
         catch {
             Write-Error "############ CLEANING UP ############"
             Set-Location $PSScriptRoot
         
-            if ($newContext.solutionPath -ne '' -and $newContext.solutionPath -ne $null) {
+            if ($newContext.solutionPath -ne '' -and $null -ne $newContext.solutionPath) {
                 try {
                     Write-Host "Deleting workspace..."
                     tfs-delete-workspace $workspaceName
@@ -112,7 +112,7 @@ function sf-new-project {
             }
 
             if ($oldContext -ne '') {
-                _sfData-set-currentContext $oldContext
+                _sf-set-currentProject $oldContext
             }
         
             $displayInnerError = Read-Host "Display inner error?"
@@ -217,7 +217,7 @@ function sf-import-project {
     }
 
     $oldContext = _get-selectedProject
-    $defaultContext = _sfData-get-defaultContext $displayName $name
+    $defaultContext = _sf-new-project $displayName $name
     $newContext = @{ name = $defaultContext.name }
     $newContext.displayName = $defaultContext.displayName
     if ($isSolution) {
@@ -229,7 +229,7 @@ function sf-import-project {
         $newContext.webAppPath = $path
     }
 
-    _sfData-set-currentContext $newContext
+    _sf-set-currentProject $newContext
 
     try {
         
@@ -286,7 +286,7 @@ function sf-import-project {
     catch {
         Write-Host "Could not import sitefinity: $($_.Exception.Message)"
         sf-delete-project
-        _sfData-set-currentContext $oldContext
+        _sf-set-currentProject $oldContext
     }
 }
 
@@ -391,7 +391,7 @@ function sf-delete-project {
 
     Write-Host "Deleting data entry..."
     _sfData-delete-context $context
-    _sfData-set-currentContext $null
+    _sf-set-currentProject $null
 
     # Display message
     os-popup-notification -msg "Operation completed!"
@@ -422,7 +422,7 @@ function sf-select-project {
         }
     }
 
-    _sfData-set-currentContext $selectedSitefinity
+    _sf-set-currentProject $selectedSitefinity
     Set-Location $selectedSitefinity.webAppPath
     sf-show-currentProject
 }
@@ -592,39 +592,10 @@ function _save-selectedProject {
     Param($context)
 
     _validate-project $context
-    try {
-        $data = New-Object XML
-        $data.Load($dataPath) > $null
-        $sitefinities = $data.data.sitefinities.sitefinity
-        ForEach($sitefinity in $sitefinities) {
-            if ($sitefinity.name -eq $context.name) {
-                $sitefinityEntry = $sitefinity
-                break
-            }
-        }
 
-        if ($sitefinityEntry -eq $null) {
-            $sitefinityEntry = $data.CreateElement("sitefinity");
-            $sitefinities = $data.SelectSingleNode('/data/sitefinities')
-            $sitefinities.AppendChild($sitefinityEntry)
-        }
+    _sfData-save-context $context
 
-        $sitefinityEntry.SetAttribute("name", $context.name)
-        $sitefinityEntry.SetAttribute("displayName", $context.displayName)
-        $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
-        $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
-        $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
-        $sitefinityEntry.SetAttribute("branch", $context.branch)
-        $sitefinityEntry.SetAttribute("description", $context.description)
-        # $sitefinityEntry.SetAttribute("port", $context.port)
-        # $sitefinityEntry.SetAttribute("appPool", $context.appPool)
-
-        $data.Save($dataPath) > $null
-    } catch {
-        throw "Error creating sitefinity in ${dataPath} database file"
-    }
-
-    _sfData-set-currentContext $context
+    _sf-set-currentProject $context
 }
 
 function _validate-project {
@@ -692,4 +663,110 @@ function _sf-rename-projectDir {
 
     _save-selectedProject $context
     # sf-get-latest -overwrite
+}
+
+function _sf-new-project {
+    Param(
+        [string]$displayName,
+        [string]$name
+        )
+        
+    function applyContextConventions {
+        Param(
+            $defaultContext
+            )
+
+        $name = $defaultContext.name
+        $solutionPath = "${projectsDirectory}\${name}";
+        $webAppPath = "${projectsDirectory}\${name}\SitefinityWebApp";
+        $websiteName = $name
+        $appPool = "DefaultAppPool"
+
+        # initial port to start checking from
+        $port = 1111
+        while(!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
+            $port++
+        }
+
+        $defaultContext.solutionPath = $solutionPath
+        $defaultContext.webAppPath = $webAppPath
+        $defaultContext.websiteName = $websiteName
+        $defaultContext.appPool = $appPool
+        $defaultContext.port = $port
+    }
+
+    function isNameDuplicate ($name) {
+        $sitefinities = @(_sfData-get-allContexts)
+        foreach ($sitefinity in $sitefinities) {
+            if ($sitefinity.name -eq $name) {
+                return $true;
+            }
+        }    
+
+        return $false;
+    }
+
+    function generateName {
+        $i = 0;
+        while($true) {
+            $name = "instance_$i"
+            $isDuplicate = (isNameDuplicate $name)
+            if (-not $isDuplicate) {
+                break;
+            }
+            
+            $i++
+        }
+
+        return $name
+    }
+
+    function validateName ($context) {
+        $name = $context.name
+        while ($true) {
+            $isDuplicate = (isNameDuplicate $name)
+            $isValid = $name -match "^[a-zA-Z]+\w*$"
+            if (-not $isValid) {
+                Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
+                $name = Read-Host "Enter new name: "
+            } elseif ($isDuplicate) {
+                Write-Host "Duplicate sitefinity naem."
+                $name = Read-Host "Enter new name: "
+            } else {
+                $context.name = $name
+                break
+            }
+        }
+    }
+
+    if ([string]::IsNullOrEmpty($name)) {
+        $name = generateName    
+    }
+    
+    $defaultContext = @{
+        displayName = $displayName;
+        name = $name;
+        solutionPath = '';
+        webAppPath = '';
+        dbName = '';
+        websiteName = '';
+        port = '';
+        appPool = '';
+    }
+
+    validateName $defaultContext
+
+    applyContextConventions $defaultContext
+
+    return $defaultContext
+}
+
+function _sf-set-currentProject {
+    Param($newContext)
+
+    _validate-project $newContext
+
+    $script:globalContext = $newContext
+    
+    [System.Console]::Title = $newContext.displayName
 }
