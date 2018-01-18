@@ -59,7 +59,7 @@ function sf-new-project {
     }
 
     process {
-        $defaultContext = _sf-new-project -displayName $displayName
+        $defaultContext = _sf-get-newProject -displayName $displayName
         try {
             $newContext = @{ name = $defaultContext.name }
             $newContext.displayName = $defaultContext.displayName
@@ -85,7 +85,6 @@ function sf-new-project {
 
             # persist current context to script data
             $newContext.webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
-            $oldContext = ''
             $oldContext = _get-selectedProject
             _sf-set-currentProject $newContext
             _save-selectedProject $newContext
@@ -94,7 +93,7 @@ function sf-new-project {
             Write-Error "############ CLEANING UP ############"
             Set-Location $PSScriptRoot
         
-            if ($newContext.solutionPath -ne '' -and $null -ne $newContext.solutionPath) {
+            if ($newContext.branch -and $workspaceName) {
                 try {
                     Write-Host "Deleting workspace..."
                     tfs-delete-workspace $workspaceName
@@ -102,7 +101,10 @@ function sf-new-project {
                 catch {
                     Write-Warning "No workspace created to delete."
                 }
-            
+            }
+
+            if ($newContext.solutionPath -and (Test-Path $newContext.solutionPath)) {
+                
                 Write-Host "Deleting solution..."
                 Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
                 if ($ProcessError) {
@@ -111,7 +113,7 @@ function sf-new-project {
                 }
             }
 
-            if ($oldContext -ne '') {
+            if ($oldContext) {
                 _sf-set-currentProject $oldContext
             }
         
@@ -182,6 +184,7 @@ function sf-clone-project {
     sf-import-project -displayName "[clone_$i]_$($context.displayName)" -path $targetPath -name "$($targetName)_$i"
     sf-delete-allAppStates
 }
+
 <#
     .SYNOPSIS 
     Imports a new sitefinity instance project from given local path. 
@@ -217,7 +220,7 @@ function sf-import-project {
     }
 
     $oldContext = _get-selectedProject
-    $defaultContext = _sf-new-project $displayName $name
+    $defaultContext = _sf-get-newProject $displayName $name
     $newContext = @{ name = $defaultContext.name }
     $newContext.displayName = $defaultContext.displayName
     if ($isSolution) {
@@ -390,7 +393,7 @@ function sf-delete-project {
     }
 
     Write-Host "Deleting data entry..."
-    _sfData-delete-context $context
+    _sfData-delete-project $context
     _sf-set-currentProject $null
 
     # Display message
@@ -410,7 +413,7 @@ function sf-delete-project {
 function sf-select-project {
     [CmdletBinding()]Param()
 
-    $sitefinities = @(_sfData-get-allContexts)
+    $sitefinities = @(_sfData-get-allProjects)
 
     sf-show-allProjects
 
@@ -552,7 +555,7 @@ function sf-show-currentProject {
     Shows info for all sitefinities managed by the script.
 #>
 function sf-show-allProjects {
-    $sitefinities = @(_sfData-get-allContexts)
+    $sitefinities = @(_sfData-get-allProjects)
     if ($sitefinities[0] -eq $null) {
         Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return
@@ -593,7 +596,7 @@ function _save-selectedProject {
 
     _validate-project $context
 
-    _sfData-save-context $context
+    _sfData-save-project $context
 
     _sf-set-currentProject $context
 }
@@ -665,7 +668,7 @@ function _sf-rename-projectDir {
     # sf-get-latest -overwrite
 }
 
-function _sf-new-project {
+function _sf-get-newProject {
     Param(
         [string]$displayName,
         [string]$name
@@ -696,7 +699,7 @@ function _sf-new-project {
     }
 
     function isNameDuplicate ($name) {
-        $sitefinities = @(_sfData-get-allContexts)
+        $sitefinities = @(_sfData-get-allProjects)
         foreach ($sitefinity in $sitefinities) {
             if ($sitefinity.name -eq $name) {
                 return $true;
@@ -767,6 +770,6 @@ function _sf-set-currentProject {
     _validate-project $newContext
 
     $script:globalContext = $newContext
-    
+
     [System.Console]::Title = $newContext.displayName
 }

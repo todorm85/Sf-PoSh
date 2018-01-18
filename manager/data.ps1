@@ -1,10 +1,10 @@
-function _sfData-get-allContexts {
+function _sfData-get-allProjects {
     $data = New-Object XML
     $data.Load($script:dataPath)
     return $data.data.sitefinities.sitefinity
 }
 
-function _sfData-delete-context {
+function _sfData-delete-project {
     Param($context)
     Write-Host "Updating script databse..."
     $name = $context.name
@@ -25,7 +25,7 @@ function _sfData-delete-context {
     }
 }
 
-function _sfData-save-context {
+function _sfData-save-project {
     Param($context)
 
     try {
