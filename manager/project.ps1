@@ -272,7 +272,7 @@ function sf-import-project {
         $oldDbName = sf-get-dbName
         if ($oldDbName) {
             while ($useCopy -ne 'y' -and $useCopy -ne 'n') {
-                $useCopy = Read-Host -Prompt 'Use copy of configured database? [y/n]'
+                $useCopy = Read-Host -Prompt 'Clone existing database? [y/n]'
             }
 
             if ($useCopy -eq 'y') {

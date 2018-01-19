@@ -27,7 +27,7 @@ function sf-reset-app {
         [switch]$build,
         [string]$user = $defaultUser,
         [switch]$configRestrictionSafe
-        )
+    )
 
     $dbName = sf-get-dbName # this needs to be here before DataConfig.config gets deleted!!!
     
@@ -47,7 +47,8 @@ function sf-reset-app {
     Write-Host "Deleting App_Data files..."
     try {
         _sf-delete-appDataFiles
-    } catch {
+    }
+    catch {
         Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_.Exception.Message"
     }
 
@@ -55,7 +56,8 @@ function sf-reset-app {
         Write-Host "Deleting database..."
         try {
             sql-delete-database -dbName $dbName
-        } catch {
+        }
+        catch {
             Write-Warning "Erros while deleting database: $_.Exception.Message"
         }
     }
@@ -68,21 +70,23 @@ function sf-reset-app {
 
         try {
             _sf-create-startupConfig $user $dbName
-        } catch {
+        }
+        catch {
             throw "Erros while creating startupConfig: $_.Exception.Message"
         }
 
         try {
             $appUrl = _sf-get-appUrl
             _sf-start-sitefinity -url $appUrl
-        } catch {
+        }
+        catch {
             Write-Host "`n`n"
             Write-Warning "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`n"
 
             _sf-delete-startupConfig
             
             $choice = Read-Host "Display stack trace? [y/n]"
-            while($true) {
+            while ($true) {
                 if ($choice -eq 'y') {
                     Write-Host "`n`nException: $($_.Exception)"
                     break
@@ -116,7 +120,7 @@ function sf-save-appState {
         $stateName = Read-Host -Prompt "Enter state name:"
         $statePath = "$($context.webAppPath)/states/$stateName"
         $configStatePath = "$statePath/configs"
-        if(-not (Test-Path $configStatePath)) {
+        if (-not (Test-Path $configStatePath)) {
             New-Item $configStatePath -ItemType Directory > $null
             break;
         }
@@ -156,7 +160,8 @@ function sf-restore-appState {
     $configsPath = "$($context.webAppPath)/App_Data/Sitefinity/Configuration"
     if (Test-Path $configsPath) {
         Remove-Item "$configsPath/*" -Force -ErrorAction SilentlyContinue -Recurse
-    } else {
+    }
+    else {
         New-Item $configsPath -ItemType Directory > $null
     }
     
@@ -166,28 +171,28 @@ function sf-restore-appState {
 }
 
 function sf-delete-appState ($stateName) {
-    $context = _get-selectedProject
-    
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = _sf-select-appState
     }
 
     $statesPath = _sf-get-statesPath
-    $statePath = "${statesPath}/$stateName"
-    Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse    
+    if ($statesPath) {
+        $statePath = "${statesPath}/$stateName"
+        Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse    
+    }
 }
 
 function sf-delete-allAppStates {
     $statesPath = _sf-get-statesPath
-    $states = Get-Item "${statesPath}/*"
-    foreach ($state in $states) {
-        sf-delete-appState $state.Name
+    if ($statesPath) {
+        $states = Get-Item "${statesPath}/*"
+        foreach ($state in $states) {
+            sf-delete-appState $state.Name
+        }
     }
 }
 
 function _sf-select-appState {
-    $context = _get-selectedProject
-
     $statesPath = _sf-get-statesPath
     $states = Get-Item "${statesPath}/*"
     
@@ -238,10 +243,12 @@ function sf-add-precompiledTemplates {
         $dlls = Get-ChildItem -Force "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
         try {
             os-del-filesAndDirsRecursive $dlls
-        } catch {
+        }
+        catch {
             throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
         }
-    } else {
+    }
+    else {
         & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default" /url="${appUrl}"
     }
 }
@@ -262,7 +269,8 @@ function sf-get-dbName {
         $conStr -match 'initial catalog=(?<dbName>.*?)(;|$)' > $null
         $dbName = $matches['dbName']
         return $dbName
-    } else {
+    }
+    else {
         return $null
     }
 }
@@ -325,19 +333,18 @@ function _sf-start-sitefinity {
 
     $context = _get-selectedProject
     $port = @(iis-get-websitePort $context.websiteName)[0]
-    if ($port -eq '' -or $port -eq $null) {
+    if ($port -eq '' -or $null -eq $port) {
         throw "No port defined for selected sitefinity."
-    } else {
+    }
+    else {
         $url = "http://localhost:$($port)"
     }
 
     $errorMsg = "Sitefinity initialization failed!"
     $ErrorActionPreference = "SilentlyContinue"
     $attempt = 1
-    while($attempt -le $attempts)
-    {
-        if($attempt -eq $attempts)
-        {
+    while ($attempt -le $attempts) {
+        if ($attempt -eq $attempts) {
             $ErrorActionPreference = "Stop"
         }
 
@@ -347,67 +354,62 @@ function _sf-start-sitefinity {
         Write-Host "Attempt[$attempt] Starting Sitefinity..."
         $retryCount = 0
 
-        try
-        {
+        try {
             $retryCount++
             # Send initial request to begin bootstrapping sitefinity
             $response = Invoke-WebRequest $statusUrl -TimeoutSec 1600
             # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
-            if($response.StatusCode -eq 200)
-            {
+            if ($response.StatusCode -eq 200) {
                 Write-Host "Sitefinity is starting..."
             }
 
-            while($response.StatusCode -eq 200)
-            {
+            while ($response.StatusCode -eq 200) {
                 Write-Host "Retry[$retryCount] Checking Sitefinity status: '$statusUrl'"
                 $retryCount++
 
                 # Checking for error status info
                 $statusInfo = Invoke-RestMethod $statusUrl -TimeoutSec 1600
                 $errorStatusCheck = $statusInfo.Info | Where-Object { $_.SeverityString -eq "Critical" -or $_.SeverityString -eq "Error"}
-                if($errorStatusCheck)
-                {
+                if ($errorStatusCheck) {
                     Write-Warning $errorMsg
                     throw $errorStatusCheck.Message
                 }
 
                 $response = Invoke-WebRequest $statusUrl -TimeoutSec 1600
-                if($elapsed.Elapsed.TotalSeconds -gt $totalWaitSeconds)
-                {
+                if ($elapsed.Elapsed.TotalSeconds -gt $totalWaitSeconds) {
                     throw "Sitefinity did NOT start in the specified maximum time"
                 }
 
                 Start-Sleep -s 5
-             }
-        } catch {
+            }
+        }
+        catch {
             # if request to appstatus returned 404, sitefinity has initialized
-           if($_.Exception.Response.StatusCode.Value__ -eq 404)
-           {
-               try {
+            if ($_.Exception.Response.StatusCode.Value__ -eq 404) {
+                try {
                     $response = Invoke-WebRequest $url -TimeoutSec 1600
-               } catch {
+                }
+                catch {
                     # do nothing
-               }
+                }
 
-               # if request to base url is 200 ok sitefinity has started
-               if($response.StatusCode -eq 200)
-               {
+                # if request to base url is 200 ok sitefinity has started
+                if ($response.StatusCode -eq 200) {
                     Write-Warning "Sitefinity has started after $($elapsed.Elapsed.TotalSeconds) second(s)"
-               }
+                }
 
-               else
-               {
+                else {
                     Write-Warning $errorMsg
                     throw $errorMsg
-               }
+                }
 
-            } else {
-               Write-Host "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"
-               # Write-Host $_ | Format-List -Force
-               # Write-Host $_.Exception | Format-List -Force
-               throw $_
-           }
+            }
+            else {
+                Write-Host "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"
+                # Write-Host $_ | Format-List -Force
+                # Write-Host $_.Exception | Format-List -Force
+                throw $_
+            }
         }
 
         $attempt++
@@ -443,7 +445,7 @@ function _sf-create-startupConfig {
 
         $configPath = "${appConfigPath}\StartupConfig.config"
 
-        if(Test-Path -Path $configPath){
+        if (Test-Path -Path $configPath) {
             Remove-Item $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
             if ($ProcessError) {
                 throw "Could not remove old StartupConfig $ProcessError"
@@ -459,24 +461,25 @@ function _sf-create-startupConfig {
             $dbName = Read-Host -Prompt "Database with name $dbName already exists. Enter a different name:"
         }
 
-        $XmlWriter = New-Object System.XMl.XmlTextWriter($configPath,$Null)
+        $XmlWriter = New-Object System.XMl.XmlTextWriter($configPath, $Null)
         $xmlWriter.WriteStartDocument()
-            $xmlWriter.WriteStartElement("startupConfig")
-                $XmlWriter.WriteAttributeString("username", $user)
-                $XmlWriter.WriteAttributeString("password", $password)
-                $XmlWriter.WriteAttributeString("enabled", "True")
-                $XmlWriter.WriteAttributeString("initialized", "False")
-                $XmlWriter.WriteAttributeString("email", $user)
-                $XmlWriter.WriteAttributeString("firstName", $username)
-                $XmlWriter.WriteAttributeString("lastName", $username)
-                $XmlWriter.WriteAttributeString("dbName", $dbName)
-                $XmlWriter.WriteAttributeString("dbType", "SqlServer")
-                $XmlWriter.WriteAttributeString("sqlInstance", $sqlServerInstance)
-            $xmlWriter.WriteEndElement()
+        $xmlWriter.WriteStartElement("startupConfig")
+        $XmlWriter.WriteAttributeString("username", $user)
+        $XmlWriter.WriteAttributeString("password", $password)
+        $XmlWriter.WriteAttributeString("enabled", "True")
+        $XmlWriter.WriteAttributeString("initialized", "False")
+        $XmlWriter.WriteAttributeString("email", $user)
+        $XmlWriter.WriteAttributeString("firstName", $username)
+        $XmlWriter.WriteAttributeString("lastName", $username)
+        $XmlWriter.WriteAttributeString("dbName", $dbName)
+        $XmlWriter.WriteAttributeString("dbType", "SqlServer")
+        $XmlWriter.WriteAttributeString("sqlInstance", $sqlServerInstance)
+        $xmlWriter.WriteEndElement()
         $xmlWriter.Finalize
         $xmlWriter.Flush()
         $xmlWriter.Close() > $null
-    } catch {
+    }
+    catch {
         throw "Error creating startupConfig. Message: $_.Exception.Message"
     }
 }
