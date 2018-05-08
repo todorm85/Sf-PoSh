@@ -20,12 +20,13 @@ function sf-new-project {
         [string]$displayName,
         [switch]$buildSolution,
         [switch]$startWebApp,
-        [switch]$precompile
+        [switch]$precompile,
+        [string]$branchPath
     )
 
     DynamicParam {
         # Set the dynamic parameters' name
-        $ParameterName = 'branch'
+        $ParameterName = 'predefinedBranch'
         
         # Create the dictionary 
         $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
@@ -35,7 +36,7 @@ function sf-new-project {
         
         # Create and set the parameters' attributes
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-        $ParameterAttribute.Mandatory = $true
+        $ParameterAttribute.Mandatory = $false
         $ParameterAttribute.Position = 1
 
         # Add the attributes to the attributes collection
@@ -56,6 +57,9 @@ function sf-new-project {
     begin {
         # Bind the parameter to a friendly variable
         $branch = $PsBoundParameters[$ParameterName]
+        if ($null -ne $branchPath) {
+            $branch = $branchPath
+        }
     }
 
     process {
@@ -582,7 +586,8 @@ function _get-selectedProject {
     if ($currentContext -eq '') {
         Write-Warning "Invalid selected sitefinity."
         return $null
-    } elseif ($null -eq $currentContext) {
+    }
+    elseif ($null -eq $currentContext) {
         Write-Warning "No selected sitefinity."
         return $null
     }
@@ -606,7 +611,8 @@ function _validate-project {
 
     if ($context -eq '') {
         throw "Invalid sitefinity context. Cannot be empty string."
-    } elseif ($null -ne $context){
+    }
+    elseif ($null -ne $context) {
         if ($context.name -eq '') {
             throw "Invalid sitefinity context. No sitefinity name."
         }
@@ -672,12 +678,12 @@ function _sf-get-newProject {
     Param(
         [string]$displayName,
         [string]$name
-        )
+    )
         
     function applyContextConventions {
         Param(
             $defaultContext
-            )
+        )
 
         $name = $defaultContext.name
         $solutionPath = "${projectsDirectory}\${name}";
@@ -687,7 +693,7 @@ function _sf-get-newProject {
 
         # initial port to start checking from
         $port = 1111
-        while(!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
+        while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
             $port++
         }
 
@@ -711,7 +717,7 @@ function _sf-get-newProject {
 
     function generateName {
         $i = 0;
-        while($true) {
+        while ($true) {
             $name = "instance_$i"
             $isDuplicate = (isNameDuplicate $name)
             if (-not $isDuplicate) {
@@ -732,10 +738,12 @@ function _sf-get-newProject {
             if (-not $isValid) {
                 Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
                 $name = Read-Host "Enter new name: "
-            } elseif ($isDuplicate) {
+            }
+            elseif ($isDuplicate) {
                 Write-Host "Duplicate sitefinity naem."
                 $name = Read-Host "Enter new name: "
-            } else {
+            }
+            else {
                 $context.name = $name
                 break
             }
@@ -747,14 +755,14 @@ function _sf-get-newProject {
     }
     
     $defaultContext = @{
-        displayName = $displayName;
-        name = $name;
+        displayName  = $displayName;
+        name         = $name;
         solutionPath = '';
-        webAppPath = '';
-        dbName = '';
-        websiteName = '';
-        port = '';
-        appPool = '';
+        webAppPath   = '';
+        dbName       = '';
+        websiteName  = '';
+        port         = '';
+        appPool      = '';
     }
 
     validateName $defaultContext
