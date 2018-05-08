@@ -8,7 +8,7 @@
 #>
 function sf-build-solution {
     [CmdletBinding()]
-    Param([switch]$useOldMsBuild)
+    Param([switch]$useOldMsBuild, [switch]$ui)
 
     $context = _get-selectedProject
     $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
@@ -18,7 +18,9 @@ function sf-build-solution {
     }
 
     _sf-build-proj $solutionPath $useOldMsBuild
-    _sf-build-proj $solutionPathUI $useOldMsBuild
+    if ($ui) {
+        _sf-build-proj $solutionPathUI $useOldMsBuild
+    }
 }
 
 <#
