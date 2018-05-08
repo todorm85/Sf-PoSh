@@ -167,7 +167,7 @@ function sf-restore-appState {
     
     Copy-Item "$configStatePath/*.*" $configsPath
 
-    sf-reset-thread
+    # sf-reset-thread
 }
 
 function sf-delete-appState ($stateName) {
@@ -266,7 +266,7 @@ function sf-get-dbName {
     if (Test-Path -Path $dataConfigPath) {
         $data.Load($dataConfigPath) > $null
         $conStr = $data.dataConfig.connectionStrings.add.connectionString
-        $conStr -match 'initial catalog=(?<dbName>.*?)(;|$)' > $null
+        $conStr -match "initial catalog='{0,1}(?<dbName>.*?)'{0,1}(;|$)" > $null
         $dbName = $matches['dbName']
         return $dbName
     }
