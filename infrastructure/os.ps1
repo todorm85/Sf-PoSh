@@ -22,13 +22,13 @@ function os-popup-notification {
 function os-del-filesAndDirsRecursive {
     Param($items) 
 
-    if ($items.PSPath -eq '' -or $items.PSPath -eq $null) {
+    if ($items.PSPath -eq '' -or $null -eq $items.PSPath) {
         $paths = $items   
     } else {
         $paths = $items.PSPath
     }
 
-    if ($paths -eq $null) {
+    if ($null -eq $paths) {
         throw "No files or folders to delete"
     }
 

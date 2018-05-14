@@ -109,13 +109,14 @@ function sf-clean-solution {
     }
 }
 
-function _sf-delete-appDataFiles {
-    Write-Host "Deleting sitefinity configs, logs, temps..."
+function _sf-reset-appDataFiles {
     $context = _get-selectedProject
     $webAppPath = $context.webAppPath
     $errorMessage = ''
-    if (Test-Path "${webAppPath}\App_Data\Sitefinity") {
-        $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
+    $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
+    if (Test-Path $originalAppDataFilesPath) {
+        Write-Warning "Restoring Sitefinity web app App_Data files to original state."
+        $dirs = Get-ChildItem "${webAppPath}\App_Data"
         try {
             os-del-filesAndDirsRecursive $dirs
         }
@@ -123,16 +124,16 @@ function _sf-delete-appDataFiles {
             $errorMessage = "${errorMessage}`n" + $_.Exception.Message
         }
     }
-
-    if (Test-Path "${webAppPath}\App_Data\Telerik\Configuration") {
-        $files = Get-ChildItem "${webAppPath}\App_Data\Telerik\Configuration" | Where-Object { ($_.PSIsContainer -eq $false) -and ($_.Name -like "sso.config") }
+    elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
+        Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
+        $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
         try {
-            os-del-filesAndDirsRecursive $files
+            os-del-filesAndDirsRecursive $dirs
         }
         catch {
             $errorMessage = "${errorMessage}`n" + $_.Exception.Message
         }
-    }
+    } 
 
     if ($errorMessage -ne '') {
         throw $errorMessage
@@ -215,7 +216,8 @@ function sf-open-solution {
     if ($openUISln) {
         & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
         & $vsPath "${solutionPath}\Telerik.Sitefinity.MS.TestUI.sln"
-    } else {
+    }
+    else {
         & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
     }
     

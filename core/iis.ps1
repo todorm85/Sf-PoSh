@@ -247,7 +247,6 @@ function _sf-create-website {
         )
 
     $context = _get-selectedProject
-    $websiteName = $context.websiteName
 
     if ($context.websiteName -ne '' -and $null -ne $context.websiteName) {
         throw 'Current context already has a website assigned!'
@@ -276,6 +275,7 @@ function _sf-delete-website {
     try {
         _save-selectedProject $context
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
+        Remove-Item ("iis:\AppPools\${websiteName}") -Force -Recurse
     } catch {
         $context.websiteName = $oldWebsiteName
         _save-selectedProject $context

@@ -7,11 +7,11 @@ function _iis-load-webAdministrationModule () {
 
 function iis-get-websitePort {
     Param (
-        [Parameter(Mandatory=$true)][string] $webAppName
-        )
+        [Parameter(Mandatory = $true)][string] $webAppName
+    )
 
     _iis-load-webAdministrationModule
-    Get-WebBinding -Name $webAppName | select -expand bindingInformation | %{$_.split(':')[-2]}
+    Get-WebBinding -Name $webAppName | select -expand bindingInformation | % {$_.split(':')[-2]}
 }
 
 function iis-show-appPoolPid {
@@ -22,7 +22,7 @@ function iis-show-appPoolPid {
 function iis-get-usedPorts {
 
     _iis-load-webAdministrationModule
-    Get-WebBinding | select -expand bindingInformation | %{$_.split(':')[-2]}
+    Get-WebBinding | select -expand bindingInformation | % {$_.split(':')[-2]}
 }
 
 function iis-get-appPoolApps ($appPoolName) {
@@ -37,13 +37,13 @@ function iis-get-appPoolApps ($appPoolName) {
 
 function iis-create-appPool {
     Param(
-        [Parameter(Mandatory=$true)][string]$appPool,
-        [Parameter(Mandatory=$true)][string]$windowsUserPassword
-        )
+        [Parameter(Mandatory = $true)][string]$appPool,
+        [Parameter(Mandatory = $true)][string]$windowsUserPassword
+    )
     # CreateAppPool
     New-Item ("IIS:\AppPools\${appPool}") | Set-ItemProperty -Name "managedRuntimeVersion" -Value "v4.0"
     $userName = [Environment]::UserName
-    Set-ItemProperty ("IIS:\AppPools\${appPool}") -Name "processModel" -value @{userName="progress\${userName}";password=$windowsUserPassword;identitytype=3}
+    Set-ItemProperty ("IIS:\AppPools\${appPool}") -Name "processModel" -value @{userName = "progress\${userName}"; password = $windowsUserPassword; identitytype = 3}
 }
 
 function iis-get-appPools {
@@ -77,7 +77,8 @@ function iis-delete-appPool ($appPoolName) {
     $apps = iis-get-appPoolApps $appPoolName
     if ($apps.Length -gt 0) {
         Write-Host 'CANNOT DELETE APP POOL! AppPool has websites and apps hosted'
-    } else {
+    }
+    else {
         Remove-WebAppPool -Name $appPoolName
     }
 }
@@ -88,7 +89,7 @@ function iis-create-website {
         [string]$newPort,
         [string]$newAppPath,
         [string]$newAppPool
-        )
+    )
 
     _iis-load-webAdministrationModule
     function select-appPool {
@@ -144,20 +145,16 @@ function iis-create-website {
         $newAppPool = select-appPool
     }
 
-    while ($true) {
-        $found = $false
-        ForEach ($pool in $availablePools) {
-            if ($pool.name.ToLower() -eq $newAppPool) {
-                $found = $true
-                break;
-            }
-        }
-
-        if ($found) {
+    $found = $false
+    ForEach ($pool in $availablePools) {
+        if ($pool.name.ToLower() -eq $newAppPool) {
+            $found = $true
             break;
         }
+    }
 
-        $newAppPool = select-appPool
+    if (-not $found) {
+        New-Item "IIS:\AppPools\$newAppPool"
     }
 
     # select app path
@@ -166,18 +163,23 @@ function iis-create-website {
     }
 
     # create website
-    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol="http";bindingInformation=("*:${newPort}:")} -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool
+    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol = "http"; bindingInformation = ("*:${newPort}:")} -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool
+
+    $Acl = Get-Acl $newAppPath
+    $Ar = New-Object  system.security.accesscontrol.filesystemaccessrule("IIS AppPool\$newAppPool", "Full", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $Acl.SetAccessRule($Ar)
+    Set-Acl $newAppPath $Acl
 
     return @{name = $newWebsiteName; port = $newPort; appPool = $newAppPool; appPath = $newAppPath}
 }
 
 function iis-get-siteAppPool {
     Param(
-        [Parameter(Mandatory=$true)][string]$websiteName
-        )
+        [Parameter(Mandatory = $true)][string]$websiteName
+    )
     
-        _iis-load-webAdministrationModule
-        Get-ItemProperty "IIS:\Sites\${websiteName}" -Name "applicationPool"
+    _iis-load-webAdministrationModule
+    Get-ItemProperty "IIS:\Sites\${websiteName}" -Name "applicationPool"
 }
 
 function iis-test-isPortFree {
@@ -198,7 +200,7 @@ function iis-test-isPortFree {
 function iis-add-sitePort {
     Param(
         $name, $port
-        )
+    )
 
     _iis-load-webAdministrationModule
     New-WebBinding -Name $websiteName -port $port

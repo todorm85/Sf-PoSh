@@ -21,7 +21,7 @@ function sf-new-project {
         [switch]$buildSolution,
         [switch]$startWebApp,
         [switch]$precompile,
-        [string]$branchPath
+        [string]$customBranch
     )
 
     DynamicParam {
@@ -56,13 +56,17 @@ function sf-new-project {
 
     begin {
         # Bind the parameter to a friendly variable
-        $branch = $PsBoundParameters[$ParameterName]
-        if ($null -ne $branchPath) {
-            $branch = $branchPath
-        }
+        $predefinedBranch = $PsBoundParameters[$ParameterName]
     }
 
     process {
+        if ($null -ne $predefinedBranch) {
+            $branch = $predefinedBranch
+        }
+        else {
+            $branch = $customBranch
+        }
+
         $defaultContext = _sf-get-newProject -displayName $displayName
         try {
             $newContext = @{ name = $defaultContext.name }
@@ -88,7 +92,14 @@ function sf-new-project {
             tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
 
             # persist current context to script data
-            $newContext.webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
+            $webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
+            $newContext.webAppPath = $webAppPath
+
+            Write-Host "Backing up original App_Data folder..."
+            $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
+            New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
+            Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
+
             $oldContext = _get-selectedProject
             _sf-set-currentProject $newContext
             _save-selectedProject $newContext
@@ -97,47 +108,44 @@ function sf-new-project {
             Write-Error "############ CLEANING UP ############"
             Set-Location $PSScriptRoot
         
-            if ($newContext.branch -and $workspaceName) {
-                try {
-                    Write-Host "Deleting workspace..."
-                    tfs-delete-workspace $workspaceName
-                }
-                catch {
-                    Write-Warning "No workspace created to delete."
-                }
+            try {
+                Write-Host "Deleting workspace..."
+                tfs-delete-workspace $workspaceName
+            }
+            catch {
+                Write-Warning "No workspace created to delete."
             }
 
-            if ($newContext.solutionPath -and (Test-Path $newContext.solutionPath)) {
-                
+            try {
                 Write-Host "Deleting solution..."
                 Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
-                if ($ProcessError) {
-                    Write-Warning "Could not delete solution directory".
-                    # Write-Error $ProcessError
-                }
+            }
+            catch {
+                Write-Warning "Could not delete solution directory".
+            
             }
 
             if ($oldContext) {
                 _sf-set-currentProject $oldContext
             }
-        
+            
             $displayInnerError = Read-Host "Display inner error?"
             if ($displayInnerError) {
                 Write-Host $_
             }
         }
 
-        try {
-            if ($buildSolution) {
+        if ($buildSolution) {
+            try {
                 Write-Host "Building solution..."
                 sf-build-solution
             }
+            catch {
+                $startWebApp = $false
+                Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
+            }
         }
-        catch {
-            $startWebApp = $false
-            Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
-        }
-
+            
         try {
             Write-Host "Creating website..."
             _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
@@ -560,7 +568,7 @@ function sf-show-currentProject {
 #>
 function sf-show-allProjects {
     $sitefinities = @(_sfData-get-allProjects)
-    if ($sitefinities[0] -eq $null) {
+    if ($null -eq $sitefinities[0]) {
         Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return
     }
@@ -689,7 +697,7 @@ function _sf-get-newProject {
         $solutionPath = "${projectsDirectory}\${name}";
         $webAppPath = "${projectsDirectory}\${name}\SitefinityWebApp";
         $websiteName = $name
-        $appPool = "DefaultAppPool"
+        $appPool = $name
 
         # initial port to start checking from
         $port = 1111
