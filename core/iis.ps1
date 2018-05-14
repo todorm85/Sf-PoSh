@@ -254,11 +254,10 @@ function _sf-create-website {
 
     $newAppPath = $context.webAppPath
     try {
-        $site = iis-create-website -newWebsiteName $newWebsiteName -newPort $newPort -newAppPath $newAppPath -newAppPool $newAppPool
-        $context.websiteName = $site.name
+        iis-create-website -newWebsiteName $newWebsiteName -newPort $newPort -newAppPath $newAppPath -newAppPool $newAppPool
+        $context.websiteName = $newWebsiteName
         _save-selectedProject $context
     } catch {
-        $context.websiteName = ''
         throw "Error creating site: $_.Exception.Message"
     }
 }
@@ -269,15 +268,15 @@ function _sf-delete-website {
     if ($websiteName -eq '') {
         throw "Website name not set."
     }
-
-    $oldWebsiteName = $context.websiteName
+    
+    $appPool = @(iis-get-siteAppPool $websiteName)
     $context.websiteName = ''
     try {
         _save-selectedProject $context
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
-        Remove-Item ("iis:\AppPools\${websiteName}") -Force -Recurse
+        Remove-Item ("iis:\AppPools\$appPool") -Force -Recurse
     } catch {
-        $context.websiteName = $oldWebsiteName
+        $context.websiteName = $websiteName
         _save-selectedProject $context
         throw "Error: $_.Exception.Message"
     }

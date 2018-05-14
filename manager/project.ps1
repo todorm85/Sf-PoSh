@@ -105,7 +105,7 @@ function sf-new-project {
             _save-selectedProject $newContext
         }
         catch {
-            Write-Error "############ CLEANING UP ############"
+            Write-Warning "############ CLEANING UP ############"
             Set-Location $PSScriptRoot
         
             try {
@@ -121,18 +121,21 @@ function sf-new-project {
                 Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
             }
             catch {
-                Write-Warning "Could not delete solution directory".
-            
+                Write-Warning "Could not delete solution directory"
             }
 
             if ($oldContext) {
                 _sf-set-currentProject $oldContext
             }
             
-            $displayInnerError = Read-Host "Display inner error?"
-            if ($displayInnerError) {
+            $displayInnerError = Read-Host "Display inner error? y/n"
+            if ($displayInnerError -eq 'y') {
+                Write-Host "`n"
                 Write-Host $_
+                Write-Host "`n"
             }
+
+            return
         }
 
         if ($buildSolution) {
