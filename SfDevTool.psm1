@@ -35,4 +35,11 @@ else {
     $script:selectedContainer = [PSCustomObject]@{ name = "" }
 }
 
+function Global:prompt
+{
+    Write-Host "PS $(Get-Location)> " -NoNewline
+    Write-Host "[$(sf-show-currentProject)]" -ForegroundColor Green -NoNewline
+    return " "
+}
+
 Export-ModuleMember -Function * -Alias *

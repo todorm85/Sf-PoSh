@@ -218,7 +218,8 @@ function sf-open-solution {
         & $vsPath "${solutionPath}\Telerik.Sitefinity.MS.TestUI.sln"
     }
     else {
-        & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
+        # & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
+        & $vsPath "${solutionPath}\$($context.name).$($context.displayName).sln"
     }
     
 }

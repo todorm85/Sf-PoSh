@@ -100,6 +100,10 @@ function sf-new-project {
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
             Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
 
+            $solutionFilePath = "$($defaultContext.solutionPath)\Telerik.Sitefinity.sln"
+            $targetFilePath = "$($defaultContext.solutionPath)\$($defaultContext.name).$($defaultContext.displayName).sln"
+            Copy-Item -Path $solutionFilePath -Destination $targetFilePath
+
             # persist current context to script data
             $oldContext = _get-selectedProject
             _sf-set-currentProject $newContext
@@ -507,7 +511,9 @@ function sf-rename-project {
         }
     }
 
+    Rename-Item -Path "$($context.solutionPath)\$($context.name).$($context.displayName).sln" -NewName "$($context.name).$($newName).sln"
     $context.displayName = $newName
+    
     _save-selectedProject $context
 
     if ($full) {
@@ -540,19 +546,24 @@ function sf-show-currentProject {
     Param([switch]$detail)
     $context = _get-selectedProject
     if ($null -eq ($context)) {
+        "No project selected"
         return
     }
 
     $ports = @(iis-get-websitePort $context.websiteName)
-    $appPool = @(iis-get-siteAppPool $context.websiteName)
-    $workspaceName = tfs-get-workspaceName $context.webAppPath
-
-    if (-not $detail) {
-        Write-Host "`n$($context.name) | $($context.displayName) | $($context.branch) | $ports `n"
-        return    
+    $branchShortName = "no branch"
+    if ($context.branch) {
+        $branchParts = $context.branch.split('/')
+        $branchShortName = $branchParts[$branchParts.Count -1]
     }
 
-    # $mapping = tfs-get-mappings $context.webAppPath
+    if (-not $detail) {
+        "$($context.name) | $($context.displayName) | $($branchShortName) | $ports"
+        return    
+    }
+    
+    $appPool = @(iis-get-siteAppPool $context.websiteName)
+    $workspaceName = tfs-get-workspaceName $context.webAppPath
 
     $otherDetails = @(
         [pscustomobject]@{id = -1; Parameter = "Title"; Value = $context.displayName; },
@@ -697,11 +708,9 @@ function sf-set-projectContainer {
 function _get-selectedProject {
     $currentContext = $script:globalContext
     if ($currentContext -eq '') {
-        Write-Warning "Invalid selected sitefinity."
         return $null
     }
     elseif ($null -eq $currentContext) {
-        Write-Warning "No selected sitefinity."
         return $null
     }
 
