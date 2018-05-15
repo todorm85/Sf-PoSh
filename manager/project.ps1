@@ -91,15 +91,16 @@ function sf-new-project {
             Write-Host "Getting latest workspace changes..."
             tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
 
-            # persist current context to script data
             $webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
             $newContext.webAppPath = $webAppPath
+            $newContext.containerName = $defaultContext.containerName
 
             Write-Host "Backing up original App_Data folder..."
             $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
             Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
 
+            # persist current context to script data
             $oldContext = _get-selectedProject
             _sf-set-currentProject $newContext
             _save-selectedProject $newContext
@@ -413,8 +414,6 @@ function sf-delete-project {
 
     # Display message
     os-popup-notification -msg "Operation completed!"
-
-    sf-select-project
 }
 
 <#
@@ -429,6 +428,10 @@ function sf-select-project {
     [CmdletBinding()]Param()
 
     $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
+    if ($null -eq $sitefinities[0]) {
+        Write-Host "No projects found. Create one."
+        return
+    }
 
     sf-show-allProjects
 
@@ -536,6 +539,9 @@ function sf-show-currentProject {
     [CmdletBinding()]
     Param([switch]$detail)
     $context = _get-selectedProject
+    if ($null -eq ($context)) {
+        return
+    }
 
     $ports = @(iis-get-websitePort $context.websiteName)
     $appPool = @(iis-get-siteAppPool $context.websiteName)
@@ -569,7 +575,7 @@ function _sf-get-allProjectsForCurrentContainer {
     $sitefinities = @(_sfData-get-allProjects)
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {
-        if (('' -eq $script:selectedContainer.name) -or ($script:selectedContainer.name -eq $sitefinity.containerName)) {
+        if ($script:selectedContainer.name -eq $sitefinity.containerName) {
             $output.add($sitefinity) > $null
         }
     }
@@ -605,7 +611,7 @@ function sf-show-allProjects {
         Write-Host "`nProjects in $currentContainerName"
     }
     else {
-        Write-Host "`nAll projects in all containers"
+        Write-Host "`nAll projects in no container"
     }
 
     $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id | Out-String | ForEach-Object { Write-Host $_ }
@@ -613,18 +619,15 @@ function sf-show-allProjects {
 
 function _sf-select-container {
     $allContainers = @(_sfData-get-allContainers)
-    if ($null -eq $allContainers[0]) {
-        Write-Host "No containers!"
-        return
-    }
-
     [System.Collections.ArrayList]$output = @()
-    foreach ($container in $allContainers) {
-        $index = [array]::IndexOf($allContainers, $container)
-        $output.add([pscustomobject]@{order = $index; Title = "$index : $($container.name)"; }) > $null
+    if ($null -ne $allContainers[0]) {
+        foreach ($container in $allContainers) {
+            $index = [array]::IndexOf($allContainers, $container)
+            $output.add([pscustomobject]@{order = $index; Title = "$index : $($container.name)"; }) > $null
+        }
     }
 
-    $output.add([pscustomobject]@{order = ++$index; Title = "$index : all"; }) > $null
+    $output.add([pscustomobject]@{order = ++$index; Title = "$index : none"; }) > $null
     
     $output | Sort-Object -Property order | Format-Table -AutoSize -Property Title | Out-String | ForEach-Object { Write-Host $_ }
 
@@ -641,17 +644,47 @@ function _sf-select-container {
     }
 }
 
-function sf-set-currentContainer {
+function sf-select-container {
     $container = _sf-select-container
     $script:selectedContainer = $container
+}
+
+function sf-set-defaultContainer {
+    $selectedContainer = _sf-select-container
+    _sfData-save-defaultContainer $selectedContainer.name
 }
 
 function sf-create-container ($name) {
     _sfData-save-container $name
 }
 
-function sf-delete-container ($name) {
-    _sfData-delete-container $name
+function sf-delete-container {
+    Param(
+        [switch]$removeProjects
+    )
+
+    $container = _sf-select-container
+    $projects = @(_sfData-get-allProjects) | Where-Object {$_.containerName -eq $container.name}
+    foreach ($proj in $projects) {
+        if ($removeProjects) {
+            _sf-set-currentProject $proj
+            sf-delete-project
+        }
+        else {
+            $proj.containerName = ""
+            _save-selectedProject $proj
+        }
+    } 
+
+    if (_sfData-get-defaultContainerName -eq $container.name) {
+        _sfData-save-defaultContainer ""
+    }
+
+    _sfData-delete-container $container.name
+
+    Write-Host "`nOperation successful.`n"
+
+    sf-select-container
 }
 
 function sf-set-projectContainer {

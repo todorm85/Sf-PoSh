@@ -26,6 +26,13 @@ if (-not (Test-Path $configPath)) {
 . .\core\iis.ps1
 . .\core\tfs.ps1
 
-$script:selectedContainer = [PSCustomObject]@{ name = "" }
+# initialize
+$defaultContainerName = _sfData-get-defaultContainerName
+if ($defaultContainerName -ne '') {
+    $script:selectedContainer = _sfData-get-allContainers | Where-Object {$_.name -eq $defaultContainerName}
+}
+else {
+    $script:selectedContainer = [PSCustomObject]@{ name = "" }
+}
 
 Export-ModuleMember -Function * -Alias *
