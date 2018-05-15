@@ -26,5 +26,6 @@ if (-not (Test-Path $configPath)) {
 . .\core\iis.ps1
 . .\core\tfs.ps1
 
+$script:selectedContainer = [PSCustomObject]@{ name = "" }
 
 Export-ModuleMember -Function * -Alias *

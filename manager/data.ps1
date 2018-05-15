@@ -39,7 +39,7 @@ function _sfData-save-project {
             }
         }
 
-        if ($sitefinityEntry -eq $null) {
+        if ($null -eq $sitefinityEntry) {
             $sitefinityEntry = $data.CreateElement("sitefinity");
             $sitefinities = $data.SelectSingleNode('/data/sitefinities')
             $sitefinities.AppendChild($sitefinityEntry)
@@ -52,6 +52,60 @@ function _sfData-save-project {
         $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
         $sitefinityEntry.SetAttribute("branch", $context.branch)
         $sitefinityEntry.SetAttribute("description", $context.description)
+        $sitefinityEntry.SetAttribute("containerName", $context.containerName)
+
+        $data.Save($dataPath) > $null
+    } catch {
+        throw "Error creating sitefinity in ${dataPath} database file"
+    }
+}
+
+function _sfData-get-allContainers {
+    $data = New-Object XML
+    $data.Load($script:dataPath)
+    return $data.data.containers.container
+}
+
+function _sfData-delete-container {
+    Param($containerName)
+    try {
+        $data = New-Object XML
+        $data.Load($script:dataPath) > $null
+        $entities = $data.data.containers.container
+        ForEach($entity in $entities) {
+            if ($entity.name -eq $containerName) {
+                $parent = $data.SelectSingleNode('/data/sitefinities')
+                $parent.RemoveChild($entity)
+            }
+        }
+
+        $data.Save($script:dataPath) > $null
+    } catch {
+        throw "Error deleting entity from ${dataPath}. Message: $_.Exception.Message"
+    }
+}
+
+function _sfData-save-container {
+    Param($containerName)
+
+    try {
+        $data = New-Object XML
+        $data.Load($dataPath) > $null
+        $containers = $data.data.containers.container
+        ForEach($container in $containers) {
+            if ($container.name -eq $containerName) {
+                $selectedContainer = $container
+                break
+            }
+        }
+
+        if ($null -eq $selectedContainer) {
+            $selectedContainer = $data.CreateElement("sitefinity");
+            $containers = $data.SelectSingleNode('/data/sitefinities')
+            $containers.AppendChild($selectedContainer)
+        }
+
+        $selectedContainer.SetAttribute("name", $containerName)
 
         $data.Save($dataPath) > $null
     } catch {

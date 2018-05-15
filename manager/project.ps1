@@ -428,14 +428,14 @@ function sf-delete-project {
 function sf-select-project {
     [CmdletBinding()]Param()
 
-    $sitefinities = @(_sfData-get-allProjects)
+    $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
 
     sf-show-allProjects
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
         $selectedSitefinity = $sitefinities[$choice]
-        if ($selectedSitefinity -ne $null) {
+        if ($null -ne $selectedSitefinity) {
             break;
         }
     }
@@ -565,12 +565,24 @@ function sf-show-currentProject {
     Write-Host "Description:`n$($context.description)`n"
 }
 
+function _sf-get-allProjectsForCurrentContainer {
+    $sitefinities = @(_sfData-get-allProjects)
+    [System.Collections.ArrayList]$output = @()
+    foreach ($sitefinity in $sitefinities) {
+        if (('' -eq $script:selectedContainer.name) -or ($script:selectedContainer.name -eq $sitefinity.containerName)) {
+            $output.add($sitefinity) > $null
+        }
+    }
+
+    return $output
+}
+
 <#
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
 function sf-show-allProjects {
-    $sitefinities = @(_sfData-get-allProjects)
+    $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return
@@ -585,11 +597,68 @@ function sf-show-allProjects {
         # }
 
         $index = [array]::IndexOf($sitefinities, $sitefinity)
-
+        
         $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.name)"; }) > $null
     }
+    $currentContainerName = $Script:selectedContainer.name
+    if ($currentContainerName -ne '') {
+        Write-Host "`nProjects in $currentContainerName"
+    }
+    else {
+        Write-Host "`nAll projects in all containers"
+    }
 
-    $output | Sort-Object -Property order | Format-Table -AutoSize -Property Title, Branch, Ports, Id
+    $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id | Out-String | ForEach-Object { Write-Host $_ }
+}
+
+function _sf-select-container {
+    $allContainers = @(_sfData-get-allContainers)
+    if ($null -eq $allContainers[0]) {
+        Write-Host "No containers!"
+        return
+    }
+
+    [System.Collections.ArrayList]$output = @()
+    foreach ($container in $allContainers) {
+        $index = [array]::IndexOf($allContainers, $container)
+        $output.add([pscustomobject]@{order = $index; Title = "$index : $($container.name)"; }) > $null
+    }
+
+    $output.add([pscustomobject]@{order = ++$index; Title = "$index : all"; }) > $null
+    
+    $output | Sort-Object -Property order | Format-Table -AutoSize -Property Title | Out-String | ForEach-Object { Write-Host $_ }
+
+    while ($true) {
+        [int]$choice = Read-Host -Prompt 'Choose container'
+        if ($choice -eq $index) {
+            return [pscustomobject]@{ name = "" }
+        }
+
+        $selected = $allContainers[$choice]
+        if ($null -ne $selected) {
+            return $selected
+        }
+    }
+}
+
+function sf-set-currentContainer {
+    $container = _sf-select-container
+    $script:selectedContainer = $container
+}
+
+function sf-create-container ($name) {
+    _sfData-save-container $name
+}
+
+function sf-delete-container ($name) {
+    _sfData-delete-container $name
+}
+
+function sf-set-projectContainer {
+    $context = _get-selectedProject
+    $container = _sf-select-container
+    $context.containerName = $container.name
+    _save-selectedProject $context
 }
 
 function _get-selectedProject {
@@ -713,6 +782,7 @@ function _sf-get-newProject {
         $defaultContext.websiteName = $websiteName
         $defaultContext.appPool = $appPool
         $defaultContext.port = $port
+        $defaultContext.containerName = $Script:selectedContainer.name
     }
 
     function isNameDuplicate ($name) {
