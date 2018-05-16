@@ -204,7 +204,6 @@ function sf-clear-nugetCache {
     None
 #>
 function sf-open-solution {
-    
     [CmdletBinding()]
     Param([switch]$openUISln)
     
@@ -219,9 +218,8 @@ function sf-open-solution {
     }
     else {
         # & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
-        & $vsPath "${solutionPath}\$($context.name).$($context.displayName).sln"
+        & $vsPath "${solutionPath}\$(_get-solutionName)"
     }
-    
 }
 
 <#

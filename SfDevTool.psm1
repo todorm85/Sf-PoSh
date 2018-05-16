@@ -35,10 +35,28 @@ else {
     $script:selectedContainer = [PSCustomObject]@{ name = "" }
 }
 
-function Global:prompt
-{
-    Write-Host "PS $(Get-Location)> " -NoNewline
-    Write-Host "[$(sf-show-currentProject)]" -ForegroundColor Green -NoNewline
+function Global:prompt {
+    Write-Host "PS $(Get-Location | % {
+        $segments = $_.Path.Split('\')
+        $segments[$segments.Count -1]
+    })>" -NoNewline
+
+    $promptContainer = $Script:globalContext.containerName
+    $promptProject = $Script:globalContext.displayName
+    $promptId = $Script:globalContext.name
+    if ($promptProject) {
+        if ($promptContainer) {
+            $prompt = " [$promptContainer | $promptProject | $promptId]"
+        }
+        else {
+            $prompt = " [$promptProject | $promptId]"
+        } 
+    } 
+    else {
+        $prompt = ""
+    }
+
+    Write-Host "$prompt" -ForegroundColor Green -NoNewline
     return " "
 }
 

@@ -7,8 +7,11 @@ function _iis-load-webAdministrationModule () {
 
 function iis-get-websitePort {
     Param (
-        [Parameter(Mandatory = $true)][string] $webAppName
+        [string]$webAppName
     )
+    if (-not ($webAppName)) {
+        return ""
+    }
 
     _iis-load-webAdministrationModule
     Get-WebBinding -Name $webAppName | select -expand bindingInformation | % {$_.split(':')[-2]}
@@ -175,9 +178,13 @@ function iis-create-website {
 
 function iis-get-siteAppPool {
     Param(
-        [Parameter(Mandatory = $true)][string]$websiteName
+        [string]$websiteName
     )
     
+    if (-not ($websiteName)) {
+        return ""
+    }
+
     _iis-load-webAdministrationModule
     Get-ItemProperty "IIS:\Sites\${websiteName}" -Name "applicationPool"
 }

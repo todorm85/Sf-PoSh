@@ -101,7 +101,7 @@ function sf-new-project {
             Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
 
             $solutionFilePath = "$($defaultContext.solutionPath)\Telerik.Sitefinity.sln"
-            $targetFilePath = "$($defaultContext.solutionPath)\$($defaultContext.name).$($defaultContext.displayName).sln"
+            $targetFilePath = "$($defaultContext.solutionPath)\$(_get-solutionName $defaultContext)"
             Copy-Item -Path $solutionFilePath -Destination $targetFilePath
 
             # persist current context to script data
@@ -511,10 +511,13 @@ function sf-rename-project {
         }
     }
 
-    Rename-Item -Path "$($context.solutionPath)\$($context.name).$($context.displayName).sln" -NewName "$($context.name).$($newName).sln"
+    $oldName = _get-solutionName
+
     $context.displayName = $newName
-    
     _save-selectedProject $context
+
+    $newName = _get-solutionName
+    Rename-Item -Path "$($context.solutionPath)\${oldName}" -NewName $newName
 
     if ($full) {
         
@@ -662,6 +665,7 @@ function sf-select-container {
 
 function sf-set-defaultContainer {
     $selectedContainer = _sf-select-container
+    $script:selectedContainer = $container
     _sfData-save-defaultContainer $selectedContainer.name
 }
 
@@ -903,4 +907,12 @@ function _sf-set-currentProject {
     $script:globalContext = $newContext
 
     [System.Console]::Title = $newContext.displayName
+}
+
+function _get-solutionName ($context) {
+    if (-not ($context)) {
+        $context = _get-selectedProject
+    }
+
+    return "$($context.displayName)($($context.name)).sln"
 }
