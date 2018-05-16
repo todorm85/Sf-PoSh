@@ -119,11 +119,11 @@ function sql-test-isDbNameDuplicate {
 
 function sql-copy-db ($SourceDBName, $targetDbName) {
     #import SQL Server module
-    Import-Module SQLPS -DisableNameChecking
+    _sql-load-module
 
     #your SQL Server Instance Name
     $SQLInstanceName = $sqlServerInstance
-    $Server  = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $SQLInstanceName
+    $Server = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList $SQLInstanceName
 
     #create SMO handle to your database
     $SourceDB = $Server.Databases[$SourceDBName]
@@ -161,4 +161,22 @@ function sql-copy-db ($SourceDBName, $targetDbName) {
     #When you are ready to bring the data and schema over,
     #you can use the TransferData method
     $ObjTransfer.TransferData()
+}
+
+function sql-create-login ($name) {
+    _sql-load-module
+    
+    $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
+    $SQLWindowsLogin = [Microsoft.SqlServer.Management.Smo.Login]::New($sqlServer, $name)
+    $SQLWindowsLogin.LoginType = [Microsoft.SqlServer.Management.Smo.LoginType]::WindowsUser
+    $SQLWindowsLogin.Create() 
+    $SQLWindowsLogin.AddToRole("sysadmin")
+}
+
+function sql-delete-login ($name) {
+    _sql-load-module
+
+    $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
+    $ToDrop = $sqlServer.Logins[$name]
+    $ToDrop.Drop()
 }

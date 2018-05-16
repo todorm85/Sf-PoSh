@@ -36,7 +36,7 @@ function sf-reset-pool {
     $context = _get-selectedProject
     $appPool = @(iis-get-siteAppPool $context.websiteName)
     if ($appPool -eq '') {
-           throw "No app pool set."
+        throw "No app pool set."
     }
 
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
@@ -44,6 +44,16 @@ function sf-reset-pool {
         Start-Sleep -s 1
         _sf-start-sitefinity
     }
+}
+
+function sf-stop-pool {
+    $context = _get-selectedProject
+    $appPool = @(iis-get-siteAppPool $context.websiteName)
+    if ($appPool -eq '') {
+        throw "No app pool set."
+    }
+
+    Stop-WebItem ("IIS:\AppPools\" + $appPool)
 }
 
 function sf-rename-website {
@@ -125,7 +135,8 @@ function sf-change-pool {
     $selectedPool
     try {
         Set-ItemProperty "IIS:\Sites\${websiteName}" -Name "applicationPool" -Value $selectedPool.name
-    } catch {
+    }
+    catch {
         throw "Could not set website pools"
     }
 }
@@ -142,12 +153,13 @@ function sf-add-sitePort {
     Param(
         [int]$port = 1111,
         [switch]$auto
-        )
+    )
 
-    while(!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
+    while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
         if ($auto) {
             $port++
-        } else {
+        }
+        else {
             $port = Read-Host -Prompt 'Port used. Enter new: '
         }
     }
@@ -169,7 +181,7 @@ function sf-remove-sitePorts {
     [CmdletBinding()]
     Param(
         [string]$port
-        )
+    )
 
     $context = _get-selectedProject
     $websiteName = $context.websiteName
@@ -190,7 +202,7 @@ function sf-remove-sitePorts {
 function sf-setup-asSubApp {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true)][string]$subAppName
+        [Parameter(Mandatory = $true)][string]$subAppName
     )
 
     $context = _get-selectedProject
@@ -244,7 +256,7 @@ function _sf-create-website {
         [string]$newWebsiteName,
         [string]$newPort,
         [string]$newAppPool
-        )
+    )
 
     $context = _get-selectedProject
 
@@ -257,7 +269,8 @@ function _sf-create-website {
         iis-create-website -newWebsiteName $newWebsiteName -newPort $newPort -newAppPath $newAppPath -newAppPool $newAppPool
         $context.websiteName = $newWebsiteName
         _save-selectedProject $context
-    } catch {
+    }
+    catch {
         throw "Error creating site: $_.Exception.Message"
     }
 }
@@ -274,11 +287,25 @@ function _sf-delete-website {
     try {
         _save-selectedProject $context
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
-        Remove-Item ("iis:\AppPools\$appPool") -Force -Recurse
-    } catch {
+    }
+    catch {
         $context.websiteName = $websiteName
         _save-selectedProject $context
         throw "Error: $_.Exception.Message"
+    }
+
+    try {
+        Remove-Item ("iis:\AppPools\$appPool") -Force -Recurse
+    }
+    catch{
+        throw "Error removing app pool $appPool Error: $_.Exception.Message"
+    }
+
+    try {
+        sql-delete-login -name "IIS APPPOOL\${appPool}"
+    }
+    catch {
+        throw "Error removing sql login (IIS APPPOOL\${appPool}) Error: $_.Exception.Message"
     }
 }
 
@@ -292,7 +319,8 @@ function _sf-get-appUrl {
     $subAppName = iis-get-subAppName $context.websiteName
     if ($subAppName -ne $null) {
         return "http://localhost:${port}/${subAppName}"
-    } else {
+    }
+    else {
         return "http://localhost:${port}"
     }
 }

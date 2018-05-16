@@ -339,6 +339,8 @@ function sf-delete-project {
     $workspaceName = tfs-get-workspaceName $context.webAppPath
     $dbName = sf-get-dbName
     $websiteName = $context.websiteName
+    
+    sf-stop-pool
 
     # while ($true) {
     #     $isConfirmed = Read-Host -Prompt "WARNING! Current operation will reset IIS. You also need to have closed the current sitefinity solution in Visual Studio and any opened browsers for complete deletion. Continue [y/n]?"
@@ -382,7 +384,7 @@ function sf-delete-project {
             _sf-delete-website
         }
         catch {
-            Write-Host "Could not delete website ${websiteName}. $_.Exception.Message"
+            Write-Host "Errors deleting website ${websiteName}. $_.Exception.Message"
         }
     }
 
@@ -909,10 +911,22 @@ function _sf-set-currentProject {
     [System.Console]::Title = $newContext.displayName
 }
 
-function _get-solutionName ($context) {
-    if (-not ($context)) {
-        $context = _get-selectedProject
+function _get-solutionName {
+    Param(
+        $context,
+        [bool]$useTelerikSitefinity = $false
+    )
+    
+    if ($useTelerikSitefinity) {
+        $solutionName = "Telerik.Sitefinity.sln"
     }
+    else {
+        if (-not ($context)) {
+            $context = _get-selectedProject
+        }
 
-    return "$($context.displayName)($($context.name)).sln"
+        $solutionName = "$($context.displayName)($($context.name)).sln"
+    }
+    
+    return $solutionName
 }

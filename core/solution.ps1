@@ -8,10 +8,15 @@
 #>
 function sf-build-solution {
     [CmdletBinding()]
-    Param([switch]$useOldMsBuild, [switch]$ui)
+    Param(
+        [switch]$useOldMsBuild,
+        [switch]$ui,
+        [bool]$useTelerikSitefinity = $false
+    )
 
     $context = _get-selectedProject
-    $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    $solutionName = _get-solutionName -useTelerikSitefinity $useTelerikSitefinity
+    $solutionPath = "$($context.solutionPath)\${solutionName}"
     $solutionPathUI = "$($context.solutionPath)\Telerik.Sitefinity.MS.TestUI.sln"
     if (!(Test-Path $solutionPath)) {
         sf-build-webAppProj
@@ -123,6 +128,8 @@ function _sf-reset-appDataFiles {
         catch {
             $errorMessage = "${errorMessage}`n" + $_.Exception.Message
         }
+
+        Copy-Item -Path "$originalAppDataFilesPath\*" -Destination "${webAppPath}\App_Data" -Recurse
     }
     elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
         Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
@@ -205,20 +212,25 @@ function sf-clear-nugetCache {
 #>
 function sf-open-solution {
     [CmdletBinding()]
-    Param([switch]$openUISln)
+    Param(
+        [switch]$openUISln,
+        [switch]$useTelerikSitefinity
+    )
     
     $context = _get-selectedProject
     $solutionPath = $context.solutionPath
     if ($solutionPath -eq '') {
         throw "invalid or no solution path"
     }
+
+    $solutionName = _get-solutionName -useTelerikSitefinity $useTelerikSitefinity
     if ($openUISln) {
-        & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
+        & $vsPath "${solutionPath}\${solutionName}"
         & $vsPath "${solutionPath}\Telerik.Sitefinity.MS.TestUI.sln"
     }
     else {
         # & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
-        & $vsPath "${solutionPath}\$(_get-solutionName)"
+        & $vsPath "${solutionPath}\${solutionName}"
     }
 }
 
