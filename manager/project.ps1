@@ -20,12 +20,13 @@ function sf-new-project {
         [string]$displayName,
         [switch]$buildSolution,
         [switch]$startWebApp,
-        [switch]$precompile
+        [switch]$precompile,
+        [string]$customBranch
     )
 
     DynamicParam {
         # Set the dynamic parameters' name
-        $ParameterName = 'branch'
+        $ParameterName = 'predefinedBranch'
         
         # Create the dictionary 
         $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
@@ -35,7 +36,7 @@ function sf-new-project {
         
         # Create and set the parameters' attributes
         $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-        $ParameterAttribute.Mandatory = $true
+        $ParameterAttribute.Mandatory = $false
         $ParameterAttribute.Position = 1
 
         # Add the attributes to the attributes collection
@@ -55,10 +56,17 @@ function sf-new-project {
 
     begin {
         # Bind the parameter to a friendly variable
-        $branch = $PsBoundParameters[$ParameterName]
+        $predefinedBranch = $PsBoundParameters[$ParameterName]
     }
 
     process {
+        if ($null -ne $predefinedBranch) {
+            $branch = $predefinedBranch
+        }
+        else {
+            $branch = $customBranch
+        }
+
         $defaultContext = _sf-get-newProject -displayName $displayName
         try {
             $newContext = @{ name = $defaultContext.name }
@@ -83,57 +91,69 @@ function sf-new-project {
             Write-Host "Getting latest workspace changes..."
             tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
 
+            $webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
+            $newContext.webAppPath = $webAppPath
+            $newContext.containerName = $defaultContext.containerName
+
+            Write-Host "Backing up original App_Data folder..."
+            $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
+            New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
+            Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
+
+            $solutionFilePath = "$($defaultContext.solutionPath)\Telerik.Sitefinity.sln"
+            $targetFilePath = "$($defaultContext.solutionPath)\$(_get-solutionName $defaultContext)"
+            Copy-Item -Path $solutionFilePath -Destination $targetFilePath
+
             # persist current context to script data
-            $newContext.webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
             $oldContext = _get-selectedProject
             _sf-set-currentProject $newContext
             _save-selectedProject $newContext
         }
         catch {
-            Write-Error "############ CLEANING UP ############"
+            Write-Warning "############ CLEANING UP ############"
             Set-Location $PSScriptRoot
         
-            if ($newContext.branch -and $workspaceName) {
-                try {
-                    Write-Host "Deleting workspace..."
-                    tfs-delete-workspace $workspaceName
-                }
-                catch {
-                    Write-Warning "No workspace created to delete."
-                }
+            try {
+                Write-Host "Deleting workspace..."
+                tfs-delete-workspace $workspaceName
+            }
+            catch {
+                Write-Warning "No workspace created to delete."
             }
 
-            if ($newContext.solutionPath -and (Test-Path $newContext.solutionPath)) {
-                
+            try {
                 Write-Host "Deleting solution..."
                 Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
-                if ($ProcessError) {
-                    Write-Warning "Could not delete solution directory".
-                    # Write-Error $ProcessError
-                }
+            }
+            catch {
+                Write-Warning "Could not delete solution directory"
             }
 
             if ($oldContext) {
                 _sf-set-currentProject $oldContext
             }
-        
-            $displayInnerError = Read-Host "Display inner error?"
-            if ($displayInnerError) {
+            
+            $displayInnerError = Read-Host "Display inner error? y/n"
+            if ($displayInnerError -eq 'y') {
+                Write-Host "`n"
                 Write-Host $_
+                Write-Host "`n"
             }
+
+            return
         }
 
-        try {
-            if ($buildSolution) {
+        if ($buildSolution) {
+            try {
                 Write-Host "Building solution..."
                 sf-build-solution
             }
+            catch {
+                $startWebApp = $false
+                Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
+            }
         }
-        catch {
-            $startWebApp = $false
-            Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
-        }
-
+            
         try {
             Write-Host "Creating website..."
             _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
@@ -319,6 +339,8 @@ function sf-delete-project {
     $workspaceName = tfs-get-workspaceName $context.webAppPath
     $dbName = sf-get-dbName
     $websiteName = $context.websiteName
+    
+    sf-stop-pool
 
     # while ($true) {
     #     $isConfirmed = Read-Host -Prompt "WARNING! Current operation will reset IIS. You also need to have closed the current sitefinity solution in Visual Studio and any opened browsers for complete deletion. Continue [y/n]?"
@@ -362,7 +384,7 @@ function sf-delete-project {
             _sf-delete-website
         }
         catch {
-            Write-Host "Could not delete website ${websiteName}. $_.Exception.Message"
+            Write-Host "Errors deleting website ${websiteName}. $_.Exception.Message"
         }
     }
 
@@ -398,8 +420,6 @@ function sf-delete-project {
 
     # Display message
     os-popup-notification -msg "Operation completed!"
-
-    sf-select-project
 }
 
 <#
@@ -413,14 +433,18 @@ function sf-delete-project {
 function sf-select-project {
     [CmdletBinding()]Param()
 
-    $sitefinities = @(_sfData-get-allProjects)
+    $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
+    if ($null -eq $sitefinities[0]) {
+        Write-Host "No projects found. Create one."
+        return
+    }
 
     sf-show-allProjects
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
         $selectedSitefinity = $sitefinities[$choice]
-        if ($selectedSitefinity -ne $null) {
+        if ($null -ne $selectedSitefinity) {
             break;
         }
     }
@@ -489,8 +513,13 @@ function sf-rename-project {
         }
     }
 
+    $oldName = _get-solutionName
+
     $context.displayName = $newName
     _save-selectedProject $context
+
+    $newName = _get-solutionName
+    Rename-Item -Path "$($context.solutionPath)\${oldName}" -NewName $newName
 
     if ($full) {
         
@@ -521,17 +550,25 @@ function sf-show-currentProject {
     [CmdletBinding()]
     Param([switch]$detail)
     $context = _get-selectedProject
-
-    $ports = @(iis-get-websitePort $context.websiteName)
-    $appPool = @(iis-get-siteAppPool $context.websiteName)
-    $workspaceName = tfs-get-workspaceName $context.webAppPath
-
-    if (-not $detail) {
-        Write-Host "`n$($context.name) | $($context.displayName) | $($context.branch) | $ports `n"
-        return    
+    if ($null -eq ($context)) {
+        "No project selected"
+        return
     }
 
-    # $mapping = tfs-get-mappings $context.webAppPath
+    $ports = @(iis-get-websitePort $context.websiteName)
+    $branchShortName = "no branch"
+    if ($context.branch) {
+        $branchParts = $context.branch.split('/')
+        $branchShortName = $branchParts[$branchParts.Count -1]
+    }
+
+    if (-not $detail) {
+        "$($context.name) | $($context.displayName) | $($branchShortName) | $ports"
+        return    
+    }
+    
+    $appPool = @(iis-get-siteAppPool $context.websiteName)
+    $workspaceName = tfs-get-workspaceName $context.webAppPath
 
     $otherDetails = @(
         [pscustomobject]@{id = -1; Parameter = "Title"; Value = $context.displayName; },
@@ -550,13 +587,25 @@ function sf-show-currentProject {
     Write-Host "Description:`n$($context.description)`n"
 }
 
+function _sf-get-allProjectsForCurrentContainer {
+    $sitefinities = @(_sfData-get-allProjects)
+    [System.Collections.ArrayList]$output = @()
+    foreach ($sitefinity in $sitefinities) {
+        if ($script:selectedContainer.name -eq $sitefinity.containerName) {
+            $output.add($sitefinity) > $null
+        }
+    }
+
+    return $output
+}
+
 <#
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
 function sf-show-allProjects {
-    $sitefinities = @(_sfData-get-allProjects)
-    if ($sitefinities[0] -eq $null) {
+    $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
+    if ($null -eq $sitefinities[0]) {
         Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return
     }
@@ -570,20 +619,104 @@ function sf-show-allProjects {
         # }
 
         $index = [array]::IndexOf($sitefinities, $sitefinity)
-
+        
         $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.name)"; }) > $null
     }
+    $currentContainerName = $Script:selectedContainer.name
+    if ($currentContainerName -ne '') {
+        Write-Host "`nProjects in $currentContainerName"
+    }
+    else {
+        Write-Host "`nAll projects in no container"
+    }
 
-    $output | Sort-Object -Property order | Format-Table -AutoSize -Property Title, Branch, Ports, Id
+    $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id | Out-String | ForEach-Object { Write-Host $_ }
+}
+
+function _sf-select-container {
+    $allContainers = @(_sfData-get-allContainers)
+    [System.Collections.ArrayList]$output = @()
+    if ($null -ne $allContainers[0]) {
+        foreach ($container in $allContainers) {
+            $index = [array]::IndexOf($allContainers, $container)
+            $output.add([pscustomobject]@{order = $index; Title = "$index : $($container.name)"; }) > $null
+        }
+    }
+
+    $output.add([pscustomobject]@{order = ++$index; Title = "$index : none"; }) > $null
+    
+    $output | Sort-Object -Property order | Format-Table -AutoSize -Property Title | Out-String | ForEach-Object { Write-Host $_ }
+
+    while ($true) {
+        [int]$choice = Read-Host -Prompt 'Choose container'
+        if ($choice -eq $index) {
+            return [pscustomobject]@{ name = "" }
+        }
+
+        $selected = $allContainers[$choice]
+        if ($null -ne $selected) {
+            return $selected
+        }
+    }
+}
+
+function sf-select-container {
+    $container = _sf-select-container
+    $script:selectedContainer = $container
+}
+
+function sf-set-defaultContainer {
+    $selectedContainer = _sf-select-container
+    $script:selectedContainer = $container
+    _sfData-save-defaultContainer $selectedContainer.name
+}
+
+function sf-create-container ($name) {
+    _sfData-save-container $name
+}
+
+function sf-delete-container {
+    Param(
+        [switch]$removeProjects
+    )
+
+    $container = _sf-select-container
+    $projects = @(_sfData-get-allProjects) | Where-Object {$_.containerName -eq $container.name}
+    foreach ($proj in $projects) {
+        if ($removeProjects) {
+            _sf-set-currentProject $proj
+            sf-delete-project
+        }
+        else {
+            $proj.containerName = ""
+            _save-selectedProject $proj
+        }
+    } 
+
+    if (_sfData-get-defaultContainerName -eq $container.name) {
+        _sfData-save-defaultContainer ""
+    }
+
+    _sfData-delete-container $container.name
+
+    Write-Host "`nOperation successful.`n"
+
+    sf-select-container
+}
+
+function sf-set-projectContainer {
+    $context = _get-selectedProject
+    $container = _sf-select-container
+    $context.containerName = $container.name
+    _save-selectedProject $context
 }
 
 function _get-selectedProject {
     $currentContext = $script:globalContext
     if ($currentContext -eq '') {
-        Write-Warning "Invalid selected sitefinity."
         return $null
-    } elseif ($null -eq $currentContext) {
-        Write-Warning "No selected sitefinity."
+    }
+    elseif ($null -eq $currentContext) {
         return $null
     }
 
@@ -606,7 +739,8 @@ function _validate-project {
 
     if ($context -eq '') {
         throw "Invalid sitefinity context. Cannot be empty string."
-    } elseif ($null -ne $context){
+    }
+    elseif ($null -ne $context) {
         if ($context.name -eq '') {
             throw "Invalid sitefinity context. No sitefinity name."
         }
@@ -672,22 +806,22 @@ function _sf-get-newProject {
     Param(
         [string]$displayName,
         [string]$name
-        )
+    )
         
     function applyContextConventions {
         Param(
             $defaultContext
-            )
+        )
 
         $name = $defaultContext.name
         $solutionPath = "${projectsDirectory}\${name}";
         $webAppPath = "${projectsDirectory}\${name}\SitefinityWebApp";
         $websiteName = $name
-        $appPool = "DefaultAppPool"
+        $appPool = $name
 
         # initial port to start checking from
         $port = 1111
-        while(!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
+        while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
             $port++
         }
 
@@ -696,6 +830,7 @@ function _sf-get-newProject {
         $defaultContext.websiteName = $websiteName
         $defaultContext.appPool = $appPool
         $defaultContext.port = $port
+        $defaultContext.containerName = $Script:selectedContainer.name
     }
 
     function isNameDuplicate ($name) {
@@ -711,7 +846,7 @@ function _sf-get-newProject {
 
     function generateName {
         $i = 0;
-        while($true) {
+        while ($true) {
             $name = "instance_$i"
             $isDuplicate = (isNameDuplicate $name)
             if (-not $isDuplicate) {
@@ -732,10 +867,12 @@ function _sf-get-newProject {
             if (-not $isValid) {
                 Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
                 $name = Read-Host "Enter new name: "
-            } elseif ($isDuplicate) {
+            }
+            elseif ($isDuplicate) {
                 Write-Host "Duplicate sitefinity naem."
                 $name = Read-Host "Enter new name: "
-            } else {
+            }
+            else {
                 $context.name = $name
                 break
             }
@@ -747,14 +884,14 @@ function _sf-get-newProject {
     }
     
     $defaultContext = @{
-        displayName = $displayName;
-        name = $name;
+        displayName  = $displayName;
+        name         = $name;
         solutionPath = '';
-        webAppPath = '';
-        dbName = '';
-        websiteName = '';
-        port = '';
-        appPool = '';
+        webAppPath   = '';
+        dbName       = '';
+        websiteName  = '';
+        port         = '';
+        appPool      = '';
     }
 
     validateName $defaultContext
@@ -772,4 +909,24 @@ function _sf-set-currentProject {
     $script:globalContext = $newContext
 
     [System.Console]::Title = $newContext.displayName
+}
+
+function _get-solutionName {
+    Param(
+        $context,
+        [bool]$useTelerikSitefinity = $false
+    )
+    
+    if ($useTelerikSitefinity) {
+        $solutionName = "Telerik.Sitefinity.sln"
+    }
+    else {
+        if (-not ($context)) {
+            $context = _get-selectedProject
+        }
+
+        $solutionName = "$($context.displayName)($($context.name)).sln"
+    }
+    
+    return $solutionName
 }

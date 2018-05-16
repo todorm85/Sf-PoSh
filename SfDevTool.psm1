@@ -26,5 +26,38 @@ if (-not (Test-Path $configPath)) {
 . .\core\iis.ps1
 . .\core\tfs.ps1
 
+# initialize
+$defaultContainerName = _sfData-get-defaultContainerName
+if ($defaultContainerName -ne '') {
+    $script:selectedContainer = _sfData-get-allContainers | Where-Object {$_.name -eq $defaultContainerName}
+}
+else {
+    $script:selectedContainer = [PSCustomObject]@{ name = "" }
+}
+
+function Global:prompt {
+    Write-Host "PS $(Get-Location | % {
+        $segments = $_.Path.Split('\')
+        $segments[$segments.Count -1]
+    })>" -NoNewline
+
+    $promptContainer = $Script:globalContext.containerName
+    $promptProject = $Script:globalContext.displayName
+    $promptId = $Script:globalContext.name
+    if ($promptProject) {
+        if ($promptContainer) {
+            $prompt = " [$promptContainer | $promptProject | $promptId]"
+        }
+        else {
+            $prompt = " [$promptProject | $promptId]"
+        } 
+    } 
+    else {
+        $prompt = ""
+    }
+
+    Write-Host "$prompt" -ForegroundColor Green -NoNewline
+    return " "
+}
 
 Export-ModuleMember -Function * -Alias *

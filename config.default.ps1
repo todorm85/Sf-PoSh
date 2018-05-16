@@ -54,6 +54,4 @@ $defaultUser = 'admin@test.test'
 $defaultPassword = 'admin@2'
 
 $predefinedBranches = @("$/CMS/Sitefinity 4.0/Code Base",
-"$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base",
-"$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_1_Fixes",
-"$/CMS/Sitefinity 4.0/TeamBranches/U3/XSS")
+"$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_2_Fixes")

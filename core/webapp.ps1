@@ -31,6 +31,9 @@ function sf-reset-app {
 
     $dbName = sf-get-dbName # this needs to be here before DataConfig.config gets deleted!!!
     
+    Write-Host "Restarting app pool..."
+    sf-reset-pool
+    
     if ($rebuild) {
         sf-rebuild-solution
     }
@@ -39,14 +42,9 @@ function sf-reset-app {
         sf-build-solution
     }
 
-    $context = _get-selectedProject
-    # Write-Host "Restarting app pool..."
-    # Restart-WebItem ("IIS:\AppPools\" + $appPool)
-    # iisreset.exe
-
-    Write-Host "Deleting App_Data files..."
+    Write-Host "Resetting App_Data files..."
     try {
-        _sf-delete-appDataFiles
+        _sf-reset-appDataFiles
     }
     catch {
         Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_.Exception.Message"
@@ -61,9 +59,6 @@ function sf-reset-app {
             Write-Warning "Erros while deleting database: $_.Exception.Message"
         }
     }
-
-    Write-Host "Restarting app threads..."
-    sf-reset-thread
 
     if ($start) {
         Start-Sleep -s 2
@@ -118,13 +113,18 @@ function sf-save-appState {
     
     while ($true) {
         $stateName = Read-Host -Prompt "Enter state name:"
-        $statePath = "$($context.webAppPath)/states/$stateName"
-        $configStatePath = "$statePath/configs"
-        if (-not (Test-Path $configStatePath)) {
-            New-Item $configStatePath -ItemType Directory > $null
+        $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
+        $appDataStatePath = "$statePath/App_Data"
+        if (-not (Test-Path $appDataStatePath)) {
+            New-Item $appDataStatePath -ItemType Directory > $null
             break;
         }
     }
+
+    $Acl = Get-Acl $statePath
+    $Ar = New-Object  system.security.accesscontrol.filesystemaccessrule("Everyone", "Full", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $Acl.SetAccessRule($Ar)
+    Set-Acl $statePath $Acl
 
     Backup-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
     
@@ -136,14 +136,14 @@ function sf-save-appState {
     $root.SetAttribute("dbName", $dbName)
     $stateData.Save($stateDataPath) > $null
 
-    $configsPath = "$($context.webAppPath)/App_Data/Sitefinity/Configuration"
-    Copy-Item "$configsPath/*.*" $configStatePath
+    $appDataPath = "$($context.webAppPath)/App_Data"
+    Copy-Item "$appDataPath/*" $appDataStatePath -Recurse
     
 }
 
 function _sf-get-statesPath {
     $context = _get-selectedProject
-    return "$($context.webAppPath)/states"
+    return "$($context.webAppPath)/sf-dev-tool/states"
 }
 
 function sf-restore-appState {
@@ -156,16 +156,17 @@ function sf-restore-appState {
     sql-delete-database $dbName
     Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
 
-    $configStatePath = "$statePath/configs"
-    $configsPath = "$($context.webAppPath)/App_Data/Sitefinity/Configuration"
-    if (Test-Path $configsPath) {
-        Remove-Item "$configsPath/*" -Force -ErrorAction SilentlyContinue -Recurse
+    $appDataStatePath = "$statePath/App_Data"
+    $appDataPath = "$($context.webAppPath)/App_Data"
+    if (Test-Path $appDataPath) {
+        Remove-Item "$appDataPath/*" -Force -ErrorAction SilentlyContinue -Recurse
     }
     else {
-        New-Item $configsPath -ItemType Directory > $null
+        New-Item $appDataPath -ItemType Directory > $null
     }
     
-    Copy-Item "$configStatePath/*.*" $configsPath
+    sf-reset-pool
+    Copy-Item "$appDataStatePath/*" $appDataPath -Recurse -Force
 
     sf-reset-thread
 }
@@ -266,7 +267,7 @@ function sf-get-dbName {
     if (Test-Path -Path $dataConfigPath) {
         $data.Load($dataConfigPath) > $null
         $conStr = $data.dataConfig.connectionStrings.add.connectionString
-        $conStr -match 'initial catalog=(?<dbName>.*?)(;|$)' > $null
+        $conStr -match "initial catalog='{0,1}(?<dbName>.*?)'{0,1}(;|$)" > $null
         $dbName = $matches['dbName']
         return $dbName
     }

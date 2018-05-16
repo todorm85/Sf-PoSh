@@ -8,17 +8,24 @@
 #>
 function sf-build-solution {
     [CmdletBinding()]
-    Param([switch]$useOldMsBuild)
+    Param(
+        [switch]$useOldMsBuild,
+        [switch]$ui,
+        [bool]$useTelerikSitefinity = $false
+    )
 
     $context = _get-selectedProject
-    $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    $solutionName = _get-solutionName -useTelerikSitefinity $useTelerikSitefinity
+    $solutionPath = "$($context.solutionPath)\${solutionName}"
     $solutionPathUI = "$($context.solutionPath)\Telerik.Sitefinity.MS.TestUI.sln"
     if (!(Test-Path $solutionPath)) {
         sf-build-webAppProj
     }
 
     _sf-build-proj $solutionPath $useOldMsBuild
-    _sf-build-proj $solutionPathUI $useOldMsBuild
+    if ($ui) {
+        _sf-build-proj $solutionPathUI $useOldMsBuild
+    }
 }
 
 <#
@@ -107,12 +114,25 @@ function sf-clean-solution {
     }
 }
 
-function _sf-delete-appDataFiles {
-    Write-Host "Deleting sitefinity configs, logs, temps..."
+function _sf-reset-appDataFiles {
     $context = _get-selectedProject
     $webAppPath = $context.webAppPath
     $errorMessage = ''
-    if (Test-Path "${webAppPath}\App_Data\Sitefinity") {
+    $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
+    if (Test-Path $originalAppDataFilesPath) {
+        Write-Warning "Restoring Sitefinity web app App_Data files to original state."
+        $dirs = Get-ChildItem "${webAppPath}\App_Data"
+        try {
+            os-del-filesAndDirsRecursive $dirs
+        }
+        catch {
+            $errorMessage = "${errorMessage}`n" + $_.Exception.Message
+        }
+
+        Copy-Item -Path "$originalAppDataFilesPath\*" -Destination "${webAppPath}\App_Data" -Recurse
+    }
+    elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
+        Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
         $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
         try {
             os-del-filesAndDirsRecursive $dirs
@@ -120,17 +140,7 @@ function _sf-delete-appDataFiles {
         catch {
             $errorMessage = "${errorMessage}`n" + $_.Exception.Message
         }
-    }
-
-    if (Test-Path "${webAppPath}\App_Data\Telerik\Configuration") {
-        $files = Get-ChildItem "${webAppPath}\App_Data\Telerik\Configuration" | Where-Object { ($_.PSIsContainer -eq $false) -and ($_.Name -like "sso.config") }
-        try {
-            os-del-filesAndDirsRecursive $files
-        }
-        catch {
-            $errorMessage = "${errorMessage}`n" + $_.Exception.Message
-        }
-    }
+    } 
 
     if ($errorMessage -ne '') {
         throw $errorMessage
@@ -201,22 +211,27 @@ function sf-clear-nugetCache {
     None
 #>
 function sf-open-solution {
-    
     [CmdletBinding()]
-    Param([switch]$openUISln)
+    Param(
+        [switch]$openUISln,
+        [switch]$useTelerikSitefinity
+    )
     
     $context = _get-selectedProject
     $solutionPath = $context.solutionPath
     if ($solutionPath -eq '') {
         throw "invalid or no solution path"
     }
+
+    $solutionName = _get-solutionName -useTelerikSitefinity $useTelerikSitefinity
     if ($openUISln) {
-        & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
+        & $vsPath "${solutionPath}\${solutionName}"
         & $vsPath "${solutionPath}\Telerik.Sitefinity.MS.TestUI.sln"
-    } else {
-        & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
     }
-    
+    else {
+        # & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
+        & $vsPath "${solutionPath}\${solutionName}"
+    }
 }
 
 <#
