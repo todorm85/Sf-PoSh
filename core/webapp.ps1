@@ -121,6 +121,11 @@ function sf-save-appState {
         }
     }
 
+    $Acl = Get-Acl $statePath
+    $Ar = New-Object  system.security.accesscontrol.filesystemaccessrule("Everyone", "Full", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $Acl.SetAccessRule($Ar)
+    Set-Acl $statePath $Acl
+
     Backup-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
     
     $stateDataPath = "$statePath/data.xml"
