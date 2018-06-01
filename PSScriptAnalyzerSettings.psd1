@@ -27,5 +27,7 @@
     ExcludeRules = @('PSAvoidUsingWriteHost',
         'PSUseApprovedVerbs',
         'PSAvoidUsingUserNameAndPassWordParams',
-        'PSAvoidUsingPlainTextForPassword')
+        'PSAvoidUsingPlainTextForPassword',
+        'PSAvoidUsingEmptyCatchBlock'
+        )
 }

@@ -48,30 +48,6 @@ function sf-rebuild-solution {
     sf-build-solution
 }
 
-function _sf-build-proj {
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory)][string]$path, 
-        [bool]$useOldMsBuild
-    )
-
-    if (!(Test-Path $path)) {
-        throw "invalid or no proj path"
-    }
-
-    Write-Host "Building ${path}"
-    if ($useOldMsBuild) {
-        $output = & $msBuildPath /verbosity:quiet /nologo /tv:"4.0" $path 2>&1
-    }
-    else {
-        $output = & $msBuildPath /verbosity:quiet /nologo $path 2>&1
-    }
-
-    if ($LastExitCode -ne 0) {
-        throw "$output"
-    }
-}
-
 function sf-clean-solution {
     Param([switch]$keepPackages)
 
@@ -111,75 +87,6 @@ function sf-clean-solution {
 
     if ($errorMessage -ne '') {
         throw $errorMessage
-    }
-}
-
-function _sf-reset-appDataFiles {
-    $context = _get-selectedProject
-    $webAppPath = $context.webAppPath
-    $errorMessage = ''
-    $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
-    if (Test-Path $originalAppDataFilesPath) {
-        Write-Warning "Restoring Sitefinity web app App_Data files to original state."
-        $dirs = Get-ChildItem "${webAppPath}\App_Data"
-        try {
-            os-del-filesAndDirsRecursive $dirs
-        }
-        catch {
-            $errorMessage = "${errorMessage}`n" + $_.Exception.Message
-        }
-
-        Copy-Item -Path "$originalAppDataFilesPath\*" -Destination "${webAppPath}\App_Data" -Recurse
-    }
-    elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
-        Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
-        $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
-        try {
-            os-del-filesAndDirsRecursive $dirs
-        }
-        catch {
-            $errorMessage = "${errorMessage}`n" + $_.Exception.Message
-        }
-    } 
-
-    if ($errorMessage -ne '') {
-        throw $errorMessage
-    }
-}
-
-<#
-    .SYNOPSIS 
-    .DESCRIPTION
-    .PARAMETER xxxx
-    .OUTPUTS
-    None
-#>
-function sf-goto {
-    [CmdletBinding()]
-    Param(
-        [switch]$configs,
-        [switch]$logs,
-        [switch]$root,
-        [switch]$webConfig
-    )
-
-    $context = _get-selectedProject
-    $webAppPath = $context.webAppPath
-
-    if ($configs) {
-        cd "${webAppPath}\App_Data\Sitefinity\Configuration"
-        ls
-    }
-    elseif ($logs) {
-        cd "${webAppPath}\App_Data\Sitefinity\Logs"
-        ls
-    }
-    elseif ($root) {
-        cd "${webAppPath}"
-        ls
-    }
-    elseif ($webConfig) {
-        & "${webAppPath}\Web.config"
     }
 }
 
@@ -253,4 +160,28 @@ function sf-build-webAppProj () {
     }
 
     _sf-build-proj $path $useOldMsBuild
+}
+
+function _sf-build-proj {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory)][string]$path, 
+        [bool]$useOldMsBuild
+    )
+
+    if (!(Test-Path $path)) {
+        throw "invalid or no proj path"
+    }
+
+    Write-Host "Building ${path}"
+    if ($useOldMsBuild) {
+        $output = & $msBuildPath /verbosity:quiet /nologo /tv:"4.0" $path 2>&1
+    }
+    else {
+        $output = & $msBuildPath /verbosity:quiet /nologo $path 2>&1
+    }
+
+    if ($LastExitCode -ne 0) {
+        throw "$output"
+    }
 }

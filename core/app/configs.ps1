@@ -156,7 +156,7 @@ function sf-get-configContentFromDb {
         $filePath="${Env:userprofile}\Desktop\dbExport.xml"
         )
 
-    $dbName = sf-get-dbName
+    $dbName = sf-get-appDbName
     $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
 
     if ($null -ne $config -and $config -ne '') {
@@ -183,7 +183,7 @@ function sf-clear-configContentInDb {
         [Parameter(Mandatory=$true)]$configName
         )
 
-    $dbName = sf-get-dbName
+    $dbName = sf-get-appDbName
     sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value "<${configName}/>" -whereFilter "path='${configName}.config'"
 }
 
@@ -206,7 +206,7 @@ function sf-insert-configContentInDb {
         $filePath="${Env:userprofile}\Desktop\dbImport.xml"
         )
 
-    $dbName = sf-get-dbName
+    $dbName = sf-get-appDbName
     $xmlString = Get-Content $filePath -Raw
 
     $config = sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value $xmlString -whereFilter "path='${configName}.config'"

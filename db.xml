@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<data>
+  <sitefinities>
+    <sitefinity name="instance_0" displayName="Iris" solutionPath="e:\sitefinities\instance_0" webAppPath="e:\sitefinities\instance_0\SitefinityWebApp" websiteName="instance_0" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
+    <sitefinity name="instance_1" displayName="AuthenticationImprovements" solutionPath="e:\sitefinities\instance_1" webAppPath="e:\sitefinities\instance_1\SitefinityWebApp" websiteName="instance_1" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
+    <sitefinity name="instance_2" displayName="auth-pres" solutionPath="e:\sitefinities\instance_2" webAppPath="e:\sitefinities\instance_2\SitefinityWebApp" websiteName="instance_2" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
+    <sitefinity name="instance_3" displayName="Official_10_2_HF4" solutionPath="e:\sitefinities\instance_3" webAppPath="e:\sitefinities\instance_3\SitefinityWebApp" websiteName="instance_3" branch="$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_2_HF2" description="" containerName="Officials" />
+  </sitefinities>
+  <containers defaultContainerName="">
+    <container name="Officials" />
+  </containers>
+</data>

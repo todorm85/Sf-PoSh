@@ -29,7 +29,7 @@ function sf-reset-app {
         [switch]$configRestrictionSafe
     )
 
-    $dbName = sf-get-dbName # this needs to be here before DataConfig.config gets deleted!!!
+    $dbName = sf-get-appDbName # this needs to be here before DataConfig.config gets deleted!!!
     
     Write-Host "Restarting app pool..."
     sf-reset-pool
@@ -72,7 +72,7 @@ function sf-reset-app {
 
         try {
             $appUrl = _sf-get-appUrl
-            _sf-start-sitefinity -url $appUrl
+            _sf-start-app -url $appUrl
         }
         catch {
             Write-Host "`n`n"
@@ -101,117 +101,6 @@ function sf-reset-app {
     }
     
     os-popup-notification -msg "Operation completed!"
-}
-
-function sf-save-appState {
-    $context = _get-selectedProject
-    
-    $dbName = sf-get-dbName
-    if (-not $dbName) {
-        throw "Current app is not initialized with a database. No databse name found in dataConfig.config"
-    }
-    
-    while ($true) {
-        $stateName = Read-Host -Prompt "Enter state name:"
-        $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
-        $appDataStatePath = "$statePath/App_Data"
-        if (-not (Test-Path $appDataStatePath)) {
-            New-Item $appDataStatePath -ItemType Directory > $null
-            break;
-        }
-    }
-
-    $Acl = Get-Acl $statePath
-    $Ar = New-Object  system.security.accesscontrol.filesystemaccessrule("Everyone", "Full", "ContainerInherit,ObjectInherit", "None", "Allow")
-    $Acl.SetAccessRule($Ar)
-    Set-Acl $statePath $Acl
-
-    Backup-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
-    
-    $stateDataPath = "$statePath/data.xml"
-    New-Item $stateDataPath > $null
-    $stateData = New-Object XML
-    $root = $stateData.CreateElement("root")
-    $stateData.AppendChild($root) > $null
-    $root.SetAttribute("dbName", $dbName)
-    $stateData.Save($stateDataPath) > $null
-
-    $appDataPath = "$($context.webAppPath)/App_Data"
-    Copy-Item "$appDataPath/*" $appDataStatePath -Recurse
-    
-}
-
-function _sf-get-statesPath {
-    $context = _get-selectedProject
-    return "$($context.webAppPath)/sf-dev-tool/states"
-}
-
-function sf-restore-appState {
-    $context = _get-selectedProject
-    
-    $stateName = _sf-select-appState
-    $statesPath = _sf-get-statesPath
-    $statePath = "${statesPath}/$stateName"
-    $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
-    sql-delete-database $dbName
-    Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
-
-    $appDataStatePath = "$statePath/App_Data"
-    $appDataPath = "$($context.webAppPath)/App_Data"
-    if (Test-Path $appDataPath) {
-        Remove-Item "$appDataPath/*" -Force -ErrorAction SilentlyContinue -Recurse
-    }
-    else {
-        New-Item $appDataPath -ItemType Directory > $null
-    }
-    
-    sf-reset-pool
-    Copy-Item "$appDataStatePath/*" $appDataPath -Recurse -Force
-
-    sf-reset-thread
-}
-
-function sf-delete-appState ($stateName) {
-    if ([string]::IsNullOrEmpty($stateName)) {
-        $stateName = _sf-select-appState
-    }
-
-    $statesPath = _sf-get-statesPath
-    if ($statesPath) {
-        $statePath = "${statesPath}/$stateName"
-        Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse    
-    }
-}
-
-function sf-delete-allAppStates {
-    $statesPath = _sf-get-statesPath
-    if ($statesPath) {
-        $states = Get-Item "${statesPath}/*"
-        foreach ($state in $states) {
-            sf-delete-appState $state.Name
-        }
-    }
-}
-
-function _sf-select-appState {
-    $statesPath = _sf-get-statesPath
-    $states = Get-Item "${statesPath}/*"
-    
-    $i = 0
-    foreach ($state in $states) {
-        Write-Host :"$i : $($state.Name)"
-        $i++
-    }
-
-    while ($true) {
-        [int]$choice = Read-Host -Prompt 'Choose state'
-        $stateName = $states[$choice].Name
-        if ($stateName -ne $null) {
-            break;
-        }
-    }
-
-    return $stateName
 }
 
 <#
@@ -254,78 +143,7 @@ function sf-add-precompiledTemplates {
     }
 }
 
-function sf-add-secondSite {
-    $appUrl = _sf-get-appUrl
-    Invoke-WebRequest -Uri $appUrl/AutomationTests/AutomationTestsArrangemets.svc/ExecuteArrangement/SetupSitefinityForMultisiteMultilingual/CreateMultilingualSite -Method POST
-}
-
-function sf-get-dbName {
-    $context = _get-selectedProject
-
-    $data = New-Object XML
-    $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
-    if (Test-Path -Path $dataConfigPath) {
-        $data.Load($dataConfigPath) > $null
-        $conStr = $data.dataConfig.connectionStrings.add.connectionString
-        $conStr -match "initial catalog='{0,1}(?<dbName>.*?)'{0,1}(;|$)" > $null
-        $dbName = $matches['dbName']
-        return $dbName
-    }
-    else {
-        return $null
-    }
-}
-
-function sf-rename-db {
-    Param($newName)
-    
-    $context = _get-selectedProject
-    $dbName = sf-get-dbName
-    if ([string]::IsNullOrEmpty($dbName)) {
-        throw "Sitefinity not initiliazed with a database. No database found in DataConfig.config"
-    }
-
-    while (([string]::IsNullOrEmpty($newName)) -or (sql-test-isDbNameDuplicate $newName)) {
-        $newName = $(Read-Host -Prompt "Db name duplicate in sql server! Enter new db name: ").ToString()
-    }
-
-    try {
-        sql-rename-database $dbName $newName
-    }
-    catch {
-        Write-Error "Failed renaming database in sql server.Message: $($_.Exception)"        
-        return
-    }
-
-    try {
-        sf-set-dbName $newName
-    }
-    catch {
-        Write-Error "Failed renaming database in dataConfig"
-        sql-rename-database $newName $dbName
-        return
-    }
-
-    _save-selectedProject $context
-}
-
-function sf-set-dbName ($newName) {
-    $context = _get-selectedProject
-    $dbName = sf-get-dbName
-    if (-not $dbName) {
-        Write-Host "No database configured for sitefinity."
-    }
-
-    $data = New-Object XML
-    $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
-    $data.Load($dataConfigPath) > $null
-    $conStrElement = $data.dataConfig.connectionStrings.add
-    $newString = $conStrElement.connectionString -replace $dbName, $newName
-    $conStrElement.SetAttribute("connectionString", $newString)
-    $data.Save($dataConfigPath) > $null
-}
-
-function _sf-start-sitefinity {
+function _sf-start-app {
     param(
         [string]$url,
         [Int32]$totalWaitSeconds = 10 * 60,
@@ -482,5 +300,38 @@ function _sf-create-startupConfig {
     }
     catch {
         throw "Error creating startupConfig. Message: $_.Exception.Message"
+    }
+}
+
+function _sf-reset-appDataFiles {
+    $context = _get-selectedProject
+    $webAppPath = $context.webAppPath
+    $errorMessage = ''
+    $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
+    if (Test-Path $originalAppDataFilesPath) {
+        Write-Warning "Restoring Sitefinity web app App_Data files to original state."
+        $dirs = Get-ChildItem "${webAppPath}\App_Data"
+        try {
+            os-del-filesAndDirsRecursive $dirs
+        }
+        catch {
+            $errorMessage = "${errorMessage}`n" + $_.Exception.Message
+        }
+
+        Copy-Item -Path "$originalAppDataFilesPath\*" -Destination "${webAppPath}\App_Data" -Recurse
+    }
+    elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
+        Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
+        $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
+        try {
+            os-del-filesAndDirsRecursive $dirs
+        }
+        catch {
+            $errorMessage = "${errorMessage}`n" + $_.Exception.Message
+        }
+    } 
+
+    if ($errorMessage -ne '') {
+        throw $errorMessage
     }
 }

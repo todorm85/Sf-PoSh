@@ -52,7 +52,7 @@ function sf-show-pendingChanges {
     .OUTPUTS
     None
 #>
-function sf-get-latest {
+function sf-get-latestChanges {
     [CmdletBinding()]
     Param(
         [switch]$overwrite
