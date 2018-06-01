@@ -37,6 +37,10 @@ function sf-browse-webSite {
     }
 
     $appUrl = _sf-get-appUrl
+    if (-not (_sf-check-domainRegistered $appUrl)) {
+        $appUrl = _sf-get-appUrl -$useDevUrl
+    }
+
     & $browserPath "${appUrl}/Sitefinity" -noframemerging
 }
 
@@ -113,6 +117,9 @@ function _sf-create-website {
     catch {
         throw "Error creating site: $_.Exception.Message"
     }
+
+    $domain = _sf-get-domain
+    Add-Domain $domain $newPort   
 }
 
 function _sf-delete-website {
@@ -137,7 +144,7 @@ function _sf-delete-website {
     try {
         Remove-Item ("iis:\AppPools\$appPool") -Force -Recurse
     }
-    catch{
+    catch {
         throw "Error removing app pool $appPool Error: $_.Exception.Message"
     }
 
@@ -147,20 +154,7 @@ function _sf-delete-website {
     catch {
         throw "Error removing sql login (IIS APPPOOL\${appPool}) Error: $_.Exception.Message"
     }
-}
 
-function _sf-get-appUrl {
-    $context = _get-selectedProject
-    $port = @(iis-get-websitePort $context.websiteName)[0]
-    if ($port -eq '' -or $null -eq $port) {
-        throw "No sitefinity port set."
-    }
-
-    $subAppName = iis-get-subAppName $context.websiteName
-    if ($subAppName -ne $null) {
-        return "http://localhost:${port}/${subAppName}"
-    }
-    else {
-        return "http://localhost:${port}"
-    }
+    $domain = _sf-get-domain
+    Remove-Domain $domain
 }

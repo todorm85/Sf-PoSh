@@ -191,8 +191,8 @@ function sf-clone-project {
         $sourcePath = $context.webAppPath
     }
 
-    $targetName = "$($context.name)_clone"
-    $targetPath = $script:projectsDirectory + "\${targetName}_0"
+    $targetName = "$($context.name)-clone"
+    $targetPath = $script:projectsDirectory + "\${targetName}-0"
     $i = 0
     while (Test-Path $targetPath) {
         $i++
@@ -201,7 +201,7 @@ function sf-clone-project {
 
     New-Item $targetPath -ItemType Directory > $null
     Copy-Item "${sourcePath}\*" $targetPath -Recurse
-    sf-import-project -displayName "[clone_$i]_$($context.displayName)" -path $targetPath -name "$($targetName)_$i"
+    sf-import-project -displayName "-clone-$i-$($context.displayName)" -path $targetPath -name "$($targetName)_$i"
     sf-delete-allAppStates
 }
 
@@ -516,7 +516,7 @@ function _sf-get-newProject {
         $name = $context.name
         while ($true) {
             $isDuplicate = (isNameDuplicate $name)
-            $isValid = $name -match "^[a-zA-Z]+\w*$"
+            $isValid = _sf-validate-displayName $name
             if (-not $isValid) {
                 Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
                 $name = Read-Host "Enter new name: "
@@ -595,4 +595,8 @@ function _get-selectedProject {
 
     $context = $currentContext.PsObject.Copy()
     return $context
+}
+
+function _sf-validate-displayName ($name) {
+    return $name -match "^[A-Za-z-0-9]+$"
 }

@@ -11,30 +11,35 @@ function sf-rename-project {
     [CmdletBinding()]
     Param(
         [switch]$markUnused,
-        [switch]$setDescription,
-        [switch]$full
+        [switch]$setDescription
     )
 
     $context = _get-selectedProject
+    $oldName = $context.displayName
 
     if ($markUnused) {
         $newName = "-"
         $context.description = ""
-        $unusedName = "unused_$(Get-Date | ForEach { $_.Ticks })"
+        $unusedName = "unused_$(Get-Date | ForEach-Object { $_.Ticks })"
         $newDbName = $unusedName
         $newWebsiteName = $unusedName
         $newProjectName = $unusedName
         $newWsName = $unusedName
     }
     else {
-        $oldName = $context.displayName
         $oldName | Set-Clipboard
-        while ([string]::IsNullOrEmpty($newName)) {
+        while ($true) {
             $newName = $(Read-Host -Prompt "New name: ").ToString()
-            $newDbName = $newName
-            $newWebsiteName = $newName
-            $newProjectName = $newName
-            $newWsName = $newName
+            if ([string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-displayName $newName))) {
+                Write-Host "Invalid name entered!"
+            }
+            else {
+                $newDbName = $newName
+                $newWebsiteName = $newName
+                $newProjectName = $newName
+                $newWsName = $newName
+                break;
+            }
         }
         
         if ($setDescription) {
@@ -42,15 +47,28 @@ function sf-rename-project {
         }
     }
 
-    $oldName = _get-solutionName
-
+    $oldSolutionName = _get-solutionName
+    $oldDomain = _sf-get-domain
     $context.displayName = $newName
     _save-selectedProject $context
 
-    $newName = _get-solutionName
-    Rename-Item -Path "$($context.solutionPath)\${oldName}" -NewName $newName
+    $newSolutionName = _get-solutionName
+    Rename-Item -Path "$($context.solutionPath)\${oldSolutionName}" -NewName $newSolutionName
+
+    try {
+        Remove-Domain $oldDomain
+    }
+    catch {
+        # nothing to remove        
+    }
+    
+    $domain = _sf-get-domain
+    $websiteName = $context.websiteName
+    $ports = @(iis-get-websitePort $websiteName)
+    Add-Domain $domain $ports[0]
 
     if ($full) {
+        # TODO: this feature is unstable
         
         while ($confirmed -ne 'y' -and $confirmed -ne 'n') {
             $confirmed = Read-Host -Prompt "Full rename will also rename project directory which requires fixing the workspace mapping. Confirm? y/n"
@@ -113,7 +131,7 @@ function _sf-rename-projectDir {
     $context = _get-selectedProject
 
     sf-reset-pool
-    $hasSolution = $context.solutionPath -ne "" -and $context.solutionPath -ne $null
+    $hasSolution = $context.solutionPath -ne "" -and $null -ne $context.solutionPath
     try {
         Set-Location -Path $Env:HOMEDRIVE
         if ($hasSolution) {
