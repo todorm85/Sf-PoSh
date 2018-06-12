@@ -1,28 +1,3 @@
-function init-managerData {
-    if (!(Test-Path $script:dataPath)) {
-        Write-Host "Initializing script data..."
-        New-Item -ItemType file -Path $script:dataPath
-
-        # Create The Document
-        $XmlWriter = New-Object System.XMl.XmlTextWriter($script:dataPath, $Null)
-
-        # Set The Formatting
-        $xmlWriter.Formatting = "Indented"
-        $xmlWriter.Indentation = "4"
-
-        # Write the XML Decleration
-        $xmlWriter.WriteStartDocument()
-        $xmlWriter.WriteStartElement("data")
-        $xmlWriter.WriteStartElement("sitefinities")
-        $xmlWriter.WriteEndElement()
-        $xmlWriter.WriteEndElement()
-        $xmlWriter.Finalize
-        # Finish The Document
-        $xmlWriter.Flush()
-        $xmlWriter.Close()
-    }
-}
-
 function _sfData-get-allProjects {
     $data = New-Object XML
     $data.Load($script:dataPath)

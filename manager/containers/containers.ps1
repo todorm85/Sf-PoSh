@@ -1,14 +1,3 @@
-function init-managerContainers() {
-    # initialize
-    $defaultContainerName = _sfData-get-defaultContainerName
-    if ($defaultContainerName -ne '') {
-        $script:selectedContainer = _sfData-get-allContainers | Where-Object {$_.name -eq $defaultContainerName}
-    }
-    else {
-        $script:selectedContainer = [PSCustomObject]@{ name = "" }
-    }
-}
-
 function sf-select-container {
     $container = _sf-prompt-containerSelect
     $script:selectedContainer = $container
