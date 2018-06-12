@@ -100,7 +100,7 @@ function sf-new-project {
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
             Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
 
-            create-userFriendlySolutionName $defaultContext
+            _create-userFriendlySolutionName $defaultContext
 
             # persist current context to script data
             $oldContext = _get-selectedProject
@@ -182,12 +182,6 @@ function sf-new-project {
     }
 }
 
-function create-userFriendlySolutionName ($context) {
-    $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
-    $targetFilePath = "$($context.solutionPath)\$(_get-solutionName $context)"
-    Copy-Item -Path $solutionFilePath -Destination $targetFilePath
-}
-
 function sf-clone-project {
     $context = _get-selectedProject
     $sourcePath = $context.solutionPath 
@@ -250,7 +244,7 @@ function sf-import-project {
     if ($isSolution) {
         $newContext.solutionPath = $path
         $newContext.webAppPath = $path + '\SitefinityWebApp'
-        create-userFriendlySolutionName $newContext
+        _create-userFriendlySolutionName $newContext
     }
     else {
         $newContext.solutionPath = ''
@@ -425,6 +419,12 @@ function sf-delete-project {
 
     # Display message
     os-popup-notification -msg "Operation completed!"
+}
+
+function _create-userFriendlySolutionName ($context) {
+    $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    $targetFilePath = "$($context.solutionPath)\$(_get-solutionName $context)"
+    Copy-Item -Path $solutionFilePath -Destination $targetFilePath
 }
 
 function _save-selectedProject {
