@@ -59,16 +59,28 @@ function sf-show-currentProject {
     $workspaceName = tfs-get-workspaceName $context.webAppPath
 
     $otherDetails = @(
-        [pscustomobject]@{id = -1; Parameter = "Title"; Value = $context.displayName; },
-        [pscustomobject]@{id = 0; Parameter = "Id"; Value = $context.name; },
+        [pscustomobject]@{id = 0; Parameter = "Title"; Value = $context.displayName; },
+        [pscustomobject]@{id = 0.5; Parameter = "Id"; Value = $context.name; },
+
+        [pscustomobject]@{id = 0.6; Parameter = " "; Value = " "; },
+
         [pscustomobject]@{id = 1; Parameter = "Solution path"; Value = $context.solutionPath; },
         [pscustomobject]@{id = 2; Parameter = "Web app path"; Value = $context.webAppPath; },
+
+        [pscustomobject]@{id = 2.5; Parameter = " "; Value = " "; },
+        
         [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sf-get-appDbName; },
-        [pscustomobject]@{id = 1; Parameter = "Website Name in IIS"; Value = $context.websiteName; },
-        [pscustomobject]@{id = 2; Parameter = "Ports"; Value = $ports; },
-        [pscustomobject]@{id = 3; Parameter = "Application Pool Name"; Value = $appPool; },
-        [pscustomobject]@{id = 1; Parameter = "TFS workspace name"; Value = $workspaceName; },
-        [pscustomobject]@{id = 2; Parameter = "Mapping"; Value = $context.branch; }
+        
+        [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
+
+        [pscustomobject]@{id = 4; Parameter = "Website Name in IIS"; Value = $context.websiteName; },
+        [pscustomobject]@{id = 5; Parameter = "Ports"; Value = $ports; },
+        [pscustomobject]@{id = 6; Parameter = "Application Pool Name"; Value = $appPool; },
+
+        [pscustomobject]@{id = 6.5; Parameter = " "; Value = " "; },
+
+        [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
+        [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $context.branch; }
     )
 
     $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders

@@ -6,6 +6,7 @@
     <sitefinity name="instance_2" displayName="free" solutionPath="e:\sitefinities\instance_2" webAppPath="e:\sitefinities\instance_2\SitefinityWebApp" websiteName="instance_2" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
     <sitefinity name="instance_3" displayName="Official_10_2_HF4" solutionPath="e:\sitefinities\instance_3" webAppPath="e:\sitefinities\instance_3\SitefinityWebApp" websiteName="instance_3" branch="$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_2_HF2" description="" containerName="Officials" />
     <sitefinity name="LoadOrderOfScripts" displayName="LoadOrderOfScripts" solutionPath="e:\sitefinities\instance_1-clone-0" webAppPath="e:\sitefinities\instance_1-clone-0\SitefinityWebApp" websiteName="LoadOrderOfScripts" branch="" description="" containerName="Forums" />
+    <sitefinity name="instance_2_clone_0" displayName="free-clone_0" solutionPath="e:\sitefinities\instance_2_clone_0" webAppPath="e:\sitefinities\instance_2_clone_0\SitefinityWebApp" websiteName="instance_2_clone_0" branch="" description="" containerName="" />
   </sitefinities>
   <containers defaultContainerName="">
     <container name="Officials" />

@@ -100,9 +100,7 @@ function sf-new-project {
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
             Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
 
-            $solutionFilePath = "$($defaultContext.solutionPath)\Telerik.Sitefinity.sln"
-            $targetFilePath = "$($defaultContext.solutionPath)\$(_get-solutionName $defaultContext)"
-            Copy-Item -Path $solutionFilePath -Destination $targetFilePath
+            create-userFriendlySolutionName $defaultContext
 
             # persist current context to script data
             $oldContext = _get-selectedProject
@@ -184,6 +182,12 @@ function sf-new-project {
     }
 }
 
+function create-userFriendlySolutionName ($context) {
+    $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    $targetFilePath = "$($context.solutionPath)\$(_get-solutionName $context)"
+    Copy-Item -Path $solutionFilePath -Destination $targetFilePath
+}
+
 function sf-clone-project {
     $context = _get-selectedProject
     $sourcePath = $context.solutionPath 
@@ -191,8 +195,8 @@ function sf-clone-project {
         $sourcePath = $context.webAppPath
     }
 
-    $targetName = "$($context.name)-clone"
-    $targetPath = $script:projectsDirectory + "\${targetName}-0"
+    $targetName = "$($context.name)_clone"
+    $targetPath = $script:projectsDirectory + "\${targetName}_0"
     $i = 0
     while (Test-Path $targetPath) {
         $i++
@@ -201,7 +205,7 @@ function sf-clone-project {
 
     New-Item $targetPath -ItemType Directory > $null
     Copy-Item "${sourcePath}\*" $targetPath -Recurse
-    sf-import-project -displayName "-clone-$i-$($context.displayName)" -path $targetPath -name "$($targetName)_$i"
+    sf-import-project -displayName "$($context.displayName)-clone_$i" -path $targetPath -name "$($targetName)_$i"
     sf-delete-allAppStates
 }
 
@@ -246,6 +250,7 @@ function sf-import-project {
     if ($isSolution) {
         $newContext.solutionPath = $path
         $newContext.webAppPath = $path + '\SitefinityWebApp'
+        create-userFriendlySolutionName $newContext
     }
     else {
         $newContext.solutionPath = ''
@@ -598,5 +603,5 @@ function _get-selectedProject {
 }
 
 function _sf-validate-displayName ($name) {
-    return $name -match "^[A-Za-z-0-9]+$"
+    return $name -match "^[A-Za-z-0-9_]+$"
 }
