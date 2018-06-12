@@ -521,7 +521,7 @@ function _sf-get-newProject {
         $name = $context.name
         while ($true) {
             $isDuplicate = (isNameDuplicate $name)
-            $isValid = _sf-validate-displayName $name
+            $isValid = _sf-validate-nameSyntax $name
             if (-not $isValid) {
                 Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
                 $name = Read-Host "Enter new name: "
@@ -602,6 +602,6 @@ function _get-selectedProject {
     return $context
 }
 
-function _sf-validate-displayName ($name) {
+function _sf-validate-nameSyntax ($name) {
     return $name -match "^[A-Za-z-0-9_]+$"
 }
