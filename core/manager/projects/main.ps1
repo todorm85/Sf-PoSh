@@ -319,7 +319,7 @@ function sf-import-project {
     }
     catch {
         Write-Host "Could not import sitefinity: $($_)"
-        sf-delete-project
+        sf-delete-project -noPromptAfterComplete
         _sf-set-currentProject $oldContext
     }
 }
@@ -344,6 +344,7 @@ function sf-delete-project {
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles,
         [switch]$force,
+        [switch]$noPromptAfterComplete,
         [SfProject]$context = $null
     )
     
@@ -436,8 +437,9 @@ function sf-delete-project {
     _sfData-delete-project $context
     _sf-set-currentProject $null
 
-    # Display message
-    os-popup-notification -msg "Operation completed!"
+    if (-not ($noPromptAfterComplete)) {
+        sf-select-project
+    }
 }
 
 function _create-userFriendlySolutionName ($context) {
