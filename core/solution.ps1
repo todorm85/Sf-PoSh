@@ -1,31 +1,21 @@
 <#
     .SYNOPSIS 
     Builds the current sitefinity instance solution.
-    .PARAMETER useOldMsBuild
-    If switch is passed msbuild 4.0 tools will be used. (The one used by VS2012), Otherwise the default msbuild tools version is used, which for vs2015 is 14.0
     .OUTPUTS
     None
 #>
 function sf-build-solution {
     [CmdletBinding()]
-    Param(
-        [switch]$useOldMsBuild,
-        [switch]$ui,
-        [bool]$useTelerikSitefinity = $false
-    )
 
     $context = _get-selectedProject
-    $solutionName = _get-solutionName -useTelerikSitefinity $useTelerikSitefinity
+    $solutionName = _get-solutionName
     $solutionPath = "$($context.solutionPath)\${solutionName}"
-    $solutionPathUI = "$($context.solutionPath)\Telerik.Sitefinity.MS.TestUI.sln"
+    # $solutionPath = "$($context.solutionPath)\SitefinityWebApp\SitefinityWebApp.scproj"
     if (!(Test-Path $solutionPath)) {
         sf-build-webAppProj
     }
 
-    _sf-build-proj $solutionPath $useOldMsBuild
-    if ($ui) {
-        _sf-build-proj $solutionPathUI $useOldMsBuild
-    }
+    _sf-build-proj $solutionPath
 }
 
 <#
@@ -35,11 +25,12 @@ function sf-build-solution {
     None
 #>
 function sf-rebuild-solution {
-    [CmdletBinding()]param()
+    [CmdletBinding()]
+    Param([bool]$cleanPackages = $false)
     
     Write-Host "Rebuilding solution..."
     try {
-        sf-clean-solution
+        sf-clean-solution -cleanPackages $cleanPackages
     }
     catch {
         Write-Warning "Errors while cleaning solution: $_.Exception.Message"
@@ -49,9 +40,15 @@ function sf-rebuild-solution {
 }
 
 function sf-clean-solution {
-    Param([switch]$keepPackages)
+    Param([bool]$cleanPackages = $false)
 
     Write-Host "Cleaning solution..."
+    Write-Warning "Cleaning solution will kill all current msbuild processes."
+    $leftovers = Get-Process "msbuild" -ErrorAction "SilentlyContinue"
+    if ($leftovers) {
+        $leftovers | Stop-Process -Force
+    }
+    
     $context = _get-selectedProject
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
@@ -73,7 +70,7 @@ function sf-clean-solution {
         $errorMessage = "Errors while deleting bins and objs:`n$errorMessage"
     }
 
-    if (-not $keepPackages) {
+    if ($cleanPackages) {
         
         Write-Host "Deleting packages..."
         $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
@@ -130,7 +127,7 @@ function sf-open-solution {
         throw "invalid or no solution path"
     }
 
-    $solutionName = _get-solutionName -useTelerikSitefinity $useTelerikSitefinity
+    $solutionName = _get-solutionName -useDefault $useTelerikSitefinity
     if ($openUISln) {
         & $vsPath "${solutionPath}\${solutionName}"
         & $vsPath "${solutionPath}\Telerik.Sitefinity.MS.TestUI.sln"
@@ -144,14 +141,11 @@ function sf-open-solution {
 <#
     .SYNOPSIS 
     Builds the current sitefinity instance webapp project file.
-    .PARAMETER useOldMsBuild
-    If switch is passed msbuild 4.0 tools will be used. (The one used by VS2012), Otherwise the default msbuild tools version is used, which for vs2015 is 14.0
     .OUTPUTS
     None
 #>
 function sf-build-webAppProj () {
     [CmdletBinding()]
-    Param([switch]$useOldMsBuild)
 
     $context = _get-selectedProject
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
@@ -159,14 +153,19 @@ function sf-build-webAppProj () {
         throw "invalid or no solution or web app project path"
     }
 
-    _sf-build-proj $path $useOldMsBuild
+    _sf-build-proj $path
+}
+
+function sf-save-solution () {
+    $telerikSolution = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    $customSolution = "$($context.solutionPath)\$(_get-solutionName $context)"
+    Copy-Item -Path $customSolution -Destination $telerikSolution -Force
 }
 
 function _sf-build-proj {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory)][string]$path, 
-        [bool]$useOldMsBuild
+        [Parameter(Mandatory)][string]$path
     )
 
     if (!(Test-Path $path)) {
@@ -174,14 +173,17 @@ function _sf-build-proj {
     }
 
     Write-Host "Building ${path}"
-    if ($useOldMsBuild) {
-        $output = & $msBuildPath /verbosity:quiet /nologo /tv:"4.0" $path 2>&1
-    }
-    else {
-        $output = & $msBuildPath /verbosity:quiet /nologo $path 2>&1
-    }
 
+    # $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
+    # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'
+    # Invoke-Expression "& $command"
+    & $msBuildPath $path /nologo /maxcpucount /Verbosity:normal
+    # & $Script:vsCmdPath $path /build Debug
+
+    # $elapsed.Stop()
+    # Write-Warning "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
+    # Out-File "${PSScriptRoot}\..\build-errors.log"
     if ($LastExitCode -ne 0) {
-        throw "$output"
+        throw "Build errors occurred."
     }
 }

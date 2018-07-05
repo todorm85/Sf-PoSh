@@ -157,7 +157,9 @@ function iis-create-website {
     }
 
     if (-not $found) {
-        New-Item "IIS:\AppPools\$newAppPool"
+        $poolPath = "IIS:\AppPools\$newAppPool"
+        New-Item $poolPath
+        Set-ItemProperty $poolPath -Name "processModel.idleTimeout" -Value ([TimeSpan]::FromMinutes(0))
     }
 
     # select app path

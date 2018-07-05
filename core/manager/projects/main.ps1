@@ -68,6 +68,7 @@ function sf-new-project {
         }
 
         $defaultContext = _sf-get-newProject -displayName $displayName
+        # $defaultContext.
         try {
             $newContext = @{ name = $defaultContext.name }
             $newContext.displayName = $defaultContext.displayName
@@ -100,8 +101,6 @@ function sf-new-project {
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
             Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
 
-            _create-userFriendlySolutionName $defaultContext
-
             # persist current context to script data
             $oldContext = _get-selectedProject
             _sf-set-currentProject $newContext
@@ -131,34 +130,50 @@ function sf-new-project {
                 _sf-set-currentProject $oldContext
             }
             
-            $displayInnerError = Read-Host "Display inner error? y/n"
-            if ($displayInnerError -eq 'y') {
-                Write-Host "`n"
-                Write-Host $_
-                Write-Host "`n"
-            }
+            # $displayInnerError = Read-Host "Display inner error? y/n"
+            # if ($displayInnerError -eq 'y') {
+            #     Write-Host "`n"
+            #     Write-Host $_
+            #     Write-Host "`n"
+            # }
 
+            Write-Host $_
             return
         }
+
+        _create-userFriendlySolutionName $defaultContext
 
         if ($buildSolution) {
             try {
                 Write-Host "Building solution..."
-                sf-build-solution
+                $tries = 0
+                $retryCount = 3
+                while ($tries -lt $retryCount) {
+                    $tries++
+                    try {
+                        sf-build-solution
+                    }
+                    catch {
+                        Write-Host "Build failed."
+                        if ($tries > 0) {
+                            Write-Host "Retrying..." else { throw "Solution could not build after $retryCount retries" }
+                        }
+                    }
+                }
             }
             catch {
                 $startWebApp = $false
-                Write-Warning "SOLUTION WAS NOT BUILT. Message: $_.Exception.Message"
+                Write-Warning "SOLUTION WAS NOT BUILT. Message: $_"
             }
         }
             
         try {
             Write-Host "Creating website..."
-            _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool
+            _sf-create-website -newWebsiteName $defaultContext.websiteName
         }
         catch {
             $startWebApp = $false
-            Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
+            Write-Warning "WEBSITE WAS NOT CREATED. Message: $_"
         }
 
         if ($startWebApp) {
@@ -166,16 +181,15 @@ function sf-new-project {
                 Write-Host "Initializing Sitefinity"
                 _sf-create-startupConfig
                 _sf-start-app
+                if ($precompile) {
+                    sf-add-precompiledTemplates
+                }
             }
             catch {
-                Write-Warning "APP WAS NOT INITIALIZED. $_.Exception.Message"
+                Write-Warning "APP WAS NOT INITIALIZED. $_"
                 _sf-delete-startupConfig
             }
-        }
-    
-        if ($precompile) {
-            sf-add-precompiledTemplates
-        }
+        }        
 
         # Display message
         os-popup-notification "Operation completed!"
@@ -279,12 +293,11 @@ function sf-import-project {
                     }
                 }
 
-                _sf-create-website -newWebsiteName $defaultContext.websiteName -newPort $defaultContext.port -newAppPool $defaultContext.appPool > $null
+                _sf-create-website -newWebsiteName $defaultContext.websiteName > $null
                 $newContext.websiteName = $defaultContext.websiteName
             }
             catch {
-                $startWebApp = $false
-                Write-Warning "WEBSITE WAS NOT CREATED. Message: $_.Exception.Message"
+                Write-Warning "WEBSITE WAS NOT CREATED. Message: $_"
             }
         }
 
@@ -306,7 +319,7 @@ function sf-import-project {
         os-popup-notification "Operation completed!"
     }
     catch {
-        Write-Host "Could not import sitefinity: $($_.Exception.Message)"
+        Write-Host "Could not import sitefinity: $($_)"
         sf-delete-project
         _sf-set-currentProject $oldContext
     }
@@ -331,9 +344,14 @@ function sf-delete-project {
     Param(
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles,
-        [switch]$force
+        [switch]$force,
+        [SfProject]$context = $null
     )
-    $context = _get-selectedProject
+    
+    if ($null -eq $context) {
+        $context = _get-selectedProject
+    }
+
     $solutionPath = $context.solutionPath
     $workspaceName = tfs-get-workspaceName $context.webAppPath
     $dbName = sf-get-appDbName
@@ -440,10 +458,7 @@ function _save-selectedProject {
 function _validate-project {
     Param($context)
 
-    if ($context -eq '') {
-        throw "Invalid sitefinity context. Cannot be empty string."
-    }
-    elseif ($null -ne $context) {
+    if ($null -ne $context) {
         if ($context.name -eq '') {
             throw "Invalid sitefinity context. No sitefinity name."
         }
@@ -461,6 +476,7 @@ function _validate-project {
 }
 
 function _sf-get-newProject {
+    [OutputType([SfProject])]
     Param(
         [string]$displayName,
         [string]$name
@@ -475,46 +491,23 @@ function _sf-get-newProject {
         $solutionPath = "${projectsDirectory}\${name}";
         $webAppPath = "${projectsDirectory}\${name}\SitefinityWebApp";
         $websiteName = $name
-        $appPool = $name
-
-        # initial port to start checking from
-        $port = 1111
-        while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
-            $port++
-        }
 
         $defaultContext.solutionPath = $solutionPath
         $defaultContext.webAppPath = $webAppPath
         $defaultContext.websiteName = $websiteName
-        $defaultContext.appPool = $appPool
-        $defaultContext.port = $port
         $defaultContext.containerName = $Script:selectedContainer.name
     }
 
     function isNameDuplicate ($name) {
-        $sitefinities = @(_sfData-get-allProjects)
+        $sitefinities = [SfProject[]]@(_sfData-get-allProjects)
         foreach ($sitefinity in $sitefinities) {
+            $sitefinity = [SfProject]$sitefinity
             if ($sitefinity.name -eq $name) {
                 return $true;
             }
         }    
 
         return $false;
-    }
-
-    function generateName {
-        $i = 0;
-        while ($true) {
-            $name = "instance_$i"
-            $isDuplicate = (isNameDuplicate $name)
-            if (-not $isDuplicate) {
-                break;
-            }
-            
-            $i++
-        }
-
-        return $name
     }
 
     function validateName ($context) {
@@ -538,18 +531,15 @@ function _sf-get-newProject {
     }
 
     if ([string]::IsNullOrEmpty($name)) {
-        $name = generateName    
+        $name = _generateId    
     }
     
-    $defaultContext = @{
+    $defaultContext = New-Object SfProject -Property @{
         displayName  = $displayName;
         name         = $name;
         solutionPath = '';
         webAppPath   = '';
-        dbName       = '';
         websiteName  = '';
-        port         = '';
-        appPool      = '';
     }
 
     validateName $defaultContext
@@ -559,23 +549,45 @@ function _sf-get-newProject {
     return $defaultContext
 }
 
+function _generateId {
+    $i = 0;
+    while ($true) {
+        $name = "instance_$i"
+        $isDuplicate = (isNameDuplicate $name)
+        if (-not $isDuplicate) {
+            break;
+        }
+        
+        $i++
+    }
+
+    return $name
+}
+
 function _sf-set-currentProject {
-    Param($newContext)
+    Param([SfProject]$newContext)
 
     _validate-project $newContext
 
     $script:globalContext = $newContext
 
-    [System.Console]::Title = $newContext.displayName
+    if ($null -ne $newContext) {
+        
+        $ports = @(iis-get-websitePort $newContext.websiteName)
+        $branch = ($newContext.branch).split("4.0")[3]
+        [System.Console]::Title = "$($newContext.displayName) ($($newContext.name)) $branch $ports "
+    } else {
+        [System.Console]::Title = ""
+    }
 }
 
 function _get-solutionName {
     Param(
-        $context,
-        [bool]$useTelerikSitefinity = $false
+        [SfProject]$context,
+        [bool]$useDefault = $true
     )
     
-    if ($useTelerikSitefinity) {
+    if ($useDefault) {
         $solutionName = "Telerik.Sitefinity.sln"
     }
     else {
@@ -590,6 +602,7 @@ function _get-solutionName {
 }
 
 function _get-selectedProject {
+    [OutputType([SfProject])]
     $currentContext = $script:globalContext
     if ($currentContext -eq '') {
         return $null
@@ -599,7 +612,7 @@ function _get-selectedProject {
     }
 
     $context = $currentContext.PsObject.Copy()
-    return $context
+    return [SfProject]$context
 }
 
 function _sf-validate-nameSyntax ($name) {
