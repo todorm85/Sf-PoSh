@@ -8,9 +8,7 @@ function sf-build-solution {
     [CmdletBinding()]
 
     $context = _get-selectedProject
-    $solutionName = _get-solutionFriendlyName
-    $solutionPath = "$($context.solutionPath)\${solutionName}"
-    # $solutionPath = "$($context.solutionPath)\SitefinityWebApp\SitefinityWebApp.scproj"
+    $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     if (!(Test-Path $solutionPath)) {
         sf-build-webAppProj
     }

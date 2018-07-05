@@ -80,17 +80,8 @@ function sf-new-project {
             New-Item $defaultContext.solutionPath -type directory > $null
             $newContext.solutionPath = $defaultContext.solutionPath;
 
-            # create and map workspace
-            Write-Host "Creating workspace..."
-            $workspaceName = $defaultContext.name
-            tfs-create-workspace $workspaceName $defaultContext.solutionPath
-
-            Write-Host "Creating workspace mappings..."
-            tfs-create-mappings -branch $branch -branchMapPath $defaultContext.solutionPath -workspaceName $workspaceName
             $newContext.branch = $branch
-
-            Write-Host "Getting latest workspace changes..."
-            tfs-get-latestChanges -branchMapPath $defaultContext.solutionPath
+            _create-workspace $newContext
 
             $webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
             $newContext.webAppPath = $webAppPath
@@ -235,7 +226,8 @@ function sf-import-project {
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
         [Parameter(Mandatory = $true)][string]$path,
-        [string]$name
+        [string]$name,
+        $branch
     )
 
     if (!(Test-Path $path)) {
@@ -260,6 +252,10 @@ function sf-import-project {
         $newContext.solutionPath = $path
         $newContext.webAppPath = $path + '\SitefinityWebApp'
         _create-userFriendlySolutionName $newContext
+        if ($branch) {
+            $newContext.branch = $branch
+            _create-workspace $newContext
+        }
     }
     else {
         $newContext.solutionPath = ''
@@ -619,4 +615,17 @@ function _get-selectedProject {
 
 function _sf-validate-nameSyntax ($name) {
     return $name -match "^[A-Za-z-0-9_]+$"
+}
+
+function _create-workspace ($context) {
+    # create and map workspace
+    Write-Host "Creating workspace..."
+    $workspaceName = $context.name
+    tfs-create-workspace $workspaceName $context.solutionPath
+
+    Write-Host "Creating workspace mappings..."
+    tfs-create-mappings -branch $context.branch -branchMapPath $context.solutionPath -workspaceName $workspaceName
+
+    Write-Host "Getting latest workspace changes..."
+    tfs-get-latestChanges -branchMapPath $context.solutionPath
 }
