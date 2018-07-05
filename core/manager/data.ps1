@@ -1,7 +1,22 @@
 function _sfData-get-allProjects {
+    [OutputType([SfProject[]])]
     $data = New-Object XML
     $data.Load($script:dataPath)
-    return $data.data.sitefinities.sitefinity
+    $sfs = $data.data.sitefinities.sitefinity
+    $result = $sfs | % {
+        return New-Object SfProject -Property @{
+            branch = $_.branch;
+            containerName = $_.containerName;
+            description = $_.description;
+            displayName = $_.displayName;
+            name = $_.name;
+            solutionPath = $_.solutionPath;
+            webAppPath = $_.webAppPath;
+            websiteName = $_.websiteName;
+        }
+    }
+
+    return $result
 }
 
 function _sfData-delete-project {
@@ -27,8 +42,9 @@ function _sfData-delete-project {
 }
 
 function _sfData-save-project {
-    Param($context)
+    Param([SfProject]$context)
 
+    $context = [SfProject]$context
     $data = New-Object XML
     $data.Load($dataPath) > $null
     $sitefinities = $data.data.sitefinities.sitefinity

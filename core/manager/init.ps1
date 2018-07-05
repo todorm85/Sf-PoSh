@@ -34,5 +34,6 @@ function init-managerData {
     }
 }
 
+"${PSScriptRoot}\load-types.ps1"
 init-managerData
 init-managerContainers

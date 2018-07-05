@@ -1,0 +1,1 @@
+.\core\manager\load-types.ps1

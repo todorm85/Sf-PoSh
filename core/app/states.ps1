@@ -78,7 +78,7 @@ function sf-delete-appState ($stateName) {
 
 function sf-delete-allAppStates {
     $statesPath = _sf-get-statesPath
-    if ($statesPath) {
+    if (Test-Path $statesPath) {
         $states = Get-Item "${statesPath}/*"
         foreach ($state in $states) {
             sf-delete-appState $state.Name

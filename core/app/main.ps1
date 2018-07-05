@@ -24,6 +24,7 @@ function sf-reset-app {
         [switch]$start,
         [switch]$rebuild,
         [switch]$precompile,
+        [switch]$createStartupConfig,
         [switch]$build,
         [string]$user = $defaultUser,
         [switch]$configRestrictionSafe
@@ -58,6 +59,10 @@ function sf-reset-app {
         catch {
             Write-Warning "Erros while deleting database: $_.Exception.Message"
         }
+    }
+
+    if ($createStartupConfig) {
+        _sf-create-startupConfig $user $dbName
     }
 
     if ($start) {
@@ -146,8 +151,7 @@ function sf-add-precompiledTemplates {
 function _sf-start-app {
     param(
         [string]$url,
-        [Int32]$totalWaitSeconds = 10 * 60,
-        [Int32]$attempts = 1
+        [Int32]$totalWaitSeconds = 5 * 60
     )
 
     $context = _get-selectedProject
@@ -159,80 +163,58 @@ function _sf-start-app {
         $url = "http://localhost:$($port)"
     }
 
-    $errorMsg = "Sitefinity initialization failed!"
-    $ErrorActionPreference = "SilentlyContinue"
-    $attempt = 1
-    while ($attempt -le $attempts) {
-        if ($attempt -eq $attempts) {
-            $ErrorActionPreference = "Stop"
+    $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
+    $statusUrl = "$url/appstatus"
+
+    Write-Host "Starting Sitefinity..."
+    $ErrorActionPreference = "Continue"
+
+    # Send initial request to begin bootstrapping sitefinity
+    $response = _invoke-NonTerminatingRequest $url
+    if ($response -ne 200 -and $response -ne 503) {
+        throw "Could not make initial connection to Sitefinity. - StatusCode: $response"
+    }
+
+    # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
+    Write-Host "Checking Sitefinity status: '$statusUrl'"
+    Write-Host "Sitefinity is initializing"
+    while ($true) {
+        Write-Host "..." -NoNewline
+        $response = _invoke-NonTerminatingRequest $statusUrl
+        if ($elapsed.Elapsed.TotalSeconds -gt $totalWaitSeconds) {
+            throw "Sitefinity did NOT start in the specified maximum time"
         }
 
-        $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
-        $statusUrl = "$url/appstatus"
-
-        Write-Host "Attempt[$attempt] Starting Sitefinity..."
-        $retryCount = 0
-
-        try {
-            $retryCount++
-            # Send initial request to begin bootstrapping sitefinity
-            $response = Invoke-WebRequest $statusUrl -TimeoutSec 1600
-            # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
-            if ($response.StatusCode -eq 200) {
-                Write-Host "Sitefinity is starting..."
-            }
-
-            while ($response.StatusCode -eq 200) {
-                Write-Host "Retry[$retryCount] Checking Sitefinity status: '$statusUrl'"
-                $retryCount++
-
-                # Checking for error status info
-                $statusInfo = Invoke-RestMethod $statusUrl -TimeoutSec 1600
-                $errorStatusCheck = $statusInfo.Info | Where-Object { $_.SeverityString -eq "Critical" -or $_.SeverityString -eq "Error"}
-                if ($errorStatusCheck) {
-                    Write-Warning $errorMsg
-                    throw $errorStatusCheck.Message
-                }
-
-                $response = Invoke-WebRequest $statusUrl -TimeoutSec 1600
-                if ($elapsed.Elapsed.TotalSeconds -gt $totalWaitSeconds) {
-                    throw "Sitefinity did NOT start in the specified maximum time"
-                }
-
-                Start-Sleep -s 5
-            }
+        if ($response -eq 200) {
+            Start-Sleep -s 5
+            continue
         }
-        catch {
-            # if request to appstatus returned 404, sitefinity has initialized
-            if ($_.Exception.Response.StatusCode.Value__ -eq 404) {
-                try {
-                    $response = Invoke-WebRequest $url -TimeoutSec 1600
-                }
-                catch {
-                    # do nothing
-                }
 
-                # if request to base url is 200 ok sitefinity has started
-                if ($response.StatusCode -eq 200) {
-                    Write-Warning "Sitefinity has started after $($elapsed.Elapsed.TotalSeconds) second(s)"
-                }
-
-                else {
-                    Write-Warning $errorMsg
-                    throw $errorMsg
-                }
-
+        # if request to appstatus returned 404, sitefinity has initialized
+        if ($response -eq 404) {
+            $response = _invoke-NonTerminatingRequest $url
+            # if request to base url is 200 ok sitefinity has started
+            if ($response -eq 200) {
+                Write-Warning "Sitefinity has started after $($elapsed.Elapsed.TotalSeconds) second(s)"
+                break
             }
             else {
-                Write-Host "Sitefinity failed to start - StatusCode: $($_.Exception.Response.StatusCode.Value__)"
-                # Write-Host $_ | Format-List -Force
-                # Write-Host $_.Exception | Format-List -Force
-                throw $_
+                throw "Sitefinity initialization failed!"
             }
         }
+        else {
+            throw "Sitefinity failed to start - StatusCode: $($response)"
+        }   
+    }
+}
 
-        $attempt++
-        Start-Sleep -s 5
+function _invoke-NonTerminatingRequest ($url) {
+    try {
+        $response = Invoke-WebRequest $url -TimeoutSec 120
+        return $response.StatusCode
+    }
+    catch {
+        return $_.Exception.Response.StatusCode.Value__
     }
 }
 
@@ -304,10 +286,11 @@ function _sf-create-startupConfig {
 }
 
 function _sf-reset-appDataFiles {
-    $context = _get-selectedProject
+    [SfProject]$context = _get-selectedProject
     $webAppPath = $context.webAppPath
     $errorMessage = ''
     $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
+    Set-Location $context.webAppPath
     if (Test-Path $originalAppDataFilesPath) {
         Write-Warning "Restoring Sitefinity web app App_Data files to original state."
         $dirs = Get-ChildItem "${webAppPath}\App_Data"
@@ -318,7 +301,7 @@ function _sf-reset-appDataFiles {
             $errorMessage = "${errorMessage}`n" + $_.Exception.Message
         }
 
-        Copy-Item -Path "$originalAppDataFilesPath\*" -Destination "${webAppPath}\App_Data" -Recurse
+        Copy-Item -Path "$originalAppDataFilesPath\*" -Destination "${webAppPath}\App_Data" -Recurse -Force -Confirm:$false
     }
     elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
         Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"

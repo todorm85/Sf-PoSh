@@ -30,7 +30,7 @@ function sf-rename-project {
         $oldName | Set-Clipboard
         while ($true) {
             $newName = $(Read-Host -Prompt "New name: ").ToString()
-            if ([string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-displayName $newName))) {
+            if ([string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-nameSyntax $newName))) {
                 Write-Host "Invalid name entered!"
             }
             else {

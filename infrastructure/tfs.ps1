@@ -4,7 +4,7 @@ function tfs-get-workspaces {
     [void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.TeamFoundation.VersionControl.Client");
 
     # if no collection specified, open project picker to select it via gui
-    $picker = New -Object Microsoft.TeamFoundation.Client.TeamProjectPicker([Microsoft.TeamFoundation.Client.TeamProjectPickerMode]::NoProject, $false)
+    $picker = New-Object Microsoft.TeamFoundation.Client.TeamProjectPicker([Microsoft.TeamFoundation.Client.TeamProjectPickerMode]::NoProject, $false)
     $dialogResult = $picker.ShowDialog()
     if ($dialogResult -ne "OK") {
         exit

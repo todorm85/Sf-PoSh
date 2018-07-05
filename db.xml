@@ -3,12 +3,22 @@
   <sitefinities>
     <sitefinity name="instance_0" displayName="Iris" solutionPath="e:\sitefinities\instance_0" webAppPath="e:\sitefinities\instance_0\SitefinityWebApp" websiteName="instance_0" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
     <sitefinity name="instance_1" displayName="Custom-Login-Not-Workinge" solutionPath="e:\sitefinities\instance_1" webAppPath="e:\sitefinities\instance_1\SitefinityWebApp" websiteName="instance_1" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="Forums" />
-    <sitefinity name="instance_2" displayName="free" solutionPath="e:\sitefinities\instance_2" webAppPath="e:\sitefinities\instance_2\SitefinityWebApp" websiteName="instance_2" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
+    <sitefinity name="instance_2" displayName="Claims2Roles" solutionPath="e:\sitefinities\instance_2" webAppPath="e:\sitefinities\instance_2\SitefinityWebApp" websiteName="instance_2" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
     <sitefinity name="instance_3" displayName="Official_10_2_HF4" solutionPath="e:\sitefinities\instance_3" webAppPath="e:\sitefinities\instance_3\SitefinityWebApp" websiteName="instance_3" branch="$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_2_HF2" description="" containerName="Officials" />
     <sitefinity name="LoadOrderOfScripts" displayName="LoadOrderOfScripts" solutionPath="e:\sitefinities\instance_1-clone-0" webAppPath="e:\sitefinities\instance_1-clone-0\SitefinityWebApp" websiteName="LoadOrderOfScripts" branch="" description="" containerName="Forums" />
+    <sitefinity name="instance_4" displayName="ValExtUserPersLogin" solutionPath="e:\sitefinities\instance_4" webAppPath="e:\sitefinities\instance_4\SitefinityWebApp" websiteName="instance_4" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="RFAs" />
+    <sitefinity name="instance_5" displayName="veracode" solutionPath="e:\sitefinities\instance_5" webAppPath="e:\sitefinities\instance_5\SitefinityWebApp" websiteName="instance_5" branch="$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base" description="" containerName="VeracodeIssues" />
+    <sitefinity name="instance_6" displayName="withVs" solutionPath="e:\sitefinities\instance_6" webAppPath="e:\sitefinities\instance_6\SitefinityWebApp" websiteName="instance_6" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
+    <sitefinity name="instance_7" displayName="withMsBuild" solutionPath="e:\sitefinities\instance_7" webAppPath="e:\sitefinities\instance_7\SitefinityWebApp" websiteName="instance_7" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
+    <sitefinity name="instance_8" displayName="test" solutionPath="e:\sitefinities\instance_8" webAppPath="e:\sitefinities\instance_8\SitefinityWebApp" websiteName="instance_8" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" />
+    <sitefinity name="instance_10" displayName="UrlsForContentEdit" solutionPath="e:\sitefinities\instance_10" webAppPath="e:\sitefinities\instance_10\SitefinityWebApp" websiteName="instance_10" branch="$/CMS/Sitefinity 4.0/TeamBranches/U3/Workflow" description="" containerName="" />
+    <sitefinity name="instance_11" displayName="UrlsForContentEdit" solutionPath="e:\sitefinities\instance_11" webAppPath="e:\sitefinities\instance_11\SitefinityWebApp" websiteName="instance_11" branch="$/CMS/Sitefinity 4.0/TeamBranches/U3/Workflow Scopes" description="" containerName="" />
   </sitefinities>
   <containers defaultContainerName="">
     <container name="Officials" />
     <container name="Forums" />
+    <container name="RFAs" />
+    <container name="VeracodeIssues" />
+    <container name="test" />
   </containers>
 </data>

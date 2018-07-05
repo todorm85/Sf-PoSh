@@ -2,6 +2,7 @@ function sf-select-container {
     $container = _sf-prompt-containerSelect
     $script:selectedContainer = $container
     _sfData-save-defaultContainer $selectedContainer.name
+    sf-select-project
 }
 
 function sf-create-container ($name) {
