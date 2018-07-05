@@ -175,8 +175,6 @@ function iis-create-website {
     $Acl.SetAccessRule($Ar)
     Set-Acl $newAppPath $Acl
 
-    sql-create-login -name "IIS APPPOOL\${newAppPool}"
-
     return @{name = $newWebsiteName; port = $newPort; appPool = $newAppPool; appPath = $newAppPath}
 }
 

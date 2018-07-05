@@ -156,8 +156,9 @@ function sf-new-project {
                     catch {
                         Write-Host "Build failed."
                         if ($tries > 0) {
-                            Write-Host "Retrying..." else { throw "Solution could not build after $retryCount retries" }
+                            Write-Host "Retrying..." 
                         }
+                        else { throw "Solution could not build after $retryCount retries" }
                     }
                 }
             }
@@ -173,7 +174,7 @@ function sf-new-project {
         }
         catch {
             $startWebApp = $false
-            Write-Warning "WEBSITE WAS NOT CREATED. Message: $_"
+            Write-Warning "Error creating website. Message: $_"
         }
 
         if ($startWebApp) {
@@ -268,7 +269,6 @@ function sf-import-project {
     _sf-set-currentProject $newContext
 
     try {
-        
         while ($hasWebSite -ne 'y' -and $hasWebSite -ne 'n') {
             $hasWebSite = Read-Host -Prompt 'Does your app has a website created for it? [y/n]'
         }
@@ -297,7 +297,7 @@ function sf-import-project {
                 $newContext.websiteName = $defaultContext.websiteName
             }
             catch {
-                Write-Warning "WEBSITE WAS NOT CREATED. Message: $_"
+                Write-Warning "Error during website creation. Message: $_"
             }
         }
 
@@ -357,7 +357,9 @@ function sf-delete-project {
     $dbName = sf-get-appDbName
     $websiteName = $context.websiteName
     
-    sf-stop-pool
+    if ($websiteName) {
+        sf-stop-pool
+    }
 
     # while ($true) {
     #     $isConfirmed = Read-Host -Prompt "WARNING! Current operation will reset IIS. You also need to have closed the current sitefinity solution in Visual Studio and any opened browsers for complete deletion. Continue [y/n]?"
@@ -396,7 +398,7 @@ function sf-delete-project {
 
     # Del Website
     Write-Host "Deleting website..."
-    if ($websiteName -ne '') {
+    if ($websiteName) {
         try {
             _sf-delete-website
         }
@@ -441,7 +443,7 @@ function sf-delete-project {
 
 function _create-userFriendlySolutionName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
-    $targetFilePath = "$($context.solutionPath)\$(_get-solutionName $context)"
+    $targetFilePath = "$($context.solutionPath)\$(_get-solutionFriendlyName $context)"
     Copy-Item -Path $solutionFilePath -Destination $targetFilePath
 }
 
@@ -571,32 +573,32 @@ function _sf-set-currentProject {
 
     $script:globalContext = $newContext
 
-    if ($null -ne $newContext) {
-        
+    if ($newContext) {
         $ports = @(iis-get-websitePort $newContext.websiteName)
-        $branch = ($newContext.branch).split("4.0")[3]
+        if ($newContext.branch) {
+            $branch = ($newContext.branch).split("4.0")[3]
+        }
+        else {
+            $branch = '/no branch'
+        }
+
         [System.Console]::Title = "$($newContext.displayName) ($($newContext.name)) $branch $ports "
-    } else {
+    }
+    else {
         [System.Console]::Title = ""
     }
 }
 
-function _get-solutionName {
+function _get-solutionFriendlyName {
     Param(
-        [SfProject]$context,
-        [bool]$useDefault = $true
+        [SfProject]$context
     )
     
-    if ($useDefault) {
-        $solutionName = "Telerik.Sitefinity.sln"
+    if (-not ($context)) {
+        $context = _get-selectedProject
     }
-    else {
-        if (-not ($context)) {
-            $context = _get-selectedProject
-        }
 
-        $solutionName = "$($context.displayName)($($context.name)).sln"
-    }
+    $solutionName = "$($context.displayName)($($context.name)).sln"
     
     return $solutionName
 }

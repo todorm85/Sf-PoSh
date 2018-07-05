@@ -8,7 +8,7 @@ function sf-build-solution {
     [CmdletBinding()]
 
     $context = _get-selectedProject
-    $solutionName = _get-solutionName
+    $solutionName = _get-solutionFriendlyName
     $solutionPath = "$($context.solutionPath)\${solutionName}"
     # $solutionPath = "$($context.solutionPath)\SitefinityWebApp\SitefinityWebApp.scproj"
     if (!(Test-Path $solutionPath)) {
@@ -117,8 +117,7 @@ function sf-clear-nugetCache {
 function sf-open-solution {
     [CmdletBinding()]
     Param(
-        [switch]$openUISln,
-        [switch]$useTelerikSitefinity
+        [switch]$useDefault
     )
     
     $context = _get-selectedProject
@@ -127,15 +126,14 @@ function sf-open-solution {
         throw "invalid or no solution path"
     }
 
-    $solutionName = _get-solutionName -useDefault $useTelerikSitefinity
-    if ($openUISln) {
-        & $vsPath "${solutionPath}\${solutionName}"
-        & $vsPath "${solutionPath}\Telerik.Sitefinity.MS.TestUI.sln"
+    if ($useDefault) {
+        $solutionName = "Telerik.Sitefinity.sln"
     }
     else {
-        # & $vsPath "${solutionPath}\Telerik.Sitefinity.sln"
-        & $vsPath "${solutionPath}\${solutionName}"
+        $solutionName = _get-solutionFriendlyName
     }
+
+    & $vsPath "${solutionPath}\${solutionName}"
 }
 
 <#
@@ -158,7 +156,7 @@ function sf-build-webAppProj () {
 
 function sf-save-solution () {
     $telerikSolution = "$($context.solutionPath)\Telerik.Sitefinity.sln"
-    $customSolution = "$($context.solutionPath)\$(_get-solutionName $context)"
+    $customSolution = "$($context.solutionPath)\$(_get-solutionFriendlyName $context)"
     Copy-Item -Path $customSolution -Destination $telerikSolution -Force
 }
 

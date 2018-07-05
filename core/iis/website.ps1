@@ -33,7 +33,7 @@ function sf-browse-webSite {
     Param([switch]$useExistingBrowser)
 
     if (-not $useExistingBrowser) {
-        & start $browserPath
+        & Start-Process $browserPath
     }
 
     $appUrl = _sf-get-appUrl
@@ -115,6 +115,7 @@ function _sf-create-website {
     $newAppPool = $context.name
     try {
         iis-create-website -newWebsiteName $newWebsiteName -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool
+
         $context.websiteName = $newWebsiteName
         _save-selectedProject $context
     }
@@ -122,8 +123,20 @@ function _sf-create-website {
         throw "Error creating site: $_"
     }
 
-    $domain = _sf-get-domain
-    Add-Domain $domain $port   
+    try {
+        sql-create-login -name "IIS APPPOOL\${newAppPool}"
+    }
+    catch {
+        throw "Error creating login user in SQL server for IIS APPPOOL\${newAppPool}. Message:$_"
+    }
+
+    try {
+        $domain = _sf-get-domain
+        Add-Domain $domain $port   
+    }
+    catch {
+        throw "Error adding domain registration $domain Error: $_"
+    }
 }
 
 function _sf-delete-website {

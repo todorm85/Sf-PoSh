@@ -47,12 +47,12 @@ function sf-rename-project {
         }
     }
 
-    $oldSolutionName = _get-solutionName
+    $oldSolutionName = _get-solutionFriendlyName
     $oldDomain = _sf-get-domain
     $context.displayName = $newName
     _save-selectedProject $context
 
-    $newSolutionName = _get-solutionName
+    $newSolutionName = _get-solutionFriendlyName
     Rename-Item -Path "$($context.solutionPath)\${oldSolutionName}" -NewName $newSolutionName
 
     try {
