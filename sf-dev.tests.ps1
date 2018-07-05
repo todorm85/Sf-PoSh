@@ -50,7 +50,7 @@ InModuleScope sf-dev {
             _sql-load-module
             $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
             $allLogins = $sqlServer.Logins | Where-Object {$_.Name.Contains('test_')}
-            $allLogins | % {$_.Drop()}
+            $allLogins | ForEach-Object {$_.Drop()}
         }
         catch {
             Write-Warning "SQL logins were not cleaned up: $_"
@@ -58,7 +58,7 @@ InModuleScope sf-dev {
 
         try {
             Write-Host "Domain mapping cleanup"
-            Show-Domains | where {$_.Contains('test_instance')} | % {$_.Split(' ')[0]} | % {Remove-Domain $_}
+            Show-Domains | Where-Object {$_.Contains('test_instance')} | ForEach-Object {$_.Split(' ')[0]} | ForEach-Object {Remove-Domain $_}
         }
         catch {
             Write-Warning "SQL logins were not cleaned up: $_"
@@ -67,7 +67,7 @@ InModuleScope sf-dev {
         try {
             Write-Host "TFS cleanup"
             $wss = tfs-get-workspaces 
-            $wss | Where-Object {$_.StartsWith('test_') } | % { tfs-delete-workspace $_ }
+            $wss | Where-Object {$_.StartsWith('test_') } | ForEach-Object { tfs-delete-workspace $_ }
         }
         catch {
             Write-Warning "Tfs workspaces were not cleaned up: $_"
@@ -76,7 +76,7 @@ InModuleScope sf-dev {
         try {
             Write-Host "DBs cleanup"
             $dbs = sql-get-dbs 
-            $dbs | Where-Object {$_.name.StartsWith('test_') } | % { sql-delete-database $_ }
+            $dbs | Where-Object {$_.name.StartsWith('test_') } | ForEach-Object { sql-delete-database $_ }
         }
         catch {
             Write-Warning "Databases were not cleaned up: $_"

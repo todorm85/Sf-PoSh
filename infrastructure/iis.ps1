@@ -14,7 +14,7 @@ function iis-get-websitePort {
     }
 
     _iis-load-webAdministrationModule
-    Get-WebBinding -Name $webAppName | select -expand bindingInformation | % {$_.split(':')[-2]}
+    Get-WebBinding -Name $webAppName | Select-Object -expand bindingInformation | ForEach-Object {$_.split(':')[-2]}
 }
 
 function iis-show-appPoolPid {
@@ -25,7 +25,7 @@ function iis-show-appPoolPid {
 function iis-get-usedPorts {
 
     _iis-load-webAdministrationModule
-    Get-WebBinding | select -expand bindingInformation | % {$_.split(':')[-2]}
+    Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object {$_.split(':')[-2]}
 }
 
 function iis-get-appPoolApps ($appPoolName) {
@@ -33,8 +33,8 @@ function iis-get-appPoolApps ($appPoolName) {
     $sites = get-webconfigurationproperty "/system.applicationHost/sites/site/application[@applicationPool=`'$appPoolName`'and @path='/']/parent::*" machine/webroot/apphost -name name
     $apps = get-webconfigurationproperty "/system.applicationHost/sites/site/application[@applicationPool=`'$appPoolName`'and @path!='/']" machine/webroot/apphost -name path
     $arr = @()
-    if ($sites -ne $null) {$arr += $sites}
-    if ($apps -ne $null) {$arr += $apps}
+    if ($null -ne $sites) {$arr += $sites}
+    if ($null -ne $apps) {$arr += $apps}
     return $arr
 }
 
@@ -57,19 +57,19 @@ function iis-get-appPools {
 function iis-delete-appPool ($appPoolName) {
     # display app pools with websites
     _iis-load-webAdministrationModule
-    if ($appPoolName -eq '' -or $appPoolName -eq $null) {
+    if ($appPoolName -eq '' -or $null -eq $appPoolName) {
         $appPools = @(Get-ChildItem ("IIS:\AppPools"))
         $appPools
 
         foreach ($pool in $appPools) {
             $index = [array]::IndexOf($appPools, $pool)
-            Write-Host  $index : $pool.name
+            Write-Host "$index : $($pool.name)"
         }
 
         while ($true) {
             [int]$choice = Read-Host -Prompt 'Choose appPool'
             $selectedPool = $appPools[$choice]
-            if ($selectedPool -ne $null) {
+            if ($null -ne $selectedPool) {
                 break;
             }
         }
@@ -101,13 +101,13 @@ function iis-create-website {
         # select appPool
         ForEach ($pool in $availablePools) {
             $index = [array]::IndexOf($availablePools, $pool)
-            Write-Host $index : $pool.Name
+            Write-Host "$index : $($pool.Name)"
         }
 
         while ($true) {
             [Int32]$selected = Read-Host -Prompt 'Select appPool: '
             $selectedPool = $availablePools[$selected]
-            if ($selectedPool -ne $null) {
+            if ($null -ne $selectedPool) {
                 break
             }
         }
@@ -240,7 +240,7 @@ function iis-get-subAppName {
         [string]$websiteName
     )
 
-    $appNames = Get-Item "iis:\Sites\$websiteName\*" | where { $_.GetType().Name -eq "ConfigurationElement" } | foreach { $_.Name }
+    $appNames = Get-Item "iis:\Sites\$websiteName\*" | Where-Object { $_.GetType().Name -eq "ConfigurationElement" } | ForEach-Object { $_.Name }
     return @($appNames)[0]
 }
 
