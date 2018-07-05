@@ -255,6 +255,7 @@ function sf-import-project {
         if ($branch) {
             $newContext.branch = $branch
             _create-workspace $newContext
+            sf-build-solution
         }
     }
     else {
