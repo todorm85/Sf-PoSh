@@ -195,17 +195,15 @@ function sf-clone-project {
         $sourcePath = $context.webAppPath
     }
 
-    $targetName = "$($context.name)_clone"
-    $targetPath = $script:projectsDirectory + "\${targetName}_0"
-    $i = 0
-    while (Test-Path $targetPath) {
-        $i++
-        $targetPath = "$($script:projectsDirectory)\$($targetName)_$i"
+    $targetName = _generateId
+    $targetPath = $script:projectsDirectory + "\${targetName}"
+    if (Test-Path $targetPath) {
+        throw "Path exists: ${targetPath}"
     }
 
     New-Item $targetPath -ItemType Directory > $null
     Copy-Item "${sourcePath}\*" $targetPath -Recurse
-    sf-import-project -displayName "$($context.displayName)-clone_$i" -path $targetPath -name "$($targetName)_$i"
+    sf-import-project -displayName "$($context.displayName)-clone_$i" -path $targetPath -name "$($targetName)" -branch $context.branch
     sf-delete-allAppStates
 }
 
@@ -246,17 +244,19 @@ function sf-import-project {
 
     $oldContext = _get-selectedProject
     $defaultContext = _sf-get-newProject $displayName $name
-    $newContext = @{ name = $defaultContext.name }
+    $newContext = [SfProject]@{ name = $defaultContext.name }
     $newContext.displayName = $defaultContext.displayName
+    $newContext.containerName = $defaultContext.containerName
     if ($isSolution) {
         $newContext.solutionPath = $path
         $newContext.webAppPath = $path + '\SitefinityWebApp'
-        _create-userFriendlySolutionName $newContext
         if ($branch) {
             $newContext.branch = $branch
             _create-workspace $newContext
-            sf-build-solution
+            # sf-build-solution
         }
+
+        _create-userFriendlySolutionName $newContext
     }
     else {
         $newContext.solutionPath = ''
@@ -311,6 +311,8 @@ function sf-import-project {
         }
 
         _save-selectedProject $newContext
+
+        sf-rename-project
 
         # Display message
         os-popup-notification "Operation completed!"
@@ -474,6 +476,18 @@ function _validate-project {
     }
 }
 
+function _get-isNameDuplicate ($name) {
+    $sitefinities = [SfProject[]]@(_sfData-get-allProjects)
+    foreach ($sitefinity in $sitefinities) {
+        $sitefinity = [SfProject]$sitefinity
+        if ($sitefinity.name -eq $name) {
+            return $true;
+        }
+    }    
+
+    return $false;
+}
+
 function _sf-get-newProject {
     [OutputType([SfProject])]
     Param(
@@ -497,22 +511,11 @@ function _sf-get-newProject {
         $defaultContext.containerName = $Script:selectedContainer.name
     }
 
-    function isNameDuplicate ($name) {
-        $sitefinities = [SfProject[]]@(_sfData-get-allProjects)
-        foreach ($sitefinity in $sitefinities) {
-            $sitefinity = [SfProject]$sitefinity
-            if ($sitefinity.name -eq $name) {
-                return $true;
-            }
-        }    
-
-        return $false;
-    }
 
     function validateName ($context) {
         $name = $context.name
         while ($true) {
-            $isDuplicate = (isNameDuplicate $name)
+            $isDuplicate = (_get-isNameDuplicate $name)
             $isValid = _sf-validate-nameSyntax $name
             if (-not $isValid) {
                 Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
@@ -552,7 +555,7 @@ function _generateId {
     $i = 0;
     while ($true) {
         $name = "instance_$i"
-        $isDuplicate = (isNameDuplicate $name)
+        $isDuplicate = (_get-isNameDuplicate $name)
         if (-not $isDuplicate) {
             break;
         }

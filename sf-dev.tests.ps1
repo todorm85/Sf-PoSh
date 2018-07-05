@@ -13,7 +13,7 @@ InModuleScope sf-dev {
         $i = 0;
         while ($true) {
             $name = "${baseTestId}${i}"
-            $isDuplicate = (isNameDuplicate $name)
+            $isDuplicate = (_get-isNameDuplicate $name)
             if (-not $isDuplicate) {
                 break;
             }
