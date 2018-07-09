@@ -201,10 +201,28 @@ function sf-clone-project {
         throw "Path exists: ${targetPath}"
     }
 
-    New-Item $targetPath -ItemType Directory > $null
-    Copy-Item "${sourcePath}\*" $targetPath -Recurse
-    sf-import-project -displayName "$($context.displayName)-clone_$i" -path $targetPath -name "$($targetName)" -branch $context.branch
-    sf-delete-allAppStates
+    try {
+        Write-Information "Copying $sourcePath to $targetPath."
+        New-Item $targetPath -ItemType Directory > $null
+        Copy-Item "${sourcePath}\*" $targetPath -Recurse
+    }
+    catch {
+        throw "Error copying source files.`n $_"        
+    }
+
+    try {
+        sf-import-project -displayName "$($context.displayName)-clone_$i" -path $targetPath -name "$($targetName)" -branch $context.branch
+    }
+    catch {
+        throw "Error importing project.`n $_"        
+    }
+
+    try {
+        sf-delete-allAppStates
+    }
+    catch {
+        throw "Error deleting app states.`n $_"        
+    }
 }
 
 <#
@@ -252,7 +270,12 @@ function sf-import-project {
         $newContext.webAppPath = $path + '\SitefinityWebApp'
         if ($branch) {
             $newContext.branch = $branch
-            _create-workspace $newContext
+            try {
+                _create-workspace $newContext
+            }
+            catch {
+                Write-Warning "Errors creating workspace. $_"                
+            }
             # sf-build-solution
         }
 
@@ -266,11 +289,11 @@ function sf-import-project {
     _sf-set-currentProject $newContext
 
     try {
-        while ($hasWebSite -ne 'y' -and $hasWebSite -ne 'n') {
-            $hasWebSite = Read-Host -Prompt 'Does your app has a website created for it? [y/n]'
+        while ($hasWebSite -ne 'c' -and $hasWebSite -ne 'u') {
+            $hasWebSite = Read-Host -Prompt '[c]reate new website or [u]se existing?'
         }
 
-        if ($hasWebSite -eq 'y') {
+        if ($hasWebSite -eq 'u') {
             $isDuplicate = $false
             while (!$isDuplicate) {
                 $websiteName = Read-Host -Prompt 'Enter website name: '
@@ -278,7 +301,7 @@ function sf-import-project {
                 $newContext.websiteName = $websiteName
             }
         }
-        else {
+        elseif ($hasWebSite -eq 'c') {
             try {
                 Write-Host "Creating website..."
             
@@ -305,21 +328,49 @@ function sf-import-project {
             }
 
             if ($useCopy -eq 'y') {
-                sf-set-appDbName $newContext.name
-                sql-copy-db $oldDbName $newContext.name
+                try {
+                    sf-set-appDbName $newContext.name
+                }
+                catch {
+                    Write-Warning "Error setting new database name in config ($($newContext.name)).`n $_"                    
+                }
+                    
+                try {
+                    sql-copy-db $oldDbName $newContext.name                    
+                }
+                catch {
+                    Write-Warning "Error copying old database. Source: $oldDbName Target $($newContext.name)`n $_"
+                }
             }
         }
 
         _save-selectedProject $newContext
 
-        sf-rename-project
+        try {
+            sf-rename-project
+        }
+        catch {
+            Write-Warning "Could not set cloned project name. $_"            
+        }
 
         # Display message
-        os-popup-notification "Operation completed!"
+        try {
+            os-popup-notification "Operation completed!"
+        }
+        catch {
+                        
+        }
     }
     catch {
-        Write-Host "Could not import sitefinity: $($_)"
-        sf-delete-project -noPromptAfterComplete
+        Write-Warning "Could not import sitefinity: $($_)"
+        try {
+            Write-Warning "Deleting created project copy."
+            sf-delete-project -noPromptAfterComplete
+        }
+        catch {
+            Write-Warning "Could not delete created copy: $_"
+        }
+        
         _sf-set-currentProject $oldContext
     }
 }
@@ -624,14 +675,29 @@ function _sf-validate-nameSyntax ($name) {
 }
 
 function _create-workspace ($context) {
-    # create and map workspace
-    Write-Host "Creating workspace..."
-    $workspaceName = $context.name
-    tfs-create-workspace $workspaceName $context.solutionPath
+    try {
+        # create and map workspace
+        Write-Host "Creating workspace..."
+        $workspaceName = $context.name
+        tfs-create-workspace $workspaceName $context.solutionPath
+    }
+    catch {
+        throw "Could not create workspace $workspaceName in $($context.solutionPath).`n $_"
+    }
 
-    Write-Host "Creating workspace mappings..."
-    tfs-create-mappings -branch $context.branch -branchMapPath $context.solutionPath -workspaceName $workspaceName
+    try {
+        Write-Host "Creating workspace mappings..."
+        tfs-create-mappings -branch $context.branch -branchMapPath $context.solutionPath -workspaceName $workspaceName
+    }
+    catch {
+        throw "Could not create mapping $($context.branch) in $($context.solutionPath) for workspace ${workspaceName}.`n $_"
+    }
 
-    Write-Host "Getting latest workspace changes..."
-    tfs-get-latestChanges -branchMapPath $context.solutionPath
+    try {
+        Write-Host "Getting latest workspace changes..."
+        tfs-get-latestChanges -branchMapPath $context.solutionPath
+    }
+    catch {
+        throw "Could not get latest workapce changes. $_"
+    }
 }

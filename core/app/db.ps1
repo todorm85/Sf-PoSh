@@ -19,14 +19,19 @@ function sf-set-appDbName ($newName) {
     $context = _get-selectedProject
     $dbName = sf-get-appDbName
     if (-not $dbName) {
-        Write-Host "No database configured for sitefinity."
+        throw "No database configured for sitefinity."
     }
 
-    $data = New-Object XML
-    $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
-    $data.Load($dataConfigPath) > $null
-    $conStrElement = $data.dataConfig.connectionStrings.add
-    $newString = $conStrElement.connectionString -replace $dbName, $newName
-    $conStrElement.SetAttribute("connectionString", $newString)
-    $data.Save($dataConfigPath) > $null
+    try {
+        $data = New-Object XML
+        $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
+        $data.Load($dataConfigPath) > $null
+        $conStrElement = $data.dataConfig.connectionStrings.add
+        $newString = $conStrElement.connectionString -replace $dbName, $newName
+        $conStrElement.SetAttribute("connectionString", $newString)
+        $data.Save($dataConfigPath) > $null
+    }
+    catch {
+        throw "Error setting database name in config file ${dataConfigPath}.`n $_"
+    }
 }
