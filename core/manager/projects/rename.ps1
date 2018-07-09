@@ -29,7 +29,7 @@ function sf-rename-project {
     else {
         $oldName | Set-Clipboard
         while ($true) {
-            $newName = $(Read-Host -Prompt "New name: ").ToString()
+            $newName = $(Read-Host -Prompt "Enter new project name").ToString()
             if ([string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-nameSyntax $newName))) {
                 Write-Host "Invalid name entered!"
             }
