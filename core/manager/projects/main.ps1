@@ -189,10 +189,14 @@ function sf-new-project {
 }
 
 function sf-clone-project {
-    $context = _get-selectedProject
-    $sourcePath = $context.solutionPath 
-    if (-not (Test-Path $sourcePath)) {
+    [SfProject]$context = _get-selectedProject
+    $sourcePath = $context.solutionPath;
+    if ([string]::IsNullOrEmpty($sourcePath)) {
         $sourcePath = $context.webAppPath
+    }
+
+    if ([string]::IsNullOrEmpty($sourcePath) -or -not (Test-Path $sourcePath)) {
+        throw "Invalid app path";
     }
 
     $targetName = _generateId

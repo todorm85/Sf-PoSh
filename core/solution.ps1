@@ -173,7 +173,7 @@ function _sf-build-proj {
     # $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'
     # Invoke-Expression "& $command"
-    & $msBuildPath $path /nologo /maxcpucount /Verbosity:normal
+    & $msBuildPath $path /nologo /maxcpucount /Verbosity:normal /p:RunCodeAnalysis=False
     # & $Script:vsCmdPath $path /build Debug
 
     # $elapsed.Stop()
