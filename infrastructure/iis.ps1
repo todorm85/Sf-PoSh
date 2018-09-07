@@ -223,8 +223,7 @@ function iis-test-isSiteNameDuplicate {
     $availableSites = @(Get-ChildItem -Path "IIS:\Sites")
     $isDuplicateSite = $false
     ForEach ($site in $availableSites) {
-        if ($site.name.ToLower() -eq $name) {
-            Write-Host "Site exists"
+        if ($site.name.ToLower() -eq $name.ToLower()) {
             $isDuplicateSite = $true
             break
         }

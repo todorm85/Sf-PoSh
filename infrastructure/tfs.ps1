@@ -171,7 +171,7 @@ function tfs-get-workspaceName {
     return $wsInfo
 }
 
-function tfs-get-mappings {
+function tfs-get-branchPath {
     Param(
         [string]$path
         )
@@ -182,7 +182,7 @@ function tfs-get-mappings {
     Set-Location $oldLocation
 
     try {
-        $res = $wsInfo[3].split(':')[0]
+        $res = $wsInfo[3].split(':')[0].trim()
     } catch {
         $res = ''
     }

@@ -37,9 +37,9 @@ function sf-select-project {
 function sf-show-currentProject {
     [CmdletBinding()]
     Param([switch]$detail)
-    $context = _get-selectedProject
+    [SfProject]$context = _get-selectedProject
     if ($null -eq ($context)) {
-        "No project selected"
+        Write-Host "No project selected"
         return
     }
 
@@ -51,16 +51,16 @@ function sf-show-currentProject {
     }
 
     if (-not $detail) {
-        "$($context.name) | $($context.displayName) | $($branchShortName) | $ports"
+        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports"
         return    
     }
     
     $appPool = @(iis-get-siteAppPool $context.websiteName)
     $workspaceName = tfs-get-workspaceName $context.webAppPath
-
+    $branch = tfs-get-branchPath $context.solutionPath
     $otherDetails = @(
         [pscustomobject]@{id = 0; Parameter = "Title"; Value = $context.displayName; },
-        [pscustomobject]@{id = 0.5; Parameter = "Id"; Value = $context.name; },
+        [pscustomobject]@{id = 0.5; Parameter = "Id"; Value = $context.id; },
 
         [pscustomobject]@{id = 0.6; Parameter = " "; Value = " "; },
 
@@ -80,7 +80,7 @@ function sf-show-currentProject {
         [pscustomobject]@{id = 6.5; Parameter = " "; Value = " "; },
 
         [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
-        [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $context.branch; }
+        [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $branch; }
     )
 
     $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders
@@ -101,14 +101,14 @@ function sf-show-allProjects {
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {
         $ports = @(iis-get-websitePort $sitefinity.websiteName)
-        # $mapping = tfs-get-mappings $sitefinity.webAppPath
+        # $mapping = tfs-get-branchPath $sitefinity.webAppPath
         # if ($mapping) {
         #     $mapping = $mapping.split("4.0")[3]
         # }
 
         $index = [array]::IndexOf($sitefinities, $sitefinity)
         
-        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.name)"; }) > $null
+        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.id)"; }) > $null
     }
     $currentContainerName = $Script:selectedContainer.name
     if ($currentContainerName -ne '') {

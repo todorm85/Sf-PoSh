@@ -13,7 +13,7 @@ InModuleScope sf-dev {
         $i = 0;
         while ($true) {
             $name = "${baseTestId}${i}"
-            $isDuplicate = (_get-isNameDuplicate $name)
+            $isDuplicate = (_get-isIdDuplicate $name)
             if (-not $isDuplicate) {
                 break;
             }
@@ -113,10 +113,10 @@ InModuleScope sf-dev {
             $sitefinities | Should -HaveCount 1
             $testId = "${baseTestId}0"
             $sf = $sitefinities[0]
-            $sf.name | Should -Be "${testId}"
+            $sf.id | Should -Be "${testId}"
             $sf.displayName | Should -Be 'test1'
             $sf.containerName | Should -Be ''
-            Test-Path "$($Script:projectsDirectory)\${testId}\$($sf.displayName)($($sf.name)).sln" | Should -Be $true
+            Test-Path "$($Script:projectsDirectory)\${testId}\$($sf.displayName)($($sf.id)).sln" | Should -Be $true
             Test-Path "$($Script:projectsDirectory)\${testId}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $true
             Test-Path "IIS:\Sites\${testId}" | Should -Be $true

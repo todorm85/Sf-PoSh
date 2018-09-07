@@ -28,6 +28,7 @@
         'PSUseApprovedVerbs',
         'PSAvoidUsingUserNameAndPassWordParams',
         'PSAvoidUsingPlainTextForPassword',
-        'PSAvoidUsingEmptyCatchBlock'
+        'PSAvoidUsingEmptyCatchBlock',
+        'PSAvoidTrailingWhitespace'
         )
 }

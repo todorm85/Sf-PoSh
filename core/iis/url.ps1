@@ -20,14 +20,9 @@ function _sf-get-appUrl {
     return $result
 }
 
-function _sf-new-domain ($displayName) {
-    $result = "$($context.displayName).com"
-    return $result    
-}
-
 function _sf-get-domain {
-    $proj = _get-selectedProject
-    return "$($proj.displayName)-$($proj.name).com"
+    [SfProject]$context = _get-selectedProject
+    return "$($context.displayName)_$($context.id).com"
 }
 
 function _sf-check-domainRegistered ($domain) {

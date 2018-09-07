@@ -6,7 +6,7 @@ try {
          
         public class SfProject
         {
-            public string name { get; set;}
+            public string id { get; set;}
             public string displayName { get; set;}
             public string solutionPath { get; set;}
             public string webAppPath { get; set;}
@@ -16,9 +16,9 @@ try {
             public string containerName { get; set;}
 
             public SfProject() { }
-            public SfProject(string name, string displayName) 
+            public SfProject(string id, string displayName) 
             {
-                this.name = name;
+                this.id = id;
                 this.displayName = displayName;
             }
         }

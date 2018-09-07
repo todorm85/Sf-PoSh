@@ -255,7 +255,7 @@ function _sf-create-startupConfig {
         
         $username = $user.split('@')[0]
         if ([string]::IsNullOrEmpty($dbName)) {
-            $dbName = $context.name
+            $dbName = $context.id
         }
 
         while (sql-test-isDbNameDuplicate($dbName) -or [string]::IsNullOrEmpty($dbName)) {

@@ -9,7 +9,7 @@ function _sfData-get-allProjects {
             containerName = $_.containerName;
             description = $_.description;
             displayName = $_.displayName;
-            name = $_.name;
+            id = $_.id;
             solutionPath = $_.solutionPath;
             webAppPath = $_.webAppPath;
             websiteName = $_.websiteName;
@@ -22,13 +22,13 @@ function _sfData-get-allProjects {
 function _sfData-delete-project {
     Param($context)
     Write-Host "Updating script databse..."
-    $name = $context.name
+    $id = $context.id
     try {
         $data = New-Object XML
         $data.Load($script:dataPath) > $null
         $sitefinities = $data.data.sitefinities.sitefinity
         ForEach ($sitefinity in $sitefinities) {
-            if ($sitefinity.name -eq $name) {
+            if ($sitefinity.id -eq $id) {
                 $sitefinitiesParent = $data.SelectSingleNode('/data/sitefinities')
                 $sitefinitiesParent.RemoveChild($sitefinity)
             }
@@ -49,7 +49,7 @@ function _sfData-save-project {
     $data.Load($dataPath) > $null
     $sitefinities = $data.data.sitefinities.sitefinity
     ForEach ($sitefinity in $sitefinities) {
-        if ($sitefinity.name -eq $context.name) {
+        if ($sitefinity.id -eq $context.id) {
             $sitefinityEntry = $sitefinity
             break
         }
@@ -61,7 +61,7 @@ function _sfData-save-project {
         $sitefinities.AppendChild($sitefinityEntry)
     }
 
-    $sitefinityEntry.SetAttribute("name", $context.name)
+    $sitefinityEntry.SetAttribute("id", $context.id)
     $sitefinityEntry.SetAttribute("displayName", $context.displayName)
     $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
     $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)

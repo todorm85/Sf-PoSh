@@ -8,7 +8,7 @@ function Global:prompt {
 
     $promptContainer = $Script:globalContext.containerName
     $promptProject = $Script:globalContext.displayName
-    $promptId = $Script:globalContext.name
+    $promptId = $Script:globalContext.id
 
     $ports = @(iis-get-websitePort $Script:globalContext.websiteName)
     

@@ -102,7 +102,7 @@ function _sf-create-website {
 
     $context = _get-selectedProject
 
-    if ($context.websiteName -ne '' -and $null -ne $context.websiteName) {
+    if ($context.websiteName -ne '' -and $null -ne $context.websiteName -and (iis-test-isSiteNameDuplicate $context.websiteName)) {
         throw 'Current context already has a website assigned!'
     }
 
@@ -112,7 +112,7 @@ function _sf-create-website {
     }
 
     $newAppPath = $context.webAppPath
-    $newAppPool = $context.name
+    $newAppPool = $context.id
     try {
         iis-create-website -newWebsiteName $newWebsiteName -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool
 

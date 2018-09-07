@@ -67,10 +67,10 @@ function sf-new-project {
             $branch = $customBranch
         }
 
-        $defaultContext = _sf-get-newProject -displayName $displayName
+        $defaultContext = _sf-new-SfProject -displayName $displayName
         # $defaultContext.
         try {
-            $newContext = @{ name = $defaultContext.name }
+            $newContext = @{ id = $defaultContext.id }
             $newContext.displayName = $defaultContext.displayName
             if (Test-Path $defaultContext.solutionPath) {
                 throw "Path already exists:" + $defaultContext.solutionPath
@@ -132,7 +132,7 @@ function sf-new-project {
             return
         }
 
-        _create-userFriendlySolutionName $defaultContext
+        _create-userFriendlySlnName $defaultContext
 
         if ($buildSolution) {
             try {
@@ -215,7 +215,9 @@ function sf-clone-project {
     }
 
     try {
-        sf-import-project -displayName "$($context.displayName)-clone_$i" -path $targetPath -name "$($targetName)" -branch $context.branch
+        $branch = tfs-get-branchPath -path $sourcePath
+
+        sf-import-project -displayName "$($context.displayName)-clone_$i" -path $targetPath -branch $branch -cloneDb $true
     }
     catch {
         throw "Error importing project.`n $_"        
@@ -246,8 +248,9 @@ function sf-import-project {
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
         [Parameter(Mandatory = $true)][string]$path,
-        [string]$name,
-        $branch
+        [Parameter(Mandatory = $true)][bool]$cloneDb,
+        [string]$websiteName,
+        [string]$branch
     )
 
     if (!(Test-Path $path)) {
@@ -264,119 +267,76 @@ function sf-import-project {
         throw "Cannot determine whether webapp or solution."
     }
 
-    $oldContext = _get-selectedProject
-    $defaultContext = _sf-get-newProject $displayName $name
-    $newContext = [SfProject]@{ name = $defaultContext.name }
-    $newContext.displayName = $defaultContext.displayName
-    $newContext.containerName = $defaultContext.containerName
+    [SfProject]$newContext = _sf-new-SfProject
+    $newContext.displayName = $displayName
     if ($isSolution) {
         $newContext.solutionPath = $path
         $newContext.webAppPath = $path + '\SitefinityWebApp'
         if ($branch) {
             $newContext.branch = $branch
-            try {
-                _create-workspace $newContext
-            }
-            catch {
-                Write-Warning "Errors creating workspace. $_"                
-            }
-            # sf-build-solution
+            _create-workspace -context $newContext
         }
 
-        _create-userFriendlySolutionName $newContext
+        _create-userFriendlySlnName $newContext
     }
     else {
         $newContext.solutionPath = ''
         $newContext.webAppPath = $path
     }
 
+    $oldContext = _get-selectedProject
     _sf-set-currentProject $newContext
-
     try {
-        while ($hasWebSite -ne 'c' -and $hasWebSite -ne 'u') {
-            $hasWebSite = Read-Host -Prompt '[c]reate new website or [u]se existing?'
-        }
-
-        if ($hasWebSite -eq 'u') {
-            $isDuplicate = $false
-            while (!$isDuplicate) {
-                $websiteName = Read-Host -Prompt 'Enter website name: '
-                $isDuplicate = iis-test-isSiteNameDuplicate $websiteName
-                $newContext.websiteName = $websiteName
-            }
-        }
-        elseif ($hasWebSite -eq 'c') {
-            try {
-                Write-Host "Creating website..."
-            
-                $isDuplicateSite = $true
-                while ($isDuplicateSite) {
-                    $isDuplicateSite = iis-test-isSiteNameDuplicate $defaultContext.websiteName
-                    if ($isDuplicateSite) {
-                        $defaultContext.websiteName = Read-Host -Prompt "Enter site name"
-                    }
-                }
-
-                _sf-create-website -newWebsiteName $defaultContext.websiteName > $null
-                $newContext.websiteName = $defaultContext.websiteName
-            }
-            catch {
-                Write-Warning "Error during website creation. Message: $_"
-            }
-        }
-
-        $oldDbName = sf-get-appDbName
-        if ($oldDbName) {
-            while ($useCopy -ne 'y' -and $useCopy -ne 'n') {
-                $useCopy = Read-Host -Prompt 'Clone existing database? [y/n]'
-            }
-
-            if ($useCopy -eq 'y') {
-                try {
-                    sf-set-appDbName $newContext.name
-                }
-                catch {
-                    Write-Warning "Error setting new database name in config ($($newContext.name)).`n $_"                    
-                }
-                    
-                try {
-                    sql-copy-db $oldDbName $newContext.name                    
-                }
-                catch {
-                    Write-Warning "Error copying old database. Source: $oldDbName Target $($newContext.name)`n $_"
-                }
-            }
-        }
-
         _save-selectedProject $newContext
-
-        try {
-            sf-rename-project
-        }
-        catch {
-            Write-Warning "Could not set cloned project name. $_"            
-        }
-
-        # Display message
-        try {
-            os-popup-notification "Operation completed!"
-        }
-        catch {
-                        
-        }
     }
     catch {
-        Write-Warning "Could not import sitefinity: $($_)"
-        try {
-            Write-Warning "Deleting created project copy."
-            sf-delete-project -noPromptAfterComplete
-        }
-        catch {
-            Write-Warning "Could not delete created copy: $_"
-        }
-        
         _sf-set-currentProject $oldContext
+        throw "Could not import sitefinity. Could not write project to db. $($_)"
     }
+
+    # while ($prompt -ne 'c' -and $prompt -ne 'u') {
+    #     $prompt = Read-Host -Prompt '[c]reate new website or [u]se existing?'
+    # }
+
+    # $useExistingWebSite = $prompt -eq 'u'
+
+    if ($websiteName) {
+        $newContext.websiteName = $websiteName
+    }
+
+    try {
+        Write-Host "Creating website..."
+        _sf-create-website -newWebsiteName $newContext.websiteName > $null
+    }
+    catch {
+        Write-Warning "Error during website creation. Message: $_"
+        $newContext.websiteName = ""
+    }
+
+    $currentDbName = sf-get-appDbName
+    if ($currentDbName) {
+        # while ($useCopy -ne 'y' -and $useCopy -ne 'n') {
+        #     $useCopy = Read-Host -Prompt 'Clone existing database? [y/n]'
+        # }
+
+        if ($cloneDb) {
+            try {
+                sf-set-appDbName $newContext.id
+            }
+            catch {
+                Write-Warning "Error setting new database name in config ($($newContext.id)).`n $_"                    
+            }
+                    
+            try {
+                sql-copy-db $currentDbName $newContext.id                    
+            }
+            catch {
+                Write-Warning "Error copying old database. Source: $currentDbName Target $($newContext.id)`n $_"
+            }
+        }
+    }
+    
+    os-popup-notification "Operation completed!"
 }
 
 <#
@@ -399,7 +359,7 @@ function sf-delete-project {
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles,
         [switch]$force,
-        [switch]$noPromptAfterComplete,
+        [switch]$noPrompt,
         [SfProject]$context = $null
     )
     
@@ -492,12 +452,81 @@ function sf-delete-project {
     _sfData-delete-project $context
     _sf-set-currentProject $null
 
-    if (-not ($noPromptAfterComplete)) {
+    if (-not ($noPrompt)) {
         sf-select-project
     }
 }
 
-function _create-userFriendlySolutionName ($context) {
+<#
+    .SYNOPSIS
+    Renames the current selected sitefinity.
+    .PARAMETER markUnused
+    If set renames the instanse to '-' and the workspace name to 'unused_{current date}.
+    .OUTPUTS
+    None
+#>
+function sf-rename-project {
+    [CmdletBinding()]
+    Param(
+        [switch]$markUnused,
+        [switch]$setDescription
+    )
+
+    [SfProject]$context = _get-selectedProject
+    $oldName = $context.displayName
+
+    if ($markUnused) {
+        $newName = "unused"
+        $context.description = ""
+        $unusedName = "unused_$(Get-Date | ForEach-Object { $_.Ticks })"
+        $newDbName = $unusedName
+        $newWebsiteName = $unusedName
+        $newProjectName = $unusedName
+        $newWsName = $unusedName
+    }
+    else {
+        $oldName | Set-Clipboard
+        while ($true) {
+            $newName = $(Read-Host -Prompt "Enter new project name").ToString()
+            if ([string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-nameSyntax $newName))) {
+                Write-Host "Invalid name entered!"
+            }
+            else {
+                $newDbName = $newName
+                $newWebsiteName = $newName
+                $newProjectName = $newName
+                $newWsName = $newName
+                break;
+            }
+        }
+
+        if ($setDescription) {
+            $context.description = $(Read-Host -Prompt "Enter description:`n").ToString()
+        }
+    }
+
+    $oldSolutionName = _get-solutionFriendlyName
+    $oldDomain = _sf-get-domain
+    $context.displayName = $newName
+    _save-selectedProject $context
+
+    $newSolutionName = _get-solutionFriendlyName
+    Rename-Item -Path "$($context.solutionPath)\${oldSolutionName}" -NewName $newSolutionName
+
+    try {
+        Remove-Domain $oldDomain
+    }
+    catch {
+        # nothing to remove        
+    }
+    
+    $domain = _sf-get-domain
+    $websiteName = $context.websiteName
+    $ports = @(iis-get-websitePort $websiteName)
+    Add-Domain $domain $ports[0]
+}
+
+function _create-userFriendlySlnName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     $targetFilePath = "$($context.solutionPath)\$(_get-solutionFriendlyName $context)"
     Copy-Item -Path $solutionFilePath -Destination $targetFilePath
@@ -509,16 +538,14 @@ function _save-selectedProject {
     _validate-project $context
 
     _sfData-save-project $context
-
-    _sf-set-currentProject $context
 }
 
 function _validate-project {
     Param($context)
 
     if ($null -ne $context) {
-        if ($context.name -eq '') {
-            throw "Invalid sitefinity context. No sitefinity name."
+        if ($context.id -eq '') {
+            throw "Invalid sitefinity context. No sitefinity id."
         }
 
         if ($context.solutionPath -ne '') {
@@ -533,11 +560,11 @@ function _validate-project {
     }
 }
 
-function _get-isNameDuplicate ($name) {
+function _get-isIdDuplicate ($name) {
     $sitefinities = [SfProject[]]@(_sfData-get-allProjects)
     foreach ($sitefinity in $sitefinities) {
         $sitefinity = [SfProject]$sitefinity
-        if ($sitefinity.name -eq $name) {
+        if ($sitefinity.id -eq $name) {
             return $true;
         }
     }    
@@ -545,74 +572,11 @@ function _get-isNameDuplicate ($name) {
     return $false;
 }
 
-function _sf-get-newProject {
-    [OutputType([SfProject])]
-    Param(
-        [string]$displayName,
-        [string]$name
-    )
-        
-    function applyContextConventions {
-        Param(
-            $defaultContext
-        )
-
-        $name = $defaultContext.name
-        $solutionPath = "${projectsDirectory}\${name}";
-        $webAppPath = "${projectsDirectory}\${name}\SitefinityWebApp";
-        $websiteName = $name
-
-        $defaultContext.solutionPath = $solutionPath
-        $defaultContext.webAppPath = $webAppPath
-        $defaultContext.websiteName = $websiteName
-        $defaultContext.containerName = $Script:selectedContainer.name
-    }
-
-
-    function validateName ($context) {
-        $name = $context.name
-        while ($true) {
-            $isDuplicate = (_get-isNameDuplicate $name)
-            $isValid = _sf-validate-nameSyntax $name
-            if (-not $isValid) {
-                Write-Host "Sitefinity name must contain only alphanumerics and not start with number."
-                $name = Read-Host "Enter new name: "
-            }
-            elseif ($isDuplicate) {
-                Write-Host "Duplicate sitefinity naem."
-                $name = Read-Host "Enter new name: "
-            }
-            else {
-                $context.name = $name
-                break
-            }
-        }
-    }
-
-    if ([string]::IsNullOrEmpty($name)) {
-        $name = _generateId    
-    }
-    
-    $defaultContext = New-Object SfProject -Property @{
-        displayName  = $displayName;
-        name         = $name;
-        solutionPath = '';
-        webAppPath   = '';
-        websiteName  = '';
-    }
-
-    validateName $defaultContext
-
-    applyContextConventions $defaultContext
-
-    return $defaultContext
-}
-
 function _generateId {
     $i = 0;
     while ($true) {
-        $name = "instance_$i"
-        $isDuplicate = (_get-isNameDuplicate $name)
+        $name = "sf_$i"
+        $isDuplicate = (_get-isIdDuplicate $name)
         if (-not $isDuplicate) {
             break;
         }
@@ -639,7 +603,7 @@ function _sf-set-currentProject {
             $branch = '/no branch'
         }
 
-        [System.Console]::Title = "$($newContext.displayName) ($($newContext.name)) $branch $ports "
+        [System.Console]::Title = "$($newContext.displayName) ($($newContext.id)) $branch $ports "
     }
     else {
         [System.Console]::Title = ""
@@ -655,7 +619,7 @@ function _get-solutionFriendlyName {
         $context = _get-selectedProject
     }
 
-    $solutionName = "$($context.displayName)($($context.name)).sln"
+    $solutionName = "$($context.displayName)($($context.id)).sln"
     
     return $solutionName
 }
@@ -675,14 +639,14 @@ function _get-selectedProject {
 }
 
 function _sf-validate-nameSyntax ($name) {
-    return $name -match "^[A-Za-z-0-9_]+$"
+    return $name -match "^[A-Za-z]\w+$"
 }
 
 function _create-workspace ($context) {
     try {
         # create and map workspace
         Write-Host "Creating workspace..."
-        $workspaceName = $context.name
+        $workspaceName = $context.id
         tfs-create-workspace $workspaceName $context.solutionPath
     }
     catch {
