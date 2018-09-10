@@ -178,7 +178,7 @@ function tfs-get-branchPath {
     
     $oldLocation = Get-Location
     Set-Location $path
-    $wsInfo = & $tfPath workfold 2>&1
+    $wsInfo = & $tfPath workfold
     Set-Location $oldLocation
 
     try {

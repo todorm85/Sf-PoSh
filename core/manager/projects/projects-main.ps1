@@ -81,7 +81,7 @@ function sf-new-project {
             $newContext.solutionPath = $defaultContext.solutionPath;
 
             $newContext.branch = $branch
-            _create-workspace $newContext
+            _create-workspace $newContext -branch $branch
 
             $webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
             $newContext.webAppPath = $webAppPath
@@ -274,7 +274,7 @@ function sf-import-project {
         $newContext.webAppPath = $path + '\SitefinityWebApp'
         if ($branch) {
             $newContext.branch = $branch
-            _create-workspace -context $newContext
+            _create-workspace -context $newContext -branch $branch
         }
 
         _create-userFriendlySlnName $newContext
@@ -642,7 +642,7 @@ function _sf-validate-nameSyntax ($name) {
     return $name -match "^[A-Za-z]\w+$"
 }
 
-function _create-workspace ($context) {
+function _create-workspace ($context, $branch) {
     try {
         # create and map workspace
         Write-Host "Creating workspace..."
@@ -655,10 +655,10 @@ function _create-workspace ($context) {
 
     try {
         Write-Host "Creating workspace mappings..."
-        tfs-create-mappings -branch $context.branch -branchMapPath $context.solutionPath -workspaceName $workspaceName
+        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName
     }
     catch {
-        throw "Could not create mapping $($context.branch) in $($context.solutionPath) for workspace ${workspaceName}.`n $_"
+        throw "Could not create mapping $($branch) in $($context.solutionPath) for workspace ${workspaceName}.`n $_"
     }
 
     try {
