@@ -20,8 +20,11 @@ function _sf-get-appUrl {
     return $result
 }
 
-function _sf-get-domain {
-    [SfProject]$context = _get-selectedProject
+function _sf-get-domain ([SfProject]$context) {
+    if (-not $context) {        
+        $context = _get-selectedProject
+    }
+    
     return "$($context.displayName)_$($context.id).com"
 }
 

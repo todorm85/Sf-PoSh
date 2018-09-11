@@ -19,7 +19,7 @@ function sf-delete-container {
     foreach ($proj in $projects) {
         if ($removeProjects) {
             _sf-set-currentProject $proj
-            sf-delete-project -noPrompt
+            _sf-delete-project -noPrompt
         }
         else {
             $proj.containerName = ""

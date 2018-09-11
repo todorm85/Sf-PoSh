@@ -67,25 +67,20 @@ function sf-new-project {
             $branch = $customBranch
         }
 
-        $defaultContext = _sf-new-SfProject -displayName $displayName
-        # $defaultContext.
-        try {
-            $newContext = @{ id = $defaultContext.id }
-            $newContext.displayName = $defaultContext.displayName
-            if (Test-Path $defaultContext.solutionPath) {
-                throw "Path already exists:" + $defaultContext.solutionPath
-            }
+        $newContext = _sf-new-SfProject -displayName $displayName
+        if (Test-Path $newContext.solutionPath) {
+            throw "Path already exists:" + $newContext.solutionPath
+        }
 
+        try {
             Write-Host "Creating solution path..."
-            New-Item $defaultContext.solutionPath -type directory > $null
-            $newContext.solutionPath = $defaultContext.solutionPath;
+            New-Item $newContext.solutionPath -type directory > $null
 
             $newContext.branch = $branch
             _create-workspace $newContext -branch $branch
 
-            $webAppPath = $defaultContext.solutionPath + '\SitefinityWebApp'
+            $webAppPath = $newContext.solutionPath + '\SitefinityWebApp'
             $newContext.webAppPath = $webAppPath
-            $newContext.containerName = $defaultContext.containerName
 
             Write-Host "Backing up original App_Data folder..."
             $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
@@ -132,7 +127,7 @@ function sf-new-project {
             return
         }
 
-        _create-userFriendlySlnName $defaultContext
+        _create-userFriendlySlnName $newContext
 
         if ($buildSolution) {
             try {
@@ -161,7 +156,7 @@ function sf-new-project {
             
         try {
             Write-Host "Creating website..."
-            _sf-create-website -newWebsiteName $defaultContext.websiteName
+            _sf-create-website -context $newContext
         }
         catch {
             $startWebApp = $false
@@ -217,7 +212,7 @@ function sf-clone-project {
     try {
         $branch = tfs-get-branchPath -path $sourcePath
 
-        sf-import-project -displayName "$($context.displayName)-clone_$i" -path $targetPath -branch $branch -cloneDb $true
+        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -branch $branch -cloneDb $true
     }
     catch {
         throw "Error importing project.`n $_"        
@@ -306,7 +301,7 @@ function sf-import-project {
 
     try {
         Write-Host "Creating website..."
-        _sf-create-website -newWebsiteName $newContext.websiteName > $null
+        _sf-create-website -context $newContext > $null
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -339,6 +334,37 @@ function sf-import-project {
     os-popup-notification "Operation completed!"
 }
 
+function sf-delete-project {
+    $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
+    if ($null -eq $sitefinities[0]) {
+        Write-Host "No projects found. Create one."
+        return
+    }
+
+    sf-show-allProjects
+
+    $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
+    $choices = $choices.Split(' ')
+    [System.Collections.Generic.List``1[object]]$sfsToDelete = New-Object System.Collections.Generic.List``1[object]
+    foreach ($choice in $choices) {
+        [SfProject]$selectedSitefinity = $sitefinities[$choice]
+        if ($null -eq $selectedSitefinity) {
+            Write-Error "Invalid selection $choice"
+        }
+
+        $sfsToDelete.Add($selectedSitefinity)
+    }
+
+    foreach ($selectedSitefinity in $sfsToDelete) {
+        try {
+            _sf-delete-project -context $selectedSitefinity -noPrompt
+        }
+        catch {
+            Write-Error "Error deleting project with id = $($selectedSitefinity.id)"                
+        }
+    }
+}
+
 <#
     .SYNOPSIS 
     Deletes a sitefinity instance managed by the script.
@@ -353,7 +379,7 @@ function sf-import-project {
     .OUTPUTS
     None
 #>
-function sf-delete-project {
+function _sf-delete-project {
     [CmdletBinding()]
     Param(
         [switch]$keepWorkspace,
@@ -369,11 +395,16 @@ function sf-delete-project {
 
     $solutionPath = $context.solutionPath
     $workspaceName = tfs-get-workspaceName $context.webAppPath
-    $dbName = sf-get-appDbName
+    $dbName = sf-get-appDbName $context
     $websiteName = $context.websiteName
     
     if ($websiteName) {
-        sf-stop-pool
+        try {
+            sf-stop-pool -context $context
+        }
+        catch {
+            Write-Warning "Could not stop app pool: $_"            
+        }
     }
 
     # while ($true) {
@@ -396,7 +427,7 @@ function sf-delete-project {
             tfs-delete-workspace $workspaceName
         }
         catch {
-            Write-Host "Could not delete workspace $_.Exception.Message"
+            Write-Warning "Could not delete workspace $_"
         }
     }
 
@@ -407,7 +438,7 @@ function sf-delete-project {
             sql-delete-database -dbName $dbName
         }
         catch {
-            Write-Host "Could not delete database: ${dbName}. $_.Exception.Message"
+            Write-Warning "Could not delete database: ${dbName}. $_"
         }
     }
 
@@ -415,10 +446,10 @@ function sf-delete-project {
     Write-Host "Deleting website..."
     if ($websiteName) {
         try {
-            _sf-delete-website
+            _sf-delete-website $context
         }
         catch {
-            Write-Host "Errors deleting website ${websiteName}. $_.Exception.Message"
+            Write-Warning "Errors deleting website ${websiteName}. $_"
         }
     }
 
@@ -444,7 +475,7 @@ function sf-delete-project {
             }
         }
         catch {
-            Write-Host "Errors deleting sitefinity directory. $_.Exception.Message"
+            Write-Warning "Errors deleting sitefinity directory. $_"
         }
     }
 
@@ -478,26 +509,15 @@ function sf-rename-project {
     if ($markUnused) {
         $newName = "unused"
         $context.description = ""
-        $unusedName = "unused_$(Get-Date | ForEach-Object { $_.Ticks })"
-        $newDbName = $unusedName
-        $newWebsiteName = $unusedName
-        $newProjectName = $unusedName
-        $newWsName = $unusedName
     }
     else {
         $oldName | Set-Clipboard
-        while ($true) {
+        while ([string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-nameSyntax $newName))) {
+            if ($newName) {
+                Write-Warning "Invalid name syntax."
+            }
+
             $newName = $(Read-Host -Prompt "Enter new project name").ToString()
-            if ([string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-nameSyntax $newName))) {
-                Write-Host "Invalid name entered!"
-            }
-            else {
-                $newDbName = $newName
-                $newWebsiteName = $newName
-                $newProjectName = $newName
-                $newWsName = $newName
-                break;
-            }
         }
 
         if ($setDescription) {
@@ -506,6 +526,11 @@ function sf-rename-project {
     }
 
     $oldSolutionName = _get-solutionFriendlyName
+    if (-not $oldSolutionName) {
+        _create-userFriendlySlnName -context $context
+        $oldSolutionName = _get-solutionFriendlyName
+    }
+
     $oldDomain = _sf-get-domain
     $context.displayName = $newName
     _save-selectedProject $context
@@ -565,7 +590,7 @@ function _get-isIdDuplicate ($name) {
     foreach ($sitefinity in $sitefinities) {
         $sitefinity = [SfProject]$sitefinity
         if ($sitefinity.id -eq $name) {
-            return $true;
+            return [string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-nameSyntax $newName));
         }
     }    
 

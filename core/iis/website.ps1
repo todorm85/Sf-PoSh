@@ -95,15 +95,23 @@ function sf-remove-sitePorts {
     }
 }
 
+<#
+.SYNOPSIS
+Creates a website for the given project or currently selected one.
+
+.PARAMETER context
+The project for which to create a website.
+
+.NOTES
+General notes
+#>
 function _sf-create-website {
     Param(
-        [string]$newWebsiteName
+        [SfProject]$context
     )
 
-    $context = _get-selectedProject
-
-    if ($context.websiteName -ne '' -and $null -ne $context.websiteName -and (iis-test-isSiteNameDuplicate $context.websiteName)) {
-        throw 'Current context already has a website assigned!'
+    if (-not $context) {
+        $context = _get-selectedProject
     }
 
     $port = 1111
@@ -111,12 +119,17 @@ function _sf-create-website {
         $port++
     }
 
+    while ([string]::IsNullOrEmpty($context.websiteName) -or (iis-test-isSiteNameDuplicate $context.websiteName)) {
+        Write-Warning "Website with name $($context.websiteName) already exists or no name provided:"
+        $context.websiteName = Read-Host -Prompt "Enter site name"
+    }
+
+
     $newAppPath = $context.webAppPath
     $newAppPool = $context.id
     try {
-        iis-create-website -newWebsiteName $newWebsiteName -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool
+        iis-create-website -newWebsiteName $context.websiteName -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool
 
-        $context.websiteName = $newWebsiteName
         _save-selectedProject $context
     }
     catch {
@@ -128,19 +141,33 @@ function _sf-create-website {
     }
     catch {
         throw "Error creating login user in SQL server for IIS APPPOOL\${newAppPool}. Message:$_"
+        _sf-delete-website $context
+        $context.websiteName = ''
+        _save-selectedProject $context
     }
 
     try {
-        $domain = _sf-get-domain
+        $domain = _sf-get-domain -context $context
+        Show-Domains | ForEach-Object {
+            $found = $_ -match "^$domain .*$"
+        } | Out-Null
+        
+        if ($found) {
+            Remove-Domain $domain
+        }
+
         Add-Domain $domain $port   
     }
     catch {
-        throw "Error adding domain registration $domain Error: $_"
+        Write-Warning "Error adding domain registration $domain Error: $_"
     }
 }
 
-function _sf-delete-website {
-    $context = _get-selectedProject
+function _sf-delete-website ([SfProject]$context) {
+    if (-not $context) {
+        $context = _get-selectedProject
+    }
+
     $websiteName = $context.websiteName
     if ($websiteName -eq '') {
         throw "Website name not set."
@@ -155,14 +182,14 @@ function _sf-delete-website {
     catch {
         $context.websiteName = $websiteName
         _save-selectedProject $context
-        throw "Error: $_.Exception.Message"
+        throw "Error deleting website ${websiteName}: $_"
     }
 
     try {
         Remove-Item ("iis:\AppPools\$appPool") -Force -Recurse
     }
     catch {
-        throw "Error removing app pool $appPool Error: $_.Exception.Message"
+        throw "Error removing app pool $appPool Error: $_"
     }
 
     try {
@@ -173,7 +200,7 @@ function _sf-delete-website {
     }
 
     try {
-        $domain = _sf-get-domain
+        $domain = _sf-get-domain -context $context
         Remove-Domain $domain
     }
     catch {

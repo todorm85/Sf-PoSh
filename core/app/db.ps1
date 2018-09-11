@@ -1,5 +1,7 @@
-function sf-get-appDbName {
-    $context = _get-selectedProject
+function sf-get-appDbName ([SfProject]$context) {
+    if (-not $context) {
+        $context = _get-selectedProject
+    }
 
     $data = New-Object XML
     $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"

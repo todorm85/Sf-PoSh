@@ -46,11 +46,16 @@ function sf-reset-pool {
     }
 }
 
-function sf-stop-pool {
-    $context = _get-selectedProject
-    $appPool = @(iis-get-siteAppPool $context.websiteName)
-    if ($appPool -eq '') {
-        throw "No app pool set."
+function sf-stop-pool ([SfProject]$context) {
+    if (-not $context) {
+        $context = _get-selectedProject
+    }
+
+    try {
+        $appPool = @(iis-get-siteAppPool $context.websiteName)
+    }
+    catch {
+        throw "Error getting app pool $_"
     }
 
     Stop-WebItem ("IIS:\AppPools\" + $appPool)

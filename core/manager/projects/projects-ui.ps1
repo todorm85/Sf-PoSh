@@ -47,7 +47,7 @@ function sf-show-currentProject {
     $branchShortName = "no branch"
     if ($context.branch) {
         $branchParts = $context.branch.split('/')
-        $branchShortName = $branchParts[$branchParts.Count -1]
+        $branchShortName = $branchParts[$branchParts.Count - 1]
     }
 
     if (-not $detail) {
@@ -120,4 +120,3 @@ function sf-show-allProjects {
 
     $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id | Out-String | ForEach-Object { Write-Host $_ }
 }
-
