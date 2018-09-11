@@ -11,6 +11,8 @@ try {
             public string solutionPath { get; set;}
             public string webAppPath { get; set;}
             public string websiteName { get; set;}
+
+            // needed for performance when selecting sitefinities
             public string branch { get; set;}
             public string description { get; set;}
             public string containerName { get; set;}

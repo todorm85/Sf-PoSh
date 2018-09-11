@@ -48,7 +48,7 @@ function sf-reset-app {
         _sf-reset-appDataFiles
     }
     catch {
-        Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_.Exception.Message"
+        Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_"
     }
 
     if (-not [string]::IsNullOrEmpty($dbName)) {
@@ -57,7 +57,7 @@ function sf-reset-app {
             sql-delete-database -dbName $dbName
         }
         catch {
-            Write-Warning "Erros while deleting database: $_.Exception.Message"
+            Write-Warning "Erros while deleting database: $_"
         }
     }
 
@@ -72,7 +72,7 @@ function sf-reset-app {
             _sf-create-startupConfig $user $dbName
         }
         catch {
-            throw "Erros while creating startupConfig: $_.Exception.Message"
+            throw "Erros while creating startupConfig: $_"
         }
 
         try {
@@ -140,7 +140,7 @@ function sf-add-precompiledTemplates {
             os-del-filesAndDirsRecursive $dlls
         }
         catch {
-            throw "Item could not be deleted: $dll.PSPath`nMessage:$_.Exception.Message"
+            throw "Item could not be deleted: $dll.PSPath`nMessage:$_"
         }
     }
     else {
@@ -281,7 +281,7 @@ function _sf-create-startupConfig {
         $xmlWriter.Close() > $null
     }
     catch {
-        throw "Error creating startupConfig. Message: $_.Exception.Message"
+        throw "Error creating startupConfig. Message: $_"
     }
 }
 
@@ -298,7 +298,7 @@ function _sf-reset-appDataFiles {
             os-del-filesAndDirsRecursive $dirs
         }
         catch {
-            $errorMessage = "${errorMessage}`n" + $_.Exception.Message
+            $errorMessage = "${errorMessage}`n" + $_
         }
 
         Copy-Item -Path "$originalAppDataFilesPath\*" -Destination "${webAppPath}\App_Data" -Recurse -Force -Confirm:$false
@@ -310,7 +310,7 @@ function _sf-reset-appDataFiles {
             os-del-filesAndDirsRecursive $dirs
         }
         catch {
-            $errorMessage = "${errorMessage}`n" + $_.Exception.Message
+            $errorMessage = "${errorMessage}`n" + $_
         }
     } 
 

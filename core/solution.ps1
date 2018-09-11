@@ -31,7 +31,7 @@ function sf-rebuild-solution {
         sf-clean-solution -cleanPackages $cleanPackages
     }
     catch {
-        Write-Warning "Errors while cleaning solution: $_.Exception.Message"
+        Write-Warning "Errors while cleaning solution: $_"
     }
 
     sf-build-solution
@@ -61,7 +61,7 @@ function sf-clean-solution {
         os-del-filesAndDirsRecursive $dirs
     }
     catch {
-        $errorMessage = "Errors while deleting bins and objs:`n" + $_.Exception.Message
+        $errorMessage = "Errors while deleting bins and objs:`n" + $_
     }
 
     if ($errorMessage -ne '') {
@@ -76,7 +76,7 @@ function sf-clean-solution {
             os-del-filesAndDirsRecursive $dirs
         }
         catch {
-            $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_.Exception.Message
+            $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
         }
     }
 
@@ -150,12 +150,6 @@ function sf-build-webAppProj () {
     }
 
     _sf-build-proj $path
-}
-
-function sf-save-solution () {
-    $telerikSolution = "$($context.solutionPath)\Telerik.Sitefinity.sln"
-    $customSolution = "$($context.solutionPath)\$(_get-solutionFriendlyName $context)"
-    Copy-Item -Path $customSolution -Destination $telerikSolution -Force
 }
 
 function _sf-build-proj {

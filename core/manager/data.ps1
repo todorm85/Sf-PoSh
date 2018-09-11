@@ -37,7 +37,7 @@ function _sfData-delete-project {
         $data.Save($script:dataPath) > $null
     }
     catch {
-        throw "Error deleting sitefinity from ${dataPath}. Message: $_.Exception.Message"
+        throw "Error deleting sitefinity from ${dataPath}. Message: $_"
     }
 }
 
@@ -95,7 +95,7 @@ function _sfData-delete-container {
         $data.Save($script:dataPath) > $null
     }
     catch {
-        throw "Error deleting entity from ${dataPath}. Message: $_.Exception.Message"
+        throw "Error deleting entity from ${dataPath}. Message: $_"
     }
 }
 
