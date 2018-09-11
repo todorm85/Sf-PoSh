@@ -88,66 +88,22 @@ function iis-delete-appPool ($appPoolName) {
 
 function iis-create-website {
     Param(
-        [string]$newWebsiteName,
-        [string]$newPort,
-        [string]$newAppPath,
-        [string]$newAppPool
+        [Parameter(Mandatory = $true)][string]$newWebsiteName,
+        [Parameter(Mandatory = $true)][string]$newPort,
+        [Parameter(Mandatory = $true)][string]$newAppPath,
+        [Parameter(Mandatory = $true)][string]$newAppPool
     )
 
     _iis-load-webAdministrationModule
-    function select-appPool {
-        $availablePools = @(Get-ChildItem -Path "IIS:\AppPools")
-
-        # select appPool
-        ForEach ($pool in $availablePools) {
-            $index = [array]::IndexOf($availablePools, $pool)
-            Write-Host "$index : $($pool.Name)"
+    
+    $isReserved = $false
+    ForEach ($reservedPort in $reservedPorts) {
+        if ($reservedPort -eq $newPort) {
+            throw "Port ${newPort} already used"
         }
-
-        while ($true) {
-            [Int32]$selected = Read-Host -Prompt 'Select appPool: '
-            $selectedPool = $availablePools[$selected]
-            if ($null -ne $selectedPool) {
-                break
-            }
-        }
-
-        return $selectedPool.name
     }
 
-    if ($newWebsiteName -eq '') {
-        $newWebsiteName = Read-Host -Prompt "Enter site name"
-    }
-
-    if ($newPort -eq '') {
-        $newPort = Read-Host -Prompt 'Enter localhost port on which app will be hosted in IIS'
-    }
-
-    # select website port
-    $reservedPorts = iis-get-usedPorts
-    while ($true) {
-        $isReserved = $false
-        ForEach ($reservedPort in $reservedPorts) {
-            if ($reservedPort -eq $newPort) {
-                Write-Host "Port ${newPort} already used"
-                $isReserved = $true
-                break
-            }
-        }
-
-        if (!$isReserved) {
-            break;
-        }
-
-        $newPort = Read-Host -Prompt 'Enter localhost port on which app will be hosted in IIS'
-    }
-
-    #select app pool
     $availablePools = @(Get-ChildItem -Path "IIS:\AppPools")
-    if ($newAppPool -eq '') {
-        $newAppPool = select-appPool
-    }
-
     $found = $false
     ForEach ($pool in $availablePools) {
         if ($pool.name.ToLower() -eq $newAppPool) {
@@ -160,11 +116,6 @@ function iis-create-website {
         $poolPath = "IIS:\AppPools\$newAppPool"
         New-Item $poolPath
         Set-ItemProperty $poolPath -Name "processModel.idleTimeout" -Value ([TimeSpan]::FromMinutes(0))
-    }
-
-    # select app path
-    if ($newAppPath -eq '') {
-        $newAppPath = Read-Host -Prompt "Enter app physical path: "
     }
 
     # create website
