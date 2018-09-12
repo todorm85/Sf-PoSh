@@ -95,7 +95,7 @@ function sql-delete-items {
 
     _sql-load-module
 
-    $result = Invoke-SQLcmd -ServerInstance $sqlServerInstance -Query ("
+    Invoke-SQLcmd -ServerInstance $sqlServerInstance -Query ("
         DELETE FROM [${dbName}].[dbo].[${tableName}]
         WHERE $whereFilter")
 }

@@ -4,7 +4,7 @@ function _sfData-get-allProjects {
     $data.Load($script:dataPath)
     $sfs = $data.data.sitefinities.sitefinity
     if ($sfs) {
-        $result = $sfs | % {
+        $result = $sfs | ForEach-Object {
             return New-Object SfProject -Property @{
                 branch = $_.branch;
                 containerName = $_.containerName;
