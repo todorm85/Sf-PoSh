@@ -1,4 +1,4 @@
-function _sf-new-SfProject {
+function new-SfProject {
     [OutputType([SfProject])]
     Param(
         [string]$displayName

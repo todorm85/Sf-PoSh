@@ -18,8 +18,15 @@ function iis-get-websitePort {
 }
 
 function iis-show-appPoolPid {
-
-    & "C:\Windows\System32\inetsrv\appcmd.exe" list wps
+    try {
+        execute-native '& "C:\Windows\System32\inetsrv\appcmd.exe" list wps'
+        
+    }
+    catch {
+        if ($LASTEXITCODE -ne 1) {
+            throw $_
+        }
+    }
 }
 
 function iis-get-usedPorts {

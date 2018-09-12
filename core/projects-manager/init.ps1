@@ -1,10 +1,21 @@
 function init-managerContainers() {
+    Write-Host "init containers"
+    $data = New-Object XML
+    $data.Load($dataPath) > $null
+    $containers = $data.SelectSingleNode("/data/containers")
+    if ($null -eq $containers) {
+        $containersElement = $data.CreateElement("containers");
+        $data.data.AppendChild($containersElement)
+        $data.Save($dataPath) > $null
+    }
+
     # initialize
     $defaultContainerName = _sfData-get-defaultContainerName
-    if ($defaultContainerName -ne '') {
+    if ($null -ne $defaultContainerName) {
         $script:selectedContainer = _sfData-get-allContainers | Where-Object {$_.name -eq $defaultContainerName}
     }
     else {
+        _sfData-save-defaultContainer ''
         $script:selectedContainer = [PSCustomObject]@{ name = "" }
     }
 }
@@ -31,9 +42,9 @@ function init-managerData {
         # Finish The Document
         $xmlWriter.Flush()
         $xmlWriter.Close()
+        $XmlWriter.Dispose()
     }
 }
 
-"${PSScriptRoot}\load-types.ps1"
 init-managerData
 init-managerContainers

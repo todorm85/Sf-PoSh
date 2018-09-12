@@ -1,36 +1,20 @@
 function tfs-get-workspaces {
-        
-    [void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.TeamFoundation.Client");
-    [void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.TeamFoundation.VersionControl.Client");
-
-    # if no collection specified, open project picker to select it via gui
-    $picker = New-Object Microsoft.TeamFoundation.Client.TeamProjectPicker([Microsoft.TeamFoundation.Client.TeamProjectPickerMode]::NoProject, $false)
-    $dialogResult = $picker.ShowDialog()
-    if ($dialogResult -ne "OK") {
-        exit
+    $workspacesQueryResult = tf-query-workspaces
+    $lines = $workspacesQueryResult | % { $_ }
+    for ($i = 3; $i -lt $lines.Count; $i++) {
+        $lines[$i].Split(' ')[0]
     }
+}
 
-    $tfs = $picker.SelectedTeamProjectCollection
-    $tfs.EnsureAuthenticated()
-    $vcs = $tfs.GetService([Microsoft.TeamFoundation.VersionControl.Client.VersionControlServer]);
-
-    $wsname = [System.Management.Automation.Language.NullString]::Value
-    $computer = [Environment]::MachineName
-    $wss = $vcs.QueryWorkspaces($wsname, $null, $computer)
-    foreach($ws in $wss) {
-        $ws.Name
-    }
+function tf-query-workspaces {
+    execute-native "& `"$tfPath`" workspaces"
 }
 
 function tfs-delete-workspace {
     Param(
         [Parameter(Mandatory=$true)][string]$workspaceName)
 
-    $output = & $tfPath workspace $workspaceName /delete /noprompt
-    if ($LastExitCode -ne 0)
-    {
-        throw "$output"
-    }
+    execute-native "& `"$tfPath`" workspace $workspaceName /delete /noprompt"
 }
 
 function tfs-create-workspace {
@@ -42,24 +26,22 @@ function tfs-create-workspace {
     # needed otherwise if the current location is mapped to a workspace the command will throw
     Set-Location $path
 
-    $output = & $tfPath workspace $workspaceName /new /permission:private /noprompt 2>&1
-    if ($LastExitCode -ne 0)
-    {
-        throw "$output"
-    }
-
+    execute-native "& `"$tfPath`" workspace `"$workspaceName`" /new /permission:private /noprompt"
+    
     Start-Sleep -m 1000
 
-    $output = & $tfPath workfold /unmap '$/' /workspace:$workspaceName 2>&1
-    if ($LastExitCode -ne 0)
-    {
+    try {
+        execute-native "& `"$tfPath`" workfold /unmap `"$/`" /workspace:$workspaceName"
+    }
+    catch {
         try {
             tfs-delete-workspace $workspaceName
-        } catch {
-            throw "Workspace created but... Error removing default workspace mapping $/. Message: $output"
+        } 
+        catch {
+            throw "Workspace created but... Error removing default workspace mapping $/. Message: $_"
         }
 
-        throw "WORKSPACE NOT CREATED! Error removing default workspace mapping $/. Message: $output"
+        throw "WORKSPACE NOT CREATED! Error removing default workspace mapping $/. Message: $_"
     }
 }
 
@@ -72,7 +54,7 @@ function tfs-rename-workspace {
     try {
         $oldLocation = Get-Location
         Set-Location $path
-        & $tfPath workspace /newname:$newWorkspaceName /noprompt
+        execute-native "& `"$tfPath`" workspace /newname:$newWorkspaceName /noprompt"
         Set-Location $oldLocation
     }
     catch {
@@ -97,12 +79,12 @@ function tfs-create-mappings {
     # } catch {
     #     throw "could not create directory $branchMapPath"
     # }
-
-    $output = & $tfPath workfold /map $branch $branchMapPath /workspace:$workspaceName 2>&1
-    if ($LastExitCode -ne 0)
-    {
+    try {
+        execute-native "& `"$tfPath`" workfold /map `"$branch`" `"$branchMapPath`" /workspace:$workspaceName"
+    }
+    catch {
         Remove-Item $branchMapPath -force
-        throw "Error mapping branch to local directory. Message: $output"
+        throw "Error mapping branch to local directory. Message: $_"
     }
 }
 
@@ -119,19 +101,14 @@ function tfs-get-latestChanges {
     $oldLocation = Get-Location
     Set-Location -Path $branchMapPath
     if ($overwrite) {
-        $output = & $tfPath get /overwrite /noprompt 2>&1
+        $output = execute-native "& `"$tfPath`" get /overwrite /noprompt"
     } else {
-        $output = & $tfPath get 2>&1
+        $output = execute-native "& `"$tfPath`" get"
     }
 
     Set-Location $oldLocation
 
-    if ($LastExitCode -ne 0)
-    {
-        throw "Error getting latest changes. Message: $output `n"
-    } else {
-        Write-Host "Success getting latest changes from tfs branch."
-    }
+    Write-Host "Success getting latest changes from tfs branch."
 }
 
 function tfs-undo-pendingChanges {
@@ -139,14 +116,7 @@ function tfs-undo-pendingChanges {
         [Parameter(Mandatory=$true)][string]$localPath
         )
 
-    $output = & $tfPath undo /recursive /noprompt $localPath 2>&1
-
-    if ($LastExitCode -ne 0)
-    {
-        throw "Error undoing pending changes. Message: $output"
-    } else {
-        Write-Host $output
-    }       
+    execute-native "& `"$tfPath`" undo /recursive /noprompt $localPath"
 }
 
 function tfs-get-workspaceName {
@@ -156,7 +126,7 @@ function tfs-get-workspaceName {
     
     $oldLocation = Get-Location
     Set-Location $path
-    $wsInfo = & $tfPath workfold 2>&1
+    $wsInfo = execute-native "& `"$tfPath`" workfold"
     Set-Location $oldLocation
 
     try {
@@ -178,7 +148,7 @@ function tfs-get-branchPath {
     
     $oldLocation = Get-Location
     Set-Location $path
-    $wsInfo = & $tfPath workfold
+    $wsInfo = execute-native "& `"$tfPath`" workfold"
     Set-Location $oldLocation
 
     try {

@@ -9,7 +9,7 @@
 function sf-select-project {
     [CmdletBinding()]Param()
 
-    $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
+    $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
@@ -25,7 +25,7 @@ function sf-select-project {
         }
     }
 
-    _sf-set-currentProject $selectedSitefinity
+    set-currentProject $selectedSitefinity
     Set-Location $selectedSitefinity.webAppPath
     sf-show-currentProject
 }
@@ -92,7 +92,7 @@ function sf-show-currentProject {
     Shows info for all sitefinities managed by the script.
 #>
 function sf-show-allProjects {
-    $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
+    $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return

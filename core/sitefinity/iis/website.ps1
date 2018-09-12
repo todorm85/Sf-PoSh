@@ -33,15 +33,15 @@ function sf-browse-webSite {
     Param([switch]$useExistingBrowser)
 
     if (-not $useExistingBrowser) {
-        & Start-Process $browserPath
+        execute-native "& Start-Process `"$browserPath`""
     }
 
-    $appUrl = _sf-get-appUrl
-    if (-not (_sf-check-domainRegistered $appUrl)) {
-        $appUrl = _sf-get-appUrl -$useDevUrl
+    $appUrl = get-appUrl
+    if (-not (check-domainRegistered $appUrl)) {
+        $appUrl = get-appUrl -$useDevUrl
     }
 
-    & $browserPath "${appUrl}/Sitefinity" -noframemerging
+    execute-native "& `"$browserPath`" `"${appUrl}/Sitefinity`" -noframemerging"
 }
 
 <#
@@ -105,7 +105,7 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function _sf-create-website {
+function create-website {
     Param(
         [SfProject]$context
     )
@@ -120,8 +120,7 @@ function _sf-create-website {
     }
 
     while ([string]::IsNullOrEmpty($context.websiteName) -or (iis-test-isSiteNameDuplicate $context.websiteName)) {
-        Write-Warning "Website with name $($context.websiteName) already exists or no name provided:"
-        $context.websiteName = Read-Host -Prompt "Enter site name"
+        throw "Website with name $($context.websiteName) already exists or no name provided:"
     }
 
 
@@ -141,13 +140,13 @@ function _sf-create-website {
     }
     catch {
         throw "Error creating login user in SQL server for IIS APPPOOL\${newAppPool}. Message:$_"
-        _sf-delete-website $context
+        delete-website $context
         $context.websiteName = ''
         _save-selectedProject $context
     }
 
     try {
-        $domain = _sf-get-domain -context $context
+        $domain = get-domain -context $context
         Show-Domains | ForEach-Object {
             $found = $_ -match "^$domain .*$"
         } | Out-Null
@@ -163,7 +162,7 @@ function _sf-create-website {
     }
 }
 
-function _sf-delete-website ([SfProject]$context) {
+function delete-website ([SfProject]$context) {
     if (-not $context) {
         $context = _get-selectedProject
     }
@@ -200,7 +199,7 @@ function _sf-delete-website ([SfProject]$context) {
     }
 
     try {
-        $domain = _sf-get-domain -context $context
+        $domain = get-domain -context $context
         Remove-Domain $domain
     }
     catch {

@@ -13,7 +13,7 @@ function sf-build-solution {
         sf-build-webAppProj
     }
 
-    _sf-build-proj $solutionPath
+    build-proj $solutionPath
 }
 
 <#
@@ -101,7 +101,7 @@ function sf-clear-nugetCache {
         throw "invalid or no solution path"
     }
 
-    & "$($context.solutionPath)\.nuget\nuget.exe" locals all -clear
+    execute-native "& `"$($context.solutionPath)\.nuget\nuget.exe`" locals all -clear"
 }
 
 <#
@@ -131,7 +131,7 @@ function sf-open-solution {
         $solutionName = _get-solutionFriendlyName
     }
 
-    & $vsPath "${solutionPath}\${solutionName}"
+    execute-native "& $vsPath `"${solutionPath}\${solutionName}`""
 }
 
 <#
@@ -149,10 +149,10 @@ function sf-build-webAppProj () {
         throw "invalid or no solution or web app project path"
     }
 
-    _sf-build-proj $path
+    build-proj $path
 }
 
-function _sf-build-proj {
+function build-proj {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory)][string]$path

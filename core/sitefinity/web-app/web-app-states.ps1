@@ -36,16 +36,16 @@ function sf-save-appState {
     
 }
 
-function _sf-get-statesPath {
+function get-statesPath {
     $context = _get-selectedProject
     return "$($context.webAppPath)/sf-dev-tool/states"
 }
 
 function sf-restore-appState {
     $context = _get-selectedProject
-    $stateName = _sf-select-appState
+    $stateName = select-appState
     sf-reset-pool
-    $statesPath = _sf-get-statesPath
+    $statesPath = get-statesPath
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
     sql-delete-database $dbName
@@ -66,10 +66,10 @@ function sf-restore-appState {
 
 function sf-delete-appState ($stateName) {
     if ([string]::IsNullOrEmpty($stateName)) {
-        $stateName = _sf-select-appState
+        $stateName = select-appState
     }
 
-    $statesPath = _sf-get-statesPath
+    $statesPath = get-statesPath
     if ($statesPath) {
         $statePath = "${statesPath}/$stateName"
         Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse    
@@ -77,7 +77,7 @@ function sf-delete-appState ($stateName) {
 }
 
 function sf-delete-allAppStates {
-    $statesPath = _sf-get-statesPath
+    $statesPath = get-statesPath
     if (Test-Path $statesPath) {
         $states = Get-Item "${statesPath}/*"
         foreach ($state in $states) {
@@ -86,8 +86,8 @@ function sf-delete-allAppStates {
     }
 }
 
-function _sf-select-appState {
-    $statesPath = _sf-get-statesPath
+function select-appState {
+    $statesPath = get-statesPath
     $states = Get-Item "${statesPath}/*"
     
     $i = 0

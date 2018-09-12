@@ -67,7 +67,7 @@ function sf-new-project {
             $branch = $customBranch
         }
 
-        $newContext = _sf-new-SfProject -displayName $displayName
+        $newContext = new-SfProject -displayName $displayName
         if (Test-Path $newContext.solutionPath) {
             throw "Path already exists:" + $newContext.solutionPath
         }
@@ -89,7 +89,7 @@ function sf-new-project {
 
             # persist current context to script data
             $oldContext = _get-selectedProject
-            _sf-set-currentProject $newContext
+            set-currentProject $newContext
             _save-selectedProject $newContext
         }
         catch {
@@ -113,7 +113,7 @@ function sf-new-project {
             }
 
             if ($oldContext) {
-                _sf-set-currentProject $oldContext
+                set-currentProject $oldContext
             }
             
             # $displayInnerError = Read-Host "Display inner error? y/n"
@@ -134,7 +134,7 @@ function sf-new-project {
                 Write-Host "Building solution..."
                 $tries = 0
                 $retryCount = 3
-                while ($tries -lt $retryCount) {
+                while ($tries -le $retryCount) {
                     $tries++
                     try {
                         sf-build-solution
@@ -152,11 +152,13 @@ function sf-new-project {
                 $startWebApp = $false
                 Write-Warning "SOLUTION WAS NOT BUILT. Message: $_"
             }
+
+            sf-build-solution
         }
             
         try {
             Write-Host "Creating website..."
-            _sf-create-website -context $newContext
+            create-website -context $newContext
         }
         catch {
             $startWebApp = $false
@@ -166,15 +168,15 @@ function sf-new-project {
         if ($startWebApp) {
             try {
                 Write-Host "Initializing Sitefinity"
-                _sf-create-startupConfig
-                _sf-start-app
+                create-startupConfig
+                start-app
                 if ($precompile) {
                     sf-add-precompiledTemplates
                 }
             }
             catch {
                 Write-Warning "APP WAS NOT INITIALIZED. $_"
-                _sf-delete-startupConfig
+                delete-startupConfig
             }
         }        
 
@@ -262,7 +264,7 @@ function sf-import-project {
         throw "Cannot determine whether webapp or solution."
     }
 
-    [SfProject]$newContext = _sf-new-SfProject
+    [SfProject]$newContext = new-SfProject
     $newContext.displayName = $displayName
     if ($isSolution) {
         $newContext.solutionPath = $path
@@ -280,12 +282,12 @@ function sf-import-project {
     }
 
     $oldContext = _get-selectedProject
-    _sf-set-currentProject $newContext
+    set-currentProject $newContext
     try {
         _save-selectedProject $newContext
     }
     catch {
-        _sf-set-currentProject $oldContext
+        set-currentProject $oldContext
         throw "Could not import sitefinity. Could not write project to db. $($_)"
     }
 
@@ -301,7 +303,7 @@ function sf-import-project {
 
     try {
         Write-Host "Creating website..."
-        _sf-create-website -context $newContext > $null
+        create-website -context $newContext > $null
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -335,7 +337,7 @@ function sf-import-project {
 }
 
 function sf-delete-project {
-    $sitefinities = @(_sf-get-allProjectsForCurrentContainer)
+    $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
@@ -357,7 +359,7 @@ function sf-delete-project {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            _sf-delete-project -context $selectedSitefinity -noPrompt
+            delete-project -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"                
@@ -379,7 +381,7 @@ function sf-delete-project {
     .OUTPUTS
     None
 #>
-function _sf-delete-project {
+function delete-project {
     [CmdletBinding()]
     Param(
         [switch]$keepWorkspace,
@@ -446,7 +448,7 @@ function _sf-delete-project {
     Write-Host "Deleting website..."
     if ($websiteName) {
         try {
-            _sf-delete-website $context
+            delete-website $context
         }
         catch {
             Write-Warning "Errors deleting website ${websiteName}. $_"
@@ -481,7 +483,7 @@ function _sf-delete-project {
 
     Write-Host "Deleting data entry..."
     _sfData-delete-project $context
-    _sf-set-currentProject $null
+    set-currentProject $null
 
     if (-not ($noPrompt)) {
         sf-select-project
@@ -512,7 +514,7 @@ function sf-rename-project {
     }
     else {
         $oldName | Set-Clipboard
-        while ([string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-nameSyntax $newName))) {
+        while ([string]::IsNullOrEmpty($newName) -or (-not (validate-nameSyntax $newName))) {
             if ($newName) {
                 Write-Warning "Invalid name syntax."
             }
@@ -531,7 +533,7 @@ function sf-rename-project {
         $oldSolutionName = _get-solutionFriendlyName
     }
 
-    $oldDomain = _sf-get-domain
+    $oldDomain = get-domain
     $context.displayName = $newName
     _save-selectedProject $context
 
@@ -545,7 +547,7 @@ function sf-rename-project {
         # nothing to remove        
     }
     
-    $domain = _sf-get-domain
+    $domain = get-domain
     $websiteName = $context.websiteName
     $ports = @(iis-get-websitePort $websiteName)
     Add-Domain $domain $ports[0]
@@ -590,7 +592,7 @@ function _get-isIdDuplicate ($name) {
     foreach ($sitefinity in $sitefinities) {
         $sitefinity = [SfProject]$sitefinity
         if ($sitefinity.id -eq $name) {
-            return [string]::IsNullOrEmpty($newName) -or (-not (_sf-validate-nameSyntax $newName));
+            return [string]::IsNullOrEmpty($newName) -or (-not (validate-nameSyntax $newName));
         }
     }    
 
@@ -612,7 +614,7 @@ function _generateId {
     return $name
 }
 
-function _sf-set-currentProject {
+function set-currentProject {
     Param([SfProject]$newContext)
 
     _validate-project $newContext
@@ -663,7 +665,7 @@ function _get-selectedProject {
     return [SfProject]$context
 }
 
-function _sf-validate-nameSyntax ($name) {
+function validate-nameSyntax ($name) {
     return $name -match "^[A-Za-z]\w+$"
 }
 

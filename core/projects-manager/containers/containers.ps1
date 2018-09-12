@@ -1,5 +1,5 @@
 function sf-select-container {
-    $container = _sf-prompt-containerSelect
+    $container = prompt-containerSelect
     $script:selectedContainer = $container
     _sfData-save-defaultContainer $selectedContainer.name
     sf-select-project
@@ -14,12 +14,12 @@ function sf-delete-container {
         [switch]$removeProjects
     )
 
-    $container = _sf-prompt-containerSelect
+    $container = prompt-containerSelect
     $projects = @(_sfData-get-allProjects) | Where-Object {$_.containerName -eq $container.name}
     foreach ($proj in $projects) {
         if ($removeProjects) {
-            _sf-set-currentProject $proj
-            _sf-delete-project -noPrompt
+            set-currentProject $proj
+            delete-project -noPrompt
         }
         else {
             $proj.containerName = ""
@@ -40,12 +40,12 @@ function sf-delete-container {
 
 function sf-set-projectContainer {
     $context = _get-selectedProject
-    $container = _sf-prompt-containerSelect
+    $container = prompt-containerSelect
     $context.containerName = $container.name
     _save-selectedProject $context
 }
 
-function _sf-get-allProjectsForCurrentContainer {
+function get-allProjectsForCurrentContainer {
     $sitefinities = @(_sfData-get-allProjects)
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {

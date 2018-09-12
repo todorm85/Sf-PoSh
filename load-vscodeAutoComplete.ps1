@@ -1,1 +1,1 @@
-.\core\manager\load-types.ps1
+.\core\projects-manager\load-types.ps1

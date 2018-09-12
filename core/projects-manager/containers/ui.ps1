@@ -1,4 +1,4 @@
-function _sf-prompt-containerSelect {
+function prompt-containerSelect {
     $allContainers = @(_sfData-get-allContainers)
     [System.Collections.ArrayList]$output = @()
     if ($null -ne $allContainers[0]) {

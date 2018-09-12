@@ -3,17 +3,21 @@ function _sfData-get-allProjects {
     $data = New-Object XML
     $data.Load($script:dataPath)
     $sfs = $data.data.sitefinities.sitefinity
-    $result = $sfs | % {
-        return New-Object SfProject -Property @{
-            branch = $_.branch;
-            containerName = $_.containerName;
-            description = $_.description;
-            displayName = $_.displayName;
-            id = $_.id;
-            solutionPath = $_.solutionPath;
-            webAppPath = $_.webAppPath;
-            websiteName = $_.websiteName;
+    if ($sfs) {
+        $result = $sfs | % {
+            return New-Object SfProject -Property @{
+                branch = $_.branch;
+                containerName = $_.containerName;
+                description = $_.description;
+                displayName = $_.displayName;
+                id = $_.id;
+                solutionPath = $_.solutionPath;
+                webAppPath = $_.webAppPath;
+                websiteName = $_.websiteName;
+            }
         }
+    } else {
+        $result = @()
     }
 
     return $result
@@ -135,6 +139,7 @@ function _sfData-get-defaultContainerName {
 function _sfData-save-defaultContainer ($name) {
     $data = New-Object XML
     $data.Load($dataPath) > $null
-    $data.data.containers.SetAttribute("defaultContainerName", $name)
+    $containers = $data.SelectSingleNode("/data/containers")
+    $containers.SetAttribute("defaultContainerName", $name)
     $data.Save($dataPath) > $null
 }

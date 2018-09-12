@@ -45,7 +45,7 @@ function sf-reset-app {
 
     Write-Host "Resetting App_Data files..."
     try {
-        _sf-reset-appDataFiles
+        reset-appDataFiles
     }
     catch {
         Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_"
@@ -62,28 +62,28 @@ function sf-reset-app {
     }
 
     if ($createStartupConfig) {
-        _sf-create-startupConfig $user $dbName
+        create-startupConfig $user $dbName
     }
 
     if ($start) {
         Start-Sleep -s 2
 
         try {
-            _sf-create-startupConfig $user $dbName
+            create-startupConfig $user $dbName
         }
         catch {
             throw "Erros while creating startupConfig: $_"
         }
 
         try {
-            $appUrl = _sf-get-appUrl
-            _sf-start-app -url $appUrl
+            $appUrl = get-appUrl
+            start-app -url $appUrl
         }
         catch {
             Write-Host "`n`n"
             Write-Warning "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`n"
 
-            _sf-delete-startupConfig
+            delete-startupConfig
             
             $choice = Read-Host "Display stack trace? [y/n]"
             while ($true) {
@@ -133,7 +133,7 @@ function sf-add-precompiledTemplates {
     
     $context = _get-selectedProject
     $webAppPath = $context.webAppPath
-    $appUrl = _sf-get-appUrl
+    $appUrl = get-appUrl
     if ($revert) {
         $dlls = Get-ChildItem -Force "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
         try {
@@ -148,7 +148,7 @@ function sf-add-precompiledTemplates {
     }
 }
 
-function _sf-start-app {
+function start-app {
     param(
         [string]$url,
         [Int32]$totalWaitSeconds = 5 * 60
@@ -218,7 +218,7 @@ function _invoke-NonTerminatingRequest ($url) {
     }
 }
 
-function _sf-delete-startupConfig {
+function delete-startupConfig {
     $context = _get-selectedProject
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
@@ -227,7 +227,7 @@ function _sf-delete-startupConfig {
     }
 }
 
-function _sf-create-startupConfig {
+function create-startupConfig {
     param(
         [string]$user = $defaultUser,
         [string]$dbName = $null,
@@ -285,7 +285,7 @@ function _sf-create-startupConfig {
     }
 }
 
-function _sf-reset-appDataFiles {
+function reset-appDataFiles {
     [SfProject]$context = _get-selectedProject
     $webAppPath = $context.webAppPath
     $errorMessage = ''

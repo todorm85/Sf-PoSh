@@ -1,9 +1,9 @@
-function _sf-get-appUrl {
+function get-appUrl {
     Param([switch]$useDevUrl)
     $context = _get-selectedProject
 
     if ($useDevUrl) {
-        return _sf-get-devAppUrl
+        return get-devAppUrl
     }
 
     $port = @(iis-get-websitePort $context.websiteName)[0]
@@ -11,7 +11,7 @@ function _sf-get-appUrl {
         throw "No sitefinity port set."
     }
 
-    $domain = _sf-get-domain
+    $domain = get-domain
     $result = "http://${domain}:$port"
     if ($null -ne $subAppName) {
         $result = "${result}/${subAppName}"
@@ -20,7 +20,7 @@ function _sf-get-appUrl {
     return $result
 }
 
-function _sf-get-domain ([SfProject]$context) {
+function get-domain ([SfProject]$context) {
     if (-not $context) {        
         $context = _get-selectedProject
     }
@@ -28,11 +28,11 @@ function _sf-get-domain ([SfProject]$context) {
     return "$($context.displayName)_$($context.id).com"
 }
 
-function _sf-check-domainRegistered ($domain) {
+function check-domainRegistered ($domain) {
     return Show-Domains -match "^$domain .*"
 }
 
-function _sf-get-devAppUrl {
+function get-devAppUrl {
     $context = _get-selectedProject
     
     $port = @(iis-get-websitePort $context.websiteName)[0]
