@@ -1,2 +1,0 @@
-Invoke-Pester -Path C:\Users\tmitskov\Documents\WindowsPowerShell\Modules\sf-dev\tests\sf-dev.tests.ps1
-Invoke-Pester -Path C:\Users\tmitskov\Documents\WindowsPowerShell\Modules\sf-dev\tests\sf-dev.tests.ps1 -TestName

@@ -33,3 +33,5 @@ $defaultPassword = 'admin@2'
 
 $predefinedBranches = @("$/CMS/Sitefinity 4.0/Code Base",
 "$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_2_Fixes")
+
+$script:idPrefix = "sf_"

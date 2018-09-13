@@ -23,4 +23,4 @@ Mock _generateId {
     return $name
 }
 
-. "${PSScriptRoot}\..\bootstrap\load-scripts.ps1"
+. "${PSScriptRoot}\..\module\bootstrap\load-scripts.ps1"

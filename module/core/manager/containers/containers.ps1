@@ -46,13 +46,10 @@ function sf-set-projectContainer {
 }
 
 function get-allProjectsForCurrentContainer {
-    $sitefinities = @(_sfData-get-allProjects)
-    [System.Collections.ArrayList]$output = @()
+    $sitefinities = _sfData-get-allProjects
     foreach ($sitefinity in $sitefinities) {
         if ($script:selectedContainer.name -eq $sitefinity.containerName) {
-            $output.add($sitefinity) > $null
+            $sitefinity
         }
     }
-
-    return $output
 }

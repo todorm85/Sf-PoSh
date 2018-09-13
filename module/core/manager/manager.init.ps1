@@ -7,16 +7,18 @@ function init-managerContainers() {
         $containersElement = $data.CreateElement("containers");
         $data.data.AppendChild($containersElement)
         $data.Save($dataPath) > $null
+        _sfData-save-defaultContainer ''
     }
 
     # initialize
     $defaultContainerName = _sfData-get-defaultContainerName
-    if ($null -ne $defaultContainerName) {
+    if (-not [string]::IsNullOrEmpty($defaultContainerName)) {
         $script:selectedContainer = _sfData-get-allContainers | Where-Object {$_.name -eq $defaultContainerName}
-    }
+    } 
     else {
-        _sfData-save-defaultContainer ''
-        $script:selectedContainer = [PSCustomObject]@{ name = "" }
+        $script:selectedContainer = [PSCustomObject]@{
+            name = ''
+        }
     }
 }
 

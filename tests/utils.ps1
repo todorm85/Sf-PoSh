@@ -1,4 +1,3 @@
-
 function clean-testAll () {
     Write-Host "Tests cleanup"
     Write-Host "Resetting IIS..."

@@ -1,9 +1,9 @@
 function Load-ScriptFiles ($path) {
-    Get-ChildItem -Path $path -Filter '*.ps1' -Recurse | Where-Object { $_.BaseName -ne "init" }
+    Get-ChildItem -Path $path -Filter '*.ps1' -Recurse | Where-Object { -not $_.Name.EndsWith(".init.ps1") }
 }
 
 function Load-InitScriptFiles ($path) {
-    Get-ChildItem -Path $path -Filter '*.ps1' -Recurse | Where-Object { $_.BaseName -eq "init" }
+    Get-ChildItem -Path $path -Filter '*.ps1' -Recurse | Where-Object { $_.Name.EndsWith(".init.ps1") }
 }
 
 # Do not dot source in function scope it won`t be loaded inside the module

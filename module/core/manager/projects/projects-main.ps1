@@ -602,7 +602,7 @@ function _get-isIdDuplicate ($name) {
 function _generateId {
     $i = 0;
     while ($true) {
-        $name = "sf_$i"
+        $name = "$($Script:idPrefix)$i"
         $isDuplicate = (_get-isIdDuplicate $name)
         if (-not $isDuplicate) {
             break;

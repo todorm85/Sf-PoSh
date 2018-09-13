@@ -1,11 +1,10 @@
 function _sfData-get-allProjects {
-    [OutputType([SfProject[]])]
     $data = New-Object XML
     $data.Load($script:dataPath)
     $sfs = $data.data.sitefinities.sitefinity
     if ($sfs) {
-        $result = $sfs | ForEach-Object {
-            return New-Object SfProject -Property @{
+        $sfs | ForEach-Object {
+            New-Object SfProject -Property @{
                 branch = $_.branch;
                 containerName = $_.containerName;
                 description = $_.description;
@@ -16,11 +15,7 @@ function _sfData-get-allProjects {
                 websiteName = $_.websiteName;
             }
         }
-    } else {
-        $result = @()
     }
-
-    return $result
 }
 
 function _sfData-delete-project {
