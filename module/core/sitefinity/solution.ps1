@@ -131,7 +131,7 @@ function sf-open-solution {
         $solutionName = _get-solutionFriendlyName
     }
 
-    execute-native "& $vsPath `"${solutionPath}\${solutionName}`""
+    execute-native "& `"$vsPath`" `"${solutionPath}\${solutionName}`""
 }
 
 <#
