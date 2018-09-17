@@ -130,30 +130,26 @@ function sf-new-project {
         _create-userFriendlySlnName $newContext
 
         if ($buildSolution) {
-            try {
-                Write-Host "Building solution..."
-                $tries = 0
-                $retryCount = 3
-                while ($tries -le $retryCount) {
-                    $tries++
-                    try {
-                        sf-build-solution
+            Write-Host "Building solution..."
+            $tries = 0
+            $retryCount = 3
+            $isBuilt = $false
+            while ($tries -le $retryCount -and (-not $isBuilt)) {
+                try {
+                    $output = sf-build-solution
+                    $isBuilt = $true
+                }
+                catch {
+                    Write-Host "Build failed."
+                    if ($tries -le $retryCount) {
+                        Write-Host "Retrying..." 
+                        $tries++
                     }
-                    catch {
-                        Write-Host "Build failed."
-                        if ($tries > 0) {
-                            Write-Host "Retrying..." 
-                        }
-                        else { throw "Solution could not build after $retryCount retries" }
+                    else {
+                        Write-Error "Solution could not build after $retryCount retries. Last error: $output"
                     }
                 }
             }
-            catch {
-                $startWebApp = $false
-                Write-Warning "SOLUTION WAS NOT BUILT. Message: $_"
-            }
-
-            sf-build-solution
         }
             
         try {
