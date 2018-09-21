@@ -67,7 +67,7 @@ function sf-new-project {
             $branch = $customBranch
         }
 
-        $newContext = new-SfProject -displayName $displayName
+        [SfProject]$newContext = new-SfProject -displayName $displayName
         if (Test-Path $newContext.solutionPath) {
             throw "Path already exists:" + $newContext.solutionPath
         }
@@ -98,7 +98,7 @@ function sf-new-project {
         
             try {
                 Write-Host "Deleting workspace..."
-                tfs-delete-workspace $workspaceName
+                tfs-delete-workspace $newContext.id
             }
             catch {
                 Write-Warning "No workspace created to delete."
