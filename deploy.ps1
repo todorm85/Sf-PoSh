@@ -2,7 +2,7 @@ Param($destination = "$($ENV:USERPROFILE)\Documents\WindowsPowerShell\Modules\sf
 
 Write-Host "Deploying..."
 
-. "$PSScriptRoot\manifest-generator.ps1"
+# . "$PSScriptRoot\manifest-generator.ps1"
 
 $filtered = @('db.xml', 'config.ps1')
 

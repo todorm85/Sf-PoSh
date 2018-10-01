@@ -380,6 +380,7 @@ function sf-delete-projects {
 function sf-delete-project {
     [CmdletBinding()]
     Param(
+        [switch]$keepDb,
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles,
         [switch]$force,
@@ -430,7 +431,7 @@ function sf-delete-project {
     }
 
     # Del db
-    if (-not [string]::IsNullOrEmpty($dbName)) {
+    if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
         Write-Host "Deleting sitefinity database..."
         try {
             sql-delete-database -dbName $dbName
