@@ -132,7 +132,13 @@ function tfs-get-workspaceName {
     
     $oldLocation = Get-Location
     Set-Location $path
-    $wsInfo = execute-native "& `"$tfPath`" workfold"
+    try {
+        $wsInfo = execute-native "& `"$tfPath`" workfold"
+    }
+    catch {
+        Write-Warning "Error querying workspace name: $_"
+    }
+
     Set-Location $oldLocation
 
     try {
