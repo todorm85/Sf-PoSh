@@ -7,7 +7,13 @@ function tfs-get-workspaces {
 }
 
 function tf-query-workspaces {
-    execute-native "& `"$tfPath`" workspaces"
+    try {
+        execute-native "& `"$tfPath`" workspaces"
+    }
+    catch {
+        Write-Warning "Error querying tf.exe `n $_"
+        return $null     
+    }
 }
 
 function tfs-delete-workspace {

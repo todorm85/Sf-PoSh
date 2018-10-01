@@ -69,6 +69,15 @@ InModuleScope sf-dev {
             $res | Should -HaveCount 2
             $res[1] | Should -Be "line2"
         }
+        
+        It "return null if native errors out" {
+            Mock execute-native { 
+                throw "Dummy errors"
+            }
+            
+            $res = tf-query-workspaces
+            $res | Should -Be $null
+        }
     }
 
     Describe "tfs-create-workspace" {
