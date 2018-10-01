@@ -332,7 +332,7 @@ function sf-import-project {
     os-popup-notification "Operation completed!"
 }
 
-function sf-delete-project {
+function sf-delete-projects {
     $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
@@ -355,7 +355,7 @@ function sf-delete-project {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            delete-project -context $selectedSitefinity -noPrompt
+            sf-delete-project -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"                
@@ -377,7 +377,7 @@ function sf-delete-project {
     .OUTPUTS
     None
 #>
-function delete-project {
+function sf-delete-project {
     [CmdletBinding()]
     Param(
         [switch]$keepWorkspace,
