@@ -1,4 +1,4 @@
-function sf-save-appState {
+function sf-new-appState {
     $context = _get-selectedProject
     
     $dbName = sf-get-appDbName
@@ -54,14 +54,19 @@ function sf-restore-appState {
     $appDataStatePath = "$statePath/App_Data"
     $appDataPath = "$($context.webAppPath)/App_Data"
     if (Test-Path $appDataPath) {
-        Remove-Item "$appDataPath/*" -Force -ErrorAction SilentlyContinue -Recurse
+        try {
+            Remove-Item "$appDataPath/*" -Force -ErrorAction Continue -Recurse
+        }
+        catch {
+            Write-Warning "Some files in App_Data folder failed to clean up";
+        }
     }
     else {
         New-Item $appDataPath -ItemType Directory > $null
     }
     
     sf-reset-pool
-    Copy-Item "$appDataStatePath/*" $appDataPath -Recurse -Force
+    Copy-Item "$appDataStatePath/*" $appDataPath -Recurse -Force -ErrorAction Continue
 }
 
 function sf-delete-appState ($stateName) {

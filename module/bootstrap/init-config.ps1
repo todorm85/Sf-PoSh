@@ -1,8 +1,8 @@
 # init config
-$Script:configPath = ".\config.ps1"
-$defaultConfigPath = ".\config.default.ps1"
-if (-not (Test-Path $configPath)) {
-    Copy-Item $defaultConfigPath $configPath
-}
+$defaultConfig = ".\config.ps1"
+$userConf = ".\config.user.ps1"
 
-. $Script:configPath
+. $defaultConfig
+if (Test-Path $userConf) {
+    . $userConf
+}

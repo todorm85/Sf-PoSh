@@ -1,6 +1,6 @@
 .vscode
 *.log
-*/config.ps1
+*/config.user.ps1
 */db*.xml
 */commands.txt
 debug-commands.txt

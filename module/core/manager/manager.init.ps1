@@ -1,5 +1,4 @@
 function init-managerContainers() {
-    Write-Host "init containers"
     $data = New-Object XML
     $data.Load($dataPath) > $null
     $containers = $data.SelectSingleNode("/data/containers")

@@ -1,10 +1,5 @@
-# Set your Environment Constants and variables here then reload the module
-
-# DELETE THIS LINE AFTER FINISHED CONFIGURATION!
-throw "Please, configure the module before using in ${PSScriptRoot}\config.ps1"
-
 # the path where provisioned sitefinity projects by the script will be created in. The directory must exist.
-$script:projectsDirectory = "d:\sitefinities"
+$script:projectsDirectory = ""
 
 # the sql server name that you use to connect to sql server. This db server will be used to created provisioned sitefinity dbs.
 $script:sqlServerInstance = '.'
@@ -15,6 +10,7 @@ $script:browserPath = "C:\Program Files (x86)\Google\Chrome\Application\chrome.e
 # path to visual studio used to launch projects from the script
 # $script:vsPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe" #VS2015
 $script:vsPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.exe" #VS2017
+$script:vsCmdPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\devenv.com" #VS2017
 
 # msbuild used by the script to build projects.
 # $script:msBuildPath = "C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe"  # VS2015
@@ -25,13 +21,37 @@ $script:msBuildPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Profe
 $script:tfPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\TF.exe" #VS2017
 
 # where info about created and imported sitefinities will be stored
-$script:dataPath = "$($env:USERPROFILE)\db.xml"
+$script:dataPath = "${PSScriptRoot}\db.xml"
+
+$Script:externalTools = "${PSScriptRoot}\external-tools"
+
+# Preconfigured function shortcuts (aliases in powershell)
+
+New-Alias -name s -value sf-select-project
+New-Alias -Name dpr -Value sf-delete-project
+New-Alias -Name rpr -Value sf-rename-project
+
+New-Alias -Name scp -Value sf-show-currentProject
+
+New-Alias -name o -value sf-open-solution
+
+New-Alias -name b -value sf-browse-webSite
+
+New-Alias -name rap -value sf-reset-app
+New-Alias -name rpo -value sf-reset-pool
+
+New-Alias -name nas -value sf-new-appState
+New-Alias -name ras -value sf-restore-appState
+New-Alias -name das -value sf-delete-appState
+
+New-Alias -name sco -value sf-select-container
+New-Alias -name spc -value sf-set-projectContainer
 
 # Global settings
-$defaultUser = 'admin@test.test'
-$defaultPassword = 'admin@2'
+$script:defaultUser = ''
+$script:defaultPassword = ''
 
-$predefinedBranches = @("$/CMS/Sitefinity 4.0/Code Base",
-"$/CMS/Sitefinity 4.0/OfficialReleases/Release_10_2_Fixes")
+$script:predefinedBranches = @("$/CMS/Sitefinity 4.0/Code Base",
+"$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base")
 
-$script:idPrefix = "sf_"
+$script:idPrefix = ""
