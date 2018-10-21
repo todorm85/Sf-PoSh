@@ -1,22 +1,21 @@
-function sf-new-appState {
+function sf-new-appState ($stateName) {
     $context = _get-selectedProject
     
     $dbName = sf-get-appDbName
     if (-not $dbName) {
         throw "Current app is not initialized with a database. No databse name found in dataConfig.config"
     }
-    
-    while ($true) {
+
+    $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
+    while (-not $stateName -or (Test-Path $statePath)) {
         $stateName = Read-Host -Prompt "Enter state name:"
         $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
-        $appDataStatePath = "$statePath/App_Data"
-        if (-not (Test-Path $appDataStatePath)) {
-            New-Item $appDataStatePath -ItemType Directory > $null
-            break;
-        }
     }
 
-    $Acl = Get-Acl $statePath
+    $appDataStatePath = "$statePath/App_Data"
+    New-Item $appDataStatePath -ItemType Directory > $null
+
+    $Acl = Get-Acl -Path $statePath
     $Ar = New-Object  system.security.accesscontrol.filesystemaccessrule("Everyone", "Full", "ContainerInherit,ObjectInherit", "None", "Allow")
     $Acl.SetAccessRule($Ar)
     Set-Acl $statePath $Acl
@@ -41,9 +40,12 @@ function get-statesPath {
     return "$($context.webAppPath)/sf-dev-tool/states"
 }
 
-function sf-restore-appState {
+function sf-restore-appState ($stateName) {
     $context = _get-selectedProject
-    $stateName = select-appState
+    if (-not $stateName) {
+        $stateName = select-appState
+    }
+    
     sf-reset-pool
     $statesPath = get-statesPath
     $statePath = "${statesPath}/$stateName"
@@ -54,19 +56,14 @@ function sf-restore-appState {
     $appDataStatePath = "$statePath/App_Data"
     $appDataPath = "$($context.webAppPath)/App_Data"
     if (Test-Path $appDataPath) {
-        try {
-            Remove-Item "$appDataPath/*" -Force -ErrorAction Continue -Recurse
-        }
-        catch {
-            Write-Warning "Some files in App_Data folder failed to clean up";
-        }
+        Remove-Item "$appDataPath/*" -Force -Recurse
     }
     else {
         New-Item $appDataPath -ItemType Directory > $null
     }
     
     sf-reset-pool
-    Copy-Item "$appDataStatePath/*" $appDataPath -Recurse -Force -ErrorAction Continue
+    Copy-Item "$appDataStatePath/*" $appDataPath -Recurse -Force
 }
 
 function sf-delete-appState ($stateName) {
