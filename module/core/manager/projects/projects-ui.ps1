@@ -26,7 +26,7 @@ function sf-select-project {
     }
 
     set-currentProject $selectedSitefinity
-    Set-Location $selectedSitefinity.webAppPath
+    
     sf-show-currentProject
 }
 

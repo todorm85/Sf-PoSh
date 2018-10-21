@@ -589,7 +589,7 @@ function _get-isIdDuplicate ($name) {
     foreach ($sitefinity in $sitefinities) {
         $sitefinity = [SfProject]$sitefinity
         if ($sitefinity.id -eq $name) {
-            return [string]::IsNullOrEmpty($newName) -or (-not (validate-nameSyntax $newName));
+            return $true;
         }
     }    
 
@@ -608,6 +608,10 @@ function _generateId {
         $i++
     }
 
+    if ([string]::IsNullOrEmpty($name) -or (-not (validate-nameSyntax $name))) {
+        throw "Invalid id $name"
+    }
+    
     return $name
 }
 
@@ -628,6 +632,7 @@ function set-currentProject {
         }
 
         [System.Console]::Title = "$($newContext.displayName) ($($newContext.id)) $branch $ports "
+        Set-Location $newContext.webAppPath
     }
     else {
         [System.Console]::Title = ""
