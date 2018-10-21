@@ -1,1 +1,1 @@
-Import-Module "E:\sf-dev\module\sf-dev.psm1" -Force
+Import-Module "$PSScriptRoot\module\sf-dev.psm1" -Force
