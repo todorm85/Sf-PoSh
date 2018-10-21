@@ -1,7 +1,2 @@
 .vscode
 *.log
-*/config.user.ps1
-*/db*.xml
-*/commands.txt
-debug-commands.txt
-load-dev-module.ps1
