@@ -71,21 +71,20 @@ function sql-update-items {
 
     $result = Invoke-SQLcmd -ServerInstance $sqlServerInstance -Query "
         UPDATE [${dbName}].[dbo].[${tableName}]
-        SET dta='${value}'
+        SET ${value}
         WHERE $whereFilter"
 
     return $result
 }
 
 function sql-insert-items {
-    Param($dbName, $tableName, $value, $whereFilter)
+    Param($dbName, $tableName, $columns, $values)
 
     _sql-load-module
 
     $result = Invoke-SQLcmd -ServerInstance $sqlServerInstance -Query "
-        UPDATE [${dbName}].[dbo].[${tableName}]
-        SET dta='${value}'
-        WHERE $whereFilter"
+        INSERT INTO [${dbName}].[dbo].[${tableName}] ($columns)
+        VALUES (${values})"
 
     return $result
 }
