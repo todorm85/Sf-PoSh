@@ -1,7 +1,6 @@
-Import-Module sf-dev
+. "${PSScriptRoot}\..\Infrastructure\load-module.ps1"
 
 InModuleScope sf-dev {
-    . "${PSScriptRoot}\init-tests.ps1"
     
     Describe "tfs-get-workspaces" {
 
@@ -43,9 +42,6 @@ InModuleScope sf-dev {
             $projects = tfs-get-workspaces
             $projects | Should -HaveCount 1
         }
-
-        clean-testDb
-
     }
 
     Describe "tf-query-workspaces" {

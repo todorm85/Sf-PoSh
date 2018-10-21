@@ -1,9 +1,11 @@
 function clean-testAll () {
-    Write-Host "Tests cleanup"
-    Write-Host "Resetting IIS..."
+    . ".\load-module.ps1"
+
     iisreset.exe
 
     stop-allMsbuild
+    
+    $baseTestId = $script:idPrefix
 
     try {
         Write-Host "Sites cleanup"
@@ -67,7 +69,7 @@ function clean-testAll () {
         Write-Warning "Databases were not cleaned up: $_"
     }
 
-    clean-testDb
+    # clean-testDb
 
     try {
         Set-Location -Path $PSHOME
@@ -82,19 +84,9 @@ function clean-testAll () {
     Set-Location "$PSScriptRoot\..\"
 }
 
-function clean-testDb {
-    try {
-        Write-Host "Module test db cleanup"
-        Remove-Item $Script:dataPath
-    }
-    catch {
-        Write-Warning "Module db file was not cleaned up: $_"
-    }
-}
-
 function stop-allMsbuild {
     try {
-        $processes = Get-Process msbuild -ErrorAction 'Stop' | Stop-Process
+        $processes = Get-Process msbuild -ErrorAction Stop | Stop-Process -ErrorAction Stop
     }
     catch {
         Write-Warning "MSBUILD stop: $_"

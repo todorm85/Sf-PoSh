@@ -1,9 +1,21 @@
-Import-Module sf-dev
+. "${PSScriptRoot}\..\Infrastructure\load-module.ps1"
 
 InModuleScope sf-dev {
-    . "${PSScriptRoot}\init-tests.ps1"
     
     Describe "_sfData-get-allProjects" {
+        $oldDataPath
+
+        BeforeAll {
+            $oldDataPath = $Script:dataPath
+            $Script:dataPath = "$($Script:prjectsDirectory)\data-tests-db.xml"
+            if (Test-Path $dataPath) {
+                Remove-Item $dataPath -Force
+            }
+            else {
+                . "$PSScriptRoot\..\..\module\core\manager\manager.init.ps1"
+            }
+        }
+
         It "return empty collection when no projects" {
             $projects = _sfData-get-allProjects
             $projects | Should -HaveCount 0
@@ -11,9 +23,9 @@ InModuleScope sf-dev {
 
         It "return correct count of projects" {
             $proj1 = New-Object SfProject -Property @{
-                branch = "test-branch";
+                branch        = "test-branch";
                 containerName = "test-container";
-                id = "id1";
+                id            = "id1";
             }
 
             _sfData-save-project -context $proj1
@@ -26,9 +38,9 @@ InModuleScope sf-dev {
 
         It "return correct count of projects when many" {
             $proj1 = New-Object SfProject -Property @{
-                branch = "test-branch";
+                branch        = "test-branch";
                 containerName = "test-container";
-                id = "id1";
+                id            = "id1";
             }
 
             _sfData-save-project -context $proj1
@@ -43,6 +55,18 @@ InModuleScope sf-dev {
             $projects[0].containerName | Should -Be "test-container"
         }
 
-        clean-testDb
-    } -Tag "Unit"
+        AfterAll {
+            try {
+                Write-Host "Module test db cleanup"
+                Remove-Item $Script:dataPath
+            }
+            catch {
+                Write-Warning "Module db file was not cleaned up: $_"
+            }
+            finally {
+                $Script:dataPath = $oldDataPath
+            }
+        }
+
+    }
 }

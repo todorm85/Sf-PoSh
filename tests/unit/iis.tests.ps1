@@ -1,7 +1,6 @@
-Import-Module sf-dev
+. "${PSScriptRoot}\..\Infrastructure\load-module.ps1"
 
 InModuleScope sf-dev {
-    . "${PSScriptRoot}\init-tests.ps1"
 
     Describe "iis-show-appPoolPid should" {
         It "return process ids correctly" {
