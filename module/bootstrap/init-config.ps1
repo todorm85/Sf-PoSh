@@ -6,3 +6,7 @@ $userConf = ".\config.user.ps1"
 if (Test-Path $userConf) {
     . $userConf
 }
+
+if ($script:customConfigPath -and (Test-Path $script:customConfigPath)) {
+    . $script:customConfigPath
+}
