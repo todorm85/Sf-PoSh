@@ -1,3 +1,7 @@
+if (-not $tfPath) {
+    $script:tfPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\TF.exe" #VS2017
+}
+
 function tfs-get-workspaces {
     $workspacesQueryResult = tf-query-workspaces
     $lines = $workspacesQueryResult | % { $_ }
