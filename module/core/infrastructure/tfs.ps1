@@ -98,6 +98,26 @@ function tfs-create-mappings {
     }
 }
 
+function tfs-checkout-file {
+    Param(
+        [Parameter(Mandatory=$true)][string]$filePath
+        )
+
+    $oldLocation = Get-Location
+    $newLocation = Split-Path $filePath -Parent
+    $fileName = Split-Path $filePath -Leaf
+    Set-Location $newLocation
+    try {
+        execute-native "& `"$tfPath`" checkout $fileName"
+    }
+    catch {
+        throw "Error checking out file $filePath. Message: $_"
+    }
+    finally {
+        Set-Location $oldLocation
+    }
+}
+
 function tfs-get-latestChanges {
     Param(
         [Parameter(Mandatory=$true)][string]$branchMapPath,

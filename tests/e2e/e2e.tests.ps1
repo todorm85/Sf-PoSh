@@ -104,10 +104,21 @@ InModuleScope sf-dev {
 
     Describe "clone should" {
         It "clone project" {
-            set-testProject
-            [SfProject]$sourceProj = _get-selectedProject
+            [SfProject]$sourceProj = set-testProject
             $sourceName = $sourceProj.displayName
             $cloneTestName = "$sourceName-clone"
+
+            # edit a file in source project
+            $webConfigPath = "$($sourceProj.webAppPath)\web.config"
+            tfs-checkout-file $webConfigPath
+            [xml]$xmlData = Get-Content $webConfigPath
+            [System.Xml.XmlElement]$appSettings = $xmlData.configuration.appSettings
+            $newElement = $xmlData.CreateElement("add")
+            $testKeyName = [Guid]::NewGuid().ToString()
+            $newElement.SetAttribute("key", $testKeyName)
+            $newElement.SetAttribute("value", "testing")
+            $appSettings.AppendChild($newElement)
+            $xmlData.Save($webConfigPath)
 
             sf-clone-project
 

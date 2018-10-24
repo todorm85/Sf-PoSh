@@ -267,7 +267,12 @@ function sf-import-project {
         $newContext.webAppPath = $path + '\SitefinityWebApp'
         if ($branch) {
             $newContext.branch = $branch
-            _create-workspace -context $newContext -branch $branch
+            try {
+                _create-workspace -context $newContext -branch $branch
+            }
+            catch {
+                Write-Error "Errors while creating workspace: $_"                
+            }
         }
 
         _create-userFriendlySlnName $newContext
@@ -693,7 +698,7 @@ function _create-workspace ($context, $branch) {
 
     try {
         Write-Host "Getting latest workspace changes..."
-        tfs-get-latestChanges -branchMapPath $context.solutionPath
+        tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite
     }
     catch {
         throw "Could not get latest workapce changes. $_"
