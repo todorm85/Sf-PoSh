@@ -6,7 +6,7 @@ Param(
 
 $xml = New-Object XML
 $xml.Load($dataPath)
-$idsInUse = $xml.data.sitefinities.sitefinity.id
+$idsInUse = @($xml.data.sitefinities.sitefinity.id)
 Get-ChildItem -Path "E:\sf-dev\module\core\infrastructure" -Filter '*.ps1' -Recurse | % {. $_.FullName}
 
 function shouldClean {
