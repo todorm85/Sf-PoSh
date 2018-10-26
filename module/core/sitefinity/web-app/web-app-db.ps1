@@ -1,6 +1,6 @@
 function sf-get-appDbName ([SfProject]$context) {
     if (-not $context) {
-        $context = _get-selectedProject
+        [SfProject]$context = _get-selectedProject
     }
 
     $data = New-Object XML
@@ -13,7 +13,7 @@ function sf-get-appDbName ([SfProject]$context) {
         return $dbName
     }
     else {
-        return $null
+        return $context.id
     }
 }
 
