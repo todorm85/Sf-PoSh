@@ -47,6 +47,7 @@ function sf-restore-appState ($stateName) {
     }
     
     sf-reset-pool
+    sf-unlock-allFiles
     $statesPath = get-statesPath
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName

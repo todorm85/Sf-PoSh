@@ -152,6 +152,17 @@ function sf-build-webAppProj () {
     build-proj $path
 }
 
+function sf-unlock-allFiles {
+    [SfProject]$proj = _get-selectedProject
+    if ($proj.solutionPath -ne "") {
+        $path = $proj.solutionPath
+    }
+    else {
+        $path = $proj.webAppPath
+    }
+
+    unlock-allFiles $path
+}
 function build-proj {
     [CmdletBinding()]
     Param(

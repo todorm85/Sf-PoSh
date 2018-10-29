@@ -338,6 +338,10 @@ function sf-import-project {
 }
 
 function sf-delete-projects {
+    Param(
+        [switch]$force
+    )
+
     $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
@@ -360,7 +364,7 @@ function sf-delete-projects {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sf-delete-project -context $selectedSitefinity -noPrompt
+            sf-delete-project -context $selectedSitefinity -noPrompt -force
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"                
@@ -461,19 +465,19 @@ function sf-delete-project {
     if (!($keepProjectFiles)) {
         try {
             if ($force) {
-                Write-Host "Resetting IIS..."
-                iisreset.exe > $null
+                Write-Host "Unlocking all locked files in solution directory..."
+                sf-unlock-allFiles
             }
 
             Write-Host "Deleting solution directory..."
-            
             if ($solutionPath -ne "") {
-                Remove-Item $solutionPath -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+                $path = $solutionPath
             }
             else {
-                Remove-Item $context.webAppPath -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+                $path = $context.webAppPath
             }
 
+            Remove-Item $path -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
             if ($ProcessError) {
                 throw $ProcessError
             }

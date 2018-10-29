@@ -27,13 +27,19 @@ function sf-reset-app {
         [switch]$createStartupConfig,
         [switch]$build,
         [string]$user = $defaultUser,
-        [switch]$configRestrictionSafe
+        [switch]$configRestrictionSafe,
+        [switch]$force
     )
 
     $dbName = sf-get-appDbName # this needs to be here before DataConfig.config gets deleted!!!
     
     Write-Host "Restarting app pool..."
     sf-reset-pool
+
+    if ($force) {
+        Write-Host "Unlocking files..."
+        sf-unlock-allFiles
+    }
     
     if ($rebuild) {
         sf-rebuild-solution
