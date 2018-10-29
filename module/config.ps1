@@ -19,8 +19,6 @@ $script:msBuildPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Profe
 # where info about created and imported sitefinities will be stored
 $script:dataPath = "${PSScriptRoot}\db.xml"
 
-$Script:externalTools = "${PSScriptRoot}\external-tools"
-
 # Preconfigured function shortcuts (aliases in powershell)
 
 New-Alias -name s -value sf-select-project

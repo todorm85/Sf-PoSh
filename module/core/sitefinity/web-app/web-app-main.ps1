@@ -131,7 +131,7 @@ function sf-add-precompiledTemplates {
     )
     
     # path to sitefinity compiler tool
-    $sitefinityCompiler = "${Script:externalTools}\Telerik.Sitefinity.Compiler.exe"
+    $sitefinityCompiler = "$PSScriptRoot\external-tools\Telerik.Sitefinity.Compiler.exe"
 
     if (-not (Test-Path $sitefinityCompiler)) {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
