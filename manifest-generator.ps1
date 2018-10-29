@@ -2,7 +2,7 @@
 $rootModule = "sf-dev"
 $scripts = Get-ChildItem "$PSScriptRoot/module" -Recurse | where { $_.Extension -eq '.ps1' -or $_.Extension -eq '.psm1'}
 $nestedmodulesNames = $scripts | where { $_.BaseName -ne $rootModule -and $_.Extension -eq '.psm1'} | % { $_.BaseName }
-$requiredModules = "toko-domains, toko-admin"
+$requiredModules = @("toko-domains", "toko-admin")
 # functions discovery
 $modulesLines = $scripts | Get-Content
 $functionsLines = $modulesLines | where { $_.contains("function") }
