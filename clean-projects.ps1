@@ -57,7 +57,6 @@ catch {
 
 try {
     Write-Host "SQL logins cleanup"
-    _sql-load-module
     $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
     $allLogins = $sqlServer.Logins | Where-Object { shouldClean($_.Name) }
     $allLogins | ForEach-Object {$_.Drop()}

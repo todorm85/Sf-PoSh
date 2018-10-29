@@ -16,10 +16,6 @@ $script:vsCmdPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Profess
 # $script:msBuildPath = "C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe"  # VS2015
 $script:msBuildPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe" #VS2017
 
-# used for tfs workspace manipulations, installed with Visual Studio
-# $script:tfPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\tf.exe" #VS2015
-$script:tfPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\TF.exe" #VS2017
-
 # where info about created and imported sitefinities will be stored
 $script:dataPath = "${PSScriptRoot}\db.xml"
 

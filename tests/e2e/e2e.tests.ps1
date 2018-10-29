@@ -35,7 +35,6 @@ InModuleScope sf-dev {
             Test-Path "$($Script:projectsDirectory)\${id}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${id}" | Should -Be $true
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
-            _sql-load-module
             $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
             $sqlServer.Logins | Where-Object {$_.Name.Contains($id)} | Should -HaveCount 1
         }
@@ -136,7 +135,6 @@ InModuleScope sf-dev {
             Test-Path "$($Script:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
             Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
-            _sql-load-module
             $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
             $sqlServer.Logins | Where-Object {$_.Name.Contains($cloneTestId)} | Should -HaveCount 1
         }
@@ -155,7 +153,6 @@ InModuleScope sf-dev {
             Test-Path "$($Script:projectsDirectory)\${testId}" | Should -Be $false
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $false
             Test-Path "IIS:\Sites\${testId}" | Should -Be $false
-            _sql-load-module
             $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
             $sqlServer.Logins | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
             sql-get-dbs | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0

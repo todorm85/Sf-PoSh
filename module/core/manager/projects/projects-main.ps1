@@ -364,7 +364,7 @@ function sf-delete-projects {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sf-delete-project -context $selectedSitefinity -noPrompt -force
+            sf-delete-project -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"                
@@ -392,7 +392,6 @@ function sf-delete-project {
         [switch]$keepDb,
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles,
-        [switch]$force,
         [switch]$noPrompt,
         [SfProject]$context = $null
     )
@@ -464,10 +463,8 @@ function sf-delete-project {
     # Del dir
     if (!($keepProjectFiles)) {
         try {
-            if ($force) {
-                Write-Host "Unlocking all locked files in solution directory..."
-                sf-unlock-allFiles
-            }
+            Write-Host "Unlocking all locked files in solution directory..."
+            sf-unlock-allFiles
 
             Write-Host "Deleting solution directory..."
             if ($solutionPath -ne "") {
