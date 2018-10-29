@@ -5,7 +5,7 @@ $script:projectsDirectory = "E:\dev-sitefinities"
 $script:dataPath = "${projectsDirectory}\db.xml"
 
 # Global settings
-$script:defaultUser = 'admin'
+$script:defaultUser = 'admin@test.test'
 $script:defaultPassword = 'admin@2'
 
 $script:idPrefix = "sf_dev_"
