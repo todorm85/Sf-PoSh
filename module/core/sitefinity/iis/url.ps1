@@ -6,6 +6,10 @@ function get-appUrl {
         return get-devAppUrl
     }
 
+    if (-not $context) {
+        throw "No project selected."
+    }
+
     $port = @(iis-get-websitePort $context.websiteName)[0]
     if ($port -eq '' -or $null -eq $port) {
         throw "No sitefinity port set."

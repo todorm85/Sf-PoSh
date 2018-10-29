@@ -32,15 +32,15 @@ function sf-browse-webSite {
     [CmdletBinding()]
     Param([switch]$useExistingBrowser)
 
-    if (-not $useExistingBrowser) {
-        execute-native "& Start-Process `"$browserPath`""
-    }
-
     $appUrl = get-appUrl
     if (-not (check-domainRegistered $appUrl)) {
         $appUrl = get-appUrl -$useDevUrl
     }
 
+    if (-not $useExistingBrowser) {
+        execute-native "& Start-Process `"$browserPath`""
+    }
+    
     execute-native "& `"$browserPath`" `"${appUrl}/Sitefinity`" -noframemerging"
 }
 
