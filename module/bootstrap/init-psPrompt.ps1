@@ -3,21 +3,17 @@
 function Global:prompt {
     Write-Host "PS $(Get-Location)>" -NoNewline
 
-    $promptContainer = $Script:globalContext.containerName
-    $promptProject = $Script:globalContext.displayName
-    $promptId = $Script:globalContext.id
+    $currentContainer = $Script:globalContext.containerName
+    $projectName = $Script:globalContext.displayName
 
-    $ports = @(iis-get-websitePort $Script:globalContext.websiteName)
-    
-    if ($promptProject) {
-        if (-not ([string]::IsNullOrEmpty($promptContainer))) {
-            $prompt = " [$promptContainer | "
+    if ($projectName) {
+        $prompt = " ["
+
+        if ($currentContainer) {
+            $prompt = " [$currentContainer | "
         }
-        else {
-            $prompt = " ["
-        } 
 
-        $prompt = "$prompt$promptProject | $promptId | $ports]"
+        $prompt = "$prompt$projectName]"
     } 
     else {
         $prompt = ""
