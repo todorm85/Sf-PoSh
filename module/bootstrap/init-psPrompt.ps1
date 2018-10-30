@@ -1,10 +1,7 @@
 # https://stackoverflow.com/questions/5725888/windows-powershell-changing-the-command-prompt
 
 function Global:prompt {
-    Write-Host "PS $(Get-Location | % {
-        $segments = $_.Path.Split('\')
-        $segments[$segments.Count -1]
-    })>" -NoNewline
+    Write-Host "PS $(Get-Location)>" -NoNewline
 
     $promptContainer = $Script:globalContext.containerName
     $promptProject = $Script:globalContext.displayName
