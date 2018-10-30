@@ -531,9 +531,8 @@ function sf-rename-project {
     }
 
     $oldSolutionName = _get-solutionFriendlyName
-    if (-not $oldSolutionName) {
+    if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
         _create-userFriendlySlnName -context $context
-        $oldSolutionName = _get-solutionFriendlyName
     }
 
     $oldDomain = get-domain
@@ -542,7 +541,11 @@ function sf-rename-project {
     set-currentProject $context
 
     $newSolutionName = _get-solutionFriendlyName
-    Rename-Item -Path "$($context.solutionPath)\${oldSolutionName}" -NewName $newSolutionName
+    Copy-Item -Path "$($context.solutionPath)\$oldSolutionName" -Destination "$($context.solutionPath)\$newSolutionName" -Force
+
+    $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
+    $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
+    Copy-Item -Path "$($context.solutionPath)\.vs\$oldSlnCacheName" -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
 
     try {
         Remove-Domain $oldDomain
