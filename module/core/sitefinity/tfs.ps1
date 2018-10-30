@@ -42,7 +42,7 @@ function sf-show-pendingChanges {
     }
     
     $workspaceName = tfs-get-workspaceName $context.solutionPath
-    & $tfPath stat /workspace:$workspaceName /format:$($format)
+    tfs-show-pendingChanges $workspaceName $format
 }
 
 <#
