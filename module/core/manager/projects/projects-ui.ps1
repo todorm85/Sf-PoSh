@@ -25,6 +25,14 @@ function sf-select-project {
         }
     }
 
+    if (-not $selectedSitefinity.branch) {
+        $branch = tfs-get-branchPath $selectedSitefinity.solutionPath
+        if ($branch) {
+            $selectedSitefinity.branch = $branch
+            _sfData-save-project $selectedSitefinity
+        }
+    }
+
     set-currentProject $selectedSitefinity
     
     sf-show-currentProject
