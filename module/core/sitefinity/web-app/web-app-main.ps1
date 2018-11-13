@@ -299,15 +299,7 @@ function reset-appDataFiles {
     Set-Location $context.webAppPath
     if (Test-Path $originalAppDataFilesPath) {
         Write-Warning "Restoring Sitefinity web app App_Data files to original state."
-        $dirs = Get-ChildItem "${webAppPath}\App_Data"
-        try {
-            os-del-filesAndDirsRecursive $dirs
-        }
-        catch {
-            $errorMessage = "${errorMessage}`n" + $_
-        }
-
-        Copy-Item -Path "$originalAppDataFilesPath\*" -Destination "${webAppPath}\App_Data" -Recurse -Force -Confirm:$false
+        restore-sfRuntimeFiles "$originalAppDataFilesPath\*"
     }
     elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
         Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
@@ -323,4 +315,30 @@ function reset-appDataFiles {
     if ($errorMessage -ne '') {
         throw $errorMessage
     }
+}
+
+function clean-sfRuntimeFiles {
+    [SfProject]$context = _get-selectedProject
+    $webAppPath = $context.webAppPath
+
+    Get-ChildItem "${webAppPath}\App_Data\*" -Recurse | Remove-Item -Force -Confirm:$false -Recurse -Exclude @("*.pfx", "*.lic")
+    do {
+        $dirs = Get-ChildItem $tdc -directory -recurse | Where-Object { (Get-ChildItem $_.fullName).Length -eq 0 } | Select-Object -expandproperty FullName
+        $dirs | Foreach-Object { Remove-Item $_ }
+    } while ($dirs.count -gt 0)
+}
+
+function copy-sfRuntimeFiles ($dest) {
+    [SfProject]$context = _get-selectedProject
+    $src = "$($context.webAppPath)\App_Data\*"
+
+    Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude @("*.pfx", "*.lic")
+}
+
+function restore-sfRuntimeFiles ($src) {
+    [SfProject]$context = _get-selectedProject
+    $webAppPath = $context.webAppPath
+
+    clean-sfRuntimeFiles
+    Copy-Item $src "$webAppPath\App_Data" -Force -Recurse -Confirm:$false
 }

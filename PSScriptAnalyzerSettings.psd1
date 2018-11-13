@@ -29,6 +29,7 @@
         'PSAvoidUsingUserNameAndPassWordParams',
         'PSAvoidUsingPlainTextForPassword',
         'PSAvoidUsingEmptyCatchBlock',
-        'PSAvoidTrailingWhitespace'
+        'PSAvoidTrailingWhitespace',
+        'PSUseSingularNouns'
         )
 }

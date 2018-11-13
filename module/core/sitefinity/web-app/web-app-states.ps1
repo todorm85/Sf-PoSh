@@ -30,9 +30,7 @@ function sf-new-appState ($stateName) {
     $root.SetAttribute("dbName", $dbName)
     $stateData.Save($stateDataPath) > $null
 
-    $appDataPath = "$($context.webAppPath)/App_Data"
-    Copy-Item "$appDataPath/*" $appDataStatePath -Recurse
-    
+    copy-sfRuntimeFiles $appDataStatePath
 }
 
 function get-statesPath {
@@ -56,15 +54,11 @@ function sf-restore-appState ($stateName) {
 
     $appDataStatePath = "$statePath/App_Data"
     $appDataPath = "$($context.webAppPath)/App_Data"
-    if (Test-Path $appDataPath) {
-        Remove-Item "$appDataPath/*" -Force -Recurse
-    }
-    else {
+    if (-not (Test-Path $appDataPath)) {
         New-Item $appDataPath -ItemType Directory > $null
     }
     
-    sf-reset-pool
-    Copy-Item "$appDataStatePath/*" $appDataPath -Recurse -Force
+    restore-sfRuntimeFiles "$appDataStatePath/*"
 }
 
 function sf-delete-appState ($stateName) {

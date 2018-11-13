@@ -85,7 +85,7 @@ function sf-new-project {
             Write-Host "Backing up original App_Data folder..."
             $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
-            Copy-Item -Path "$webAppPath\App_Data\*" -Destination $originalAppDataSaveLocation -Recurse > $null
+            copy-sfRuntimeFiles $originalAppDataSaveLocation
 
             # persist current context to script data
             $oldContext = _get-selectedProject
