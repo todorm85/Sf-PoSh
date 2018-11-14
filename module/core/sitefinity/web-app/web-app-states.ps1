@@ -38,14 +38,17 @@ function get-statesPath {
     return "$($context.webAppPath)/sf-dev-tool/states"
 }
 
-function sf-restore-appState ($stateName) {
+function sf-restore-appState ($stateName, $force = $false) {
     $context = _get-selectedProject
     if (-not $stateName) {
         $stateName = select-appState
     }
     
     sf-reset-pool
-    sf-unlock-allFiles
+    if ($force) {
+        sf-unlock-allFiles
+    }
+    
     $statesPath = get-statesPath
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
