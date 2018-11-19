@@ -1,3 +1,7 @@
+Param(
+    $env
+)
+
 # module discovery
 $rootModule = "sf-dev"
 $scripts = Get-ChildItem "$PSScriptRoot/module" -Recurse | where { $_.Extension -eq '.ps1' -or $_.Extension -eq '.psm1'}
@@ -12,6 +16,10 @@ $filteredNames = $functionsLines | where { $_ -match $functionNamePattern } | % 
 $functionNames = New-Object System.Collections.ArrayList($null)
 $functionNames.AddRange($filteredNames) > $null
 # $functionNames.Add("_get-selectedProject") > $null
+
+if ($env -eq 'dev') {
+    $functionNames = '*'
+}
 
 # generate manifest
 New-ModuleManifest `
