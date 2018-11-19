@@ -42,11 +42,11 @@ function sf-reset-app {
     }
     
     if ($rebuild) {
-        sf-rebuild-solution
+        sf-rebuild-solution -retryCount 3
     }
 
     if ($build) {
-        sf-build-solution
+        sf-build-solution -retryCount 3
     }
 
     Write-Host "Resetting App_Data files..."
@@ -54,7 +54,7 @@ function sf-reset-app {
         reset-appDataFiles
     }
     catch {
-        Write-Warning "Errors ocurred while deleting App_Data files. Usually .log files cannot be deleted because they are left locked by iis processes. While this does not prevent sitefinity from restarting you should keep in mind that the log files may contain polluted entries from previous runs. `nError Message: `n $_"
+        Write-Warning "Errors ocurred while resetting App_Data files.`n $_"
     }
 
     if (-not [string]::IsNullOrEmpty($dbName)) {
@@ -63,7 +63,7 @@ function sf-reset-app {
             sql-delete-database -dbName $dbName
         }
         catch {
-            Write-Warning "Erros while deleting database: $_"
+            throw "Erros while deleting database: $_"
         }
     }
 
@@ -86,24 +86,8 @@ function sf-reset-app {
             start-app -url $appUrl
         }
         catch {
-            Write-Host "`n`n"
-            Write-Warning "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`n"
-
+            throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE: YOU MUST LOG OFF FROM THE WEBAPP INSTANCE IN THE BROWSER WHEN REINITIALIZING SITEFINITY INSTANCE OTHERWISE 'DUPLICATE KEY ERRORS' AND OTHER VARIOUS OPENACCESS EXCEPTIONS OCCUR WHEN USING STARTUPCONFIG`nException: $_`n"
             delete-startupConfig
-            
-            $choice = Read-Host "Display stack trace? [y/n]"
-            while ($true) {
-                if ($choice -eq 'y') {
-                    Write-Host "`n`nException: $($_.Exception)"
-                    break
-                }
-
-                if ($choice -eq 'n') {
-                    break
-                }
-
-                $choice = Read-Host "Display stack trace? [y/n]"
-            }
         }
     }
 

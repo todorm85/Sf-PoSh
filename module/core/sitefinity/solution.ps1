@@ -4,16 +4,34 @@
     .OUTPUTS
     None
 #>
-function sf-build-solution {
-    [CmdletBinding()]
-
+function sf-build-solution ($retryCount = 0) {
     $context = _get-selectedProject
     $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
-    if (!(Test-Path $solutionPath)) {
-        sf-build-webAppProj
+    
+    $tries = 0
+    $isBuilt = $false
+    while ($tries -le $retryCount -and (-not $isBuilt)) {
+        try {
+            if (!(Test-Path $solutionPath)) {
+                sf-build-webAppProj
+            }
+            else {
+                build-proj $solutionPath
+            }
+            
+            $isBuilt = $true
+        }
+        catch {
+            Write-Host "Build failed."
+            $tries++
+            if ($tries -le $retryCount) {
+                Write-Host "Retrying..." 
+            }
+            else {
+                throw "Solution could not build after $retryCount retries.`nError: $_`n"
+            }
+        }
     }
-
-    build-proj $solutionPath
 }
 
 <#
@@ -24,7 +42,7 @@ function sf-build-solution {
 #>
 function sf-rebuild-solution {
     [CmdletBinding()]
-    Param([bool]$cleanPackages = $false)
+    Param([bool]$cleanPackages = $false, $retryCount = 0)
     
     Write-Host "Rebuilding solution..."
     try {
@@ -34,7 +52,7 @@ function sf-rebuild-solution {
         Write-Warning "Errors while cleaning solution: $_"
     }
 
-    sf-build-solution
+    sf-build-solution -retryCount $retryCount
 }
 
 function sf-clean-solution {
@@ -178,7 +196,7 @@ function build-proj {
     # $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'
     # Invoke-Expression "& $command"
-    & $msBuildPath $path /nologo /maxcpucount /Verbosity:normal /p:RunCodeAnalysis=False
+    & $msBuildPath $path /nologo /maxcpucount /Verbosity:quiet /p:RunCodeAnalysis=False /consoleloggerparameters:Summary
     # & $Script:vsCmdPath $path /build Debug
 
     # $elapsed.Stop()

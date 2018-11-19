@@ -131,25 +131,7 @@ function sf-new-project {
 
         if ($buildSolution) {
             Write-Host "Building solution..."
-            $tries = 0
-            $retryCount = 3
-            $isBuilt = $false
-            while ($tries -le $retryCount -and (-not $isBuilt)) {
-                try {
-                    $output = sf-build-solution
-                    $isBuilt = $true
-                }
-                catch {
-                    Write-Host "Build failed."
-                    if ($tries -le $retryCount) {
-                        Write-Host "Retrying..." 
-                        $tries++
-                    }
-                    else {
-                        Write-Error "Solution could not build after $retryCount retries. Last error: $output"
-                    }
-                }
-            }
+            sf-build-solution -retryCount 3
         }
             
         try {
