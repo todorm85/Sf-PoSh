@@ -30,6 +30,7 @@
         'PSAvoidUsingPlainTextForPassword',
         'PSAvoidUsingEmptyCatchBlock',
         'PSAvoidTrailingWhitespace',
-        'PSUseSingularNouns'
+        'PSUseSingularNouns',
+        'PSAvoidGlobalVars'
         )
 }
