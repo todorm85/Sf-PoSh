@@ -21,6 +21,7 @@ function sf-start-allProjectsBatch ($scriptBlock) {
 
 function sf-start-batch ($scriptBlock) {
     $logsPath = get-batchLogsPath
+    $sitefinity = _get-selectedProject
     try {
         & $scriptBlock $sitefinity
     }
