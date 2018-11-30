@@ -59,27 +59,26 @@ function sf-clean-solution {
     Param([bool]$cleanPackages = $false)
 
     Write-Host "Cleaning solution..."
-    Write-Warning "Cleaning solution will kill all current msbuild processes."
-    $leftovers = Get-Process "msbuild" -ErrorAction "SilentlyContinue"
-    if ($leftovers) {
-        $leftovers | Stop-Process -Force
-    }
-    
+
     $context = _get-selectedProject
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
     }
 
+    sf-unlock-allFiles
+
     $errorMessage = ''
     #delete all bin, obj and packages
     Write-Host "Deleting bins and objs..."
     $dirs = Get-ChildItem -force -recurse $solutionPath | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "bin") -or ($_.Name -like "obj")) }
     try {
-        os-del-filesAndDirsRecursive $dirs
+        if ($dirs) {
+            os-del-filesAndDirsRecursive $dirs
+        }
     }
     catch {
-        $errorMessage = "Errors while deleting bins and objs:`n" + $_
+        $errorMessage = "$_`n"
     }
 
     if ($errorMessage -ne '') {
