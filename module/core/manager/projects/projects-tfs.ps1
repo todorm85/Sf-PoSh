@@ -4,7 +4,7 @@ function sf-update-allProjectsTfsInfo {
         
         [SfProject]$context = $_
 
-        $lastGetLatest = _get-lastGetlatestFromTfs($context)
+        $lastGetLatest = _get-lastGetlatestFromTfs $context
         if ($lastGetLatest) {
             $context.lastGetLatest = $lastGetLatest
             _sfData-save-project $context

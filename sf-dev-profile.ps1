@@ -54,8 +54,6 @@ function global:batchOverwriteProjectsWithLatestFromTfsIfNeeded {
         $names = @('free')
     )
 
-    # clear-nugetCache
-    # sf-update-allProjectsTfsInfo
     $scriptBlock = {
         Param([SfProject]$sf)
         if ($names.Contains($sf.displayName) -and $sf.lastGetLatest -and $sf.lastGetLatest -lt [System.DateTime]::Today) {
@@ -89,7 +87,7 @@ function global:batchRebuildAndStart {
     $scriptBlock = {
         Param([SfProject]$sf)
         if ($names.Contains($sf.displayName)) {
-            sf-clean-solution -cleanPackages $true
+            # sf-clean-solution -cleanPackages $true
             sf-reset-app -start -build
             sf-new-appState -stateName initial
         }
