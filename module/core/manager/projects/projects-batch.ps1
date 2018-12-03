@@ -4,10 +4,6 @@ function get-batchLogsPath {
 
 function sf-start-allProjectsBatch ($scriptBlock) {
     $logsPath = get-batchLogsPath
-    if (Test-Path $logsPath) {
-        Remove-Item $logsPath -Force -Confirm:$false
-    }
-
     $initialProject = _get-selectedProject
     $sitefinities = _sfData-get-allProjects
     foreach ($sitefinity in $sitefinities) {
@@ -27,6 +23,7 @@ function sf-start-batch ($scriptBlock) {
     }
     catch {
         $date = [System.DateTime]::Now
-        "`n$date`nError while processing batch script for project with id $($sitefinity.id)`n$_`n----------------------------------------------`n" | Out-File $logsPath -Append
+        $sfStamp = "ID: $($sitefinity.id), Name: $($sitefinity.containerName) $($sitefinity.displayName)"
+        "$date $sfStamp`nError while processing batch script for project with id $($sitefinity.id)`n$_`n----------------------------------------------" | Out-File $logsPath -Append
     }
 }

@@ -49,6 +49,7 @@ function global:cleanProjects {
     
 }
 
+# IMPORTANT: this is called in daily cleanup
 function global:batchOverwriteProjectsWithLatestFromTfsIfNeeded {
     Param(
         $names = @('free')

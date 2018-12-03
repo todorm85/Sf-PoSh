@@ -1,16 +1,22 @@
+# IMPORTANT: this is called in daily cleanup
 function sf-update-allProjectsTfsInfo {
     $sfs = _sfData-get-allProjects
     $sfs | ForEach-Object {
         
         [SfProject]$context = $_
 
-        $lastGetLatest = _get-lastGetlatestFromTfs $context
-        if ($lastGetLatest) {
-            $context.lastGetLatest = $lastGetLatest
-            _sfData-save-project $context
+        $lastGetLatestTfs = _get-lastWorkspaceChangesetDate $context
+        if ($lastGetLatestTfs) {
+            $lastGetLatestTool = [datetime]::Parse($context.lastGetLatest)
+
+            # only update if not get-latest issued already from this tool later than what is in workspace
+            if ($lastGetLatestTool -lt $lastGetLatestTfs) {
+                $context.lastGetLatest = $lastGetLatestTfs
+                _sfData-save-project $context
+            }
         }
 
-        $branch = tfs-get-branchPath $sitefinity.webAppPath
+        $branch = tfs-get-branchPath $context.webAppPath
         if ($branch) {
             $context.branch = $branch
             _sfData-save-project $context
@@ -18,7 +24,7 @@ function sf-update-allProjectsTfsInfo {
     }
 }
 
-function _get-lastGetlatestFromTfs ([SfProject]$context) {
+function _get-lastWorkspaceChangesetDate ([SfProject]$context) {
     if (-not $context) {
         [SfProject]$context = _get-selectedProject
     }
