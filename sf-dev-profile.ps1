@@ -27,15 +27,36 @@ function global:startWebTestRunner {
     & "D:\IntegrationTestsRunner\Telerik.WebTestRunner\Telerik.WebTestRunner.Client\bin\Debug\Telerik.WebTestRunner.Client.exe"
 }
 
-function global:resetFreeSfs() {
+function global:deploySfDev {
+    & "E:\sf-dev\deploy.ps1"
+}
+
+function global:cleanProjects {
+    Param(
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('tests', 'dev')]
+        [string]
+        $environemnt
+    )
+
+    $cleanScriptPath = "E:\sf-dev\clean-projects.ps1"
+    switch ($environemnt) {
+        'tests' { & $cleanScriptPath };
+        'dev' { & $cleanScriptPath -idPref "sf_dev_" -projectsDir "E:\dev-sitefinities" -dataPath "E:\dev-sitefinities\db.xml" };
+        Default {}
+    }
+    
+}
+
+function global:reFreeSfs() {
+    sf-clear-nugetCache
+    sf-update-allProjectsTfsInfo
     $scriptBlock = {
         Param([SfProject]$sf)
-        # $sf.displayName
-        if ($sf.displayName -eq 'free' -and -not $sf.containerName) {
+        if ($sf.displayName -eq 'free' -and $sf.lastGetLatest -and $sf.lastGetLatest -lt [System.DateTime]::Today.AddDays(-2)) {
             sf-undo-pendingChanges
             sf-get-latestChanges
             sf-clean-solution -cleanPackages $true
-            sf-clear-nugetCache
             sf-reset-app -start -build
         }
     }

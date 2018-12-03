@@ -4,6 +4,12 @@ function _sfData-get-allProjects {
     $sfs = $data.data.sitefinities.sitefinity
     if ($sfs) {
         $sfs | ForEach-Object {
+            if ($_.lastGetLatest) {
+                $lastGetLatest = [System.DateTime]::Parse($_.lastGetLatest)
+            } else {
+                $lastGetLatest = $null
+            }
+
             New-Object SfProject -Property @{
                 branch = $_.branch;
                 containerName = $_.containerName;
@@ -13,6 +19,7 @@ function _sfData-get-allProjects {
                 solutionPath = $_.solutionPath;
                 webAppPath = $_.webAppPath;
                 websiteName = $_.websiteName;
+                lastGetLatest = $lastGetLatest;
             }
         }
     }
@@ -68,6 +75,7 @@ function _sfData-save-project {
     $sitefinityEntry.SetAttribute("branch", $context.branch)
     $sitefinityEntry.SetAttribute("description", $context.description)
     $sitefinityEntry.SetAttribute("containerName", $context.containerName)
+    $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest.ToString())
 
     $data.Save($dataPath) > $null
 }

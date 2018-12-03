@@ -58,7 +58,7 @@ function sf-get-latestChanges {
         [switch]$overwrite
     )
     
-    $context = _get-selectedProject
+    [SfProject]$context = _get-selectedProject
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
@@ -75,5 +75,8 @@ function sf-get-latestChanges {
         tfs-get-latestChanges -branchMapPath $solutionPath
     }
     
+    $context.lastGetLatest = [System.DateTime]::Today
+    _save-selectedProject $context
+
     Write-Host "Getting latest changes complete."
 }

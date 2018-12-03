@@ -31,6 +31,7 @@
         'PSAvoidUsingEmptyCatchBlock',
         'PSAvoidTrailingWhitespace',
         'PSUseSingularNouns',
-        'PSAvoidGlobalVars'
+        'PSAvoidGlobalVars',
+        'PSUseShouldProcessForStateChangingFunctions'
         )
 }

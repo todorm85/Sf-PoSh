@@ -42,9 +42,7 @@ function sf-select-project {
     .SYNOPSIS 
     Shows info for selected sitefinity.
 #>
-function sf-show-currentProject {
-    [CmdletBinding()]
-    Param([switch]$detail)
+function sf-show-currentProject ([switch]$detail) {
     [SfProject]$context = _get-selectedProject
     if ($null -eq ($context)) {
         Write-Host "No project selected"
@@ -59,7 +57,7 @@ function sf-show-currentProject {
     }
 
     if (-not $detail) {
-        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports"
+        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(get-daysSinceLastGetLatest $context)"
         return    
     }
     
@@ -89,6 +87,7 @@ function sf-show-currentProject {
 
         [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
         [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $branch; }
+        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = get-daysSinceLastGetLatest $context; }
     )
 
     $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders
@@ -109,14 +108,10 @@ function sf-show-allProjects {
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {
         $ports = @(iis-get-websitePort $sitefinity.websiteName)
-        # $mapping = tfs-get-branchPath $sitefinity.webAppPath
-        # if ($mapping) {
-        #     $mapping = $mapping.split("4.0")[3]
-        # }
-
+        [SfProject]$sitefinity = $sitefinity
         $index = [array]::IndexOf($sitefinities, $sitefinity)
         
-        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.id)"; }) > $null
+        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.id)"; LastGet = get-daysSinceLastGetLatest $sitefinity }) > $null
     }
     $currentContainerName = $Script:selectedContainer.name
     if ($currentContainerName -ne '') {
@@ -126,5 +121,20 @@ function sf-show-allProjects {
         Write-Host "`nAll projects in no container"
     }
 
-    $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id | Out-String | ForEach-Object { Write-Host $_ }
+    $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id, LastGet | Out-String | ForEach-Object { Write-Host $_ }
+}
+
+function get-daysSinceLastGetLatest ([SfProject]$context) {
+    if (-not $context) {
+        [SfProject]$context = _get-selectedProject
+    }
+
+    if ($context.lastGetLatest) {
+        [datetime]$lastGetLatest = [datetime]::Parse($context.lastGetLatest)
+    }
+
+    if ($lastGetLatest) {
+        [System.TimeSpan]$daysSinceLastGetLatest = [System.TimeSpan]([System.DateTime]::Today - $lastGetLatest.Date)
+        return [math]::Round($daysSinceLastGetLatest.TotalDays, 0)
+    }
 }

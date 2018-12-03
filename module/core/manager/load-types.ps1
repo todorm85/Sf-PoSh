@@ -16,6 +16,7 @@ try {
             public string branch { get; set;}
             public string description { get; set;}
             public string containerName { get; set;}
+            public string lastGetLatest { get; set; }
 
             public SfProject() { }
             public SfProject(string id, string displayName) 

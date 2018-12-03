@@ -7,6 +7,8 @@ Param(
 $xml = New-Object XML
 $xml.Load($dataPath)
 $idsInUse = @($xml.data.sitefinities.sitefinity.id)
+
+Import-Module toko-admin
 Get-ChildItem -Path "E:\sf-dev\module\core\infrastructure" -Filter '*.ps1' -Recurse | % {. $_.FullName}
 
 function shouldClean {
@@ -95,7 +97,8 @@ try {
     Set-Location -Path $PSHOME
     sleep.exe 5
     Write-Host "Projects directory cleanup"
-    Get-ChildItem $projectsDir | where { shouldClean($_.Name) } | % { Remove-Item $_.FullName -Force -Recurse }
+    unlock-allFiles $projectsDir
+    Get-ChildItem $projectsDir | Where-Object { shouldClean($_.Name) } | % { Remove-Item $_.FullName -Force -Recurse }
 }
 catch {
     Write-Warning "Test sitefinities were not cleaned up: $_"
