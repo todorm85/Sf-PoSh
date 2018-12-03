@@ -7,12 +7,15 @@ function sf-new-appState {
     $context = _get-selectedProject
     
     $dbName = sf-get-appDbName
-    if (-not $dbName) {
-        throw "Current app is not initialized with a database. No databse name found in dataConfig.config"
+    $db = Get-SqlDatabase -Name $dbName -ServerInstance $sqlServerInstance 
+    if (-not $dbName -or -not $db) {
+        throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
     }
 
     $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
-    os-del-filesAndDirsRecursive "$statePath" -force
+    if (Test-Path $statePath) {
+        os-del-filesAndDirsRecursive "$statePath" -force
+    }
 
     $appDataStatePath = "$statePath/App_Data"
     New-Item $appDataStatePath -ItemType Directory > $null
@@ -37,13 +40,22 @@ function sf-new-appState {
 
 function get-statesPath {
     $context = _get-selectedProject
-    return "$($context.webAppPath)/sf-dev-tool/states"
+    $path = "$($context.webAppPath)/sf-dev-tool/states"
+    if (-not (Test-Path $path)) {
+        New-Item $path -ItemType Directory
+    }
+    
+    return $path
 }
 
 function sf-restore-appState ($stateName, $force = $false) {
     $context = _get-selectedProject
     if (-not $stateName) {
         $stateName = select-appState
+    }
+
+    if (-not $stateName) {
+        return
     }
     
     sf-reset-pool
@@ -71,6 +83,10 @@ function sf-delete-appState ($stateName) {
         $stateName = select-appState
     }
 
+    if (-not $stateName) {
+        return
+    }
+
     $statesPath = get-statesPath
     if ($statesPath) {
         $statePath = "${statesPath}/$stateName"
@@ -91,6 +107,10 @@ function sf-delete-allAppStates {
 function select-appState {
     $statesPath = get-statesPath
     $states = Get-Item "${statesPath}/*"
+    if (-not $states) {
+        Write-Host "No states."
+        return
+    }
     
     $i = 0
     foreach ($state in $states) {
