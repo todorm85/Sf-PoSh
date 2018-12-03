@@ -48,12 +48,16 @@ function global:cleanProjects {
     
 }
 
-function global:reFreeSfs() {
-    sf-clear-nugetCache
+function global:reFreeSfs {
+    Param(
+        $name = 'free'
+    )
+
+    clear-nugetCache
     sf-update-allProjectsTfsInfo
     $scriptBlock = {
         Param([SfProject]$sf)
-        if ($sf.displayName -eq 'free' -and $sf.lastGetLatest -and $sf.lastGetLatest -lt [System.DateTime]::Today.AddDays(-2)) {
+        if ($sf.displayName -eq $name -and $sf.lastGetLatest -and $sf.lastGetLatest -lt [System.DateTime]::Today.AddDays(-2)) {
             sf-undo-pendingChanges
             sf-get-latestChanges
             sf-clean-solution -cleanPackages $true

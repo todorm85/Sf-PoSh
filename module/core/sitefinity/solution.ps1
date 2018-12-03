@@ -104,25 +104,6 @@ function sf-clean-solution {
 
 <#
     .SYNOPSIS 
-    .DESCRIPTION
-    .PARAMETER xxxx
-    .OUTPUTS
-    None
-#>
-function sf-clear-nugetCache {
-    [CmdletBinding()]
-    Param()
-    
-    $context = _get-selectedProject
-    if (!(Test-Path $context.solutionPath)) {
-        throw "invalid or no solution path"
-    }
-
-    execute-native "& `"$($context.solutionPath)\.nuget\nuget.exe`" locals all -clear"
-}
-
-<#
-    .SYNOPSIS 
     Opens the selected sitefinity solution.
     .DESCRIPTION
     If a webapp without solution was imported nothing is opened.
