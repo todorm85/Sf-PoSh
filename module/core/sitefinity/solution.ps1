@@ -73,7 +73,7 @@ function sf-clean-solution {
     Write-Host "Deleting bins and objs..."
     $dirs = Get-ChildItem -force -recurse $solutionPath | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "bin") -or ($_.Name -like "obj")) }
     try {
-        if ($dirs) {
+        if ($dirs -and $dirs.Length > 0) {
             os-del-filesAndDirsRecursive $dirs
         }
     }
@@ -85,12 +85,14 @@ function sf-clean-solution {
         $errorMessage = "Errors while deleting bins and objs:`n$errorMessage"
     }
 
-    if ($cleanPackages) {
+    if ($cleanPackages -and (Test-Path "${solutionPath}\packages")) {
         
         Write-Host "Deleting packages..."
         $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
         try {
-            os-del-filesAndDirsRecursive $dirs
+            if ($dirs -and $dirs.Length > 0) {
+                os-del-filesAndDirsRecursive $dirs
+            }
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_

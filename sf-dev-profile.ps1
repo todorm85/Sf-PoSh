@@ -4,7 +4,8 @@ $global:sfDevEnv = $sfDevEnv
 if ($sfDevEnv -eq 'prod') {
     Write-Warning PRODUCTION
     $global:sfDevModule = "C:\sf-dev\sf-dev.psd1";
-} else {
+}
+else {
     Write-Warning DEVELOPMENT
     $global:sfDevModule = "E:\sf-dev\module\sf-dev.psd1";
 }
@@ -33,7 +34,7 @@ function global:deploySfDev {
 
 function global:cleanProjects {
     Param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateSet('tests', 'dev')]
         [string]
         $environemnt
@@ -48,16 +49,16 @@ function global:cleanProjects {
     
 }
 
-function global:reFreeSfs {
+function global:batchOverwriteProjectsWithLatestFromTfsIfNeeded {
     Param(
-        $name = 'free'
+        $names = @('free')
     )
 
-    clear-nugetCache
-    sf-update-allProjectsTfsInfo
+    # clear-nugetCache
+    # sf-update-allProjectsTfsInfo
     $scriptBlock = {
         Param([SfProject]$sf)
-        if ($sf.displayName -eq $name -and $sf.lastGetLatest -and $sf.lastGetLatest -lt [System.DateTime]::Today.AddDays(-2)) {
+        if ($names.Contains($sf.displayName) -and $sf.lastGetLatest -and $sf.lastGetLatest -lt [System.DateTime]::Today) {
             $shouldReset = $false
             if (sf-get-hasPendingChanges) {
                 sf-undo-pendingChanges
@@ -65,7 +66,7 @@ function global:reFreeSfs {
             }
 
             $getLatestOutput = sf-get-latestChanges
-            if (-not $getLatestOutput.Contains('All files are up to date.')) {
+            if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
                 $shouldReset = $true
             }
 
@@ -76,6 +77,23 @@ function global:reFreeSfs {
             }
         }
     }
+
+    sf-start-allProjectsBatch $scriptBlock
+}
+
+function global:batchRebuildAndStart {
+    Param(
+        $names = @('free')
+    )
+
+    $scriptBlock = {
+        Param([SfProject]$sf)
+        if ($names.Contains($sf.displayName)) {
+            sf-clean-solution -cleanPackages $true
+            sf-reset-app -start -build
+            sf-new-appState -stateName initial
+        }
+    }   
 
     sf-start-allProjectsBatch $scriptBlock
 }

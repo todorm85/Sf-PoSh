@@ -1,4 +1,9 @@
-function sf-new-appState ($stateName) {
+function sf-new-appState {
+    Param(
+        [Parameter(Mandatory=$true)]
+        $stateName
+    )
+    
     $context = _get-selectedProject
     
     $dbName = sf-get-appDbName
@@ -7,10 +12,7 @@ function sf-new-appState ($stateName) {
     }
 
     $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
-    while (-not $stateName -or (Test-Path $statePath)) {
-        $stateName = Read-Host -Prompt "Enter state name:"
-        $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
-    }
+    os-del-filesAndDirsRecursive "$statePath" -force
 
     $appDataStatePath = "$statePath/App_Data"
     New-Item $appDataStatePath -ItemType Directory > $null
