@@ -37,12 +37,21 @@ function sf-show-pendingChanges {
     }
 
     $context = _get-selectedProject
-    if (!(Test-Path $context.solutionPath)) {
+    if (-not $context -or -not $context.solutionPath -or -not (Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
     }
     
     $workspaceName = tfs-get-workspaceName $context.solutionPath
     tfs-show-pendingChanges $workspaceName $format
+}
+
+function sf-get-hasPendingChanges {
+    $pendingResult = sf-show-pendingChanges
+    if ($pendingResult -eq 'There are no pending changes.') {
+        return $false
+    } else {
+        return $true
+    }
 }
 
 <#

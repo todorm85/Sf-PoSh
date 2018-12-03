@@ -58,10 +58,22 @@ function global:reFreeSfs {
     $scriptBlock = {
         Param([SfProject]$sf)
         if ($sf.displayName -eq $name -and $sf.lastGetLatest -and $sf.lastGetLatest -lt [System.DateTime]::Today.AddDays(-2)) {
-            sf-undo-pendingChanges
-            sf-get-latestChanges
-            sf-clean-solution -cleanPackages $true
-            sf-reset-app -start -build
+            $shouldReset = $false
+            if (sf-get-hasPendingChanges) {
+                sf-undo-pendingChanges
+                $shouldReset = $true
+            }
+
+            $getLatestOutput = sf-get-latestChanges
+            if (-not $getLatestOutput.Contains('All files are up to date.')) {
+                $shouldReset = $true
+            }
+
+            if ($shouldReset) {
+                sf-clean-solution -cleanPackages $true
+                sf-reset-app -start -build
+                sf-new-appState -stateName initial
+            }
         }
     }
 
