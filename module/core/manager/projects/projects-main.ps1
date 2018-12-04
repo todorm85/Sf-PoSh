@@ -190,9 +190,8 @@ function sf-clone-project {
     }
 
     try {
-        $branch = tfs-get-branchPath -path $sourcePath
-
-        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -branch $branch -cloneDb $true
+        $branch = tfs-get-branchPath -path $newContext.solutionPath
+        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneWorkspace -cloneDb -branchToBindTo $branch
     }
     catch {
         throw "Error importing project.`n $_"        
@@ -223,9 +222,10 @@ function sf-import-project {
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
         [Parameter(Mandatory = $true)][string]$path,
-        [Parameter(Mandatory = $true)][bool]$cloneDb,
-        [string]$websiteName,
-        [string]$branch
+        [switch]$cloneDb,
+        [string]$existingSiteName,
+        [string]$branchToBindTo,
+        [string]$id
     )
 
     if (!(Test-Path $path)) {
@@ -242,13 +242,12 @@ function sf-import-project {
         throw "Cannot determine whether webapp or solution."
     }
 
-    [SfProject]$newContext = new-SfProject
-    $newContext.displayName = $displayName
+    [SfProject]$newContext = new-SfProject -displayName $displayName -id $id
     if ($isSolution) {
         $newContext.solutionPath = $path
         $newContext.webAppPath = $path + '\SitefinityWebApp'
+        $newContext.branch = $branch
         if ($branch) {
-            $newContext.branch = $branch
             try {
                 _create-workspace -context $newContext -branch $branch
             }
@@ -271,7 +270,7 @@ function sf-import-project {
     }
     catch {
         set-currentProject $oldContext
-        throw "Could not import sitefinity. Could not write project to db. $($_)"
+        throw "Could not import sitefinity. Could not write project to db. $_"
     }
 
     # while ($prompt -ne 'c' -and $prompt -ne 'u') {
@@ -280,17 +279,18 @@ function sf-import-project {
 
     # $useExistingWebSite = $prompt -eq 'u'
 
-    if ($websiteName) {
-        $newContext.websiteName = $websiteName
+    if ($existingSiteName) {
+        $newContext.websiteName = $existingSiteName
     }
-
-    try {
-        Write-Host "Creating website..."
-        create-website -context $newContext > $null
-    }
-    catch {
-        Write-Warning "Error during website creation. Message: $_"
-        $newContext.websiteName = ""
+    else {
+        try {
+            Write-Host "Creating website..."
+            create-website -context $newContext > $null
+        }
+        catch {
+            Write-Warning "Error during website creation. Message: $_"
+            $newContext.websiteName = ""
+        }
     }
 
     $currentDbName = sf-get-appDbName
@@ -330,7 +330,7 @@ function sf-delete-projects {
         return
     }
 
-    sf-show-allProjects
+    sf-show-projects $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')
@@ -494,7 +494,7 @@ function sf-rename-project {
     $oldName = $context.displayName
 
     if ($markUnused) {
-        $newName = "unused"
+        $newName = _get-unusedProjectName
         $context.description = ""
     }
     else {
@@ -689,4 +689,8 @@ function _create-workspace ($context, $branch) {
     catch {
         throw "Could not get latest workapce changes. $_"
     }
+}
+
+function _get-unusedProjectName {
+    return "free"
 }

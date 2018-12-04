@@ -2,7 +2,7 @@ function sf-select-container {
     $container = prompt-containerSelect
     $script:selectedContainer = $container
     _sfData-save-defaultContainer $selectedContainer.name
-    sf-select-project
+    sf-select-project -showUnused
 }
 
 function sf-create-container ($name) {

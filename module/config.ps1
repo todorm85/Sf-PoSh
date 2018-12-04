@@ -22,10 +22,11 @@ $script:dataPath = "${PSScriptRoot}\db.xml"
 # Preconfigured function shortcuts (aliases in powershell)
 
 New-Alias -name s -value sf-select-project
-New-Alias -Name dpr -Value sf-delete-project
+New-Alias -Name dpr -Value sf-delete-projects
 New-Alias -Name rpr -Value sf-rename-project
 
 New-Alias -Name scp -Value sf-show-currentProject
+New-Alias -Name sap -Value sf-show-projects
 
 New-Alias -name o -value sf-open-solution
 

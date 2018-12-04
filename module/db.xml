@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<data>
+  <sitefinities>
+    <sitefinity id="sf_0" displayName="free" solutionPath="E:\sitefinities\sf_0" webAppPath="E:\sitefinities\sf_0\SitefinityWebApp" websiteName="sf_0" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" lastGetLatest="09/17/2018 00:00:00" />
+    <sitefinity id="sf_2" displayName="CAAS" solutionPath="E:\sitefinities\sf_2" webAppPath="E:\sitefinities\sf_2\SitefinityWebApp" websiteName="sf_2" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="archive" lastGetLatest="10/04/2018 00:00:00" />
+    <sitefinity id="sf_3" displayName="free" solutionPath="E:\sitefinities\sf_3" webAppPath="E:\sitefinities\sf_3\SitefinityWebApp" websiteName="sf_3" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" lastGetLatest="09/21/2018 00:00:00" />
+    <sitefinity id="sf_4" displayName="free" solutionPath="E:\sitefinities\sf_4" webAppPath="E:\sitefinities\sf_4\SitefinityWebApp" websiteName="sf_4" branch="$/CMS/Sitefinity 4.0/OfficialReleases/Release_11_0_Fixes" description="" containerName="" lastGetLatest="08/24/2018 00:00:00" />
+    <sitefinity id="sf_5" displayName="free" solutionPath="E:\sitefinities\sf_5" webAppPath="E:\sitefinities\sf_5\SitefinityWebApp" websiteName="sf_5" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" lastGetLatest="11/28/2018 00:00:00" />
+    <sitefinity id="sf_7" displayName="free" solutionPath="E:\sitefinities\sf_7" webAppPath="E:\sitefinities\sf_7\SitefinityWebApp" websiteName="sf_7" branch="$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base" description="" containerName="" lastGetLatest="11/07/2018 00:00:00" />
+    <sitefinity id="sf_9" displayName="Distributed_Modules_spike" solutionPath="E:\sitefinities\sf_9" webAppPath="E:\sitefinities\sf_9\SitefinityWebApp" websiteName="sf_9" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="archive" lastGetLatest="10/03/2018 00:00:00" />
+    <sitefinity id="sf_11" displayName="free" solutionPath="E:\sitefinities\sf_11" webAppPath="E:\sitefinities\sf_11\SitefinityWebApp" websiteName="sf_11" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" lastGetLatest="12/03/2018 00:00:00" />
+    <sitefinity id="sf_12" displayName="free" solutionPath="E:\sitefinities\sf_12" webAppPath="E:\sitefinities\sf_12\SitefinityWebApp" websiteName="sf_12" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" lastGetLatest="11/22/2018 00:00:00" />
+    <sitefinity id="sf_13" displayName="free" solutionPath="E:\sitefinities\sf_13" webAppPath="E:\sitefinities\sf_13\SitefinityWebApp" websiteName="sf_13" branch="$/CMS/Sitefinity 4.0/Code Base" description="" containerName="" lastGetLatest="11/07/2018 00:00:00" />
+  </sitefinities>
+  <containers defaultContainerName="">
+    <container name="archive" />
+  </containers>
+</data>

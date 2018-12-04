@@ -7,15 +7,29 @@
     None
 #>
 function sf-select-project {
-    [CmdletBinding()]Param()
-
+    [CmdletBinding()]Param(
+        [switch]$showUnused
+    )
+    
     $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
-        Write-Host "No projects found. Create one."
+        Write-Host "No sitefinities in current container! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
+        return
+    }
+    
+    if (-not $showUnused) {
+        $unusedProjectsName = _get-unusedProjectName
+        $sitefinities = $sitefinities | Where-Object { ([SfProject]$_).displayName -ne $unusedProjectsName }
+    } else {
+        $sitefinities = $sitefinities | Sort-Object -Property @{Expression = "displayName"}, @{Expression = "branch"}
+    }
+
+    if (-not $sitefinities) {
+        Write-Host "No sitefinities found. Make sure you are showing unused as well or create some."
         return
     }
 
-    sf-show-allProjects
+    sf-show-projects $sitefinities
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
@@ -57,7 +71,7 @@ function sf-show-currentProject ([switch]$detail) {
     }
 
     if (-not $detail) {
-        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(get-daysSinceLastGetLatest $context)"
+        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(_get-daysSinceLastGetLatest $context)"
         return    
     }
     
@@ -87,7 +101,7 @@ function sf-show-currentProject ([switch]$detail) {
 
         [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
         [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $branch; }
-        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = get-daysSinceLastGetLatest $context; }
+        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = _get-daysSinceLastGetLatest $context; }
     )
 
     $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders
@@ -98,12 +112,10 @@ function sf-show-currentProject ([switch]$detail) {
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
-function sf-show-allProjects {
-    $sitefinities = @(get-allProjectsForCurrentContainer)
-    if ($null -eq $sitefinities[0]) {
-        Write-Host "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
-        return
-    }
+function sf-show-projects {
+    Param(
+        [SfProject[]]$sitefinities
+    )
     
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {
@@ -111,7 +123,7 @@ function sf-show-allProjects {
         [SfProject]$sitefinity = $sitefinity
         $index = [array]::IndexOf($sitefinities, $sitefinity)
         
-        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.id)"; LastGet = get-daysSinceLastGetLatest $sitefinity }) > $null
+        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.id)"; LastGet = _get-daysSinceLastGetLatest $sitefinity }) > $null
     }
     $currentContainerName = $Script:selectedContainer.name
     if ($currentContainerName -ne '') {
@@ -124,7 +136,7 @@ function sf-show-allProjects {
     $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id, LastGet | Out-String | ForEach-Object { Write-Host $_ }
 }
 
-function get-daysSinceLastGetLatest ([SfProject]$context) {
+function _get-daysSinceLastGetLatest ([SfProject]$context) {
     if (-not $context) {
         [SfProject]$context = _get-selectedProject
     }

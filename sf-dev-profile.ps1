@@ -71,7 +71,7 @@ function global:batchOverwriteProjectsWithLatestFromTfsIfNeeded {
 
             if ($shouldReset) {
                 sf-clean-solution -cleanPackages $true
-                sf-reset-app -start -build
+                sf-reset-app -start -build -precompile
                 sf-new-appState -stateName initial
             }
         }
@@ -88,11 +88,36 @@ function global:batchRebuildAndStart {
     $scriptBlock = {
         Param([SfProject]$sf)
         if ($names.Contains($sf.displayName)) {
-            # sf-clean-solution -cleanPackages $true
-            sf-reset-app -start -build
+            sf-reset-app -start -rebuild -precompile
             sf-new-appState -stateName initial
         }
     }   
 
     sf-start-allProjectsBatch $scriptBlock
+}
+
+function global:backup-live {
+    $backupTarget = "D:\sitefinities-backup"
+    if (-not (Test-Path $backupTarget)) {
+        New-Item $backupTarget -ItemType Directory
+    }
+
+    $toCleanUp = Get-Item $backupTarget | ForEach-Object {$_.GetDirectories()} | Sort-Object -Property LastWriteTime -Descending | Select-Object -Skip 5
+    if ($toCleanUp -and $toCleanUp.length -gt 0) {
+        try {
+            os-del-filesAndDirsRecursive $toCleanUp
+        }
+        catch {
+                        
+        }
+    }
+
+    $suffix = [DateTime]::Now.Ticks
+    $sfBackupContainerTarget = "$backupTarget\sf_$suffix"
+
+    New-Item $sfBackupContainerTarget -ItemType Directory
+    $dbTarget = "$sfBackupContainerTarget\db.xml"
+    Copy-Item "C:\sf-dev\db.xml" $dbTarget
+
+    Copy-Item "E:\sitefinities\*" $sfBackupContainerTarget -Recurse
 }

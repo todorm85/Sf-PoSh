@@ -1,12 +1,13 @@
 function new-SfProject {
     [OutputType([SfProject])]
     Param(
-        [string]$displayName
+        [string]$displayName,
+        [string]$id
     )
     
     $defaultContext = New-Object SfProject -Property @{
         displayName  = $displayName;
-        # id           = '';
+        id           = $id;
         # solutionPath = '';
         # webAppPath   = '';
         # websiteName  = '';
@@ -22,12 +23,16 @@ function applyConventions {
         [SfProject]$context
     )
 
-    $id = _generateId
+    if (-not $context.id) {
+        $context.id = _generateId
+    }
+
+    $id = $context.id
+
     $solutionPath = "${projectsDirectory}\${id}";
     $webAppPath = "${projectsDirectory}\${id}\SitefinityWebApp";
     $websiteName = $id
 
-    $context.id = $id
     $context.solutionPath = $solutionPath
     $context.webAppPath = $webAppPath
     $context.websiteName = $websiteName

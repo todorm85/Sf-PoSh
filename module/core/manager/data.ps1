@@ -75,7 +75,7 @@ function _sfData-save-project {
     $sitefinityEntry.SetAttribute("branch", $context.branch)
     $sitefinityEntry.SetAttribute("description", $context.description)
     $sitefinityEntry.SetAttribute("containerName", $context.containerName)
-    $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest.ToString())
+    $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
 
     $data.Save($dataPath) > $null
 }

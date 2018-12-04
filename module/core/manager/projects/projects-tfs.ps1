@@ -7,10 +7,16 @@ function sf-update-allProjectsTfsInfo {
 
         $lastGetLatestTfs = _get-lastWorkspaceChangesetDate $context
         if ($lastGetLatestTfs) {
-            $lastGetLatestTool = [datetime]::Parse($context.lastGetLatest)
-
-            # only update if not get-latest issued already from this tool later than what is in workspace
-            if ($lastGetLatestTool -lt $lastGetLatestTfs) {
+            if ($context.lastGetLatest) {
+                $lastGetLatestTool = [datetime]::Parse($context.lastGetLatest)
+                
+                # only update if not get-latest issued already from this tool later than what is in workspace
+                if ($lastGetLatestTool -lt $lastGetLatestTfs) {
+                    $context.lastGetLatest = $lastGetLatestTfs
+                    _sfData-save-project $context
+                }
+            }
+            else {
                 $context.lastGetLatest = $lastGetLatestTfs
                 _sfData-save-project $context
             }
