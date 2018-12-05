@@ -4,9 +4,14 @@ InModuleScope sf-dev {
     . "${PSScriptRoot}\..\Infrastructure\test-util.ps1"
 
     function set-testProject {
+        Param(
+            [switch]$oldest
+        )
+
         $allProjects = @(_sfData-get-allProjects)
         if ($allProjects.Count -gt 0) {
-            $proj = $allProjects[$allProjects.Count - 1]
+            $i = if ($oldest) {0} else {$allProjects.Count - 1}
+            $proj = $allProjects[$i]
             set-currentProject $proj
         }
         else {
@@ -15,8 +20,8 @@ InModuleScope sf-dev {
     
         return $proj
     }
-    
-    Describe "sf-new-project should" {
+
+    Describe "sf-new-project should" -Tag "essential" {
         It "create and build project" {
             $projName = [System.Guid]::NewGuid().ToString().Replace('-', '_')
             sf-new-project -displayName $projName -predefinedBranch '$/CMS/Sitefinity 4.0/Code Base' -buildSolution
@@ -38,9 +43,9 @@ InModuleScope sf-dev {
             $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
             $sqlServer.Logins | Where-Object {$_.Name.Contains($id)} | Should -HaveCount 1
         }
-    }
+    } 
 
-    Describe "start-app should" {
+    Describe "start-app should" -Tag "essential" {
         It "start Sitefinity" {
             set-testProject
             # even after successful build we need to build once more to have a working app
@@ -51,9 +56,9 @@ InModuleScope sf-dev {
             $result = _invoke-NonTerminatingRequest $url
             $result | Should -Be 200
         }
-    }
+    }  
 
-    Describe "sf-reset-app should" {
+    Describe "sf-reset-app should" -Tag "essential" {
         It "reset Sitefinity" {
             [SfProject]$project = set-testProject
             $testId = $project.id
@@ -69,7 +74,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "states should" {
+    Describe "states should" -Tags @("states", "secondary") {
         It "save and then restore state" {
             set-testProject
             [SfProject]$project = _get-selectedProject
@@ -101,7 +106,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "clone should" {
+    Describe "clone should" -Tags @("secondary", "clone") {
         It "clone project" {
             [SfProject]$sourceProj = set-testProject
             $sourceName = $sourceProj.displayName
@@ -140,7 +145,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "delete should" {
+    Describe "delete should" -Tag "essential" {
         It "delete project" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
@@ -157,5 +162,5 @@ InModuleScope sf-dev {
             $sqlServer.Logins | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
             sql-get-dbs | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
         }
-    }
+    } 
 }

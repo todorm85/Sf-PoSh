@@ -35,7 +35,7 @@ function sf-new-appState {
     $root.SetAttribute("dbName", $dbName)
     $stateData.Save($stateDataPath) > $null
 
-    copy-sfRuntimeFiles $appDataStatePath
+    copy-sfRuntimeFiles -dest $appDataStatePath
 }
 
 function get-statesPath {

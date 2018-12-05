@@ -85,7 +85,7 @@ function sf-new-project {
             Write-Host "Backing up original App_Data folder..."
             $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
-            copy-sfRuntimeFiles $originalAppDataSaveLocation
+            copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
 
             # persist current context to script data
             $oldContext = _get-selectedProject
@@ -191,7 +191,7 @@ function sf-clone-project {
 
     try {
         $branch = tfs-get-branchPath -path $newContext.solutionPath
-        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneWorkspace -cloneDb -branchToBindTo $branch
+        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneDb -branchToBindTo $branch
     }
     catch {
         throw "Error importing project.`n $_"        

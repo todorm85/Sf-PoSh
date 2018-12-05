@@ -161,7 +161,9 @@ function sf-unlock-allFiles {
         $path = $proj.webAppPath
     }
 
-    unlock-allFiles $path
+    if ($path) {
+        unlock-allFiles $path
+    }
 }
 function build-proj {
     [CmdletBinding()]

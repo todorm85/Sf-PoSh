@@ -305,16 +305,22 @@ function clean-sfRuntimeFiles {
     [SfProject]$context = _get-selectedProject
     $webAppPath = $context.webAppPath
 
-    Get-ChildItem "${webAppPath}\App_Data\*" -Recurse | Remove-Item -Force -Confirm:$false -Recurse -Exclude @("*.pfx", "*.lic")
+    $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Exclude @("*.pfx", "*.lic") -File
+    os-del-filesAndDirsRecursive -items $toDelete -force
+
+    # clean empty dirs
     do {
-        $dirs = Get-ChildItem "${webAppPath}\App_Data\*" -directory -recurse | Where-Object { (Get-ChildItem $_.fullName).Length -eq 0 } | Select-Object -expandproperty FullName
-        $dirs | Foreach-Object { Remove-Item $_ }
+        $dirs = Get-ChildItem "${webAppPath}\App_Data" -directory -recurse | Where-Object { (Get-ChildItem $_.fullName).Length -eq 0 } | Select-Object -expandproperty FullName
+        $dirs | % {Remove-Item $_ -Force}
     } while ($dirs.count -gt 0)
 }
 
-function copy-sfRuntimeFiles ($dest) {
-    [SfProject]$context = _get-selectedProject
-    $src = "$($context.webAppPath)\App_Data\*"
+function copy-sfRuntimeFiles ([SfProject]$project, $dest) {
+    if (-not $project) {
+        [SfProject]$project = _get-selectedProject
+    }
+
+    $src = "$($project.webAppPath)\App_Data\*"
 
     Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude @("*.pfx", "*.lic")
 }

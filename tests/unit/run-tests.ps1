@@ -1,0 +1,1 @@
+Invoke-Pester -Script "$PSScriptRoots\*.tests.ps1"
