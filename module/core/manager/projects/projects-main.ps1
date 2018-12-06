@@ -174,8 +174,8 @@ function sf-clone-project {
         throw "Invalid app path";
     }
 
-    $targetName = _generateId
-    $targetPath = $script:projectsDirectory + "\${targetName}"
+    $targetId = _generateId
+    $targetPath = $script:projectsDirectory + "\${targetId}"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
     }
@@ -191,7 +191,7 @@ function sf-clone-project {
 
     try {
         $branch = tfs-get-branchPath -path $newContext.solutionPath
-        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneDb -branchToBindTo $branch
+        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneDb -branchToBindTo $branch -id $targetId
     }
     catch {
         throw "Error importing project.`n $_"        
