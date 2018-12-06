@@ -10,7 +10,7 @@ Get-ChildItem $destination |
     Where-Object { -not $filtered.Contains($_.Name) } |
     Remove-Item -Force -Recurse
 
-Get-ChildItem -Path "$PSScriptRoot\module" |
+Get-ChildItem -Path "$PSScriptRoot\..\module" |
     Where-Object { -not $filtered.Contains($_.Name) } |
     Copy-Item -Destination $destination -Recurse
 
