@@ -289,7 +289,9 @@ function reset-appDataFiles {
         Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
         $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
         try {
-            os-del-filesAndDirsRecursive $dirs
+            if ($dirs) {
+                os-del-filesAndDirsRecursive $dirs
+            }
         }
         catch {
             $errorMessage = "${errorMessage}`n" + $_
