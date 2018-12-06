@@ -123,7 +123,7 @@ function sf-show-projects {
         [SfProject]$sitefinity = $sitefinity
         $index = [array]::IndexOf($sitefinities, $sitefinity)
         
-        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.split("4.0")[3]; Ports = "$ports"; ID = "$($sitefinity.id)"; LastGet = _get-daysSinceLastGetLatest $sitefinity }) > $null
+        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]; Ports = "$ports"; ID = "$($sitefinity.id)"; LastGet = _get-daysSinceLastGetLatest $sitefinity }) > $null
     }
     $currentContainerName = $Script:selectedContainer.name
     if ($currentContainerName -ne '') {

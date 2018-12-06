@@ -651,7 +651,7 @@ function set-currentProject {
     if ($newContext) {
         $ports = @(iis-get-websitePort $newContext.websiteName)
         if ($newContext.branch) {
-            $branch = ($newContext.branch).split("4.0")[3]
+            $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
         }
         else {
             $branch = '/no branch'
