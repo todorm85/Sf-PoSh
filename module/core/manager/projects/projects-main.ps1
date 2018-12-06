@@ -78,6 +78,7 @@ function sf-new-project {
 
             $newContext.branch = $branch
             _create-workspace $newContext -branch $branch
+            $newContext.lastGetLatest = [datetime]::Today
 
             $webAppPath = $newContext.solutionPath + '\SitefinityWebApp'
             $newContext.webAppPath = $webAppPath
