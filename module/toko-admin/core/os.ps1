@@ -89,6 +89,10 @@ function unlock-allFiles ($path) {
     }
 
     $pids | ForEach-Object {
-        Get-Process -Id $_ | where {$_.Name -ne "svchost" -and $_.Name -ne "System" } | Stop-Process -Force -ErrorAction SilentlyContinue
+        Get-Process -Id $_ | % {
+            $date = [datetime]::Now
+            "$date : Forcing stop of process Name:$($_.Name) File:$($_.FileName) Path:$($_.Path) `nModules:$($_.Modules)" | Out-File "$home\Desktop\unlock-allFiles-log.txt" -Append
+            Stop-Process $_ -Force -ErrorAction SilentlyContinue
+        }
     }
 }
