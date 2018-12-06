@@ -720,6 +720,8 @@ function _create-workspace ($context, $branch) {
     try {
         Write-Host "Getting latest workspace changes..."
         tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite
+        $context.lastGetLatest = [DateTime]::Today
+        _save-selectedProject $context
     }
     catch {
         throw "Could not get latest workapce changes. $_"
