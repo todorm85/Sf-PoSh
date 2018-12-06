@@ -1,5 +1,10 @@
 Param($destination = "C:\sf-dev")
 
+$answer = $null
+while ($answer -ne 'y') {
+    $answer = Read-Host -Prompt "Are you sure you want to deploy sf-dev to live? y/n"
+}
+
 Write-Host "Deploying..."
 
 & "$PSScriptRoot\new-manifest.ps1"
