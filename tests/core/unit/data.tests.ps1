@@ -12,7 +12,7 @@ InModuleScope sf-dev {
                 Remove-Item $dataPath -Force
             }
             else {
-                . "$PSScriptRoot\..\..\module\core\manager\manager.init.ps1"
+                . "E:\sf-dev\module\core\manager\manager.init.ps1"
             }
         }
 

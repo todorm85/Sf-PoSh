@@ -21,7 +21,7 @@ InModuleScope sf-dev {
         return $proj
     }
 
-    Describe "sf-new-project should" -Tag "essential" {
+    Describe "sf-new-project should" -Tags ("e2e", "essential", "new") {
         It "create and build project" {
             $projName = [System.Guid]::NewGuid().ToString().Replace('-', '_')
             sf-new-project -displayName $projName -predefinedBranch '$/CMS/Sitefinity 4.0/Code Base' -buildSolution
@@ -45,7 +45,7 @@ InModuleScope sf-dev {
         }
     } 
 
-    Describe "start-app should" -Tag "essential" {
+    Describe "start-app should" -Tags ("e2e", "essential", "start") {
         It "start Sitefinity" {
             set-testProject
             # even after successful build we need to build once more to have a working app
@@ -58,7 +58,7 @@ InModuleScope sf-dev {
         }
     }  
 
-    Describe "sf-reset-app should" -Tag "essential" {
+    Describe "sf-reset-app should" -Tags ("e2e", "essential", "reset") {
         It "reset Sitefinity" {
             [SfProject]$project = set-testProject
             $testId = $project.id
@@ -74,7 +74,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "states should" -Tags @("states", "secondary") {
+    Describe "states should" -Tags ("e2e", "secondary", "states") {
         It "save and then restore state" {
             set-testProject
             [SfProject]$project = _get-selectedProject
@@ -106,7 +106,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "clone should" -Tags @("secondary", "clone") {
+    Describe "clone should" -Tags ("e2e", "secondary", "clone") {
         It "clone project" {
             [SfProject]$sourceProj = set-testProject
             $sourceName = $sourceProj.displayName
@@ -145,7 +145,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "delete should" -Tag "essential" {
+    Describe "delete should" -Tags ("e2e", "essential delete") {
         It "delete project" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id

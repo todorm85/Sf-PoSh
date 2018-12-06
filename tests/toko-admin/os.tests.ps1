@@ -4,7 +4,8 @@ InModuleScope toko-admin {
     Describe "unlock-allFiles" {
         BeforeEach {
             $ids = New-Object System.Collections.ArrayList
-            Mock Stop-Process { $ids.Add($Id) }
+            Mock Get-Process { $ids.Add($Id) > $null }
+            # Mock Stop-Process { }
         }
 
         It "stop all processes that are locking files when one process" {
@@ -65,7 +66,7 @@ InModuleScope toko-admin {
 
             unlock-allFiles "c:\dummy"
 
-            Assert-MockCalled Stop-Process -Times 0 -Scope It
+            Assert-MockCalled Get-Process -Times 0 -Scope It
             $ids | Should -HaveCount 0
         }
     }

@@ -1,0 +1,1 @@
+Invoke-Pester -Script "$PSScriptRoot\*.tests.ps1" -ExcludeTag "e2e"
