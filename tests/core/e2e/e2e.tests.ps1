@@ -145,7 +145,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "delete should" -Tags ("e2e", "essential delete") {
+    Describe "delete should" -Tags ("e2e", "essential", "delete") {
         It "delete project" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
