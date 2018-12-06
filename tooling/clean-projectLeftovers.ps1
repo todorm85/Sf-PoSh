@@ -48,7 +48,7 @@ catch {
 try {
     Write-Host "Sites cleanup"
     $sites = Get-Item "IIS:\Sites" 
-    $names = $sites.Children.Keys | Where-Object { shouldClean($_) }
+    $names = $sites.Children.Keys | Where-Object { shouldClean $_ }
         
     foreach ($site in $names) {
         Remove-Item "IIS:\Sites\$($site)" -Force -Recurse
@@ -61,7 +61,7 @@ catch {
 try {
     Write-Host "App pool cleanup"
     $pools = Get-Item "IIS:\AppPools" 
-    $names = $pools.Children.Keys | Where-Object { shouldClean($_) }
+    $names = $pools.Children.Keys | Where-Object { shouldClean $_ }
     foreach ($poolName in $names) {
         Remove-Item "IIS:\AppPools\$($poolName)" -Force -Recurse
     }
@@ -73,7 +73,7 @@ catch {
 try {
     Write-Host "SQL logins cleanup"
     $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
-    $allLogins = $sqlServer.Logins | Where-Object { shouldClean($_.Name) }
+    $allLogins = $sqlServer.Logins | Where-Object { shouldClean $_.Name }
     $allLogins | ForEach-Object {$_.Drop()}
 }
 catch {
@@ -82,7 +82,7 @@ catch {
 
 try {
     Write-Host "Domain mapping cleanup"
-    Show-Domains | Where-Object { shouldClean($_) } | ForEach-Object { $_.Split(' ')[0] } | ForEach-Object { Remove-Domain $_ }
+    Show-Domains | Where-Object { shouldClean $_ } | ForEach-Object { $_.Split(' ')[0] } | ForEach-Object { Remove-Domain $_ }
 }
 catch {
     Write-Warning "Domains were not cleaned up: $_"
@@ -91,7 +91,7 @@ catch {
 try {
     Write-Host "TFS cleanup"
     $wss = tfs-get-workspaces 
-    $wss | Where-Object { shouldClean($_) } | ForEach-Object { tfs-delete-workspace $_ }
+    $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ }
 }
 catch {
     Write-Warning "Tfs workspaces were not cleaned up: $_"
@@ -100,7 +100,7 @@ catch {
 try {
     Write-Host "DBs cleanup"
     $dbs = sql-get-dbs 
-    $dbs | Where-Object { shouldClean($_.name) } | ForEach-Object { sql-delete-database $_.name }
+    $dbs | Where-Object { shouldClean $_.name } | ForEach-Object { sql-delete-database $_.name }
 }
 catch {
     Write-Warning "Databases were not cleaned up: $_"
@@ -111,7 +111,7 @@ try {
     sleep.exe 5
     Write-Host "Projects directory cleanup"
     unlock-allFiles $projectsDir
-    Get-ChildItem $projectsDir | Where-Object { shouldClean($_.Name) } | % { Remove-Item $_.FullName -Force -Recurse }
+    Get-ChildItem $projectsDir | Where-Object { shouldClean $_.Name } | % { Remove-Item $_.FullName -Force -Recurse }
 }
 catch {
     Write-Warning "Test sitefinities were not cleaned up: $_"

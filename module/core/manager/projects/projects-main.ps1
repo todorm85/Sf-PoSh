@@ -576,14 +576,48 @@ function _validate-project {
     }
 }
 
-function _get-isIdDuplicate ($name) {
-    $sitefinities = [SfProject[]]@(_sfData-get-allProjects)
-    foreach ($sitefinity in $sitefinities) {
-        $sitefinity = [SfProject]$sitefinity
-        if ($sitefinity.id -eq $name) {
+function _get-isIdDuplicate ($id) {
+    function isDuplicate ($name) {
+        if ($name -and $name.Contains($id)) {
+            return $true
+        }
+        return $false
+    }
+
+    $sitefinities = [SfProject[]](_sfData-get-allProjects)
+    $sitefinities | % {
+        $sitefinity = [SfProject]$_
+        if ($sitefinity.id -eq $id) {
             return $true;
         }
-    }    
+    }
+
+    if (Test-Path "$script:projectsDirectory\$id") { return $true }
+
+    $domains = Show-Domains | Where-Object { isDuplicate $_ }
+    if ($domains) {return $true}
+
+    $wss = tfs-get-workspaces | Where-Object { isDuplicate $_ }
+    if ($wss) { return $false }
+
+    Import-Module WebAdministration
+    $sites = Get-Item "IIS:\Sites"
+    if ($sites -and $sites.Children) {
+        $names = $sites.Children.Keys | Where-Object { isDuplicate $_ }
+        if ($names) {return $true}
+    }
+    $pools = Get-Item "IIS:\AppPools"
+    if ($pools -and $pools.Children) {
+        $names = $pools.Children.Keys | Where-Object { isDuplicate $_ }
+        if ($names) {return $true}
+    }
+
+    Import-Module SQLPS -DisableNameChecking
+    $dbs = sql-get-dbs | Where-Object { isDuplicate $_.name }
+    if ($dbs) { return $false }
+    $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
+    $allLogins = $sqlServer.Logins | Where-Object { isDuplicate $_.Name }
+    if ($allLogins) {return $true}
 
     return $false;
 }
