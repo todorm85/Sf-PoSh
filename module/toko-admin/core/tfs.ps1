@@ -143,13 +143,25 @@ function tfs-get-latestChanges {
 
     if ($global:LASTEXITCODE -eq 1) {
         $output -match ".*?(?<conflicts>\d+) conflicts, \d+ warnings, (?<errors>\d+) errors.*"
-        $conflictsCount = [int]::Parse($Matches.conflicts)
-        $errorsCount = [int]::Parse($Matches.errors)
-        if ($conflictsCount -gt 0) {
-            throw "There were $conflictsCount conflicts when getting latest."
+        if ($Matches.conflicts) {
+            $conflictsCount = [int]::Parse($Matches.conflicts)
         }
-        elseif ($errorsCount -gt 0) {
-            throw "There were $errorsCount errors when getting latest."
+
+        if ($Matches.errors) {
+            $errorsCount = [int]::Parse($Matches.errors)
+        }
+
+        $errors = ''
+        if ($conflictsCount -gt 0) {
+            $errors = "$errors`nThere were $conflictsCount conflicts when getting latest."
+        }
+        
+        if ($errorsCount -gt 0) {
+            $errors = "$erors`nThere were $errorsCount errors when getting latest."
+        }
+
+        if ($errors) {
+            throw $errors
         }
     }
 

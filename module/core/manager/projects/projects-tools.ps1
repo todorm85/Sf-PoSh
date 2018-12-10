@@ -113,7 +113,7 @@ function sf-reset-project {
             $shouldReset = $true
         }
 
-        $getLatestOutput = sf-get-latestChanges
+        $getLatestOutput = sf-get-latestChanges -overwrite
         if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
             $shouldReset = $true
         }
