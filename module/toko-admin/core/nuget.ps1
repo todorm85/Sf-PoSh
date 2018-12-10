@@ -6,5 +6,5 @@
     None
 #>
 function clear-nugetCache {
-    execute-native "& `"$($PSScriptRoot)\external-tools\nuget.exe`" locals all -clear"
+    execute-native "& `"$($PSScriptRoot)\..\external-tools\nuget.exe`" locals all -clear"
 }
