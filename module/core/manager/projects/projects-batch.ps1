@@ -1,5 +1,4 @@
 function sf-start-allProjectsBatch ($scriptBlock) {
-    $logsPath = get-batchLogsPath
     $initialProject = _get-selectedProject
     $sitefinities = _sfData-get-allProjects
     $errors = ''
@@ -23,7 +22,6 @@ function sf-start-allProjectsBatch ($scriptBlock) {
 }
 
 function sf-start-batch ($scriptBlock) {
-    $logsPath = get-batchLogsPath
     $sitefinity = _get-selectedProject
     & $scriptBlock $sitefinity
 }
