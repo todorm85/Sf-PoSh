@@ -106,7 +106,7 @@ function sf-reset-project {
         $sf = _get-selectedProject
     }
 
-    if ($sf.lastGetLatest -and $sf.lastGetLatest -lt [System.DateTime]::Today) {
+    if ($sf.lastGetLatest -and [System.DateTime]::Parse($sf.lastGetLatest) -lt [System.DateTime]::Today) {
         $shouldReset = $false
         if (sf-get-hasPendingChanges) {
             sf-undo-pendingChanges
