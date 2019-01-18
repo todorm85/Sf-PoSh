@@ -125,9 +125,9 @@ function sf-add-precompiledTemplates {
     $webAppPath = $context.webAppPath
     $appUrl = get-appUrl
     if ($revert) {
-        $dlls = Get-ChildItem -Force "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
+        $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
         try {
-            os-del-filesAndDirsRecursive $dlls
+            $dlls | Remove-Item -Force
         }
         catch {
             throw "Item could not be deleted: $dll.PSPath`nMessage:$_"
@@ -290,7 +290,7 @@ function reset-appDataFiles {
         $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
         try {
             if ($dirs) {
-                os-del-filesAndDirsRecursive $dirs
+                $dirs | Remove-Item -Force -Recurse
             }
         }
         catch {
@@ -307,8 +307,9 @@ function clean-sfRuntimeFiles {
     [SfProject]$context = _get-selectedProject
     $webAppPath = $context.webAppPath
 
-    $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Exclude @("*.pfx", "*.lic") -File
-    os-del-filesAndDirsRecursive -items $toDelete -force
+    $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude @("*.pfx", "*.lic") -File
+    $toDelete | % { unlock-allFiles -path $_.FullName }
+    $toDelete | Remove-Item -Force
 
     # clean empty dirs
     do {

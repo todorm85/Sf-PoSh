@@ -14,7 +14,8 @@ function sf-new-appState {
 
     $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
     if (Test-Path $statePath) {
-        os-del-filesAndDirsRecursive "$statePath" -force
+        unlock-allFiles -path $statePath
+        Remove-Item -Force -Recurse -Path $statePath
     }
 
     $appDataStatePath = "$statePath/App_Data"

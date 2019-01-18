@@ -18,32 +18,6 @@ function os-popup-notification {
     $objNotifyIcon.ShowBalloonTip(10000)
 }
 
-function os-del-filesAndDirsRecursive {
-    Param(
-        $items,
-        [switch]$force) 
-
-    if ($items.PSPath -eq '' -or $null -eq $items.PSPath) {
-        $paths = $items   
-    }
-    else {
-        $paths = $items.PSPath
-    }
-
-    if ($null -eq $paths) {
-        throw "Paths cannot be null"
-    }
-
-    if ($force) {
-        $paths | % { unlock-allFiles $_ }
-    }
-
-    Remove-Item $paths -force -recurse -ErrorAction SilentlyContinue -ErrorVariable ProcessError
-    if ($ProcessError) {
-        throw $ProcessError
-    }
-}
-
 function os-test-isPortFree {
     Param($port)
 

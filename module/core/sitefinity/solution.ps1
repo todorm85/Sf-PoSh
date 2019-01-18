@@ -73,8 +73,8 @@ function sf-clean-solution {
     Write-Host "Deleting bins and objs..."
     $dirs = Get-ChildItem -force -recurse $solutionPath | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "bin") -or ($_.Name -like "obj")) }
     try {
-        if ($dirs -and $dirs.Length > 0) {
-            os-del-filesAndDirsRecursive $dirs
+        if ($dirs -and $dirs.Length -gt 0) {
+            $dirs | Remove-Item -Force -Recurse
         }
     }
     catch {
@@ -91,7 +91,7 @@ function sf-clean-solution {
         $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
         try {
             if ($dirs -and $dirs.Length > 0) {
-                os-del-filesAndDirsRecursive $dirs
+                $dirs | Remove-Item -Force -Recurse
             }
         }
         catch {
