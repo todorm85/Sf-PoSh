@@ -159,4 +159,15 @@ InModuleScope toko-admin {
             {tfs-get-latestChanges $anyPath} | Should -Throw "There were 5 errors when getting latest."
         }
     }
+
+    Describe "tfs-show-pendingChanges" {
+        It "throws when no workspace name" {
+            try {
+                tfs-show-pendingChanges -workspaceName ""
+            }
+            catch {
+                $_.Exception.StackTrace | Should -Not -BeNullOrEmpty
+            }
+        }
+    }
 }
