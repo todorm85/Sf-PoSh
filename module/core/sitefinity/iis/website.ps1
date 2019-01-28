@@ -54,7 +54,7 @@ function sf-browse-webSite {
 function sf-add-sitePort {
     [CmdletBinding()]
     Param(
-        [int]$port = 1111,
+        [int]$port = 2111,
         [switch]$auto
     )
 
@@ -67,7 +67,7 @@ function sf-add-sitePort {
         }
     }
 
-    $context = _get-selectedProject
+    [SfProject]$context = _get-selectedProject
     $websiteName = $context.websiteName
 
     iis-add-sitePort -name $websiteName -port $port
@@ -81,11 +81,6 @@ function sf-add-sitePort {
     None
 #>
 function sf-remove-sitePorts {
-    [CmdletBinding()]
-    Param(
-        [string]$port
-    )
-
     $context = _get-selectedProject
     $websiteName = $context.websiteName
 

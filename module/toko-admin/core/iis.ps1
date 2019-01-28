@@ -170,7 +170,7 @@ function iis-add-sitePort {
     )
 
     _iis-load-webAdministrationModule
-    New-WebBinding -Name $websiteName -port $port
+    New-WebBinding -Name $name -port $port
 }
 
 function iis-test-isSiteNameDuplicate {
