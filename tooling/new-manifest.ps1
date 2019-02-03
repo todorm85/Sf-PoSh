@@ -27,7 +27,8 @@ New-ModuleManifest `
     -CmdletsToExport '' `
     -VariablesToExport '' `
     -Author 'Todor Mitskovski' `
+    -CompanyName ' ' `
     -Description 'Sitefinity core dev automation tools' `
     -ScriptsToProcess 'bootstrap\load-nestedModules.ps1' `
     -Guid "570fb657-4d88-4883-8b39-2dae4db1280c" `
-    -PowerShellVersion '5.0' -ClrVersion '4.0';
+    -PowerShellVersion '5.1' -ClrVersion '4.0';
