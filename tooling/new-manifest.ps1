@@ -1,6 +1,8 @@
+Param($env)
+
 # module discovery
 $filePath = "$PSScriptRoot\..\module\sf-dev.psd1"
-$rootModule = "sf-dev"
+$rootModule = ".\sf-dev.psm1"
 $scripts = Get-ChildItem "$PSScriptRoot\..\module\core" -Recurse | Where-Object { $_.Extension -eq '.ps1'}
 # functions discovery
 $modulesLines = $scripts | Get-Content
@@ -28,7 +30,9 @@ function create-module {
         -PowerShellVersion '5.1' -ClrVersion '4.0';
 }
 
-create-module
+if ($env -eq "prod") {
+    create-module
+}
 
 $filePath = "$PSScriptRoot\..\module\sf-dev.dev.psd1"
 $functionNames = '*'

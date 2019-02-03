@@ -7,9 +7,9 @@ while ($answer -ne 'y') {
 
 Write-Host "Deploying..."
 
-& "$PSScriptRoot\new-manifest.ps1"
+& "$PSScriptRoot\new-manifest.ps1" "prod"
 
-$filtered = @('db.xml', 'config.user.ps1')
+$filtered = @('db.xml', 'config.user.ps1'. 'sf-dev.dev.psd1')
 
 Get-ChildItem $destination |
     Where-Object { -not $filtered.Contains($_.Name) } |
@@ -18,5 +18,3 @@ Get-ChildItem $destination |
 Get-ChildItem -Path "$PSScriptRoot\..\module" |
     Where-Object { -not $filtered.Contains($_.Name) } |
     Copy-Item -Destination $destination -Recurse
-
-& "$PSScriptRoot\new-manifest.ps1" dev
