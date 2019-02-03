@@ -14,7 +14,7 @@ function iis-get-websitePort {
     }
 
     _iis-load-webAdministrationModule
-    Get-WebBinding -Name $webAppName | Select-Object -expand bindingInformation | ForEach-Object {$_.split(':')[-2]}
+    (iis-get-binding $webAppName).port
 }
 
 function iis-show-appPoolPid {
@@ -96,6 +96,7 @@ function iis-delete-appPool ($appPoolName) {
 function iis-create-website {
     Param(
         [Parameter(Mandatory = $true)][string]$newWebsiteName,
+        [string]$domain = '',
         [Parameter(Mandatory = $true)][string]$newPort,
         [Parameter(Mandatory = $true)][string]$newAppPath,
         [Parameter(Mandatory = $true)][string]$newAppPool
@@ -103,7 +104,6 @@ function iis-create-website {
 
     _iis-load-webAdministrationModule
     
-    $isReserved = $false
     ForEach ($reservedPort in $reservedPorts) {
         if ($reservedPort -eq $newPort) {
             throw "Port ${newPort} already used"
@@ -126,7 +126,10 @@ function iis-create-website {
     }
 
     # create website
-    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol = "http"; bindingInformation = ("*:${newPort}:")} -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool
+    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol = "http"; bindingInformation = "*:${newPort}:"} -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool
+    if ($domain) {
+        iis-set-binding -siteName $newWebsiteName -domainName $domain -port $newPort
+    }
 
     $Acl = Get-Acl $newAppPath
     $Ar = New-Object  system.security.accesscontrol.filesystemaccessrule("IIS AppPool\$newAppPool", "Full", "ContainerInherit,ObjectInherit", "None", "Allow")
@@ -162,15 +165,6 @@ function iis-test-isPortFree {
     }
 
     return $isFree
-}
-
-function iis-add-sitePort {
-    Param(
-        $name, $port
-    )
-
-    _iis-load-webAdministrationModule
-    New-WebBinding -Name $name -port $port
 }
 
 function iis-test-isSiteNameDuplicate {
@@ -241,4 +235,40 @@ function iis-set-sitePath {
 
     _iis-load-webAdministrationModule
     Get-Item ("iis:\Sites\$($siteName)") | Set-ItemProperty -Name "physicalPath" -Value $path
+}
+
+function iis-set-binding {
+    param (
+        $siteName,
+        $domainName,
+        $port
+    )
+    
+    Get-WebBinding $siteName | Remove-WebBinding
+    New-WebBinding -Name $siteName -Protocol http -Port $port
+    if ($domainName) {
+        New-WebBinding -Name $siteName -Protocol http -Port $port -HostHeader $domainName        
+    }
+}
+
+function iis-get-binding {
+    param (
+        $siteName
+    )
+    
+    $bindings = @(Get-WebBinding -Name $siteName)
+    if ($bindings.Count -eq 0) {
+        return @{port = $null; domain = $null}
+    }
+    
+    # first binding is to localhost, second to domain if set, port is same for all
+    $binding = $bindings[0]
+    if ($bindings[1]) {
+        $binding = $bindings[1]
+    }
+
+    $bindingInfo = $binding.bindingInformation
+    $port = $bindingInfo.Split(':')[1]
+    $domain = $bindingInfo.Split(':')[2]
+    return @{port = $port; domain = $domain; }
 }

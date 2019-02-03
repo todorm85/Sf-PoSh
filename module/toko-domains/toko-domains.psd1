@@ -30,7 +30,7 @@ Description = 'Allows redirecting requests for web domains on default port 80 to
 PowerShellVersion = '1.0'
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @("Show-Domains", "Add-Domain", "Remove-Domain")
+FunctionsToExport = @("Show-Domains", "Add-Domain", "Remove-Domain", "Add-ToHostsFile", "Remove-FromHostsFile")
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

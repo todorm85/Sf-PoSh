@@ -45,52 +45,6 @@ function sf-browse-webSite {
 }
 
 <#
-    .SYNOPSIS 
-    .DESCRIPTION
-    .PARAMETER xxxx
-    .OUTPUTS
-    None
-#>
-function sf-add-sitePort {
-    [CmdletBinding()]
-    Param(
-        [int]$port = 2111,
-        [switch]$auto
-    )
-
-    while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
-        if ($auto) {
-            $port++
-        }
-        else {
-            $port = Read-Host -Prompt 'Port used. Enter new: '
-        }
-    }
-
-    [SfProject]$context = _get-selectedProject
-    $websiteName = $context.websiteName
-
-    iis-add-sitePort -name $websiteName -port $port
-}
-
-<#
-    .SYNOPSIS 
-    .DESCRIPTION
-    .PARAMETER xxxx
-    .OUTPUTS
-    None
-#>
-function sf-remove-sitePorts {
-    $context = _get-selectedProject
-    $websiteName = $context.websiteName
-
-    $ports = iis-get-websitePort $websiteName
-    ForEach ($usedPort in $ports) {
-        Remove-WebBinding -Name $websiteName -port $usedPort
-    }
-}
-
-<#
 .SYNOPSIS
 Creates a website for the given project or currently selected one.
 
@@ -109,7 +63,7 @@ function create-website {
         $context = _get-selectedProject
     }
 
-    $port = 1111
+    $port = 2111
     while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
         $port++
     }
@@ -121,39 +75,34 @@ function create-website {
 
     $newAppPath = $context.webAppPath
     $newAppPool = $context.id
+    $domain = generate-domainName -context $context
     try {
-        iis-create-website -newWebsiteName $context.websiteName -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool
+        iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool
 
-        _save-selectedProject $context
     }
     catch {
         throw "Error creating site: $_"
+    }
+
+    _save-selectedProject $context
+
+    try {
+        if ($domain) {
+            Add-ToHostsFile -address "127.0.0.1" -hostname $domain
+        }
+    }
+    catch {
+        Write-Error "Error adding domain to hosts file."
     }
 
     try {
         sql-create-login -name "IIS APPPOOL\${newAppPool}"
     }
     catch {
-        throw "Error creating login user in SQL server for IIS APPPOOL\${newAppPool}. Message:$_"
+        Write-Error "Error creating login user in SQL server for IIS APPPOOL\${newAppPool}. Message:$_"
         delete-website $context
         $context.websiteName = ''
         _save-selectedProject $context
-    }
-
-    try {
-        $domain = get-domain -context $context
-        Show-Domains | ForEach-Object {
-            $found = $_ -match "^$domain .*$"
-        } | Out-Null
-        
-        if ($found) {
-            Remove-Domain $domain
-        }
-
-        Add-Domain $domain $port   
-    }
-    catch {
-        Write-Warning "Error adding domain registration $domain Error: $_"
     }
 }
 
@@ -168,6 +117,7 @@ function delete-website ([SfProject]$context) {
     }
     
     $appPool = @(iis-get-siteAppPool $websiteName)
+    $domain = (iis-get-binding $websiteName).domain
     $context.websiteName = ''
     try {
         _save-selectedProject $context
@@ -183,21 +133,54 @@ function delete-website ([SfProject]$context) {
         Remove-Item ("iis:\AppPools\$appPool") -Force -Recurse
     }
     catch {
-        throw "Error removing app pool $appPool Error: $_"
+        Write-Error "Error removing app pool $appPool Error: $_"
     }
 
     try {
         sql-delete-login -name "IIS APPPOOL\${appPool}"
     }
     catch {
-        throw "Error removing sql login (IIS APPPOOL\${appPool}) Error: $_"
+        Write-Error "Error removing sql login (IIS APPPOOL\${appPool}) Error: $_"
     }
 
     try {
-        $domain = get-domain -context $context
-        Remove-Domain $domain
+        if ($domain) {
+            Remove-FromHostsFile -hostname $domain > $null
+        }
     }
     catch {
-        throw "Error removing domain registration $domain Error: $_"
+        Write-Error "Error removing domain from hosts file. Error $_"        
+    }
+}
+
+function change-domain {
+    param (
+        $context,
+        $domainName
+    )
+
+    if (-not $context) {
+        $context = _get-selectedProject
+    }
+
+    $websiteName = $context.websiteName
+
+    $oldDomain = (iis-get-binding $websiteName).domain
+    if ($oldDomain) {
+        try {
+            Remove-FromHostsFile -hostname $oldDomain > $null
+        }
+        catch {
+            Write-Error "Error cleaning previous domain not found in hosts file."            
+        }
+    }
+
+    $port = (iis-get-binding $websiteName).port
+    if ($port) {
+        iis-set-binding $websiteName $domainName $port
+        Add-ToHostsFile -address 127.0.0.1 -hostname $domainName
+    }
+    else {
+        throw "No binding found for site $websiteName"
     }
 }

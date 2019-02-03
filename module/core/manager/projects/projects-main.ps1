@@ -116,16 +116,14 @@ function sf-new-project {
             if ($oldContext) {
                 set-currentProject $oldContext
             }
-            
-            # $displayInnerError = Read-Host "Display inner error? y/n"
-            # if ($displayInnerError -eq 'y') {
-            #     Write-Host "`n"
-            #     Write-Host $_
-            #     Write-Host "`n"
-            # }
+            $ii = $_.InvocationInfo
+            $msg = $_
+            if ($ii)
+            {
+                $msg = "$msg`n$($ii.PositionMessage)"
+            }
 
-            Write-Host $_
-            return
+            throw $msg
         }
 
         _create-userFriendlySlnName $newContext
@@ -513,39 +511,30 @@ function sf-rename-project {
         }
     }
 
-    $oldSolutionName = _get-solutionFriendlyName
+    $oldSolutionName = generate-solutionFriendlyName -context $context
     if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
         _create-userFriendlySlnName -context $context
     }
 
-    $oldDomain = get-domain
     $context.displayName = $newName
-    _save-selectedProject $context
-    set-currentProject $context
 
-    $newSolutionName = _get-solutionFriendlyName
+    $newSolutionName = generate-solutionFriendlyName -context $context
     Copy-Item -Path "$($context.solutionPath)\$oldSolutionName" -Destination "$($context.solutionPath)\$newSolutionName" -Force
 
     $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
     $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
     Copy-Item -Path "$($context.solutionPath)\.vs\$oldSlnCacheName" -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
 
-    try {
-        Remove-Domain $oldDomain
-    }
-    catch {
-        # nothing to remove        
-    }
-    
-    $domain = get-domain
-    $websiteName = $context.websiteName
-    $ports = @(iis-get-websitePort $websiteName)
-    Add-Domain $domain $ports[0]
+    $domain = generate-domainName -context $context
+    change-domain -context $context -domainName $domain
+
+    _save-selectedProject $context
+    set-currentProject $context
 }
 
 function _create-userFriendlySlnName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
-    $targetFilePath = "$($context.solutionPath)\$(_get-solutionFriendlyName $context)"
+    $targetFilePath = "$($context.solutionPath)\$(generate-solutionFriendlyName $context)"
     Copy-Item -Path $solutionFilePath -Destination $targetFilePath
 }
 
@@ -666,7 +655,7 @@ function set-currentProject {
     }
 }
 
-function _get-solutionFriendlyName {
+function generate-solutionFriendlyName {
     Param(
         [SfProject]$context
     )
@@ -719,7 +708,7 @@ function _create-workspace ($context, $branch) {
 
     try {
         Write-Host "Getting latest workspace changes..."
-        tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite
+        tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite > $null
         $context.lastGetLatest = [DateTime]::Today
         _save-selectedProject $context
     }

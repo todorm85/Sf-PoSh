@@ -6,6 +6,7 @@ function Add-ToHostsFile ($address, $hostname) {
 }
 
 function Remove-FromHostsFile ($hostname) {
+    $address = $null
     (Get-Content $hostsPath) | ForEach-Object {
         $found = $_ -match "^(?<address>.*?) $hostname$"
         if ($found) {
