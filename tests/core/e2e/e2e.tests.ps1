@@ -1,6 +1,6 @@
 . "${PSScriptRoot}\..\Infrastructure\load-module.ps1"
 
-InModuleScope sf-dev {
+InModuleScope sf-dev.dev {
     . "${PSScriptRoot}\..\Infrastructure\test-util.ps1"
 
     function set-testProject {

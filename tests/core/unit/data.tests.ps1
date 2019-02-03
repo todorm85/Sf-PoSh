@@ -1,13 +1,13 @@
 . "${PSScriptRoot}\..\Infrastructure\load-module.ps1"
 
-InModuleScope sf-dev {
+InModuleScope sf-dev.dev {
     
     Describe "_sfData-get-allProjects" {
         $oldDataPath
 
         BeforeAll {
-            $oldDataPath = $Script:dataPath
-            $Script:dataPath = "$($Script:prjectsDirectory)\data-tests-db.xml"
+            $oldDataPath = $Global:dataPath
+            $Global:dataPath = "$($Global:prjectsDirectory)\data-tests-db.xml"
             if (Test-Path $dataPath) {
                 Remove-Item $dataPath -Force
             }
@@ -58,13 +58,13 @@ InModuleScope sf-dev {
         AfterAll {
             try {
                 Write-Host "Module test db cleanup"
-                Remove-Item $Script:dataPath
+                Remove-Item $Global:dataPath
             }
             catch {
                 Write-Warning "Module db file was not cleaned up: $_"
             }
             finally {
-                $Script:dataPath = $oldDataPath
+                $Global:dataPath = $oldDataPath
             }
         }
 

@@ -1,6 +1,6 @@
 . "${PSScriptRoot}\..\Infrastructure\load-module.ps1"
 
-InModuleScope sf-dev {
+InModuleScope sf-dev.dev {
     
     Mock execute-native { }
     

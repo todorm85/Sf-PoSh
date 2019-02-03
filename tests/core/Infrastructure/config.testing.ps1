@@ -1,4 +1,4 @@
 Write-Host "`nSETTING TESTING ENVIRONMENT CONFIGURATION`n"
-$script:idPrefix = "sf_tests_"
-$Script:projectsDirectory = "$($Script:projectsDirectory)\tests"
-$Script:dataPath = "$($Script:projectsDirectory)\test-db.xml"
+$Global:idPrefix = "sf_tests_"
+$Global:projectsDirectory = "e:\sf-dev-tests"
+$Global:dataPath = "$($Global:projectsDirectory)\db.xml"
