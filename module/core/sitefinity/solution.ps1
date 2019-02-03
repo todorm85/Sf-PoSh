@@ -128,7 +128,7 @@ function sf-open-solution {
         $solutionName = "Telerik.Sitefinity.sln"
     }
     else {
-        $solutionName = _get-solutionFriendlyName
+        $solutionName = generate-solutionFriendlyName
     }
 
     execute-native "& `"$vsPath`" `"${solutionPath}\${solutionName}`"" -successCodes @(1)

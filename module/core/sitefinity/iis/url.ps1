@@ -15,7 +15,11 @@ function get-appUrl {
         throw "No sitefinity port set."
     }
 
-    $domain = get-domain
+    $domain = (iis-get-binding -siteName $context.websiteName).domain
+    if (-not $domain) {
+        $domain = "localhost"
+    }
+    
     $result = "http://${domain}:$port"
     if ($null -ne $subAppName) {
         $result = "${result}/${subAppName}"
@@ -24,7 +28,7 @@ function get-appUrl {
     return $result
 }
 
-function get-domain ([SfProject]$context) {
+function generate-domainName ([SfProject]$context) {
     if (-not $context) {        
         $context = _get-selectedProject
     }
