@@ -1,11 +1,11 @@
 # the path where provisioned sitefinity projects by the script will be created in. The directory must exist.
-$script:projectsDirectory = "E:\dev-sitefinities"
+$global:projectsDirectory = "E:\dev-sitefinities"
 
 # where info about created and imported sitefinities will be stored
-$script:dataPath = "${projectsDirectory}\db.xml"
+$global:dataPath = "${projectsDirectory}\db.xml"
 
 # Global settings
-$script:defaultUser = 'admin@test.test'
-$script:defaultPassword = 'admin@2'
+$global:defaultUser = 'admin@test.test'
+$global:defaultPassword = 'admin@2'
 
-$script:idPrefix = "sf_dev_"
+$global:idPrefix = "sf_dev_"

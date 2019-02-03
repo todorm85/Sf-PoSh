@@ -18,9 +18,9 @@ function Remove-FromHostsFile ($hostname) {
         throw 'Domain not found in hosts file.'
     }
 
-    (Get-Content $Script:hostsPath) |
+    (Get-Content $global:hostsPath) |
         Where-Object { $_ -notmatch ".*? $hostname$" } |
-        Out-File $Script:hostsPath -Force -Encoding utf8 -ErrorAction Stop
+        Out-File $global:hostsPath -Force -Encoding utf8 -ErrorAction Stop
 
     return $address
 }

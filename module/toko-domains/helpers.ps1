@@ -2,7 +2,7 @@
 function Get-ListenAddress() {
     function isAddressOccupied($address) {
         # return (((Get-Content $hostsPath) -match ".*$address.*").Count -gt 0)
-        return ((netsh interface portproxy show all) -match ".*$address.*") -or ((Get-Content $Script:hostsPath) -match ".*$address.*")
+        return ((netsh interface portproxy show all) -match ".*$address.*") -or ((Get-Content $global:hostsPath) -match ".*$address.*")
     }
 
     $firstOctet = 1

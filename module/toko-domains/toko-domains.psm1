@@ -1,4 +1,4 @@
-$Script:hostsPath = "$($env:windir)\system32\Drivers\etc\hosts"
+$global:hostsPath = "$($env:windir)\system32\Drivers\etc\hosts"
 
 $oldLocation = Get-Location
 Set-Location ${PSScriptRoot}
@@ -12,7 +12,7 @@ Set-Location $oldLocation
     Shows all domains mapped to local ports
  #>
 function Show-Domains() {
-    $hostsFileEntries = Get-Content $Script:hostsPath
+    $hostsFileEntries = Get-Content $global:hostsPath
     $portProxies = netsh interface portproxy show all
     $hostsFileEntries | ForEach-Object {
         $hostsEntryAddress = $_.Split(' ')[0]

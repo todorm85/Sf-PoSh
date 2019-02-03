@@ -36,5 +36,5 @@ function applyConventions {
     $context.solutionPath = $solutionPath
     $context.webAppPath = $webAppPath
     $context.websiteName = $websiteName
-    $context.containerName = $Script:selectedContainer.name
+    $context.containerName = $global:selectedContainer.name
 }

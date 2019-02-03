@@ -1,12 +1,12 @@
 # init config
 $defaultConfig = ".\config.ps1"
-$userConf = ".\config.user.ps1"
+$userConf = "$home\documents\sf-dev\config.ps1"
 
 . $defaultConfig
 if (Test-Path $userConf) {
     . $userConf
 }
 
-if ($script:customConfigPath -and (Test-Path $script:customConfigPath)) {
-    . $script:customConfigPath
+if ($global:customConfigPath -and (Test-Path $global:customConfigPath)) {
+    . $global:customConfigPath
 }

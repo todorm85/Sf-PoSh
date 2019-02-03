@@ -1,5 +1,5 @@
 function sf-clean-allProjectsLeftovers {
-    $projectsDir = $script:projectsDirectory
+    $projectsDir = $global:projectsDirectory
     $idsInUse = _sfData-get-allProjects | ForEach-Object { $_.id }
     
     function shouldClean {

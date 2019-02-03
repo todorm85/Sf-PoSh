@@ -181,7 +181,6 @@ function build-proj {
     # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'
     # Invoke-Expression "& $command"
     & $msBuildPath $path /nologo /maxcpucount /Verbosity:quiet /p:RunCodeAnalysis=False /consoleloggerparameters:Summary
-    # & $Script:vsCmdPath $path /build Debug
 
     # $elapsed.Stop()
     # Write-Warning "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"

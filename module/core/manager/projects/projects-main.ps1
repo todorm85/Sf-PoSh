@@ -174,7 +174,7 @@ function sf-clone-project {
     }
 
     $targetId = _generateId
-    $targetPath = $script:projectsDirectory + "\${targetId}"
+    $targetPath = $global:projectsDirectory + "\${targetId}"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
     }
@@ -582,7 +582,7 @@ function _get-isIdDuplicate ($id) {
         }
     }
 
-    if (Test-Path "$script:projectsDirectory\$id") { return $true }
+    if (Test-Path "$global:projectsDirectory\$id") { return $true }
 
     $domains = Show-Domains | Where-Object { isDuplicate $_ }
     if ($domains) {return $true}
@@ -615,7 +615,7 @@ function _get-isIdDuplicate ($id) {
 function _generateId {
     $i = 0;
     while ($true) {
-        $name = "$($Script:idPrefix)$i"
+        $name = "$($global:idPrefix)$i"
         $isDuplicate = (_get-isIdDuplicate $name)
         if (-not $isDuplicate) {
             break;
@@ -636,7 +636,7 @@ function set-currentProject {
 
     _validate-project $newContext
 
-    $script:globalContext = $newContext
+    $global:globalContext = $newContext
 
     if ($newContext) {
         $ports = @(iis-get-websitePort $newContext.websiteName)
@@ -671,7 +671,7 @@ function generate-solutionFriendlyName {
 
 function _get-selectedProject {
     [OutputType([SfProject])]
-    $currentContext = $script:globalContext
+    $currentContext = $global:globalContext
     if ($currentContext -eq '') {
         return $null
     }

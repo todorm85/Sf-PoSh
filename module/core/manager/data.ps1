@@ -1,6 +1,6 @@
 function _sfData-get-allProjects {
     $data = New-Object XML
-    $data.Load($script:dataPath)
+    $data.Load($global:dataPath)
     $sfs = $data.data.sitefinities.sitefinity
     if ($sfs) {
         $sfs | ForEach-Object {
@@ -31,7 +31,7 @@ function _sfData-delete-project {
     $id = $context.id
     try {
         $data = New-Object XML
-        $data.Load($script:dataPath) > $null
+        $data.Load($global:dataPath) > $null
         $sitefinities = $data.data.sitefinities.sitefinity
         ForEach ($sitefinity in $sitefinities) {
             if ($sitefinity.id -eq $id) {
@@ -40,7 +40,7 @@ function _sfData-delete-project {
             }
         }
 
-        $data.Save($script:dataPath) > $null
+        $data.Save($global:dataPath) > $null
     }
     catch {
         throw "Error deleting sitefinity from ${dataPath}. Message: $_"
@@ -82,7 +82,7 @@ function _sfData-save-project {
 
 function _sfData-get-allContainers {
     $data = New-Object XML
-    $data.Load($script:dataPath)
+    $data.Load($global:dataPath)
     return $data.data.containers.container
 }
 
@@ -90,7 +90,7 @@ function _sfData-delete-container {
     Param($containerName)
     try {
         $data = New-Object XML
-        $data.Load($script:dataPath) > $null
+        $data.Load($global:dataPath) > $null
         $entities = $data.data.containers.container
         ForEach ($entity in $entities) {
             if ($entity.name -eq $containerName) {
@@ -99,7 +99,7 @@ function _sfData-delete-container {
             }
         }
 
-        $data.Save($script:dataPath) > $null
+        $data.Save($global:dataPath) > $null
     }
     catch {
         throw "Error deleting entity from ${dataPath}. Message: $_"
