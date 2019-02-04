@@ -6,7 +6,8 @@ function sf-clean-allProjectsLeftovers {
         param (
             $id
         )
-        if (-not $id.StartsWith("$Global:idPrefix")) {
+        
+        if (-not $id -match "$Global:idPrefix\d+") {
             return $false
         }
         
