@@ -181,7 +181,7 @@ function start-app {
         }
 
         # if request to appstatus returned 404, sitefinity has initialized
-        if ($response -eq 404) {
+        if ($response -eq 404 -or $response -eq "NotFound") {
             $response = _invoke-NonTerminatingRequest $url
             # if request to base url is 200 ok sitefinity has started
             if ($response -eq 200) {
@@ -199,13 +199,19 @@ function start-app {
 }
 
 function _invoke-NonTerminatingRequest ($url) {
+    $result = $null
     try {
         $response = Invoke-WebRequest $url -TimeoutSec 120
-        return $response.StatusCode
+        $result = $response.StatusCode
     }
     catch {
-        return $_.Exception.Response.StatusCode.Value__
+        $statusCode = $_.Exception.Response.StatusCode
+        if ($statusCode) {
+            $result = $statusCode.ToString()
+        }
     }
+
+    return $result
 }
 
 function delete-startupConfig {
