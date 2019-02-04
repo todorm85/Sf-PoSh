@@ -57,7 +57,7 @@ InModuleScope sf-dev.dev {
 
         AfterAll {
             try {
-                Write-Host "Module test db cleanup"
+                Write-Information "Module test db cleanup"
                 Remove-Item $Global:dataPath
             }
             catch {

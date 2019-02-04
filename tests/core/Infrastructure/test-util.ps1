@@ -3,7 +3,7 @@ function stop-allMsbuild {
         Get-Process msbuild -ErrorAction Stop | Stop-Process -ErrorAction Stop
     }
     catch {
-        Write-Warning "MSBUILD stop: $_"
+        Write-Error "MSBUILD stop: $_"
     }
 }
 

@@ -27,7 +27,7 @@ InModuleScope sf-dev.dev {
         }
         It "Build project." {
             set-testProject
-            sf-build-solution -retryCount 3 | Should -Not -Throw
+            sf-build-solution -retryCount 3
         }
         It "Start/reset app." {
             set-testProject
@@ -93,7 +93,7 @@ InModuleScope sf-dev.dev {
 
             # edit a file in source project
             $webConfigPath = "$($sourceProj.webAppPath)\web.config"
-            tfs-checkout-file $webConfigPath
+            tfs-checkout-file $webConfigPath > $null
             [xml]$xmlData = Get-Content $webConfigPath
             [System.Xml.XmlElement]$appSettings = $xmlData.configuration.appSettings
             $newElement = $xmlData.CreateElement("add")
@@ -101,7 +101,7 @@ InModuleScope sf-dev.dev {
             $newElement.SetAttribute("key", $testKeyName)
             $newElement.SetAttribute("value", "testing")
             $appSettings.AppendChild($newElement)
-            $xmlData.Save($webConfigPath)
+            $xmlData.Save($webConfigPath) > $null
 
             sf-clone-project
 

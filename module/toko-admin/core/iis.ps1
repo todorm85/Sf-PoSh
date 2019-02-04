@@ -86,7 +86,7 @@ function iis-delete-appPool ($appPoolName) {
     
     $apps = iis-get-appPoolApps $appPoolName
     if ($apps.Length -gt 0) {
-        Write-Host 'CANNOT DELETE APP POOL! AppPool has websites and apps hosted'
+        Write-Warning 'CANNOT DELETE APP POOL! AppPool has websites and apps hosted'
     }
     else {
         Remove-WebAppPool -Name $appPoolName

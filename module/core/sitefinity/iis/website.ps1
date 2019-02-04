@@ -9,8 +9,7 @@ function sf-rename-website {
         iis-rename-website $context.websiteName $newName
     }
     catch {
-        Write-Host "Error renaming site in IIS. Message: $_.Message"
-        throw
+        throw "Error renaming site in IIS. Message: $_.Message"
     }
     
     $context.websiteName = $newName

@@ -73,7 +73,7 @@ function sf-new-project {
         }
 
         try {
-            Write-Host "Creating solution path..."
+            Write-Information "Creating solution path..."
             New-Item $newContext.solutionPath -type directory > $null
 
             $newContext.branch = $branch
@@ -83,7 +83,7 @@ function sf-new-project {
             $webAppPath = $newContext.solutionPath + '\SitefinityWebApp'
             $newContext.webAppPath = $webAppPath
 
-            Write-Host "Backing up original App_Data folder..."
+            Write-Information "Backing up original App_Data folder..."
             $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
             copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
@@ -98,7 +98,7 @@ function sf-new-project {
             Set-Location $PSScriptRoot
         
             try {
-                Write-Host "Deleting workspace..."
+                Write-Information "Deleting workspace..."
                 tfs-delete-workspace $newContext.id
             }
             catch {
@@ -106,7 +106,7 @@ function sf-new-project {
             }
 
             try {
-                Write-Host "Deleting solution..."
+                Write-Information "Deleting solution..."
                 Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
             }
             catch {
@@ -129,12 +129,12 @@ function sf-new-project {
         _create-userFriendlySlnName $newContext
 
         if ($buildSolution) {
-            Write-Host "Building solution..."
+            Write-Information "Building solution..."
             sf-build-solution -retryCount 3
         }
             
         try {
-            Write-Host "Creating website..."
+            Write-Information "Creating website..."
             sf-create-website -context $newContext
         }
         catch {
@@ -144,7 +144,7 @@ function sf-new-project {
 
         if ($startWebApp) {
             try {
-                Write-Host "Initializing Sitefinity"
+                Write-Information "Initializing Sitefinity"
                 create-startupConfig
                 start-app
                 if ($precompile) {
@@ -283,7 +283,7 @@ function sf-import-project {
     }
     else {
         try {
-            Write-Host "Creating website..."
+            Write-Information "Creating website..."
             sf-create-website -context $newContext > $null
         }
         catch {
@@ -410,7 +410,7 @@ function sf-delete-project {
 
     # Del workspace
     if ($workspaceName -ne '' -and !($keepWorkspace)) {
-        Write-Host "Deleting workspace..."
+        Write-Information "Deleting workspace..."
         try {
             tfs-delete-workspace $workspaceName
         }
@@ -421,7 +421,7 @@ function sf-delete-project {
 
     # Del db
     if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
-        Write-Host "Deleting sitefinity database..."
+        Write-Information "Deleting sitefinity database..."
         try {
             sql-delete-database -dbName $dbName
         }
@@ -431,7 +431,7 @@ function sf-delete-project {
     }
 
     # Del Website
-    Write-Host "Deleting website..."
+    Write-Information "Deleting website..."
     if ($websiteName) {
         try {
             delete-website $context
@@ -444,10 +444,10 @@ function sf-delete-project {
     # Del dir
     if (!($keepProjectFiles)) {
         try {
-            Write-Host "Unlocking all locked files in solution directory..."
+            Write-Information "Unlocking all locked files in solution directory..."
             sf-unlock-allFiles
 
-            Write-Host "Deleting solution directory..."
+            Write-Information "Deleting solution directory..."
             if ($solutionPath -ne "") {
                 $path = $solutionPath
             }
@@ -465,7 +465,7 @@ function sf-delete-project {
         }
     }
 
-    Write-Host "Deleting data entry..."
+    Write-Information "Deleting data entry..."
     _sfData-delete-project $context
     set-currentProject $null
 
@@ -690,7 +690,7 @@ function validate-nameSyntax ($name) {
 function _create-workspace ($context, $branch) {
     try {
         # create and map workspace
-        Write-Host "Creating workspace..."
+        Write-Information "Creating workspace..."
         $workspaceName = $context.id
         tfs-create-workspace $workspaceName $context.solutionPath
     }
@@ -699,7 +699,7 @@ function _create-workspace ($context, $branch) {
     }
 
     try {
-        Write-Host "Creating workspace mappings..."
+        Write-Information "Creating workspace mappings..."
         tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName
     }
     catch {
@@ -707,7 +707,7 @@ function _create-workspace ($context, $branch) {
     }
 
     try {
-        Write-Host "Getting latest workspace changes..."
+        Write-Information "Getting latest workspace changes..."
         tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite > $null
         $context.lastGetLatest = [DateTime]::Today
         _save-selectedProject $context

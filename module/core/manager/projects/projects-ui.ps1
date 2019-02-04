@@ -13,7 +13,7 @@ function sf-select-project {
     
     $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
-        Write-Host "No sitefinities in current container! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
+        Write-Warning "No sitefinities in current container! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return
     }
     
@@ -25,7 +25,7 @@ function sf-select-project {
     }
 
     if (-not $sitefinities) {
-        Write-Host "No sitefinities found. Make sure you are showing unused as well or create some."
+        Write-Warning "No sitefinities found. Make sure you are showing unused as well or create some."
         return
     }
 
@@ -59,7 +59,7 @@ function sf-select-project {
 function sf-show-currentProject ([switch]$detail) {
     [SfProject]$context = _get-selectedProject
     if ($null -eq ($context)) {
-        Write-Host "No project selected"
+        Write-Warning "No project selected"
         return
     }
 

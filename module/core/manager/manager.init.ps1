@@ -23,7 +23,7 @@ function init-managerContainers() {
 
 function init-managerData {
     if (!(Test-Path $global:dataPath)) {
-        Write-Host "Initializing script data..."
+        Write-Information "Initializing script data..."
         New-Item -ItemType file -Path $global:dataPath
 
         # Create The Document

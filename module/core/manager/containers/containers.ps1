@@ -33,7 +33,7 @@ function sf-delete-container {
 
     _sfData-delete-container $container.name
 
-    Write-Host "`nOperation successful.`n"
+    Write-Information "`nOperation successful.`n"
 
     sf-select-container
 }

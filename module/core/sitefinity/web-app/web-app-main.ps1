@@ -33,11 +33,11 @@ function sf-reset-app {
 
     $dbName = sf-get-appDbName # this needs to be here before DataConfig.config gets deleted!!!
     
-    Write-Host "Restarting app pool..."
+    Write-Information "Restarting app pool..."
     sf-reset-pool
 
     if ($force) {
-        Write-Host "Unlocking files..."
+        Write-Information "Unlocking files..."
         sf-unlock-allFiles
     }
     
@@ -49,7 +49,7 @@ function sf-reset-app {
         sf-build-solution -retryCount 3
     }
 
-    Write-Host "Resetting App_Data files..."
+    Write-Information "Resetting App_Data files..."
     try {
         reset-appDataFiles
     }
@@ -58,7 +58,7 @@ function sf-reset-app {
     }
 
     if (-not [string]::IsNullOrEmpty($dbName)) {
-        Write-Host "Deleting database..."
+        Write-Information "Deleting database..."
         try {
             sql-delete-database -dbName $dbName
         }
@@ -156,7 +156,7 @@ function start-app {
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     $statusUrl = "$url/appstatus"
 
-    Write-Host "Starting Sitefinity..."
+    Write-Information "Starting Sitefinity..."
     $ErrorActionPreference = "Continue"
 
     # Send initial request to begin bootstrapping sitefinity
@@ -166,10 +166,10 @@ function start-app {
     }
 
     # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
-    Write-Host "Checking Sitefinity status: '$statusUrl'"
-    Write-Host "Sitefinity is initializing"
+    Write-Information "Checking Sitefinity status: '$statusUrl'"
+    Write-Information "Sitefinity is initializing"
     while ($true) {
-        Write-Host "..." -NoNewline
+        Write-Information "..."
         $response = _invoke-NonTerminatingRequest $statusUrl
         if ($elapsed.Elapsed.TotalSeconds -gt $totalWaitSeconds) {
             throw "Sitefinity did NOT start in the specified maximum time"
@@ -185,7 +185,7 @@ function start-app {
             $response = _invoke-NonTerminatingRequest $url
             # if request to base url is 200 ok sitefinity has started
             if ($response -eq 200) {
-                Write-Warning "Sitefinity has started after $($elapsed.Elapsed.TotalSeconds) second(s)"
+                Write-Information "Sitefinity has started after $($elapsed.Elapsed.TotalSeconds) second(s)"
                 break
             }
             else {
@@ -233,7 +233,7 @@ function create-startupConfig {
     $context = _get-selectedProject
     $webAppPath = $context.webAppPath
     
-    Write-Host "Creating StartupConfig..."
+    Write-Information "Creating StartupConfig..."
     try {
         $appConfigPath = "${webAppPath}\App_Data\Sitefinity\Configuration"
         if (-not (Test-Path $appConfigPath)) {
@@ -288,7 +288,7 @@ function reset-appDataFiles {
     $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
     Set-Location $context.webAppPath
     if (Test-Path $originalAppDataFilesPath) {
-        Write-Warning "Restoring Sitefinity web app App_Data files to original state."
+        Write-Information "Restoring Sitefinity web app App_Data files to original state."
         restore-sfRuntimeFiles "$originalAppDataFilesPath/*"
     }
     elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {

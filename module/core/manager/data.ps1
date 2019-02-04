@@ -27,7 +27,7 @@ function _sfData-get-allProjects {
 
 function _sfData-delete-project {
     Param($context)
-    Write-Host "Updating script databse..."
+    Write-Information "Updating script databse..."
     $id = $context.id
     try {
         $data = New-Object XML

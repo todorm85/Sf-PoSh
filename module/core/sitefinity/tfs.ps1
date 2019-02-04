@@ -77,7 +77,7 @@ function sf-get-latestChanges {
         throw "Solution path is not set."
     }
 
-    Write-Host "Getting latest changes for path ${solutionPath}."
+    Write-Information "Getting latest changes for path ${solutionPath}."
     if ($overwrite) {
         tfs-get-latestChanges -branchMapPath $solutionPath -overwrite
     } else {
@@ -87,5 +87,5 @@ function sf-get-latestChanges {
     $context.lastGetLatest = [System.DateTime]::Today
     _save-selectedProject $context
 
-    Write-Host "Getting latest changes complete."
+    Write-Information "Getting latest changes complete."
 }

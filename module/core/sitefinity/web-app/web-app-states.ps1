@@ -109,7 +109,7 @@ function select-appState {
     $statesPath = get-statesPath
     $states = Get-Item "${statesPath}/*"
     if (-not $states) {
-        Write-Host "No states."
+        Write-Warning "No states."
         return
     }
     

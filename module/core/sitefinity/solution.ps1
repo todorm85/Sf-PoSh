@@ -43,7 +43,7 @@ function sf-rebuild-solution {
     [CmdletBinding()]
     Param([bool]$cleanPackages = $false, $retryCount = 0)
     
-    Write-Host "Rebuilding solution..."
+    Write-Information "Rebuilding solution..."
     try {
         sf-clean-solution -cleanPackages $cleanPackages
     }
@@ -57,7 +57,7 @@ function sf-rebuild-solution {
 function sf-clean-solution {
     Param([bool]$cleanPackages = $false)
 
-    Write-Host "Cleaning solution..."
+    Write-Information "Cleaning solution..."
 
     $context = _get-selectedProject
     $solutionPath = $context.solutionPath
@@ -69,7 +69,7 @@ function sf-clean-solution {
 
     $errorMessage = ''
     #delete all bin, obj and packages
-    Write-Host "Deleting bins and objs..."
+    Write-Information "Deleting bins and objs..."
     $dirs = Get-ChildItem -force -recurse $solutionPath | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "bin") -or ($_.Name -like "obj")) }
     try {
         if ($dirs -and $dirs.Length -gt 0) {
@@ -86,7 +86,7 @@ function sf-clean-solution {
 
     if ($cleanPackages -and (Test-Path "${solutionPath}\packages")) {
         
-        Write-Host "Deleting packages..."
+        Write-Information "Deleting packages..."
         $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
         try {
             if ($dirs -and $dirs.Length > 0) {
@@ -174,7 +174,7 @@ function build-proj {
         throw "invalid or no proj path"
     }
 
-    Write-Host "Building ${path}"
+    Write-Information "Building ${path}"
 
     # $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'

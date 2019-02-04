@@ -24,7 +24,7 @@ function sf-clean-allProjectsLeftovers {
     }
 
     try {
-        Write-Host "Sites cleanup"
+        Write-Information "Sites cleanup"
         Import-Module WebAdministration
         $sites = Get-Item "IIS:\Sites" 
         $names = $sites.Children.Keys | Where-Object { shouldClean $_ }
@@ -38,7 +38,7 @@ function sf-clean-allProjectsLeftovers {
     }
 
     try {
-        Write-Host "App pool cleanup"
+        Write-Information "App pool cleanup"
         Import-Module WebAdministration
         $pools = Get-Item "IIS:\AppPools" 
         $names = $pools.Children.Keys | Where-Object { shouldClean $_ }
@@ -51,7 +51,7 @@ function sf-clean-allProjectsLeftovers {
     }
 
     try {
-        Write-Host "SQL logins cleanup"
+        Write-Information "SQL logins cleanup"
         $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
         $allLogins = $sqlServer.Logins | Where-Object { 
             $id = $_.Name.Replace("IIS APPPOOL\", "")
@@ -65,7 +65,7 @@ function sf-clean-allProjectsLeftovers {
     }
 
     try {
-        Write-Host "TFS cleanup"
+        Write-Information "TFS cleanup"
         $wss = tfs-get-workspaces 
         $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ }
     }
@@ -74,7 +74,7 @@ function sf-clean-allProjectsLeftovers {
     }
 
     try {
-        Write-Host "DBs cleanup"
+        Write-Information "DBs cleanup"
         $dbs = sql-get-dbs 
         $dbs | Where-Object { $_.name.StartsWith("$Global:idPrefix") -and (shouldClean $_.name) } | ForEach-Object { sql-delete-database $_.name }
     }
@@ -85,7 +85,7 @@ function sf-clean-allProjectsLeftovers {
     try {
         Set-Location -Path $PSHOME
         sleep.exe 5
-        Write-Host "Projects directory cleanup"
+        Write-Information "Projects directory cleanup"
         unlock-allFiles $projectsDir
         Get-ChildItem $projectsDir | Where-Object { shouldClean $_.Name } | % { Remove-Item $_.FullName -Force -Recurse }
     }

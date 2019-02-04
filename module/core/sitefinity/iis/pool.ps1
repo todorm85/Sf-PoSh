@@ -123,7 +123,7 @@ function sf-get-poolId {
         $entry -match "\(applicationPool:(?<pool>.*?)\)" > $Null
         $entryPool = $matches["pool"]
         if ($entryPool -eq $currentAppPool) {
-            Write-Host $entry
+            $entry
             return
         }
     }

@@ -23,6 +23,3 @@ New-ModuleManifest `
     -Author 'Todor Mitskovski' `
     -Description 'More user friendly and powerful administration commands.' `
     -PowerShellVersion '5.0' -ClrVersion '4.0';
-
-# type in ps console window to generate documentation form comments in functions
-# Get-Command -Module SfTool | % { Get-Help $_ -full; Write-Host "`n----------------------------------------------------`n";} >> export.txt
