@@ -22,10 +22,9 @@ function sf-build-solution ($retryCount = 0) {
             $isBuilt = $true
         }
         catch {
-            Write-Host "Build failed."
             $tries++
             if ($tries -le $retryCount) {
-                Write-Host "Retrying..." 
+                Write-Warning "Build failed. Retrying..." 
             }
             else {
                 throw "Solution could not build after $retryCount retries.`nError: $_`n"

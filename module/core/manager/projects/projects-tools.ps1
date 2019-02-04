@@ -6,7 +6,10 @@ function sf-clean-allProjectsLeftovers {
         param (
             $id
         )
-
+        if (-not $id.StartsWith("$Global:idPrefix")) {
+            return $false
+        }
+        
         if (-not $idsInUse.Contains($id)) {
             return $true
         }
@@ -21,6 +24,7 @@ function sf-clean-allProjectsLeftovers {
 
     try {
         Write-Host "Sites cleanup"
+        Import-Module WebAdministration
         $sites = Get-Item "IIS:\Sites" 
         $names = $sites.Children.Keys | Where-Object { shouldClean $_ }
         
@@ -34,6 +38,7 @@ function sf-clean-allProjectsLeftovers {
 
     try {
         Write-Host "App pool cleanup"
+        Import-Module WebAdministration
         $pools = Get-Item "IIS:\AppPools" 
         $names = $pools.Children.Keys | Where-Object { shouldClean $_ }
         foreach ($poolName in $names) {
@@ -74,7 +79,7 @@ function sf-clean-allProjectsLeftovers {
     try {
         Write-Host "DBs cleanup"
         $dbs = sql-get-dbs 
-        $dbs | Where-Object { shouldClean $_.name } | ForEach-Object { sql-delete-database $_.name }
+        $dbs | Where-Object { $_.name.StartsWith("$Global:idPrefix") -and (shouldClean $_.name) } | ForEach-Object { sql-delete-database $_.name }
     }
     catch {
         add-error "Databases were not cleaned up: $_"
