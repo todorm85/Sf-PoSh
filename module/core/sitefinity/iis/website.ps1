@@ -54,7 +54,7 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function create-website {
+function sf-create-website {
     Param(
         [SfProject]$context
     )
