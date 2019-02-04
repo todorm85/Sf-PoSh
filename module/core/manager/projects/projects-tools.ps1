@@ -53,19 +53,15 @@ function sf-clean-allProjectsLeftovers {
     try {
         Write-Host "SQL logins cleanup"
         $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
-        $allLogins = $sqlServer.Logins | Where-Object { shouldClean $_.Name }
+        $allLogins = $sqlServer.Logins | Where-Object { 
+            $id = $_.Name.Replace("IIS APPPOOL\", "")
+            return shouldClean $id  
+        }
+
         $allLogins | ForEach-Object {$_.Drop()}
     }
     catch {
         add-error "SQL logins were not cleaned up: $_"
-    }
-
-    try {
-        Write-Host "Domain mapping cleanup"
-        Show-Domains | Where-Object { shouldClean $_ } | ForEach-Object { $_.Split(' ')[0] } | ForEach-Object { Remove-Domain $_ }
-    }
-    catch {
-        add-error "Domains were not cleaned up: $_"
     }
 
     try {
