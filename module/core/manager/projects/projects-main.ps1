@@ -135,7 +135,7 @@ function sf-new-project {
             
         try {
             Write-Host "Creating website..."
-            create-website -context $newContext
+            sf-create-website -context $newContext
         }
         catch {
             $startWebApp = $false
@@ -284,7 +284,7 @@ function sf-import-project {
     else {
         try {
             Write-Host "Creating website..."
-            create-website -context $newContext > $null
+            sf-create-website -context $newContext > $null
         }
         catch {
             Write-Warning "Error during website creation. Message: $_"
