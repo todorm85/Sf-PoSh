@@ -64,7 +64,7 @@ function _sfData-save-project {
     if ($null -eq $sitefinityEntry) {
         $sitefinityEntry = $data.CreateElement("sitefinity");
         $sitefinities = $data.SelectSingleNode('/data/sitefinities')
-        $sitefinities.AppendChild($sitefinityEntry)
+        $sitefinities.AppendChild($sitefinityEntry) > $null
     }
 
     $sitefinityEntry.SetAttribute("id", $context.id)

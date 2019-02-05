@@ -28,7 +28,7 @@ function tfs-delete-workspace {
     Param(
         [Parameter(Mandatory=$true)][string]$workspaceName)
 
-    execute-native "& `"$tfPath`" workspace $workspaceName /delete /noprompt"
+    execute-native "& `"$tfPath`" workspace $workspaceName /delete /noprompt" > $null
 }
 
 function tfs-create-workspace {
@@ -40,12 +40,12 @@ function tfs-create-workspace {
     # needed otherwise if the current location is mapped to a workspace the command will throw
     Set-Location $path
 
-    execute-native "& `"$tfPath`" workspace `"$workspaceName`" /new /permission:private /noprompt"
+    execute-native "& `"$tfPath`" workspace `"$workspaceName`" /new /permission:private /noprompt" > $null
     
     Start-Sleep -m 1000
 
     try {
-        execute-native "& `"$tfPath`" workfold /unmap `"$/`" /workspace:$workspaceName"
+        execute-native "& `"$tfPath`" workfold /unmap `"$/`" /workspace:$workspaceName" > $null
     }
     catch {
         try {
@@ -94,7 +94,7 @@ function tfs-create-mappings {
     #     throw "could not create directory $branchMapPath"
     # }
     try {
-        execute-native "& `"$tfPath`" workfold /map `"$branch`" `"$branchMapPath`" /workspace:$workspaceName"
+        execute-native "& `"$tfPath`" workfold /map `"$branch`" `"$branchMapPath`" /workspace:$workspaceName" > $null
     }
     catch {
         Remove-Item $branchMapPath -force

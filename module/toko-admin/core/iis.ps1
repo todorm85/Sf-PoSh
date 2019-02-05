@@ -121,12 +121,12 @@ function iis-create-website {
 
     if (-not $found) {
         $poolPath = "IIS:\AppPools\$newAppPool"
-        New-Item $poolPath
+        New-Item $poolPath > $null
         Set-ItemProperty $poolPath -Name "processModel.idleTimeout" -Value ([TimeSpan]::FromMinutes(0))
     }
 
     # create website
-    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol = "http"; bindingInformation = "*:${newPort}:"} -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool
+    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol = "http"; bindingInformation = "*:${newPort}:"} -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool > $null
     if ($domain) {
         iis-set-binding -siteName $newWebsiteName -domainName $domain -port $newPort
     }
@@ -135,8 +135,8 @@ function iis-create-website {
     $Ar = New-Object  system.security.accesscontrol.filesystemaccessrule("IIS AppPool\$newAppPool", "Full", "ContainerInherit,ObjectInherit", "None", "Allow")
     $Acl.SetAccessRule($Ar)
     Set-Acl $newAppPath $Acl
-
-    return @{name = $newWebsiteName; port = $newPort; appPool = $newAppPool; appPath = $newAppPath}
+    $res = @{name = $newWebsiteName; port = $newPort; appPool = $newAppPool; appPath = $newAppPath}
+    return $res
 }
 
 function iis-get-siteAppPool {
