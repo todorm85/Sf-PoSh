@@ -50,7 +50,7 @@ function execute-native ($command, [array]$successCodes) {
 }
 
 function unlock-allFiles ($path) {
-    $handlesList = execute-native "& `"$PSScriptRoot\..\external-tools\handle.exe`" $path"
+    $handlesList = execute-native "& `"$PSScriptRoot\..\external-tools\handle.exe`" `"$path`""
     $pids = New-Object -TypeName System.Collections.ArrayList
     $handlesList | ForEach-Object { 
         $isFound = $_ -match "^.*pid: (?<pid>.*?) .*$"
