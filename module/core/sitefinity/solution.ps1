@@ -4,7 +4,12 @@
     .OUTPUTS
     None
 #>
-function sf-build-solution ($retryCount = 0) {
+function sf-build-solution {
+    [CmdletBinding()]
+    Param(
+        $retryCount = 0
+    )
+    
     $context = _get-selectedProject
     $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     
@@ -27,7 +32,8 @@ function sf-build-solution ($retryCount = 0) {
                 Write-Warning "Build failed. Retrying..." 
             }
             else {
-                throw "Solution could not build after $retryCount retries.`nError: $_`n"
+                Write-Warning "Solution could not build after $retryCount retries."
+                throw
             }
         }
     }
@@ -176,13 +182,13 @@ function build-proj {
 
     Write-Information "Building ${path}"
 
-    # $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
+    $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'
     # Invoke-Expression "& $command"
-    & $msBuildPath $path /nologo /maxcpucount /Verbosity:quiet /p:RunCodeAnalysis=False /consoleloggerparameters:Summary
-
-    # $elapsed.Stop()
-    # Write-Warning "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
+    $output = & $msBuildPath $path /nologo /maxcpucount /Verbosity:quiet /p:RunCodeAnalysis=False /consoleloggerparameters:Summary
+    $output | ForEach-Object { Write-Verbose $_ }
+    $elapsed.Stop()
+    Write-Information "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
     # Out-File "${PSScriptRoot}\..\build-errors.log"
     if ($LastExitCode -ne 0) {
         throw "Build errors occurred."
