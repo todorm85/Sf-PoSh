@@ -3,9 +3,9 @@
 InModuleScope sf-dev.dev {
     . "$PSScriptRoot\..\Infrastructure\test-util.ps1"
     
-    Describe "Starting new project from scratch." -Tags ("e2e") {
-        It "Create project." {
-            $projName = [System.Guid]::NewGuid().ToString().Replace('-', '_')
+    Describe "Starting new project from scratch should" -Tags ("e2e") {
+        It "when creating the project get latest, make workspace, site, domain, app pool permissions" {
+            $projName = generateRandomName
             sf-new-project -displayName $projName -predefinedBranch '$/CMS/Sitefinity 4.0/Code Base'
             $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
@@ -24,12 +24,13 @@ InModuleScope sf-dev.dev {
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
             $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
             $sqlServer.Logins | Where-Object {$_.Name.Contains($id)} | Should -HaveCount 1
+            existsInHostsFile -searchParam $projName | Should -Be $true
         }
-        It "Build project." {
+        It "when building succeed after at least 3 retries" {
             set-testProject
             sf-build-solution -retryCount 3
         }
-        It "Start/reset app." {
+        It "when starting should receive 200 or 503 after attempt to access the backend, then 200 for appstatus page for a while, then 404 for appstatus, then 200 for backend request." {
             set-testProject
             sf-reset-app -start
             $url = get-appUrl
@@ -37,18 +38,18 @@ InModuleScope sf-dev.dev {
             $result | Should -Be 200
         }
     }
-    
-    Describe "Working with existing project." -Tags ("e2e") {
-        It "Resetting app" {
-            [SfProject]$project = set-testProject
-            $testId = $project.id
-            $configsPath = "$($Global:projectsDirectory)\${testId}\SitefinityWebApp\App_Data\Sitefinity\Configuration"
-            Test-Path $configsPath | Should -Be $true
-            $dbName = sf-get-appDbName
-            $dbName | Should -Not -BeNullOrEmpty
 
-            sf-reset-app
+    Describe "Resetting app should" -Tags ("e2e") {
+        [SfProject]$project = set-testProject
+        $testId = $project.id
+        $configsPath = "$($Global:projectsDirectory)\${testId}\SitefinityWebApp\App_Data\Sitefinity\Configuration"
+        Test-Path $configsPath | Should -Be $true
+        $dbName = sf-get-appDbName
+        $dbName | Should -Not -BeNullOrEmpty
 
+        sf-reset-app
+
+        It "remove app data and database" {            
             sql-get-dbs | Where-Object {$_.Name.Contains($dbName)} | Should -HaveCount 0
             Test-Path $configsPath | Should -Be $false
             sf-reset-app -start
@@ -56,11 +57,14 @@ InModuleScope sf-dev.dev {
             $result = _invoke-NonTerminatingRequest $url
             $result | Should -Be 200
         }
-        It "States should save and then restore state" {
+    }
+
+    Describe "States should" -Tags ("e2e") {
+        It "save and then restore app_data folder and database" {
             set-testProject
             [SfProject]$project = _get-selectedProject
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
-            [string]$stateName = [System.Guid]::NewGuid().ToString()
+            [string]$stateName = generateRandomName
             $stateName = $stateName.Replace('-', '_')
             # $statePath = "$($Global:globalContext.webAppPath)/sf-dev-tool/states/$stateName"
 
@@ -86,7 +90,9 @@ InModuleScope sf-dev.dev {
             $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter "dta" -whereFilter "dta = '<testConfigs/>'"
             $config | Should -BeNullOrEmpty
         }
-        It "Cloning project" {
+    }
+    Describe "Clone should" -Tags ("e2e") {
+        It "create new project with separate workspace, site, database." {
             [SfProject]$sourceProj = set-testProject
             $sourceName = $sourceProj.displayName
             $cloneTestName = "$sourceName-clone"
@@ -97,7 +103,7 @@ InModuleScope sf-dev.dev {
             [xml]$xmlData = Get-Content $webConfigPath
             [System.Xml.XmlElement]$appSettings = $xmlData.configuration.appSettings
             $newElement = $xmlData.CreateElement("add")
-            $testKeyName = [Guid]::NewGuid().ToString()
+            $testKeyName = generateRandomName
             $newElement.SetAttribute("key", $testKeyName)
             $newElement.SetAttribute("value", "testing")
             $appSettings.AppendChild($newElement)
@@ -125,9 +131,30 @@ InModuleScope sf-dev.dev {
             $sqlServer.Logins | Where-Object {$_.Name.Contains($cloneTestId)} | Should -HaveCount 1
         }
     }
+
+    Describe "Rename should" -Tags ("e2e") {
+        It "change the display name and domain" {
+            [SfProject]$sf = set-testProject
+            $id = $sf.id
+            $oldName = $sf.displayName
+            $newName = generateRandomName
+
+            existsInHostsFile -searchParam $newName | Should -Be $false
+            Test-Path "$($Global:projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
+            existsInHostsFile -searchParam $newName | Should -Be $false
+
+            sf-rename-project $newName
+            
+            existsInHostsFile -searchParam $newName | Should -Be $true
+            existsInHostsFile -searchParam $oldName | Should -Be $false
+            Test-Path "$($Global:projectsDirectory)\$id\$newName($id).sln" | Should -Be $true
+            Test-Path "$($Global:projectsDirectory)\$id\$oldName($id).sln" | Should -Be $false
+            ([string](get-appUrl)).IndexOf($newName) | Should -BeGreaterThan -1
+        }
+    }
     
-    Describe "delete should" -Tags ("e2e", "delete") {
-        It "delete project" {
+    Describe "Delete should" -Tags ("e2e", "delete") {
+        It "remove all" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
             stop-allMsbuild

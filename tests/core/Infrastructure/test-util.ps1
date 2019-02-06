@@ -43,3 +43,9 @@ function existsInHostsFile {
 
     return $found
 }
+
+function generateRandomName {
+    [string]$random = [Guid]::NewGuid().ToString().Replace('-', '_')
+    $random = $random.Substring(1)
+    "a$random"
+}
