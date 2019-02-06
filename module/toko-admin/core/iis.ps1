@@ -209,8 +209,12 @@ function iis-new-subApp {
         [string]$path
     )
 
+    
     _iis-load-webAdministrationModule
-    New-Item "IIS:\Sites\$($siteName)\${appName}" -physicalPath $path -type "Application"
+    New-Item "IIS:\Sites\$($siteName)\${appName}" -physicalPath $path -type "Application" > $null
+    
+    $pool = iis-get-siteAppPool -websiteName $siteName
+    Set-ItemProperty -Path "IIS:\Sites\$($siteName)\${appName}" -Name "applicationPool" -Value $pool > $null
 }
 
 function iis-remove-subApp {

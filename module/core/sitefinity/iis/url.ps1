@@ -1,7 +1,7 @@
 function get-appUrl {
     Param([switch]$useDevUrl)
     $context = _get-selectedProject
-
+    
     if ($useDevUrl) {
         return get-devAppUrl
     }
@@ -21,10 +21,12 @@ function get-appUrl {
     }
     
     $result = "http://${domain}:$port"
+    
+    $subAppName = iis-get-subAppName -websiteName $context.websiteName
     if ($null -ne $subAppName) {
         $result = "${result}/${subAppName}"
     }
-
+    
     return $result
 }
 

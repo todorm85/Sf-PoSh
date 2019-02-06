@@ -1,4 +1,3 @@
-
 <#
     .SYNOPSIS 
     .DESCRIPTION
@@ -13,6 +12,11 @@ function sf-setup-asSubApp {
     )
 
     $context = _get-selectedProject
+    $subApp = iis-get-subAppName -websiteName $context.websiteName
+    if ($subApp) {
+        return
+    }
+    
     $dummyPath = "c:\dummySubApp"
     if (-not (Test-Path $dummyPath)) {
         New-Item $dummyPath -ItemType Directory
