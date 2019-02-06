@@ -485,9 +485,14 @@ function sf-delete-project {
 function sf-rename-project {
     [CmdletBinding()]
     Param(
+        [string]$newName,
         [switch]$markUnused,
         [switch]$setDescription
     )
+
+    if ($newName -and (-not (validate-nameSyntax $newName))) {
+        Write-Error "Name syntax is not valid. Use only alphanumerics and underscores"
+    }
 
     [SfProject]$context = _get-selectedProject
     $oldName = $context.displayName
@@ -496,7 +501,7 @@ function sf-rename-project {
         $newName = _get-unusedProjectName
         $context.description = ""
     }
-    else {
+    elseif (-not $newName) {
         $oldName | Set-Clipboard
         while ([string]::IsNullOrEmpty($newName) -or (-not (validate-nameSyntax $newName))) {
             if ($newName) {
@@ -527,6 +532,10 @@ function sf-rename-project {
 
     $domain = generate-domainName -context $context
     change-domain -context $context -domainName $domain
+
+    $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
+    unlock-allFiles -path $oldSolutionPath
+    Remove-Item -Path $oldSolutionPath -Force
 
     _save-selectedProject $context
     set-currentProject $context
