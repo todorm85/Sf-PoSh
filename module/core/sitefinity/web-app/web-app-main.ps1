@@ -144,15 +144,15 @@ function start-app {
         [Int32]$totalWaitSeconds = 5 * 60
     )
 
-    $context = _get-selectedProject
-    $port = @(iis-get-websitePort $context.websiteName)[0]
-    if ($port -eq '' -or $null -eq $port) {
-        throw "No port defined for selected sitefinity."
-    }
-    else {
-        $url = "http://localhost:$($port)"
-    }
+    # $port = @(iis-get-websitePort $context.websiteName)[0]
+    # if ($port -eq '' -or $null -eq $port) {
+    #     throw "No port defined for selected sitefinity."
+    # }
+    # else {
+    #     $url = "http://localhost:$($port)"
+    # }
 
+    $url = get-appUrl
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     $statusUrl = "$url/appstatus"
 
