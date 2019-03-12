@@ -485,8 +485,8 @@ function sf-delete-project {
 function sf-rename-project {
     [CmdletBinding()]
     Param(
-        [string]$newName,
         [switch]$markUnused,
+        [string]$newName,
         [switch]$setDescription
     )
 
@@ -528,7 +528,10 @@ function sf-rename-project {
 
     $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
     $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
-    Copy-Item -Path "$($context.solutionPath)\.vs\$oldSlnCacheName" -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
+    $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
+    Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
+    unlock-allFiles -path $oldSolutionCachePath
+    Remove-Item -Path $oldSolutionCachePath -Force -Recurse
 
     $domain = generate-domainName -context $context
     change-domain -context $context -domainName $domain

@@ -143,7 +143,7 @@ InModuleScope sf-dev.dev {
             Test-Path "$($Global:projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
             existsInHostsFile -searchParam $newName | Should -Be $false
 
-            sf-rename-project $newName
+            sf-rename-project -newName $newName
             
             existsInHostsFile -searchParam $newName | Should -Be $true
             existsInHostsFile -searchParam $oldName | Should -Be $false
