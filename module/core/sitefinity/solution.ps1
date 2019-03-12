@@ -21,7 +21,13 @@ function sf-build-solution {
                 sf-build-webAppProj
             }
             else {
-                build-proj $solutionPath
+                try {
+                    sf-switch-styleCop -context $context -enable:$false
+                    build-proj $solutionPath
+                }
+                finally {
+                    sf-switch-styleCop -context $context -enable:$true
+                }
             }
             
             $isBuilt = $true
@@ -193,4 +199,49 @@ function build-proj {
     if ($LastExitCode -ne 0) {
         throw "Build errors occurred."
     }
+}
+
+function sf-switch-styleCop {
+    param (
+        [SfProject]$context,
+        [switch]$enable
+    )
+    
+    if (-not $context) {
+        $context = _get-selectedProject
+    }
+
+    $styleCopTaskPath = "$($context.solutionPath)\Builds\StyleCop\StyleCop.Targets"
+    $content = Get-Content -Path $styleCopTaskPath
+    $newContent = @()
+    $foundStyleCopEnabledProperty = $false
+    foreach ($line in $content) {
+        $foundStyleCopEnabledProperty = $line -match "^.*?\<StyleCopEnabled\>true\<\/StyleCopEnabled\>`$" -or $line -match "^.*?\<StyleCopEnabled\>false\<\/StyleCopEnabled\>`$"
+        $foundSourceAnalysisEnabled = $line -match "^.*?\<StyleCopEnabled\>\`$\(SourceAnalysisEnabled\)\<\/StyleCopEnabled\>" -or $line -match "^.*?\<!-- source analysis prop line --\>"
+        if ($foundStyleCopEnabledProperty) {
+            if ($enable) {
+                $newContent += "<StyleCopEnabled>true</StyleCopEnabled>"
+            }
+            else{
+                $newContent += "<StyleCopEnabled>false</StyleCopEnabled>"
+            }
+        }
+        elseif ($foundSourceAnalysisEnabled) {
+            if ($enable) {
+                $newContent += "<StyleCopEnabled>`$(SourceAnalysisEnabled)</StyleCopEnabled>"
+            }
+            else {
+                $newContent += "<StyleCopEnabled>false</StyleCopEnabled><!-- source analysis prop line -->"
+            }
+        }
+        else {
+            $newContent += $line
+        }
+    }
+
+    write-File $newContent
+}
+
+function write-File ($content) {
+    $content | Out-File -FilePath $styleCopTaskPath -Force -Encoding utf8 -ErrorAction Stop
 }
