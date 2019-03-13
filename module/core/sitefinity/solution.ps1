@@ -239,9 +239,9 @@ function sf-switch-styleCop {
         }
     }
 
-    write-File $newContent
+    write-File -content $newContent -path $styleCopTaskPath
 }
 
-function write-File ($content) {
-    $content | Out-File -FilePath $styleCopTaskPath -Force -Encoding utf8 -ErrorAction Stop
+function write-File ($content, $path) {
+    $content | Out-File -FilePath $path -Force -Encoding utf8 -ErrorAction Stop
 }
