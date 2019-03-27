@@ -26,9 +26,8 @@ function sf-new-appState {
     $Acl.SetAccessRule($Ar)
     Set-Acl $statePath $Acl
 
-    $password = ConvertTo-SecureString $global:sqlPass -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential ($Global:sqlUser, $password)
-    Backup-SqlDatabase -ServerInstance $global:sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak" -Credential $credential
+    $backupName = get-sqlBackupStateName
+    Backup-SqlDatabase -ServerInstance $global:sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
     
     $stateDataPath = "$statePath/data.xml"
     New-Item $stateDataPath > $null
@@ -70,9 +69,8 @@ function sf-restore-appState ($stateName, $force = $false) {
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
     sql-delete-database $dbName
-    $password = ConvertTo-SecureString $global:sqlPass -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential ($Global:sqlUser, $password)
-    Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak" -Credential $credential
+    $backupName = get-sqlBackupStateName
+    Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
 
     $appDataStatePath = "$statePath/App_Data"
     $appDataPath = "$($context.webAppPath)/App_Data"
@@ -95,7 +93,7 @@ function sf-delete-appState ($stateName) {
     $statesPath = get-statesPath
     if ($statesPath) {
         $statePath = "${statesPath}/$stateName"
-        Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse    
+        Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse
     }
 }
 
@@ -132,4 +130,19 @@ function select-appState {
     }
 
     return $stateName
+}
+
+function get-sqlBackupStateName {
+    param (
+        $stateName
+    )
+    
+    [SfProject]$context = _get-selectedProject
+    return "$($context.id)_$stateName.bak"
+}
+
+function get-sqlCredentials {
+    $password = ConvertTo-SecureString $global:sqlPass -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential ($Global:sqlUser, $password)
+    $credential
 }
