@@ -225,9 +225,11 @@ function delete-startupConfig {
 
 function create-startupConfig {
     param(
-        [string]$user = $defaultUser,
+        [string]$user = $global:defaultUser,
         [string]$dbName = $null,
-        [string]$password = $defaultPassword
+        [string]$password = $global:defaultPassword,
+        [string]$sqlUser = $global:sqlUser,
+        [string]$sqlPass = $global:sqlPass
     )
 
     $context = _get-selectedProject
@@ -251,11 +253,11 @@ function create-startupConfig {
         
         $username = $user.split('@')[0]
         if ([string]::IsNullOrEmpty($dbName)) {
-            $dbName = $context.id
+            $dbName = sf-get-appDbName
         }
-
-        while (sql-test-isDbNameDuplicate($dbName) -or [string]::IsNullOrEmpty($dbName)) {
-            $dbName = Read-Host -Prompt "Database with name $dbName already exists. Enter a different name:"
+        
+        while ((sql-test-isDbNameDuplicate -dbName $dbName) -or [string]::IsNullOrEmpty($dbName)) {
+            throw "Error creating startup.config. Database with name $dbName already exists."
         }
 
         $XmlWriter = New-Object System.XMl.XmlTextWriter($configPath, $Null)
@@ -271,6 +273,8 @@ function create-startupConfig {
         $XmlWriter.WriteAttributeString("dbName", $dbName)
         $XmlWriter.WriteAttributeString("dbType", "SqlServer")
         $XmlWriter.WriteAttributeString("sqlInstance", $sqlServerInstance)
+        $XmlWriter.WriteAttributeString("sqlAuthUserName", $sqlUser)
+        $XmlWriter.WriteAttributeString("sqlAuthUserPassword", $sqlPass)
         $xmlWriter.WriteEndElement()
         $xmlWriter.Finalize
         $xmlWriter.Flush()

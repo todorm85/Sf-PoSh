@@ -51,20 +51,6 @@ function sf-clean-allProjectsLeftovers {
     }
 
     try {
-        Write-Information "SQL logins cleanup"
-        $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
-        $allLogins = $sqlServer.Logins | Where-Object { 
-            $id = $_.Name.Replace("IIS APPPOOL\", "")
-            return shouldClean $id  
-        }
-
-        $allLogins | ForEach-Object {$_.Drop()}
-    }
-    catch {
-        add-error "SQL logins were not cleaned up: $_"
-    }
-
-    try {
         Write-Information "TFS cleanup"
         $wss = tfs-get-workspaces 
         $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ }

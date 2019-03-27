@@ -49,10 +49,13 @@ if (-not (Test-Path $userConfigPath)) {
     Copy-Item -Path $defaultConfigPath -Destination $userConfigPath
 }
 
+. $defaultConfigPath
 . $userConfigPath
-validate-configState $userConfigPath
 
+$lastLoadedConfigPath = $userConfigPath
 if ($global:customConfigPath -and (Test-Path $global:customConfigPath)) {
+    $lastLoadedConfigPath = $global:customConfigPath
     . $global:customConfigPath
-    validate-configState $global:customConfigPath
 }
+
+validate-configState $lastLoadedConfigPath

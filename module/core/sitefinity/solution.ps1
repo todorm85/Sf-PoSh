@@ -191,8 +191,13 @@ function build-proj {
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'
     # Invoke-Expression "& $command"
-    $output = & $msBuildPath $path /nologo /maxcpucount /Verbosity:quiet /p:RunCodeAnalysis=False /consoleloggerparameters:Summary
-    $output | ForEach-Object { Write-Verbose $_ }
+    $verbosity = "quiet"
+    if ($InformationPreference -eq "Continue") {
+        $verbosity = "normal"
+    }
+
+    Invoke-Expression "& `"$msBuildPath`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:$verbosity /consoleloggerparameters:Summary"
+    
     $elapsed.Stop()
     Write-Information "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
     # Out-File "${PSScriptRoot}\..\build-errors.log"

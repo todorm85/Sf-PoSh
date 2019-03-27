@@ -92,16 +92,6 @@ function sf-create-website {
     catch {
         Write-Error "Error adding domain to hosts file."
     }
-
-    try {
-        sql-create-login -name "IIS APPPOOL\${newAppPool}"
-    }
-    catch {
-        Write-Error "Error creating login user in SQL server for IIS APPPOOL\${newAppPool}. Message:$_"
-        delete-website $context
-        $context.websiteName = ''
-        _save-selectedProject $context
-    }
 }
 
 function delete-website ([SfProject]$context) {
@@ -132,13 +122,6 @@ function delete-website ([SfProject]$context) {
     }
     catch {
         Write-Error "Error removing app pool $appPool Error: $_"
-    }
-
-    try {
-        sql-delete-login -name "IIS APPPOOL\${appPool}"
-    }
-    catch {
-        Write-Error "Error removing sql login (IIS APPPOOL\${appPool}) Error: $_"
     }
 
     try {

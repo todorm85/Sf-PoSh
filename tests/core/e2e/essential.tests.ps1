@@ -22,8 +22,6 @@ InModuleScope sf-dev.dev {
             Test-Path "$($Global:projectsDirectory)\${id}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${id}" | Should -Be $true
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
-            $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
-            $sqlServer.Logins | Where-Object {$_.Name.Contains($id)} | Should -HaveCount 1
             existsInHostsFile -searchParam $projName | Should -Be $true
         }
         It "when building succeed after at least 3 retries" {
@@ -52,6 +50,10 @@ InModuleScope sf-dev.dev {
         It "remove app data and database" {            
             sql-get-dbs | Where-Object {$_.Name.Contains($dbName)} | Should -HaveCount 0
             Test-Path $configsPath | Should -Be $false
+            
+        }
+
+        It "start the app correctly again after deletion of data and database" {
             sf-reset-app -start
             $url = get-appUrl
             $result = _invoke-NonTerminatingRequest $url
@@ -96,6 +98,7 @@ InModuleScope sf-dev.dev {
             [SfProject]$sourceProj = set-testProject
             $sourceName = $sourceProj.displayName
             $cloneTestName = "$sourceName-clone"
+            sql-get-dbs | where {$_.name -eq $sourceProj.id} | Should -HaveCount 1
 
             # edit a file in source project
             $webConfigPath = "$($sourceProj.webAppPath)\web.config"
@@ -125,10 +128,7 @@ InModuleScope sf-dev.dev {
             Test-Path "$($Global:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
             Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
-            
-
-            $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
-            $sqlServer.Logins | Where-Object {$_.Name.Contains($cloneTestId)} | Should -HaveCount 1
+            sql-get-dbs | where {$_.name -eq $cloneTestId} | Should -HaveCount 1
         }
     }
 
@@ -193,8 +193,6 @@ InModuleScope sf-dev.dev {
             Test-Path "$($Global:projectsDirectory)\${testId}" | Should -Be $false
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $false
             Test-Path "IIS:\Sites\${testId}" | Should -Be $false
-            $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
-            $sqlServer.Logins | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
             sql-get-dbs | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
             existsInHostsFile -searchParam $proj.displayName | Should -Be $false
         }

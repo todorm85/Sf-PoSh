@@ -1,1 +1,1 @@
-. "$home\Documents\WindowsPowerShell\sf-dev_profile.ps1" -sfDevEnv "dev" -configPath "$PSScriptRoot\config.testing.ps1"
+Import-Module "C:\Users\User\Desktop\sf-dev\module\sf-dev.dev.psd1" -Force -DisableNameChecking -ArgumentList "$PSScriptRoot\config.testing.ps1"

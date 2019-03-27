@@ -307,7 +307,7 @@ function sf-import-project {
             }
                     
             try {
-                sql-copy-db $currentDbName $newContext.id                    
+                sql-copy-db -SourceDBName $currentDbName -targetDbName $newContext.id
             }
             catch {
                 Write-Warning "Error copying old database. Source: $currentDbName Target $($newContext.id)`n $_"
@@ -529,9 +529,11 @@ function sf-rename-project {
     $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
     $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
     $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
-    Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
-    unlock-allFiles -path $oldSolutionCachePath
-    Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+    if (Test-Path $oldSolutionCachePath) {
+        Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
+        unlock-allFiles -path $oldSolutionCachePath
+        Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+    }
 
     $domain = generate-domainName -context $context
     change-domain -context $context -domainName $domain
@@ -614,12 +616,8 @@ function _get-isIdDuplicate ($id) {
         if ($names) {return $true}
     }
 
-    Import-Module SQLPS -DisableNameChecking
     $dbs = sql-get-dbs | Where-Object { isDuplicate $_.name }
     if ($dbs) { return $false }
-    $sqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server -ArgumentList '.'
-    $allLogins = $sqlServer.Logins | Where-Object { isDuplicate $_.Name }
-    if ($allLogins) {return $true}
 
     return $false;
 }

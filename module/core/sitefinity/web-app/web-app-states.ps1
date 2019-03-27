@@ -7,7 +7,7 @@ function sf-new-appState {
     $context = _get-selectedProject
     
     $dbName = sf-get-appDbName
-    $db = Get-SqlDatabase -Name $dbName -ServerInstance $sqlServerInstance 
+    $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
     }
@@ -26,7 +26,9 @@ function sf-new-appState {
     $Acl.SetAccessRule($Ar)
     Set-Acl $statePath $Acl
 
-    Backup-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
+    $password = ConvertTo-SecureString $global:sqlPass -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential ($Global:sqlUser, $password)
+    Backup-SqlDatabase -ServerInstance $global:sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak" -Credential $credential
     
     $stateDataPath = "$statePath/data.xml"
     New-Item $stateDataPath > $null
@@ -68,7 +70,9 @@ function sf-restore-appState ($stateName, $force = $false) {
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
     sql-delete-database $dbName
-    Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak"
+    $password = ConvertTo-SecureString $global:sqlPass -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential ($Global:sqlUser, $password)
+    Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile "$statePath/$dbName.bak" -Credential $credential
 
     $appDataStatePath = "$statePath/App_Data"
     $appDataPath = "$($context.webAppPath)/App_Data"

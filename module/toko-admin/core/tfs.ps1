@@ -1,11 +1,3 @@
-# used for tfs workspace manipulations, installed with Visual Studio
-# $tfPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\tf.exe" #VS2015
-$tfPath = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\TF.exe" #VS2017
-
-if (-not (Test-Path $tfPath)) {
-    throw "You must install Visual Studio 2017 Professional to use TFS utilities."
-}
-
 function tfs-get-workspaces {
     $workspacesQueryResult = tf-query-workspaces
     $lines = $workspacesQueryResult | % { $_ }
@@ -16,7 +8,7 @@ function tfs-get-workspaces {
 
 function tf-query-workspaces {
     try {
-        execute-native "& `"$tfPath`" workspaces"
+        execute-native "& `"$Global:tfPath`" workspaces /server:$Global:tfsServerName"
     }
     catch {
         Write-Warning "Error querying tf.exe `n $_"
@@ -28,7 +20,7 @@ function tfs-delete-workspace {
     Param(
         [Parameter(Mandatory=$true)][string]$workspaceName)
 
-    execute-native "& `"$tfPath`" workspace $workspaceName /delete /noprompt" > $null
+    execute-native "& `"$Global:tfPath`" workspace $workspaceName /delete /noprompt /server:$Global:tfsServerName" > $null
 }
 
 function tfs-create-workspace {
@@ -40,12 +32,12 @@ function tfs-create-workspace {
     # needed otherwise if the current location is mapped to a workspace the command will throw
     Set-Location $path
 
-    execute-native "& `"$tfPath`" workspace `"$workspaceName`" /new /permission:private /noprompt" > $null
+    execute-native "& `"$Global:tfPath`" workspace `"$workspaceName`" /new /permission:private /noprompt /server:$Global:tfsServerName" > $null
     
     Start-Sleep -m 1000
 
     try {
-        execute-native "& `"$tfPath`" workfold /unmap `"$/`" /workspace:$workspaceName" > $null
+        execute-native "& `"$Global:tfPath`" workfold /unmap `"$/`" /workspace:$workspaceName /server:$Global:tfsServerName" > $null
     }
     catch {
         try {
@@ -68,7 +60,7 @@ function tfs-rename-workspace {
     try {
         $oldLocation = Get-Location
         Set-Location $path
-        execute-native "& `"$tfPath`" workspace /newname:$newWorkspaceName /noprompt"
+        execute-native "& `"$Global:tfPath`" workspace /newname:$newWorkspaceName /noprompt /server:$Global:tfsServerName"
         Set-Location $oldLocation
     }
     catch {
@@ -94,7 +86,7 @@ function tfs-create-mappings {
     #     throw "could not create directory $branchMapPath"
     # }
     try {
-        execute-native "& `"$tfPath`" workfold /map `"$branch`" `"$branchMapPath`" /workspace:$workspaceName" > $null
+        execute-native "& `"$Global:tfPath`" workfold /map `"$branch`" `"$branchMapPath`" /workspace:$workspaceName /server:$Global:tfsServerName" > $null
     }
     catch {
         Remove-Item $branchMapPath -force
@@ -112,7 +104,7 @@ function tfs-checkout-file {
     $fileName = Split-Path $filePath -Leaf
     Set-Location $newLocation
     try {
-        execute-native "& `"$tfPath`" checkout $fileName"
+        execute-native "& `"$Global:tfPath`" checkout $fileName"
     }
     catch {
         throw "Error checking out file $filePath. Message: $_"
@@ -136,9 +128,9 @@ function tfs-get-latestChanges {
     Set-Location -Path $branchMapPath
     
     if ($overwrite) {
-        $output = execute-native "& `"$tfPath`" get /overwrite /noprompt" -successCodes @(1)
+        $output = execute-native "& `"$Global:tfPath`" get /overwrite /noprompt" -successCodes @(1)
     } else {
-        $output = execute-native "& `"$tfPath`" get" -successCodes @(1)
+        $output = execute-native "& `"$Global:tfPath`" get" -successCodes @(1)
     }
 
     if ($global:LASTEXITCODE -eq 1) {
@@ -177,7 +169,7 @@ function tfs-undo-pendingChanges {
         [Parameter(Mandatory=$true)][string]$localPath
         )
 
-    execute-native "& `"$tfPath`" undo /recursive /noprompt $localPath" -successCodes @(1)
+    execute-native "& `"$Global:tfPath`" undo /recursive /noprompt $localPath " -successCodes @(1)
 }
 
 function tfs-show-pendingChanges {
@@ -185,7 +177,7 @@ function tfs-show-pendingChanges {
         [Parameter(Mandatory=$true)][string]$workspaceName,
         [ValidateSet("Detailed","Brief")][string]$format)
 
-    execute-native "& `"$tfPath`" stat /workspace:$workspaceName /format:$format"
+    execute-native "& `"$Global:tfPath`" stat /workspace:$workspaceName /format:$format"
 }
 
 function tfs-get-workspaceName {
@@ -196,7 +188,7 @@ function tfs-get-workspaceName {
     $oldLocation = Get-Location
     Set-Location $path
     try {
-        $wsInfo = execute-native "& `"$tfPath`" workfold"
+        $wsInfo = execute-native "& `"$Global:tfPath`" workfold"
     }
     catch {
         Write-Warning "Error querying workspace name: $_"
@@ -224,7 +216,7 @@ function tfs-get-branchPath {
     $oldLocation = Get-Location
     try {
         Set-Location $path
-        $wsInfo = execute-native "& `"$tfPath`" workfold"
+        $wsInfo = execute-native "& `"$Global:tfPath`" workfold"
     }
     catch {
         Set-Location $oldLocation
@@ -251,7 +243,7 @@ function tfs-get-lastWorkspaceChangeset {
 
     $oldLocation = Get-Location
     Set-Location $path
-    $wsInfo = execute-native "& `"$tfPath`" history . /recursive /stopafter:1 -version:W /noprompt"
+    $wsInfo = execute-native "& `"$Global:tfPath`" history . /recursive /stopafter:1 -version:W /noprompt"
     Set-Location $oldLocation
     return $wsInfo
 }
