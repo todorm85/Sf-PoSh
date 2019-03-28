@@ -170,7 +170,7 @@ function tfs-undo-pendingChanges {
         [Parameter(Mandatory=$true)][string]$localPath
         )
 
-    execute-native "& `"$Global:tfPath`" undo /recursive /noprompt $localPath " -successCodes @(1)
+    execute-native "& `"$Global:tfPath`" undo /recursive /noprompt $localPath" -successCodes @(1)
 }
 
 function tfs-show-pendingChanges {

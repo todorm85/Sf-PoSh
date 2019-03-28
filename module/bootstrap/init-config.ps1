@@ -20,10 +20,6 @@ function validate-configState {
         throw "Specify browser path in $lastLoadedConfigPath" 
     }
 
-    if (-not $global:vsPath -or -not (Test-Path $global:vsPath)) { 
-        throw "Specify viual studio path in $lastLoadedConfigPath" 
-    }
-
     if (-not $global:msBuildPath -or -not (Test-Path $global:msBuildPath)) { 
         throw "Specify msbuild path in $lastLoadedConfigPath" 
     }
