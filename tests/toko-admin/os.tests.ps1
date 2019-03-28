@@ -1,4 +1,4 @@
-. "$PSScriptRoot\load-module.ps1"
+. "$PSScriptRoot\Infrastructure\load-module.ps1"
 
 InModuleScope toko-admin {
     Describe "unlock-allFiles" {

@@ -1,4 +1,4 @@
-. "${PSScriptRoot}\..\Infrastructure\load-module.ps1"
+. "${PSScriptRoot}\Infrastructure\load-module.ps1"
 
 InModuleScope sf-dev.dev {
     
@@ -12,7 +12,7 @@ InModuleScope sf-dev.dev {
                 Remove-Item $dataPath -Force
             }
             else {
-                . "E:\sf-dev\module\core\manager\manager.init.ps1"
+                . "${PSScriptRoot}\..\..\module\core\manager\manager.init.ps1"
             }
         }
 
@@ -58,7 +58,7 @@ InModuleScope sf-dev.dev {
         AfterAll {
             try {
                 Write-Information "Module test db cleanup"
-                Remove-Item $Global:dataPath
+                Remove-Item $Global:dataPath -ErrorAction SilentlyContinue
             }
             catch {
                 Write-Warning "Module db file was not cleaned up: $_"

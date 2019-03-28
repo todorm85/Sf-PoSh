@@ -1,7 +1,7 @@
-. "${PSScriptRoot}\..\Infrastructure\load-module.ps1"
+. "${PSScriptRoot}\Infrastructure\load-module.ps1"
 
 InModuleScope sf-dev.dev {
-    . "$PSScriptRoot\..\Infrastructure\test-util.ps1"
+    . "$PSScriptRoot\Infrastructure\test-util.ps1"
     
     Describe "Starting new project from scratch should" -Tags ("e2e") {
         It "when creating the project get latest, make workspace, site, domain, app pool permissions" {
@@ -28,18 +28,13 @@ InModuleScope sf-dev.dev {
             set-testProject
             sf-build-solution -retryCount 3
         }
-        It "when starting should receive 200 or 503 after attempt to access the backend, then 200 for appstatus page for a while, then 404 for appstatus, then 200 for backend request." {
-            set-testProject
-            sf-reset-app -start
-            $url = get-appUrl
-            $result = _invoke-NonTerminatingRequest $url
-            $result | Should -Be 200
-        }
     }
 
     Describe "Resetting app should" -Tags ("e2e") {
         [SfProject]$project = set-testProject
         $testId = $project.id
+        sf-reset-app -start -force
+
         $configsPath = "$($Global:projectsDirectory)\${testId}\SitefinityWebApp\App_Data\Sitefinity\Configuration"
         Test-Path $configsPath | Should -Be $true
         $dbName = sf-get-appDbName
@@ -184,7 +179,6 @@ InModuleScope sf-dev.dev {
         It "remove all" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
-            stop-allMsbuild
             iisreset.exe
             sf-delete-project -noPrompt
             
