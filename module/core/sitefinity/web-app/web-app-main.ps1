@@ -141,7 +141,7 @@ function sf-add-precompiledTemplates {
 function start-app {
     param(
         [string]$url,
-        [Int32]$totalWaitSeconds = 5 * 60
+        [Int32]$totalWaitSeconds = 10 * 60
     )
 
     # $port = @(iis-get-websitePort $context.websiteName)[0]
@@ -153,7 +153,6 @@ function start-app {
     # }
 
     $url = get-appUrl
-    $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     $statusUrl = "$url/appstatus"
 
     Write-Information "Starting Sitefinity..."
@@ -168,6 +167,7 @@ function start-app {
     # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
     Write-Information "Checking Sitefinity status: '$statusUrl'"
     Write-Information "Sitefinity is initializing"
+    $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     while ($true) {
         Write-Information "..."
         $response = _invoke-NonTerminatingRequest $statusUrl
