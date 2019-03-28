@@ -180,9 +180,11 @@ function sql-copy-db {
     $ObjTransfer.Options.DriAllConstraints = $true
     $ObjTransfer.Options.DriForeignKeys = $true
     $ObjTransfer.DestinationDatabase = $CopyDBName
-    $ObjTransfer.DestinationServer = $Server.Name
-    $ObjTransfer.DestinationLoginSecure = $true
+    $ObjTransfer.DestinationServer = $sqlServerInstance
+    $ObjTransfer.DestinationLoginSecure = $false
     $ObjTransfer.CopySchema = $true
+    $ObjTransfer.DestinationLogin = $global:sqlUser
+    $ObjTransfer.DestinationPassword = $Global:sqlPass
 
     #if you wish to just generate the copy script
     #just script out the transfer
