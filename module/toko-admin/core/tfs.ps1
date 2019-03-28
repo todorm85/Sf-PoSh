@@ -104,13 +104,14 @@ function tfs-checkout-file {
     $fileName = Split-Path $filePath -Leaf
     Set-Location $newLocation
     try {
-        execute-native "& `"$Global:tfPath`" checkout $fileName"
+        $output = execute-native "& `"$Global:tfPath`" checkout $fileName"
     }
     catch {
         throw "Error checking out file $filePath. Message: $_"
     }
     finally {
         Set-Location $oldLocation
+        Write-Information $output
     }
 }
 
