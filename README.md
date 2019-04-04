@@ -4,7 +4,7 @@ The module is available on [PowerShell Gallery](https://www.powershellgallery.co
 
 To install from PowerShell gallery in PowerShell 5.1 console type:
 ``` PowerShell
-Install-Module -Name sf-dev
+Install-Module -Name sf-dev -RequiredVersion 0.1.0
 ```
 If you have trouble downloading because of outdated NuGet and PowerShell-Get module versions see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
 
