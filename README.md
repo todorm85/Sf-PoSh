@@ -28,7 +28,7 @@ ALWAYS RUN THE MODULE IN AN ELEVATED POWERSHELL INSTANCE
 
 - Use this powershell command
 ```powershell
-Import-Module {path to sf-dev.psd1}
+Import-Module sf-dev
 ```
 
 _On first run you might get asked to setup paths to external tools. Enter your env specific paths in your user profile dir `.\Documents\sf-dev\config.ps1.`. After that re-import the module specifying the `-Force` switch or close and open a new powershell window_
