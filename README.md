@@ -1,5 +1,11 @@
 # Tool for local sitefinity instance management
 
+To install in PowerShell 5.1 console type:
+``` PowerShell
+Install-Module -Name sf-dev
+```
+If you have trouble with outdated nuget and PowerShell-get module versions see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
+
 ## Description
 
 This tool allows easy sitefinity web apps provisioning and orchestration on a local development environment. It automates the process of creating a workspace in tfs, getting the latest changes, creating a website and hosting the app there as well as complete rollback. It also provides automation of resetting, rebuilding, cleaning of the web app and more.
