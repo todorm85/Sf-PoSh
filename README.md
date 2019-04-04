@@ -12,11 +12,11 @@ This tool allows easy sitefinity web apps provisioning and orchestration on a lo
 
 ## Prerequisites
 
-- Powershell 5.0 or later
-- Visual Studio (it comes with utilities like tf.exe, msbuild.exe for >=vs2013)
-- SQL Server PowerShell Module (This should be preinstalled with SQL Server Management Studio unless it was deselected during setup)
+- Powershell 5.1 or later
+- Visual Studio 2017
+- SQL Server PowerShell Module (SQLPS) (This should be preinstalled with SQL Server Management Studio unless it was deselected during setup)
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
-- WebAdministration module (this should be installed if IIS is enabled on windows)
+- WebAdministration module (this should already be installed if IIS feature is enabled in windows)
 
 ## QuickStart
 
