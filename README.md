@@ -1,10 +1,12 @@
 # Tool for local sitefinity instance management
 
-To install in PowerShell 5.1 console type:
+The module is available on [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-dev/0.1.0)
+
+To install from PowerShell gallery in PowerShell 5.1 console type:
 ``` PowerShell
 Install-Module -Name sf-dev
 ```
-If you have trouble with outdated nuget and PowerShell-get module versions see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
+If you have trouble downloading because of outdated NuGet and PowerShell-Get module versions see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
 
 ## Description
 
