@@ -1,4 +1,4 @@
-. "${PSScriptRoot}\..\..\module\bootstrap\init-config.ps1"
+. "${PSScriptRoot}\..\..\sf-dev\bootstrap\init-config.ps1"
 
 Describe "init-config should" {
 

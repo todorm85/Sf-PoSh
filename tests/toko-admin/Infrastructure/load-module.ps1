@@ -1,1 +1,1 @@
-Import-Module "$PSScriptRoot\..\..\..\module\toko-admin\toko-admin.psd1" -Force -DisableNameChecking
+Import-Module "$PSScriptRoot\..\..\..\sf-dev\toko-admin\toko-admin.psd1" -Force -DisableNameChecking

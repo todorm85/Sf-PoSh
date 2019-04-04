@@ -3,9 +3,9 @@ Param(
     )
 
 # module discovery
-$filePath = "$PSScriptRoot\..\module\sf-dev.psd1"
+$filePath = "$PSScriptRoot\..\sf-dev\sf-dev.psd1"
 $rootModule = ".\sf-dev.psm1"
-$scripts = Get-ChildItem "$PSScriptRoot\..\module\core" -Recurse | Where-Object { $_.Extension -eq '.ps1'}
+$scripts = Get-ChildItem "$PSScriptRoot\..\sf-dev\core" -Recurse | Where-Object { $_.Extension -eq '.ps1'}
 # functions discovery
 $modulesLines = $scripts | Get-Content
 $functionsLines = $modulesLines | Where-Object { $_.contains("function") }
@@ -36,6 +36,6 @@ function create-module {
 create-module
 
 #generate development
-$filePath = "$PSScriptRoot\..\module\sf-dev.dev.psd1"
+$filePath = "$PSScriptRoot\..\sf-dev\sf-dev.dev.psd1"
 $functionNames = '*'
 create-module
