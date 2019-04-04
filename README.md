@@ -15,6 +15,7 @@ This tool allows easy sitefinity web apps provisioning and orchestration on a lo
 ## Prerequisites
 
 - Powershell 5.1 or later
+- You must create a SQL user for authentication, logging in to sql via windows credentials is not supported. The configuration for the SQL login can be found in %USERPROFILE%\Documents\sf-dev\config.json file after the module has complete its first run.
 - Visual Studio 2017
 - SQL Server PowerShell Module (SQLPS) (This should be preinstalled with SQL Server Management Studio unless it was deselected during setup)
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
