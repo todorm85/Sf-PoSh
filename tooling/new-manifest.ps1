@@ -1,4 +1,6 @@
-Param($env)
+Param(
+    [Parameter(Mandatory=$true)]$version
+    )
 
 # module discovery
 $filePath = "$PSScriptRoot\..\module\sf-dev.psd1"
@@ -18,7 +20,7 @@ function create-module {
     New-ModuleManifest `
         -Path $filePath `
         -RootModule $rootModule `
-        -ModuleVersion '1.0' `
+        -ModuleVersion $version `
         -FunctionsToExport $functionNames `
         -CmdletsToExport '' `
         -VariablesToExport '' `
@@ -30,10 +32,10 @@ function create-module {
         -PowerShellVersion '5.1' -ClrVersion '4.0';
 }
 
-if ($env -eq "prod") {
-    create-module
-}
+#generate production
+create-module
 
+#generate development
 $filePath = "$PSScriptRoot\..\module\sf-dev.dev.psd1"
 $functionNames = '*'
 create-module
