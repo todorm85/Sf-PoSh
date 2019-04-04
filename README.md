@@ -1,16 +1,22 @@
 # Tool for local sitefinity instance management
 
+To install in PowerShell 5.1 console type:
+``` PowerShell
+Install-Module -Name sf-dev
+```
+If you have trouble with outdated nuget and PowerShell-get module versions see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
+
 ## Description
 
 This tool allows easy sitefinity web apps provisioning and orchestration on a local development environment. It automates the process of creating a workspace in tfs, getting the latest changes, creating a website and hosting the app there as well as complete rollback. It also provides automation of resetting, rebuilding, cleaning of the web app and more.
 
 ## Prerequisites
 
-- Powershell 5.0 or later
-- Visual Studio (it comes with utilities like tf.exe, msbuild.exe for >=vs2013)
-- SQL Server PowerShell Module (This should be preinstalled with SQL Server Management Studio unless it was deselected during setup)
+- Powershell 5.1 or later
+- Visual Studio 2017
+- SQL Server PowerShell Module (SQLPS) (This should be preinstalled with SQL Server Management Studio unless it was deselected during setup)
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
-- WebAdministration module (this should be installed if IIS is enabled on windows)
+- WebAdministration module (this should already be installed if IIS feature is enabled in windows)
 
 ## QuickStart
 
