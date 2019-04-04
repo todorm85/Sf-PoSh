@@ -1,57 +1,57 @@
-# init config
-$defaultConfigPath = "$PSScriptRoot\default_config.ps1"
-$userConfigPath = "$global:moduleUserDir\config.ps1"
-
-# validation
-function validate-configState {
+function init-userConfig {
     param (
-        $lastLoadedConfigPath
+        [string]$defaultConfigPath,
+        [string]$userConfigPath
     )
     
-    if (-not $global:projectsDirectory -or -not (Test-Path $global:projectsDirectory)) { 
-        throw "Specify projects directory in $lastLoadedConfigPath" 
+    $defaultConfig = Get-Content $defaultConfigPath | ConvertFrom-Json
+    if (!(Test-Path $userConfigPath)) {
+        $defaultConfig | ConvertTo-Json | Out-File $userConfigPath
     }
+    else {
+        $userConfig = Get-Content $userConfigPath | ConvertFrom-Json
+        # create new properties from default
+        $defaultConfig.PSObject.Properties | ForEach-Object {
+            if (!$userConfig.PSObject.Properties.Match($_.Name).length) {
+                $userConfig | Add-Member -Type NoteProperty -Name $_.Name -Value $_.Value
+            }
+        }
+        # remove unused properties from user
+        $userConfig.PSObject.Properties | ForEach-Object {
+            if (!$defaultConfig.PSObject.Properties.Match($_.Name).length) {
+                $userConfig.PSObject.Properties.Remove($_.Name)
+            }
+        }
     
-    if (-not $global:sqlServerInstance) { 
-        throw "Specify sql server instance path in $lastLoadedConfigPath" 
+        $userConfig | ConvertTo-Json | Out-File $userConfigPath
     }
 
-    if (-not $global:browserPath -or -not (Test-Path $global:browserPath)) { 
-        throw "Specify browser path in $lastLoadedConfigPath" 
-    }
-
-    if (-not $global:msBuildPath -or -not (Test-Path $global:msBuildPath)) { 
-        throw "Specify msbuild path in $lastLoadedConfigPath" 
-    }
-    
-    if (-not $global:dataPath) { 
-        throw "Specify modue data path in $lastLoadedConfigPath" 
-    }
-    
-    if (-not $global:defaultUser) { 
-        throw "Specify default username in $lastLoadedConfigPath" 
-    }
-
-    if (-not $global:defaultPassword) { 
-        throw "Specify default password in $lastLoadedConfigPath" 
-    }
-    
-    if (-not $global:idPrefix) { 
-        throw "Specify default id prefix in $lastLoadedConfigPath" 
-    }
+    $Global:config = $userConfig
 }
 
-if (-not (Test-Path $userConfigPath)) {
-    Copy-Item -Path $defaultConfigPath -Destination $userConfigPath
+$Global:moduleUserDir = "$Global:HOME\documents\sf-dev"
+if (-not (Test-Path $Global:moduleUserDir)) {
+    New-Item -Path $Global:moduleUserDir -ItemType Directory
 }
 
-. $defaultConfigPath
-. $userConfigPath
+$Global:dataPath = "$Global:moduleUserDir\db.xml"
 
-$lastLoadedConfigPath = $userConfigPath
-if ($global:customConfigPath -and (Test-Path $global:customConfigPath)) {
-    $lastLoadedConfigPath = $global:customConfigPath
-    . $global:customConfigPath
-}
+$defaultConfigPath = "$PSScriptRoot\default_config.json"
+$userConfigPath = "$Global:moduleUserDir\config.json"
+init-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
 
-validate-configState $lastLoadedConfigPath
+# for backwards compatibility should be removed
+$config = $Global:config
+$Global:idPrefix = $config.idPrefix
+$Global:projectsDirectory = [System.Environment]::ExpandEnvironmentVariables($config.projectsDirectory)
+$Global:browserPath = $config.browserPath
+$Global:vsPath = $config.vsPath
+$Global:tfPath = $config.tfPath
+$Global:msBuildPath = $config.msBuildPath
+$Global:tfsServerName = $config.tfsServerName
+$Global:defaultUser = $config.sitefinityUser
+$Global:defaultPassword = $config.sitefinityPassword
+$Global:sqlServerInstance = $config.sqlServerInstance
+$Global:sqlUser = $config.sqlUser
+$Global:sqlPass = $config.sqlPass
+$Global:predefinedBranches = $config.predefinedBranches

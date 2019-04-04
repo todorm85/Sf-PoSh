@@ -189,6 +189,6 @@ InModuleScope sf-dev.dev {
             Test-Path "IIS:\Sites\${testId}" | Should -Be $false
             sql-get-dbs | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
             existsInHostsFile -searchParam $proj.displayName | Should -Be $false
-        }
+        } -Skip
     }
 }
