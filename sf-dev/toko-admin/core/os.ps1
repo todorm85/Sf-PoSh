@@ -64,8 +64,8 @@ function unlock-allFiles ($path) {
 
     $pids | ForEach-Object {
         Get-Process -Id $_ | % {
-            $date = [datetime]::Now
-            "$date : Forcing stop of process Name:$($_.Name) File:$($_.FileName) Path:$($_.Path) `nModules:$($_.Modules)" | Out-File "$home\Desktop\unlock-allFiles-log.txt" -Append
+            # $date = [datetime]::Now
+            # "$date : Forcing stop of process Name:$($_.Name) File:$($_.FileName) Path:$($_.Path) `nModules:$($_.Modules)" | Out-File "$home\Desktop\unlock-allFiles-log.txt" -Append
             Stop-Process $_ -Force -ErrorAction SilentlyContinue
         }
     }
