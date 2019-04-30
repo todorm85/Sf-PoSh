@@ -50,7 +50,16 @@ function execute-native ($command, [array]$successCodes) {
 }
 
 function unlock-allFiles ($path) {
-    $handlesList = execute-native "& `"$PSScriptRoot\..\external-tools\handle.exe`" `"$path`""
+    if (!$path -or !(Test-Path $path)) {
+        throw "The supplied path `"$path`" was not found.";
+    }
+    
+    $handlesPath = "$PSScriptRoot\..\external-tools\handle.exe"
+    if (!$handlesPath) {
+        Write-Error "Handles tool not found. Unlocking open files will not work. Project files might need to be cleaned up manually if opened."
+    }
+    
+    $handlesList = execute-native "& `"$handlesPath`" /accepteula `"$path`""
     $pids = New-Object -TypeName System.Collections.ArrayList
     $handlesList | ForEach-Object { 
         $isFound = $_ -match "^.*pid: (?<pid>.*?) .*$"
@@ -66,7 +75,7 @@ function unlock-allFiles ($path) {
         Get-Process -Id $_ | % {
             # $date = [datetime]::Now
             # "$date : Forcing stop of process Name:$($_.Name) File:$($_.FileName) Path:$($_.Path) `nModules:$($_.Modules)" | Out-File "$home\Desktop\unlock-allFiles-log.txt" -Append
-            Stop-Process $_ -Force -ErrorAction SilentlyContinue
+            Stop-Process $_ -Force -ErrorAction Continue
         }
     }
 }
