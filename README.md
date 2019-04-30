@@ -1,10 +1,12 @@
 # Tool for local sitefinity instance management
 
-To install in PowerShell 5.1 console type:
+The module is available on [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-dev/0.1.0)
+
+To install from PowerShell gallery in PowerShell 5.1 console type:
 ``` PowerShell
-Install-Module -Name sf-dev
+Install-Module -Name sf-dev -RequiredVersion 0.1.0
 ```
-If you have trouble with outdated nuget and PowerShell-get module versions see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
+If you have trouble downloading because of outdated NuGet and PowerShell-Get module versions see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
 
 ## Description
 
@@ -13,6 +15,7 @@ This tool allows easy sitefinity web apps provisioning and orchestration on a lo
 ## Prerequisites
 
 - Powershell 5.1 or later
+- You must create a SQL user for authentication, logging in to sql via windows credentials is not supported. The configuration for the SQL login can be found in %USERPROFILE%\Documents\sf-dev\config.json file after the module has complete its first run.
 - Visual Studio 2017
 - SQL Server PowerShell Module (SQLPS) (This should be preinstalled with SQL Server Management Studio unless it was deselected during setup)
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
@@ -28,7 +31,7 @@ ALWAYS RUN THE MODULE IN AN ELEVATED POWERSHELL INSTANCE
 
 - Use this powershell command
 ```powershell
-Import-Module {path to sf-dev.psd1}
+Import-Module sf-dev
 ```
 
 _On first run you might get asked to setup paths to external tools. Enter your env specific paths in your user profile dir `.\Documents\sf-dev\config.ps1.`. After that re-import the module specifying the `-Force` switch or close and open a new powershell window_
