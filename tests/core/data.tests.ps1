@@ -1,6 +1,6 @@
 . "${PSScriptRoot}\Infrastructure\load-module.ps1"
 
-InModuleScope sf-dev.dev {
+InModuleScope sf-dev {
     
     Describe "_sfData-get-allProjects" {
         $oldDataPath

@@ -1,6 +1,6 @@
 . "${PSScriptRoot}\Infrastructure\load-module.ps1"
 
-InModuleScope sf-dev.dev {
+InModuleScope sf-dev {
     . "$PSScriptRoot\Infrastructure\test-util.ps1"
     
     Describe "Starting new project from scratch should" -Tags ("e2e") {
