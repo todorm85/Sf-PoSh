@@ -179,7 +179,6 @@ InModuleScope sf-dev {
         It "remove all" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
-            iisreset.exe
             sf-delete-project -noPrompt
             
             $sitefinities = @(_sfData-get-allProjects) | where {$_.id -eq $testId}
@@ -189,6 +188,6 @@ InModuleScope sf-dev {
             Test-Path "IIS:\Sites\${testId}" | Should -Be $false
             sql-get-dbs | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
             existsInHostsFile -searchParam $proj.displayName | Should -Be $false
-        } -Skip
+        }
     }
 }
