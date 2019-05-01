@@ -94,8 +94,6 @@ function sf-reset-app {
     if ($precompile) {
         sf-add-precompiledTemplates
     }
-    
-    os-popup-notification -msg "Operation completed!"
 }
 
 <#

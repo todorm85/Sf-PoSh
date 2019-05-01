@@ -32,9 +32,6 @@ function sf-browse-webSite {
     Param([switch]$useExistingBrowser)
 
     $appUrl = get-appUrl
-    if (-not (check-domainRegistered $appUrl)) {
-        $appUrl = get-appUrl -$useDevUrl
-    }
 
     if (-not $useExistingBrowser) {
         execute-native "& Start-Process `"$browserPath`""

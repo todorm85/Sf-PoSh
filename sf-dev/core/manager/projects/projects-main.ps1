@@ -156,9 +156,6 @@ function sf-new-project {
                 delete-startupConfig
             }
         }        
-
-        # Display message
-        os-popup-notification "Operation completed!"
     }
 }
 
@@ -314,8 +311,6 @@ function sf-import-project {
             }
         }
     }
-    
-    os-popup-notification "Operation completed!"
 }
 
 function sf-delete-projects {
@@ -597,9 +592,6 @@ function _get-isIdDuplicate ($id) {
     }
 
     if (Test-Path "$global:projectsDirectory\$id") { return $true }
-
-    $domains = Show-Domains | Where-Object { isDuplicate $_ }
-    if ($domains) {return $true}
 
     $wss = tfs-get-workspaces | Where-Object { isDuplicate $_ }
     if ($wss) { return $false }

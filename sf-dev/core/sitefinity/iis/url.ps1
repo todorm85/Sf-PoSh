@@ -38,10 +38,6 @@ function generate-domainName ([SfProject]$context) {
     return "$($context.displayName)_$($context.id).com"
 }
 
-function check-domainRegistered ($domain) {
-    return Show-Domains -match "^$domain .*"
-}
-
 function get-devAppUrl {
     $context = _get-selectedProject
     
