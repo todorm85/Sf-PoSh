@@ -7,7 +7,7 @@ function sf-clean-allProjectsLeftovers {
             $id
         )
 
-        if (-not ($id -match "$Global:idPrefix\d+")) {
+        if (-not ($id -match "$Script:idPrefix\d+")) {
             return $false
         }
         
@@ -62,7 +62,7 @@ function sf-clean-allProjectsLeftovers {
     try {
         Write-Information "DBs cleanup"
         $dbs = sql-get-dbs 
-        $dbs | Where-Object { $_.name.StartsWith("$Global:idPrefix") -and (shouldClean $_.name) } | ForEach-Object { sql-delete-database $_.name }
+        $dbs | Where-Object { $_.name.StartsWith("$Script:idPrefix") -and (shouldClean $_.name) } | ForEach-Object { sql-delete-database $_.name }
     }
     catch {
         add-error "Databases were not cleaned up: $_"

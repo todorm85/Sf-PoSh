@@ -14,12 +14,12 @@ InModuleScope sf-dev {
 
             $sf.containerName | Should -Be ''
             $sf.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
-            $sf.solutionPath | Should -Be "$($Global:projectsDirectory)\${id}"
-            $sf.webAppPath | Should -Be "$($Global:projectsDirectory)\${id}\SitefinityWebApp"
+            $sf.solutionPath | Should -Be "$($Script:projectsDirectory)\${id}"
+            $sf.webAppPath | Should -Be "$($Script:projectsDirectory)\${id}\SitefinityWebApp"
             $sf.websiteName | Should -Be $id
 
-            Test-Path "$($Global:projectsDirectory)\${id}\$($sf.displayName)($($sf.id)).sln" | Should -Be $true
-            Test-Path "$($Global:projectsDirectory)\${id}\Telerik.Sitefinity.sln" | Should -Be $true
+            Test-Path "$($Script:projectsDirectory)\${id}\$($sf.displayName)($($sf.id)).sln" | Should -Be $true
+            Test-Path "$($Script:projectsDirectory)\${id}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${id}" | Should -Be $true
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
             existsInHostsFile -searchParam $projName | Should -Be $true
@@ -35,7 +35,7 @@ InModuleScope sf-dev {
         $testId = $project.id
         sf-reset-app -start -force
 
-        $configsPath = "$($Global:projectsDirectory)\${testId}\SitefinityWebApp\App_Data\Sitefinity\Configuration"
+        $configsPath = "$($Script:projectsDirectory)\${testId}\SitefinityWebApp\App_Data\Sitefinity\Configuration"
         Test-Path $configsPath | Should -Be $true
         $dbName = sf-get-appDbName
         $dbName | Should -Not -BeNullOrEmpty
@@ -63,7 +63,7 @@ InModuleScope sf-dev {
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             [string]$stateName = generateRandomName
             $stateName = $stateName.Replace('-', '_')
-            # $statePath = "$($Global:globalContext.webAppPath)/sf-dev-tool/states/$stateName"
+            # $statePath = "$($Script:globalContext.webAppPath)/sf-dev-tool/states/$stateName"
 
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
@@ -115,12 +115,12 @@ InModuleScope sf-dev {
             $cloneTestId = $sf.id
             $sf.containerName | Should -Be ''
             $sf.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
-            $sf.solutionPath | Should -Be "$($Global:projectsDirectory)\${cloneTestId}"
-            $sf.webAppPath | Should -Be "$($Global:projectsDirectory)\${cloneTestId}\SitefinityWebApp"
+            $sf.solutionPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}"
+            $sf.webAppPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}\SitefinityWebApp"
             $sf.websiteName | Should -Be $cloneTestId
             existsInHostsFile -searchParam $sf.displayName | Should -Be $true
-            Test-Path "$($Global:projectsDirectory)\${cloneTestId}\$($sf.displayName)($($sf.id)).sln" | Should -Be $true
-            Test-Path "$($Global:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
+            Test-Path "$($Script:projectsDirectory)\${cloneTestId}\$($sf.displayName)($($sf.id)).sln" | Should -Be $true
+            Test-Path "$($Script:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
             Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
             sql-get-dbs | where {$_.name -eq $cloneTestId} | Should -HaveCount 1
@@ -135,15 +135,15 @@ InModuleScope sf-dev {
             $newName = generateRandomName
 
             existsInHostsFile -searchParam $newName | Should -Be $false
-            Test-Path "$($Global:projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
+            Test-Path "$($Script:projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
             existsInHostsFile -searchParam $newName | Should -Be $false
 
             sf-rename-project -newName $newName
             
             existsInHostsFile -searchParam $newName | Should -Be $true
             existsInHostsFile -searchParam $oldName | Should -Be $false
-            Test-Path "$($Global:projectsDirectory)\$id\$newName($id).sln" | Should -Be $true
-            Test-Path "$($Global:projectsDirectory)\$id\$oldName($id).sln" | Should -Be $false
+            Test-Path "$($Script:projectsDirectory)\$id\$newName($id).sln" | Should -Be $true
+            Test-Path "$($Script:projectsDirectory)\$id\$oldName($id).sln" | Should -Be $false
             ([string](get-appUrl)).IndexOf($newName) | Should -BeGreaterThan -1
         }
     }
@@ -183,7 +183,7 @@ InModuleScope sf-dev {
             
             $sitefinities = @(_sfData-get-allProjects) | where {$_.id -eq $testId}
             $sitefinities | Should -HaveCount 0
-            Test-Path "$($Global:projectsDirectory)\${testId}" | Should -Be $false
+            Test-Path "$($Script:projectsDirectory)\${testId}" | Should -Be $false
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $false
             Test-Path "IIS:\Sites\${testId}" | Should -Be $false
             sql-get-dbs | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0

@@ -6,8 +6,8 @@ InModuleScope sf-dev {
         $oldDataPath
 
         BeforeAll {
-            $oldDataPath = $Global:dataPath
-            $Global:dataPath = "$($Global:prjectsDirectory)\data-tests-db.xml"
+            $oldDataPath = $Script:dataPath
+            $Script:dataPath = "$($Script:prjectsDirectory)\data-tests-db.xml"
             if (Test-Path $dataPath) {
                 Remove-Item $dataPath -Force
             }
@@ -58,13 +58,13 @@ InModuleScope sf-dev {
         AfterAll {
             try {
                 Write-Information "Module test db cleanup"
-                Remove-Item $Global:dataPath -ErrorAction SilentlyContinue
+                Remove-Item $Script:dataPath -ErrorAction SilentlyContinue
             }
             catch {
                 Write-Warning "Module db file was not cleaned up: $_"
             }
             finally {
-                $Global:dataPath = $oldDataPath
+                $Script:dataPath = $oldDataPath
             }
         }
 

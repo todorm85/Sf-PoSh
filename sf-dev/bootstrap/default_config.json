@@ -3,7 +3,6 @@
     "projectsDirectory": "%USERPROFILE%\\Documents\\sf-dev",
     "browserPath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
     "vsPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\devenv.exe",
-    "tfPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer\\TF.exe",
     "msBuildPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\Bin\\MSBuild.exe",
     "tfsServerName": "https://tfsemea.progress.com/defaultcollection",
     "sitefinityUser": "admin@test.test",

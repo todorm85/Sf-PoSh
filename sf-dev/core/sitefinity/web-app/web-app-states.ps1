@@ -143,6 +143,6 @@ function get-sqlBackupStateName {
 
 function get-sqlCredentials {
     $password = ConvertTo-SecureString $global:sqlPass -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential ($Global:sqlUser, $password)
+    $credential = New-Object System.Management.Automation.PSCredential ($Script:sqlUser, $password)
     $credential
 }
