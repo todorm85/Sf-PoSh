@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '0.1.3'
+    ModuleVersion     = '0.1.2'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '0.1.3'; MaximumVersion = '0.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -19,9 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
-## 0.1.3
-Removed globals in scope, extracted user configuration as separate API
 ## 0.1.2
+Removed globals in scope, extracted user configuration as separate API
 Optimized module size, external tools and low-level helpers extracted to separate module as dependency.
 ## 0.1.1
 Some external tools are no longer prepackaged, but downloaded on demand.
