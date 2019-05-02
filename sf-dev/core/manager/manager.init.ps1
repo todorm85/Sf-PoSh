@@ -12,22 +12,22 @@ function init-managerContainers() {
     # initialize
     $defaultContainerName = _sfData-get-defaultContainerName
     if (-not [string]::IsNullOrEmpty($defaultContainerName)) {
-        $global:selectedContainer = _sfData-get-allContainers | Where-Object {$_.name -eq $defaultContainerName}
+        $Script:selectedContainer = _sfData-get-allContainers | Where-Object {$_.name -eq $defaultContainerName}
     } 
     else {
-        $global:selectedContainer = [PSCustomObject]@{
+        $Script:selectedContainer = [PSCustomObject]@{
             name = ''
         }
     }
 }
 
 function init-managerData {
-    if (!(Test-Path $global:dataPath)) {
+    if (!(Test-Path $Script:dataPath)) {
         Write-Information "Initializing script data..."
-        New-Item -ItemType file -Path $global:dataPath
+        New-Item -ItemType file -Path $Script:dataPath
 
         # Create The Document
-        $XmlWriter = New-Object System.XMl.XmlTextWriter($global:dataPath, $Null)
+        $XmlWriter = New-Object System.XMl.XmlTextWriter($Script:dataPath, $Null)
 
         # Set The Formatting
         $xmlWriter.Formatting = "Indented"

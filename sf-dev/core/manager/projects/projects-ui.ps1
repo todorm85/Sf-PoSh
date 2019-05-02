@@ -125,7 +125,7 @@ function sf-show-projects {
         
         $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]; Ports = "$ports"; ID = "$($sitefinity.id)"; LastGet = _get-daysSinceLastGetLatest $sitefinity }) > $null
     }
-    $currentContainerName = $global:selectedContainer.name
+    $currentContainerName = $Script:selectedContainer.name
     if ($currentContainerName -ne '') {
         Write-Host "`nProjects in $currentContainerName"
     }

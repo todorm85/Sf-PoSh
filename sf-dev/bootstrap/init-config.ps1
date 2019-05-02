@@ -1,4 +1,4 @@
-$Script:moduleUserDir = "$Script:HOME\documents\sf-dev"
+$Script:moduleUserDir = "$Global:HOME\documents\sf-dev"
 if (-not (Test-Path $Script:moduleUserDir)) {
     New-Item -Path $Script:moduleUserDir -ItemType Directory
 }

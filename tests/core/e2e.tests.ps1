@@ -43,7 +43,7 @@ InModuleScope sf-dev {
         sf-reset-app
 
         It "remove app data and database" {            
-            sql-get-dbs | Where-Object {$_.Name.Contains($dbName)} | Should -HaveCount 0
+            sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass | Where-Object {$_.Name.Contains($dbName)} | Should -HaveCount 0
             Test-Path $configsPath | Should -Be $false
             
         }
@@ -76,15 +76,15 @@ InModuleScope sf-dev {
             Remove-Item -Path $beforeSaveFilePath
             $dbName = sf-get-appDbName
             $dbName | Should -Not -BeNullOrEmpty
-            sql-insert-items -dbName $dbName -tableName 'sf_xml_config_items' -columns "path, dta, last_modified, id" -values "'test', '<testConfigs/>', '$([System.DateTime]::Now.ToString())', '$([System.Guid]::NewGuid())'"
-            $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter "dta" -whereFilter "dta = '<testConfigs/>'"
+            sql-insert-items -dbName $dbName -tableName 'sf_xml_config_items' -columns "path, dta, last_modified, id" -values "'test', '<testConfigs/>', '$([System.DateTime]::Now.ToString())', '$([System.Guid]::NewGuid())'" -user $Script:sqlUser -pass $Script:sqlPass
+            $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter "dta" -whereFilter "dta = '<testConfigs/>'" -user $Script:sqlUser -pass $Script:sqlPass
             $config | Should -Not -BeNullOrEmpty
 
             sf-restore-appState $stateName
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse
-            $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter "dta" -whereFilter "dta = '<testConfigs/>'"
+            $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter "dta" -whereFilter "dta = '<testConfigs/>'" -user $Script:sqlUser -pass $Script:sqlPass
             $config | Should -BeNullOrEmpty
         }
     }
@@ -93,7 +93,7 @@ InModuleScope sf-dev {
             [SfProject]$sourceProj = set-testProject
             $sourceName = $sourceProj.displayName
             $cloneTestName = "$sourceName-clone"
-            sql-get-dbs | where {$_.name -eq $sourceProj.id} | Should -HaveCount 1
+            sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass | where {$_.name -eq $sourceProj.id} | Should -HaveCount 1
 
             # edit a file in source project
             $webConfigPath = "$($sourceProj.webAppPath)\web.config"
@@ -123,7 +123,7 @@ InModuleScope sf-dev {
             Test-Path "$($Script:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
             Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
-            sql-get-dbs | where {$_.name -eq $cloneTestId} | Should -HaveCount 1
+            sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass | where {$_.name -eq $cloneTestId} | Should -HaveCount 1
         }
     }
 
@@ -186,7 +186,7 @@ InModuleScope sf-dev {
             Test-Path "$($Script:projectsDirectory)\${testId}" | Should -Be $false
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $false
             Test-Path "IIS:\Sites\${testId}" | Should -Be $false
-            sql-get-dbs | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
+            sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass | Where-Object {$_.Name.Contains($testId)} | Should -HaveCount 0
             existsInHostsFile -searchParam $proj.displayName | Should -Be $false
         }
     }

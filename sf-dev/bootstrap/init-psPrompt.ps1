@@ -3,8 +3,8 @@
 function Global:prompt {
     Write-Host "PS $(Get-Location)>" -NoNewline
 
-    $currentContainer = $global:globalContext.containerName
-    $projectName = $global:globalContext.displayName
+    $currentContainer = $Script:globalContext.containerName
+    $projectName = $Script:globalContext.displayName
 
     if ($projectName) {
         $prompt = " ["

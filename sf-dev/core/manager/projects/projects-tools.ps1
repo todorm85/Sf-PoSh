@@ -1,5 +1,5 @@
 function sf-clean-allProjectsLeftovers {
-    $projectsDir = $global:projectsDirectory
+    $projectsDir = $Script:projectsDirectory
     $idsInUse = _sfData-get-allProjects | ForEach-Object { $_.id }
     
     function shouldClean {
@@ -52,8 +52,8 @@ function sf-clean-allProjectsLeftovers {
 
     try {
         Write-Information "TFS cleanup"
-        $wss = tfs-get-workspaces 
-        $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ }
+        $wss = tfs-get-workspaces $Script:tfsServerName
+        $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $Script:tfsServerName }
     }
     catch {
         add-error "Tfs workspaces were not cleaned up: $_"
@@ -61,8 +61,8 @@ function sf-clean-allProjectsLeftovers {
 
     try {
         Write-Information "DBs cleanup"
-        $dbs = sql-get-dbs 
-        $dbs | Where-Object { $_.name.StartsWith("$Script:idPrefix") -and (shouldClean $_.name) } | ForEach-Object { sql-delete-database $_.name }
+        $dbs = sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass
+        $dbs | Where-Object { $_.name.StartsWith("$Script:idPrefix") -and (shouldClean $_.name) } | ForEach-Object { sql-delete-database $_.name -user $Script:sqlUser -pass $Script:sqlPass}
     }
     catch {
         add-error "Databases were not cleaned up: $_"

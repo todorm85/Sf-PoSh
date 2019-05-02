@@ -24,9 +24,9 @@ InModuleScope sf-dev {
                 "  </PropertyGroup>"
         )
 
-        $global:result = ''
+        $Script:result = ''
         Mock write-File {
-            $global:result = $content
+            $Script:result = $content
         }
 
         it "disables style cop task correctly" {
@@ -36,10 +36,10 @@ InModuleScope sf-dev {
 
             sf-switch-styleCop -enable:$false
 
-            $global:result.Count | Should -BeExactly $expectedOff.Count
+            $Script:result.Count | Should -BeExactly $expectedOff.Count
 
-            for ($i=0; $i -lt $global:result.Count; $i++) {
-                $global:result[$i].Trim() | Should -Be $expectedOff[$i].Trim()
+            for ($i=0; $i -lt $Script:result.Count; $i++) {
+                $Script:result[$i].Trim() | Should -Be $expectedOff[$i].Trim()
             }
         }
 
@@ -50,10 +50,10 @@ InModuleScope sf-dev {
 
             sf-switch-styleCop -enable:$true
 
-            $global:result.Count | Should -BeExactly $expectedOn.Count
+            $Script:result.Count | Should -BeExactly $expectedOn.Count
 
-            for ($i=0; $i -lt $global:result.Count; $i++) {
-                $global:result[$i].Trim() | Should -Be $expectedOn[$i].Trim()
+            for ($i=0; $i -lt $Script:result.Count; $i++) {
+                $Script:result[$i].Trim() | Should -Be $expectedOn[$i].Trim()
             }
         }
     }

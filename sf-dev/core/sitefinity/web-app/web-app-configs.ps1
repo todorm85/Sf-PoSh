@@ -157,7 +157,7 @@ function sf-get-configContentFromDb {
         )
 
     $dbName = sf-get-appDbName
-    $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
+    $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'" -user $Script:sqlUser -pass $Script:sqlPass
 
     if ($null -ne $config -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -184,7 +184,7 @@ function sf-clear-configContentInDb {
         )
 
     $dbName = sf-get-appDbName
-    sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value "dta = '<${configName}/>'" -whereFilter "path='${configName}.config'"
+    sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value "dta = '<${configName}/>'" -whereFilter "path='${configName}.config'" -user $Script:sqlUser -pass $Script:sqlPass
 }
 
 <#
@@ -209,5 +209,5 @@ function sf-insert-configContentInDb {
     $dbName = sf-get-appDbName
     $xmlString = Get-Content $filePath -Raw
 
-    $config = sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value "dta='$xmlString'" -whereFilter "path='${configName}.config'"
+    $config = sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value "dta='$xmlString'" -whereFilter "path='${configName}.config'" -user $Script:sqlUser -pass $Script:sqlPass
 }

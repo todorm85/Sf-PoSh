@@ -1,6 +1,6 @@
 function sf-select-container {
     $container = prompt-containerSelect
-    $global:selectedContainer = $container
+    $Script:selectedContainer = $container
     _sfData-save-defaultContainer $selectedContainer.name
     sf-select-project -showUnused
 }
@@ -48,7 +48,7 @@ function sf-set-projectContainer {
 function get-allProjectsForCurrentContainer {
     $sitefinities = _sfData-get-allProjects
     foreach ($sitefinity in $sitefinities) {
-        if ($global:selectedContainer.name -eq $sitefinity.containerName) {
+        if ($Script:selectedContainer.name -eq $sitefinity.containerName) {
             $sitefinity
         }
     }

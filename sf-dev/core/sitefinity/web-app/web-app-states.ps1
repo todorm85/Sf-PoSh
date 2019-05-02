@@ -7,7 +7,7 @@ function sf-new-appState {
     $context = _get-selectedProject
     
     $dbName = sf-get-appDbName
-    $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
+    $db = sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
     }
@@ -27,7 +27,7 @@ function sf-new-appState {
     Set-Acl $statePath $Acl
 
     $backupName = get-sqlBackupStateName
-    Backup-SqlDatabase -ServerInstance $global:sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
+    Backup-SqlDatabase -ServerInstance $Script:sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
     
     $stateDataPath = "$statePath/data.xml"
     New-Item $stateDataPath > $null
@@ -68,7 +68,7 @@ function sf-restore-appState ($stateName, $force = $false) {
     $statesPath = get-statesPath
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
-    sql-delete-database $dbName
+    sql-delete-database $dbName -user $Script:sqlUser -pass $Script:sqlPass
     $backupName = get-sqlBackupStateName
     Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
 
@@ -142,7 +142,7 @@ function get-sqlBackupStateName {
 }
 
 function get-sqlCredentials {
-    $password = ConvertTo-SecureString $global:sqlPass -AsPlainText -Force
+    $password = ConvertTo-SecureString $Script:sqlPass -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential ($Script:sqlUser, $password)
     $credential
 }

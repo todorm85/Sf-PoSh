@@ -99,7 +99,7 @@ function sf-new-project {
         
             try {
                 Write-Information "Deleting workspace..."
-                tfs-delete-workspace $newContext.id
+                tfs-delete-workspace $newContext.id $Script:tfsServerName
             }
             catch {
                 Write-Warning "No workspace created to delete."
@@ -171,7 +171,7 @@ function sf-clone-project {
     }
 
     $targetId = _generateId
-    $targetPath = $global:projectsDirectory + "\${targetId}"
+    $targetPath = $Script:projectsDirectory + "\${targetId}"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
     }
@@ -304,7 +304,7 @@ function sf-import-project {
             }
                     
             try {
-                sql-copy-db -SourceDBName $currentDbName -targetDbName $newContext.id
+                sql-copy-db -SourceDBName $currentDbName -targetDbName $newContext.id -user $Script:sqlUser -pass $Script:sqlPass
             }
             catch {
                 Write-Warning "Error copying old database. Source: $currentDbName Target $($newContext.id)`n $_"
@@ -407,7 +407,7 @@ function sf-delete-project {
     if ($workspaceName -ne '' -and !($keepWorkspace)) {
         Write-Information "Deleting workspace..."
         try {
-            tfs-delete-workspace $workspaceName
+            tfs-delete-workspace $workspaceName $Script:tfsServerName
         }
         catch {
             Write-Warning "Could not delete workspace $_"
@@ -418,7 +418,7 @@ function sf-delete-project {
     if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
         Write-Information "Deleting sitefinity database..."
         try {
-            sql-delete-database -dbName $dbName
+            sql-delete-database -dbName $dbName -user $Script:sqlUser -pass $Script:sqlPass
         }
         catch {
             Write-Warning "Could not delete database: ${dbName}. $_"
@@ -591,9 +591,9 @@ function _get-isIdDuplicate ($id) {
         }
     }
 
-    if (Test-Path "$global:projectsDirectory\$id") { return $true }
+    if (Test-Path "$Script:projectsDirectory\$id") { return $true }
 
-    $wss = tfs-get-workspaces | Where-Object { isDuplicate $_ }
+    $wss = tfs-get-workspaces $Script:tfsServerName | Where-Object { isDuplicate $_ }
     if ($wss) { return $false }
 
     Import-Module WebAdministration
@@ -608,7 +608,7 @@ function _get-isIdDuplicate ($id) {
         if ($names) {return $true}
     }
 
-    $dbs = sql-get-dbs | Where-Object { isDuplicate $_.name }
+    $dbs = sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass | Where-Object { isDuplicate $_.name }
     if ($dbs) { return $false }
 
     return $false;
@@ -617,7 +617,7 @@ function _get-isIdDuplicate ($id) {
 function _generateId {
     $i = 0;
     while ($true) {
-        $name = "$($global:idPrefix)$i"
+        $name = "$($Script:idPrefix)$i"
         $isDuplicate = (_get-isIdDuplicate $name)
         if (-not $isDuplicate) {
             break;
@@ -638,7 +638,7 @@ function set-currentProject {
 
     _validate-project $newContext
 
-    $global:globalContext = $newContext
+    $Script:globalContext = $newContext
 
     if ($newContext) {
         $ports = @(iis-get-websitePort $newContext.websiteName)
@@ -673,7 +673,7 @@ function generate-solutionFriendlyName {
 
 function _get-selectedProject {
     [OutputType([SfProject])]
-    $currentContext = $global:globalContext
+    $currentContext = $Script:globalContext
     if ($currentContext -eq '') {
         return $null
     }
@@ -694,7 +694,7 @@ function _create-workspace ($context, $branch) {
         # create and map workspace
         Write-Information "Creating workspace..."
         $workspaceName = $context.id
-        tfs-create-workspace $workspaceName $context.solutionPath
+        tfs-create-workspace $workspaceName $context.solutionPath $Script:tfsServerName
     }
     catch {
         throw "Could not create workspace $workspaceName in $($context.solutionPath).`n $_"
@@ -702,7 +702,7 @@ function _create-workspace ($context, $branch) {
 
     try {
         Write-Information "Creating workspace mappings..."
-        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName
+        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $Script:tfsServerName
     }
     catch {
         throw "Could not create mapping $($branch) in $($context.solutionPath) for workspace ${workspaceName}.`n $_"
