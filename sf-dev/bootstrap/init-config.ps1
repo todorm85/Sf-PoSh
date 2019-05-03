@@ -4,7 +4,7 @@ if (-not (Test-Path $Script:moduleUserDir)) {
 }
 
 $defaultConfigPath = "$PSScriptRoot\default_config.json"
-$userConfigPath = "$Script:moduleUserDir\config.json"
+$Script:userConfigPath = "$Script:moduleUserDir\config.json"
 $config = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
 
 # for backwards compatibility should be removed

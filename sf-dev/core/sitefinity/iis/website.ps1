@@ -32,6 +32,9 @@ function sf-browse-webSite {
     Param([switch]$useExistingBrowser)
 
     $appUrl = get-appUrl
+    if (!(Test-Path $browserPath)) {
+        throw "Invalid browser path configured ($browserPath). Configure it in $Script:userConfigPath -> browserPath"
+    }
 
     if (-not $useExistingBrowser) {
         execute-native "& Start-Process `"$browserPath`""

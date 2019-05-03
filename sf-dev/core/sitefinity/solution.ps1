@@ -142,6 +142,10 @@ function sf-open-solution {
         $solutionName = generate-solutionFriendlyName
     }
 
+    if (!(Test-Path $vsPath)) {
+        throw "Invalid visual studio path configured ($vsPath). Configure it in $Script:userConfigPath -> vsPath"
+    }
+
     execute-native "& `"$vsPath`" `"${solutionPath}\${solutionName}`"" -successCodes @(1)
 }
 
@@ -187,6 +191,10 @@ function build-proj {
     }
 
     Write-Information "Building ${path}"
+
+    if (!(Test-Path $msBuildPath)) {
+        throw "Invalid ms build tools path configured ($msBuildPath). Configure it in $Script:userConfigPath -> msBuildPath"
+    }
 
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'
