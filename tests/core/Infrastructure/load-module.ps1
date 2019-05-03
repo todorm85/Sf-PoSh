@@ -1,1 +1,1 @@
-Import-Module sf-dev -Force -DisableNameChecking
+Import-Module "$PSScriptRoot\..\..\..\sf-dev\sf-dev.psd1" -Force -DisableNameChecking
