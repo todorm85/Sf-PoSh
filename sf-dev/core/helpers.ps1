@@ -4,6 +4,5 @@ function _get-config {
 
 function _get-sqlClient {
     [Config]$config = _get-config
-    [SqlClient]$client = get-sqlClient -user $config.sqlUser -pass $config.sqlPass -server $config.sqlServerInstance
-    $client
+    [SqlClient]::new($config.sqlUser, $config.sqlPass, $config.sqlServerInstance)
 }
