@@ -15,7 +15,7 @@ function sf-set-storageMode {
     Param (
         [string]$storageMode,
         [string]$restrictionLevel
-        )
+    )
 
     $context = _get-selectedProject
 
@@ -23,12 +23,11 @@ function sf-set-storageMode {
         do {
             $repeat = $false
             $storageMode = Read-Host -Prompt 'Storage Mode: [f]ileSystem [d]atabase [a]uto'
-            switch ($storageMode)
-            {
-                'f' {$storageMode = 'FileSystem'}
-                'd' {$storageMode = 'Database'}
-                'a' {$storageMode = 'Auto'}
-                default {$repeat = $true}
+            switch ($storageMode) {
+                'f' { $storageMode = 'FileSystem' }
+                'd' { $storageMode = 'Database' }
+                'a' { $storageMode = 'Auto' }
+                default { $repeat = $true }
             }
         } while ($repeat)
     }
@@ -37,11 +36,10 @@ function sf-set-storageMode {
         do {
             $repeat = $false
             $restrictionLevel = Read-Host -Prompt 'Restriction level: [d]efault [r]eadonlyConfigFile'
-            switch ($restrictionLevel)
-            {
-                'd' {$restrictionLevel = 'Default'}
-                'r' {$restrictionLevel = 'ReadOnlyConfigFile'}
-                default {$repeat = $true}
+            switch ($restrictionLevel) {
+                'd' { $restrictionLevel = 'Default' }
+                'r' { $restrictionLevel = 'ReadOnlyConfigFile' }
+                default { $repeat = $true }
             }
         } while ($repeat)
     }
@@ -69,8 +67,7 @@ function sf-set-storageMode {
     }
 
     $sitefinityConfig = $webConfig.SelectSingleNode('/configuration/telerik/sitefinity/sitefinityConfig')
-    if ($sitefinityConfig -eq $null)
-    {
+    if ($sitefinityConfig -eq $null) {
         $telerik = $webConfig.SelectSingleNode('/configuration/telerik')
         if ($telerik -eq $null) {
             $telerik = $webConfig.CreateElement("telerik")
@@ -91,7 +88,8 @@ function sf-set-storageMode {
     $sitefinityConfig.SetAttribute("storageMode", $storageMode)
     if ($restrictionLevel -ne $null -and $restrictionLevel -ne "") {
         $sitefinityConfig.SetAttribute("restrictionLevel", $restrictionLevel)
-    } else {
+    }
+    else {
         $sitefinityConfig.RemoveAttribute("restrictionLevel")
     }
 
@@ -123,11 +121,11 @@ function sf-get-storageMode {
     }
 
     $sitefinityConfig = $webConfig.SelectSingleNode('/configuration/telerik/sitefinity/sitefinityConfig')
-    if ($sitefinityConfig -eq $null)
-    {
+    if ($sitefinityConfig -eq $null) {
         $storageMode = "FileSystem"
         $restrictionLevel = "Default"
-    } else {
+    }
+    else {
         $storageMode = $sitefinityConfig.storageMode
         $restrictionLevel = $sitefinityConfig.restrictionLevel
 
@@ -136,7 +134,7 @@ function sf-get-storageMode {
         }
     }
 
-    return New-Object psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
+    return New-Object psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel }
 }
 
 <#
@@ -152,12 +150,13 @@ function sf-get-storageMode {
 function sf-get-configContentFromDb {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true)]$configName,
-        $filePath="${Env:userprofile}\Desktop\dbExport.xml"
-        )
+        [Parameter(Mandatory = $true)]$configName,
+        $filePath = "${Env:userprofile}\Desktop\dbExport.xml"
+    )
 
     $dbName = sf-get-appDbName
-    $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'" -user $Script:sqlUser -pass $Script:sqlPass
+    [SqlClient]$sql = _get-sqlClient
+    $config = $sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
 
     if ($null -ne $config -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -166,7 +165,8 @@ function sf-get-configContentFromDb {
 
         $doc = [xml]$config.dta
         $doc.Save($filePath) > $null
-    } else {
+    }
+    else {
         Write-Warning 'Config not found in db'
     }
 }
@@ -180,11 +180,15 @@ function sf-get-configContentFromDb {
 function sf-clear-configContentInDb {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true)]$configName
-        )
+        [Parameter(Mandatory = $true)]$configName
+    )
 
     $dbName = sf-get-appDbName
-    sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value "dta = '<${configName}/>'" -whereFilter "path='${configName}.config'" -user $Script:sqlUser -pass $Script:sqlPass
+    $table = 'sf_xml_config_items'
+    $value = "dta = '<${configName}/>'"
+    $where = "path='${configName}.config'"
+    [SqlClient]$sql = _get-sqlClient
+    $sql.UpdateItems($dbName, $table, $where, $value)
 }
 
 <#
@@ -202,12 +206,16 @@ function sf-clear-configContentInDb {
 function sf-insert-configContentInDb {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true)]$configName,
-        $filePath="${Env:userprofile}\Desktop\dbImport.xml"
-        )
+        [Parameter(Mandatory = $true)]$configName,
+        $filePath = "${Env:userprofile}\Desktop\dbImport.xml"
+    )
 
     $dbName = sf-get-appDbName
+    $table = 'sf_xml_config_items'
     $xmlString = Get-Content $filePath -Raw
+    $value = "dta='$xmlString'"
+    $where = "path='${configName}.config'"
 
-    $config = sql-update-items -dbName $dbName -tableName 'sf_xml_config_items' -value "dta='$xmlString'" -whereFilter "path='${configName}.config'" -user $Script:sqlUser -pass $Script:sqlPass
+    [SqlClient]$sql = _get-sqlClient
+    $sql.UpdateItems($dbName, $table, $where, $value)
 }

@@ -304,7 +304,8 @@ function sf-import-project {
             }
                     
             try {
-                sql-copy-db -SourceDBName $currentDbName -targetDbName $newContext.id -user $Script:sqlUser -pass $Script:sqlPass
+                [SqlClient]$sql = _get-sqlClient
+                $sql.CopyDb($currentDbName, $newContext.id)
             }
             catch {
                 Write-Warning "Error copying old database. Source: $currentDbName Target $($newContext.id)`n $_"
@@ -417,8 +418,9 @@ function sf-delete-project {
     # Del db
     if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
         Write-Information "Deleting sitefinity database..."
+        [SqlClient]$sql = _get-sqlClient
         try {
-            sql-delete-database -dbName $dbName -user $Script:sqlUser -pass $Script:sqlPass
+            $sql.Delete($dbName)
         }
         catch {
             Write-Warning "Could not delete database: ${dbName}. $_"
@@ -607,8 +609,8 @@ function _get-isIdDuplicate ($id) {
         $names = $pools.Children.Keys | Where-Object { isDuplicate $_ }
         if ($names) {return $true}
     }
-
-    $dbs = sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass | Where-Object { isDuplicate $_.name }
+    [SqlClient]$sql = _get-sqlClient
+    $dbs = $sql.GetDbs() | Where-Object { isDuplicate $_.name }
     if ($dbs) { return $false }
 
     return $false;

@@ -60,7 +60,8 @@ function sf-reset-app {
     if (-not [string]::IsNullOrEmpty($dbName)) {
         Write-Information "Deleting database..."
         try {
-            sql-delete-database -dbName $dbName -user $Script:sqlUser -pass $Script:sqlPass
+            [SqlClient]$sql = _get-sqlClient
+            $sql.Delete($dbName)
         }
         catch {
             throw "Erros while deleting database: $_"
@@ -254,7 +255,8 @@ function create-startupConfig {
             $dbName = sf-get-appDbName
         }
         
-        while ((sql-test-isDbNameDuplicate -dbName $dbName -user $Script:sqlUser -pass $Script:sqlPass) -or [string]::IsNullOrEmpty($dbName)) {
+        [SqlClient]$sql = _get-sqlClient
+        if (($sql.IsDuplicate($dbName)) -or [string]::IsNullOrEmpty($dbName)) {
             throw "Error creating startup.config. Database with name $dbName already exists."
         }
 

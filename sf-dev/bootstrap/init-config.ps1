@@ -5,19 +5,35 @@ if (-not (Test-Path $Script:moduleUserDir)) {
 
 $defaultConfigPath = "$PSScriptRoot\default_config.json"
 $Script:userConfigPath = "$Script:moduleUserDir\config.json"
-$config = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
+$configFile = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
 
+$Script:config = New-Object Config -Property @{
+    dataPath           = "$Script:moduleUserDir\db.xml"
+    idPrefix           = $configFile.idPrefix
+    projectsDirectory  = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)
+    browserPath        = $configFile.browserPath
+    vsPath             = $configFile.vsPath
+    msBuildPath        = $configFile.msBuildPath
+    tfsServerName      = $configFile.tfsServerName
+    defaultUser        = $configFile.sitefinityUser
+    defaultPassword    = $configFile.sitefinityPassword
+    sqlServerInstance  = $configFile.sqlServerInstance
+    sqlUser            = $configFile.sqlUser
+    sqlPass            = $configFile.sqlPass
+    predefinedBranches = $configFile.predefinedBranches
+}
+    
 # for backwards compatibility should be removed
 $Script:dataPath = "$Script:moduleUserDir\db.xml"
-$Script:idPrefix = $config.idPrefix
-$Script:projectsDirectory = [System.Environment]::ExpandEnvironmentVariables($config.projectsDirectory)
-$Script:browserPath = $config.browserPath
-$Script:vsPath = $config.vsPath
-$Script:msBuildPath = $config.msBuildPath
-$Script:tfsServerName = $config.tfsServerName
-$Script:defaultUser = $config.sitefinityUser
-$Script:defaultPassword = $config.sitefinityPassword
-$Script:sqlServerInstance = $config.sqlServerInstance
-$Script:sqlUser = $config.sqlUser
-$Script:sqlPass = $config.sqlPass
-$Script:predefinedBranches = $config.predefinedBranches
+$Script:idPrefix = $configFile.idPrefix
+$Script:projectsDirectory = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)
+$Script:browserPath = $configFile.browserPath
+$Script:vsPath = $configFile.vsPath
+$Script:msBuildPath = $configFile.msBuildPath
+$Script:tfsServerName = $configFile.tfsServerName
+$Script:defaultUser = $configFile.sitefinityUser
+$Script:defaultPassword = $configFile.sitefinityPassword
+$Script:sqlServerInstance = $configFile.sqlServerInstance
+$Script:sqlUser = $configFile.sqlUser
+$Script:sqlPass = $configFile.sqlPass
+$Script:predefinedBranches = $configFile.predefinedBranches

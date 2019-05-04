@@ -61,8 +61,11 @@ function sf-clean-allProjectsLeftovers {
 
     try {
         Write-Information "DBs cleanup"
-        $dbs = sql-get-dbs -user $Script:sqlUser -pass $Script:sqlPass
-        $dbs | Where-Object { $_.name.StartsWith("$Script:idPrefix") -and (shouldClean $_.name) } | ForEach-Object { sql-delete-database $_.name -user $Script:sqlUser -pass $Script:sqlPass}
+        [SqlClient]$sql = _get-sqlClient
+        $dbs = $sql.GetDbs()
+        $dbs | Where-Object { $_.name.StartsWith("$Script:idPrefix") -and (shouldClean $_.name) } | ForEach-Object {
+            $sql.Delete($_.name)
+        }
     }
     catch {
         add-error "Databases were not cleaned up: $_"
