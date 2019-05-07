@@ -31,10 +31,16 @@ function sf-reset-thread {
 #>
 function sf-reset-pool {
     [CmdletBinding()]
-    Param([switch]$start)
+    Param(
+        [switch]$start,
+        [SfProject]$project
+    )
 
-    $context = _get-selectedProject
-    $appPool = @(iis-get-siteAppPool $context.websiteName)
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
+    $appPool = @(iis-get-siteAppPool $project.websiteName)
     if ($appPool -eq '') {
         throw "No app pool set."
     }

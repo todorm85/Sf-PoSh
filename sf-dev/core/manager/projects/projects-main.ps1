@@ -160,7 +160,14 @@ function sf-new-project {
 }
 
 function sf-clone-project {
-    [SfProject]$context = _get-selectedProject
+    Param(
+        [SfProject]$context
+    )
+
+    if (!$context) {
+        $context = _get-selectedProject
+    }
+
     $sourcePath = $context.solutionPath;
     if ([string]::IsNullOrEmpty($sourcePath)) {
         $sourcePath = $context.webAppPath
@@ -220,7 +227,6 @@ function sf-import-project {
         [Parameter(Mandatory = $true)][string]$path,
         [switch]$cloneDb,
         [string]$existingSiteName,
-        [string]$branchToBindTo,
         [string]$id
     )
 
@@ -484,14 +490,19 @@ function sf-rename-project {
     Param(
         [switch]$markUnused,
         [string]$newName,
-        [switch]$setDescription
+        [switch]$setDescription,
+        [SfProject]$project
     )
+
+    if (!$project) {
+        $project = _get-selectedProject
+    }
 
     if ($newName -and (-not (validate-nameSyntax $newName))) {
         Write-Error "Name syntax is not valid. Use only alphanumerics and underscores"
     }
 
-    [SfProject]$context = _get-selectedProject
+    [SfProject]$context = $project
     $oldName = $context.displayName
 
     if ($markUnused) {
@@ -641,6 +652,7 @@ function set-currentProject {
     _validate-project $newContext
 
     $Script:globalContext = $newContext
+    _set-fluent
 
     if ($newContext) {
         $ports = @(iis-get-websitePort $newContext.websiteName)

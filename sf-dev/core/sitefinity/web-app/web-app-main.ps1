@@ -28,72 +28,86 @@ function sf-reset-app {
         [switch]$build,
         [string]$user = $defaultUser,
         [switch]$configRestrictionSafe,
-        [switch]$force
+        [switch]$force,
+        [SfProject]$project
     )
 
-    $dbName = sf-get-appDbName # this needs to be here before DataConfig.config gets deleted!!!
-    
-    Write-Information "Restarting app pool..."
-    sf-reset-pool
-
-    if ($force) {
-        Write-Information "Unlocking files..."
-        sf-unlock-allFiles
-    }
-    
-    if ($rebuild) {
-        sf-rebuild-solution -retryCount 3
+    $oldProject = $null
+    if ($project) {
+        $oldProject = _get-selectedProject
+        set-currentProject -newContext $project
     }
 
-    if ($build) {
-        sf-build-solution -retryCount 3
-    }
-
-    Write-Information "Resetting App_Data files..."
     try {
-        reset-appDataFiles
-    }
-    catch {
-        Write-Warning "Errors ocurred while resetting App_Data files.`n $_"
-    }
+        $dbName = sf-get-appDbName # this needs to be here before DataConfig.config gets deleted!!!
+    
+        Write-Information "Restarting app pool..."
+        sf-reset-pool
 
-    if (-not [string]::IsNullOrEmpty($dbName)) {
-        Write-Information "Deleting database..."
+        if ($force) {
+            Write-Information "Unlocking files..."
+            sf-unlock-allFiles
+        }
+    
+        if ($rebuild) {
+            sf-rebuild-solution -retryCount 3
+        }
+
+        if ($build) {
+            sf-build-solution -retryCount 3
+        }
+
+        Write-Information "Resetting App_Data files..."
         try {
-            [SqlClient]$sql = _get-sqlClient
-            $sql.Delete($dbName)
+            reset-appDataFiles
         }
         catch {
-            throw "Erros while deleting database: $_"
+            Write-Warning "Errors ocurred while resetting App_Data files.`n $_"
         }
-    }
 
-    if ($createStartupConfig) {
-        create-startupConfig $user $dbName
-    }
+        if (-not [string]::IsNullOrEmpty($dbName)) {
+            Write-Information "Deleting database..."
+            try {
+                [SqlClient]$sql = _get-sqlClient
+                $sql.Delete($dbName)
+            }
+            catch {
+                throw "Erros while deleting database: $_"
+            }
+        }
 
-    if ($start) {
-        Start-Sleep -s 2
-
-        try {
+        if ($createStartupConfig) {
             create-startupConfig $user $dbName
         }
-        catch {
-            throw "Erros while creating startupConfig: $_"
+
+        if ($start) {
+            Start-Sleep -s 2
+
+            try {
+                create-startupConfig $user $dbName
+            }
+            catch {
+                throw "Erros while creating startupConfig: $_"
+            }
+
+            try {
+                $appUrl = get-appUrl
+                start-app -url $appUrl
+            }
+            catch {
+                throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
+                delete-startupConfig
+            }
         }
 
-        try {
-            $appUrl = get-appUrl
-            start-app -url $appUrl
-        }
-        catch {
-            throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
-            delete-startupConfig
+        if ($precompile) {
+            sf-add-precompiledTemplates
         }
     }
-
-    if ($precompile) {
-        sf-add-precompiledTemplates
+    finally {
+        if ($oldProject) {
+            set-currentProject -newContext $oldProject
+        }
     }
 }
 
@@ -297,7 +311,7 @@ function reset-appDataFiles {
     }
     elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
         Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
-        $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs"))}
+        $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs")) }
         try {
             if ($dirs) {
                 $dirs | Remove-Item -Force -Recurse
@@ -324,7 +338,7 @@ function clean-sfRuntimeFiles {
     # clean empty dirs
     do {
         $dirs = Get-ChildItem "${webAppPath}\App_Data" -directory -recurse | Where-Object { (Get-ChildItem $_.fullName).Length -eq 0 } | Select-Object -expandproperty FullName
-        $dirs | % {Remove-Item $_ -Force}
+        $dirs | % { Remove-Item $_ -Force }
     } while ($dirs.count -gt 0)
 }
 

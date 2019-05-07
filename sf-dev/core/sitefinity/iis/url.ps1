@@ -1,6 +1,12 @@
 function get-appUrl {
-    Param([switch]$useDevUrl)
-    $context = _get-selectedProject
+    Param(
+        [switch]$useDevUrl,
+        [SfProject]$context
+    )
+
+    if (!$context) {
+        $context = _get-selectedProject
+    }
     
     if ($useDevUrl) {
         return get-devAppUrl

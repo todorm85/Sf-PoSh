@@ -56,8 +56,16 @@ function sf-select-project {
     .SYNOPSIS 
     Shows info for selected sitefinity.
 #>
-function sf-show-currentProject ([switch]$detail) {
-    [SfProject]$context = _get-selectedProject
+function sf-show-currentProject {
+    Param(
+        [switch]$detail,
+        [SfProject]$context
+    )
+
+    if (!$context) {
+        $context = _get-selectedProject
+    }
+    
     if ($null -eq ($context)) {
         Write-Warning "No project selected"
         return
@@ -104,7 +112,8 @@ function sf-show-currentProject ([switch]$detail) {
         [pscustomobject]@{id = 9; Parameter = "Last get"; Value = _get-daysSinceLastGetLatest $context; }
     )
 
-    $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders
+    $details = $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders | Out-String
+    Write-Host $details
     Write-Host "Description:`n$($context.description)`n"
 }
 

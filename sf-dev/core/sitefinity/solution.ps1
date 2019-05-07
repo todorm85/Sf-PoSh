@@ -7,11 +7,15 @@
 function sf-build-solution {
     [CmdletBinding()]
     Param(
-        $retryCount = 0
+        $retryCount = 0,
+        [SfProject]$project
     )
     
-    $context = _get-selectedProject
-    $solutionPath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
+    $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
     
     $tries = 0
     $isBuilt = $false
@@ -22,11 +26,11 @@ function sf-build-solution {
             }
             else {
                 try {
-                    sf-switch-styleCop -context $context -enable:$false
+                    sf-switch-styleCop -context $project -enable:$false
                     build-proj $solutionPath
                 }
                 finally {
-                    sf-switch-styleCop -context $context -enable:$true
+                    sf-switch-styleCop -context $project -enable:$true
                 }
             }
             
@@ -53,31 +57,42 @@ function sf-build-solution {
 #>
 function sf-rebuild-solution {
     [CmdletBinding()]
-    Param([bool]$cleanPackages = $false, $retryCount = 0)
+    Param(
+        [bool]$cleanPackages = $false,
+        $retryCount = 0,
+        [SfProject]$project)
     
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
     Write-Information "Rebuilding solution..."
     try {
-        sf-clean-solution -cleanPackages $cleanPackages
+        sf-clean-solution -cleanPackages $cleanPackages -project $project
     }
     catch {
         Write-Warning "Errors while cleaning solution: $_"
     }
 
-    sf-build-solution -retryCount $retryCount
+    sf-build-solution -retryCount $retryCount -project $project
 }
 
 function sf-clean-solution {
-    Param([bool]$cleanPackages = $false)
+    Param(
+        [bool]$cleanPackages = $false,
+        [SfProject]$project)
 
     Write-Information "Cleaning solution..."
+    if (!$project) {
+        $project = _get-selectedProject
+    }
 
-    $context = _get-selectedProject
-    $solutionPath = $context.solutionPath
+    $solutionPath = $project.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
     }
 
-    sf-unlock-allFiles
+    sf-unlock-allFiles -project $project
 
     $errorMessage = ''
     #delete all bin, obj and packages
@@ -96,14 +111,9 @@ function sf-clean-solution {
         $errorMessage = "Errors while deleting bins and objs:`n$errorMessage"
     }
 
-    if ($cleanPackages -and (Test-Path "${solutionPath}\packages")) {
-        
-        Write-Information "Deleting packages..."
-        $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
+    if ($cleanPackages) {
         try {
-            if ($dirs -and $dirs.Length > 0) {
-                $dirs | Remove-Item -Force -Recurse
-            }
+            sf-clean-packages -project $project
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
@@ -112,6 +122,27 @@ function sf-clean-solution {
 
     if ($errorMessage -ne '') {
         throw $errorMessage
+    }
+}
+
+function sf-clean-packages {
+    Param(
+        [SfProject]$project
+    )
+
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
+    if (!(Test-Path "${solutionPath}\packages")) {
+        Write-Warning "No packages to delete"
+        return
+    }
+
+    Write-Information "Deleting packages..."
+    $dirs = Get-ChildItem "${solutionPath}\packages" | Where-Object { ($_.PSIsContainer -eq $true) }
+    if ($dirs -and $dirs.Length -gt 0) {
+        $dirs | Remove-Item -Force -Recurse
     }
 }
 
@@ -126,11 +157,14 @@ function sf-clean-solution {
 function sf-open-solution {
     [CmdletBinding()]
     Param(
-        [switch]$useDefault
+        [switch]$useDefault,
+        [SfProject]$project
     )
+    if (!$project) {
+        $project = _get-selectedProject
+    }
     
-    $context = _get-selectedProject
-    $solutionPath = $context.solutionPath
+    $solutionPath = $project.solutionPath
     if ($solutionPath -eq '') {
         throw "invalid or no solution path"
     }
@@ -168,12 +202,19 @@ function sf-build-webAppProj () {
 }
 
 function sf-unlock-allFiles {
-    [SfProject]$proj = _get-selectedProject
-    if ($proj.solutionPath -ne "") {
-        $path = $proj.solutionPath
+    Param(
+        [SfProject]$project
+    )
+
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
+    if ($project.solutionPath -ne "") {
+        $path = $project.solutionPath
     }
     else {
-        $path = $proj.webAppPath
+        $path = $project.webAppPath
     }
 
     if ($path) {
@@ -235,7 +276,7 @@ function sf-switch-styleCop {
             if ($enable) {
                 $newContent += "<StyleCopEnabled>true</StyleCopEnabled>"
             }
-            else{
+            else {
                 $newContent += "<StyleCopEnabled>false</StyleCopEnabled>"
             }
         }

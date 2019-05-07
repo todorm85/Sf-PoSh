@@ -29,9 +29,16 @@ function sf-rename-website {
 #>
 function sf-browse-webSite {
     [CmdletBinding()]
-    Param([switch]$useExistingBrowser)
+    Param(
+        [switch]$useExistingBrowser,
+        [SfProject]$project
+    )
 
-    $appUrl = get-appUrl
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
+    $appUrl = get-appUrl -context $project
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:userConfigPath -> browserPath"
     }
