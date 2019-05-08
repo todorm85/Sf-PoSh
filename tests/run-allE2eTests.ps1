@@ -1,7 +1,7 @@
 $oldLoc = Get-Location
 Set-Location "$PSScriptRoot"
 try {
-    Invoke-Pester -Tag "e2e"
+    Invoke-Pester -Tag "e2e-fluent"
 }
 catch {
     $_    
