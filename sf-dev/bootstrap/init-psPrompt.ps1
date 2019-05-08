@@ -2,9 +2,17 @@
 
 function Global:prompt {
     Write-Host "PS $(Get-Location)>" -NoNewline
+    Write-Host "$Script:prompt" -ForegroundColor Green -NoNewline
+    return " "
+}
 
-    $currentContainer = $Script:globalContext.containerName
-    $projectName = $Script:globalContext.displayName
+function Set-Prompt {
+    param (
+        [SfProject]$project
+    )
+
+    $currentContainer = $project.containerName 
+    $projectName = $project.displayName
 
     if ($projectName) {
         $prompt = " ["
@@ -19,6 +27,5 @@ function Global:prompt {
         $prompt = ""
     }
 
-    Write-Host "$prompt" -ForegroundColor Green -NoNewline
-    return " "
+    $Script:prompt = $prompt
 }

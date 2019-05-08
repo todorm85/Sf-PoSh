@@ -37,19 +37,18 @@ class SfProject {
         $this.id = $id;
         $this.displayName = $displayName;
     }
+
+    [void] Details() {
+        sf-show-currentProject -detail -context $this
+    }
 }
 
 #fluent
 # no intellisense when inheritance
 
-function _set-fluent {
-    $proj = _get-selectedProject
-    $Global:sf = [ProjectFluent]::new($proj)
-}
-
 class ProjectFluent {
-    [SolutionFluent] hidden $solution
-    [SfProject] hidden $project
+    [SolutionFluent] $solution
+    [SfProject] $project
 
     [SfProject] hidden GetProject () {
         if (!$this.project) {
@@ -59,32 +58,41 @@ class ProjectFluent {
         return $this.project
     }
 
-    ProjectFluent() {}
+    ProjectFluent() {
+        $this.Init($null)
+    }
 
     ProjectFluent ([SfProject]$project) {
-        $this.Initialize($project)
+        $this.Init($project)
     }
 
-    [void] hidden Initialize ([SfProject]$project) {
+    [void] Init ([SfProject]$project) {
         $this.project = $project
-
         $this.solution = [SolutionFluent]::new($project)
-    }
-
-    [SolutionFluent] Solution() {
-        if (!$this.solution) {
-            throw "Solution facade not initialized. Perhaps no project selected?"
-        }
-
-        return $this.solution
+        set-currentProject -newContext $project -fluentInited
     }
 
     [void] Select () {
-        sf-select-project
+        [SfProject]$selectedSitefinity = prompt-projectSelect -showUnused
+        $this.Init($selectedSitefinity)
+    }
+
+    [void] Create () {
+        $selectedBranch = prompt-predefinedBranchSelect
+        $name = $null
+        while(!$name) {
+            $name = Read-Host -Prompt "Enter name"
+        }
+        
+        [SfProject]$newProject = sf-new-project -displayName $name -customBranch $selectedBranch -noAutoSelect
+
+        $this.Init($newProject)
     }
 
     [void] Create ([string]$name, [string]$branchPath) {
-        sf-new-project -displayName $name -customBranch $branchPath
+        [SfProject]$newProject = sf-new-project -displayName $name -customBranch $branchPath -noAutoSelect
+
+        $this.Init($newProject)
     }
 
     [void] Import ([string]$name, [string]$path) {
@@ -92,19 +100,29 @@ class ProjectFluent {
     }
 
     [void] Import ([string]$name, [string]$path, [bool]$cloneDb) {
-        sf-import-project -displayName $name -path $path -cloneDb $cloneDb
+        [SfProject]$newProj = sf-import-project -displayName $name -path $path -cloneDb $cloneDb -noAutoSelect
+
+        $this.Init($newProj)
     }
 
     [void] Clone() {
-        sf-clone-project -context $this.GetProject()
+        [SfProject]$newProj = sf-clone-project -context $this.GetProject() -noAutoSelect
+        $this.Init($newProj)
     }
     
     [void] Delete() {
-        sf-delete-project -context $this.GetProject()
+        sf-delete-project -context $this.GetProject() -noPrompt
+        $this.Init($null)
     }
 
-    [void] ShowDetails() {
-        sf-show-currentProject -detail -context $this.GetProject()
+    [void] DeleteMany() {
+        sf-delete-projects
+        [SfProject[]]$sitefinities = @(_sfData-get-allProjects)
+        $currentProjectWasDeleted = @($sitefinities | where { $_.id -eq $this.project.id }).Count -eq 0
+
+        if ($currentProjectWasDeleted) {
+            $this.Init($null)
+        }
     }
 
     [void] Rename([string]$newName) {
@@ -114,11 +132,11 @@ class ProjectFluent {
     # shortcuts for more specific functionalities
 
     [void] Build () {
-        $this.Solution().Build(3)
+        $this.solution.Build(3)
     }
 
     [void] OpenSolution () {
-        $this.Solution().Open()
+        $this.solution.Open()
     }
 
     [void] OpenWebsite () {
@@ -137,32 +155,40 @@ class ProjectFluent {
 class SolutionFluent {
     [SfProject] hidden $project
     
+    [SfProject] hidden GetProject () {
+        if (!$this.project) {
+            throw "You must select a project to work with first."
+        }
+
+        return $this.project
+    }
+
     SolutionFluent([SfProject]$project) {
         $this.project = $project
     }
 
     [void] Build ([int]$retryCount) {
-        sf-build-solution -retryCount $retryCount -project $this.project
+        sf-build-solution -retryCount $retryCount -project $this.GetProject()
     }
 
     [void] ReBuild ([int]$retryCount) {
-        sf-rebuild-solution -retryCount $retryCount -project $this.project
+        sf-rebuild-solution -retryCount $retryCount -project $this.GetProject()
     }
 
     [void] CleanPackages () {
-        sf-clean-packages -project $this.project
+        sf-clean-packages -project $this.GetProject()
     }
     
     [void] Clean () {
-        sf-clean-solution -project $this.project
+        sf-clean-solution -project $this.GetProject()
     }
 
     [void] Clean ([bool]$cleanPackages) {
-        sf-clean-solution -cleanPackages $cleanPackages -project $this.project
+        sf-clean-solution -cleanPackages $cleanPackages -project $this.GetProject()
     }
 
     [void] Open () {
-        sf-open-solution -project $this.project
+        sf-open-solution -project $this.GetProject()
     }
 }
 

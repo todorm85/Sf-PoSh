@@ -11,6 +11,18 @@ function sf-select-project {
         [switch]$showUnused
     )
     
+    $selectedSitefinity = prompt-projectSelect -showUnused:$showUnused
+
+    set-currentProject $selectedSitefinity
+    
+    sf-show-currentProject
+}
+
+function prompt-projectSelect {
+    param (
+        [switch]$showUnused
+    )
+
     $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
         Write-Warning "No sitefinities in current container! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
@@ -20,8 +32,9 @@ function sf-select-project {
     if (-not $showUnused) {
         $unusedProjectsName = _get-unusedProjectName
         $sitefinities = $sitefinities | Where-Object { ([SfProject]$_).displayName -ne $unusedProjectsName }
-    } else {
-        $sitefinities = $sitefinities | Sort-Object -Property @{Expression = "displayName"}, @{Expression = "branch"}
+    }
+    else {
+        $sitefinities = $sitefinities | Sort-Object -Property @{Expression = "displayName" }, @{Expression = "branch" }
     }
 
     if (-not $sitefinities) {
@@ -47,9 +60,7 @@ function sf-select-project {
         }
     }
 
-    set-currentProject $selectedSitefinity
-    
-    sf-show-currentProject
+    $selectedSitefinity
 }
 
 <#
@@ -82,10 +93,22 @@ function sf-show-currentProject {
         Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(_get-daysSinceLastGetLatest $context)"
         return    
     }
-    
-    $appPool = @(iis-get-siteAppPool $context.websiteName)
-    $workspaceName = tfs-get-workspaceName $context.webAppPath
-    $branch = tfs-get-branchPath $context.solutionPath
+
+    try {
+        $workspaceName = tfs-get-workspaceName $context.webAppPath
+        $branch = tfs-get-branchPath $context.solutionPath
+    }
+    catch {
+        Write-Warning "Error getting some details from TFS: $_"    
+    }
+
+    try {
+        $appPool = @(iis-get-siteAppPool $context.websiteName)
+    }
+    catch {
+        Write-Warning "Error getting some details from IIS: $_"    
+    }
+
     $otherDetails = @(
         [pscustomobject]@{id = 0; Parameter = "Title"; Value = $context.displayName; },
         [pscustomobject]@{id = 0.5; Parameter = "Id"; Value = $context.id; },
@@ -158,4 +181,28 @@ function _get-daysSinceLastGetLatest ([SfProject]$context) {
         [System.TimeSpan]$daysSinceLastGetLatest = [System.TimeSpan]([System.DateTime]::Today - $lastGetLatest.Date)
         return [math]::Round($daysSinceLastGetLatest.TotalDays, 0)
     }
+}
+
+function prompt-predefinedBranchSelect {
+    [Config]$conf = _get-config
+    $branches = @($conf.predefinedBranches)
+
+    if ($branches.Count -eq 0) {
+        $selectedBranch = Read-Host -Prompt 'No predefined branches, enter branch path'
+        return $selectedBranch
+    }
+
+    $i = 0
+    foreach ($branch in $branches) {
+        $i++
+        Write-Host "[$i] : $branch"
+    }
+
+    $selectedBranch = $null
+    while (!$selectedBranch) {
+        $userInput = Read-Host -Prompt "Select branch"
+        $selectedBranch = $branches[$userInput - 1]
+    }
+
+    return $selectedBranch
 }

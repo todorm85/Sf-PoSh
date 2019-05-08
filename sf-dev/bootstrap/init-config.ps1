@@ -7,7 +7,7 @@ $defaultConfigPath = "$PSScriptRoot\default_config.json"
 $Script:userConfigPath = "$Script:moduleUserDir\config.json"
 $configFile = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
 
-$Script:config = New-Object Config -Property @{
+$Script:sfDevConfig = New-Object Config -Property @{
     dataPath           = "$Script:moduleUserDir\db.xml"
     idPrefix           = $configFile.idPrefix
     projectsDirectory  = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)

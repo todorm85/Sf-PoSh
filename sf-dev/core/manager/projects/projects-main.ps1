@@ -21,7 +21,8 @@ function sf-new-project {
         [switch]$buildSolution,
         [switch]$startWebApp,
         [switch]$precompile,
-        [string]$customBranch
+        [string]$customBranch,
+        [switch]$noAutoSelect
     )
 
     DynamicParam {
@@ -72,6 +73,8 @@ function sf-new-project {
             throw "Path already exists:" + $newContext.solutionPath
         }
 
+        $oldContext = _get-selectedProject
+
         try {
             Write-Information "Creating solution path..."
             New-Item $newContext.solutionPath -type directory > $null
@@ -88,9 +91,10 @@ function sf-new-project {
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
             copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
 
+            Write-Information "Creating website..."
+            sf-create-website -context $newContext
+
             # persist current context to script data
-            $oldContext = _get-selectedProject
-            set-currentProject $newContext
             _save-selectedProject $newContext
         }
         catch {
@@ -102,7 +106,7 @@ function sf-new-project {
                 tfs-delete-workspace $newContext.id $Script:tfsServerName
             }
             catch {
-                Write-Warning "No workspace created to delete."
+                Write-Warning "Error cleaning workspace or it was not created."
             }
 
             try {
@@ -110,7 +114,15 @@ function sf-new-project {
                 Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
             }
             catch {
-                Write-Warning "Could not delete solution directory"
+                Write-Warning "Error cleaning solution directory or it was not created."
+            }
+
+            try {
+                Write-Information "Removing website..."
+                delete-website -context $newContext
+            }
+            catch {
+                Write-Warning "Could not remove website or it was not created"
             }
 
             if ($oldContext) {
@@ -118,50 +130,51 @@ function sf-new-project {
             }
             $ii = $_.InvocationInfo
             $msg = $_
-            if ($ii)
-            {
+            if ($ii) {
                 $msg = "$msg`n$($ii.PositionMessage)"
             }
 
             throw $msg
         }
 
-        _create-userFriendlySlnName $newContext
-
-        if ($buildSolution) {
-            Write-Information "Building solution..."
-            sf-build-solution -retryCount 3
-        }
-            
         try {
-            Write-Information "Creating website..."
-            sf-create-website -context $newContext
+            set-currentProject $newContext
+            _create-userFriendlySlnName $newContext
+
+            if ($buildSolution) {
+                Write-Information "Building solution..."
+                sf-build-solution -retryCount 3
+            }
+
+            if ($startWebApp) {
+                try {
+                    Write-Information "Initializing Sitefinity"
+                    create-startupConfig
+                    start-app
+                    if ($precompile) {
+                        sf-add-precompiledTemplates
+                    }
+                }
+                catch {
+                    Write-Warning "APP WAS NOT INITIALIZED. $_"
+                    delete-startupConfig
+                }
+            }        
         }
-        catch {
-            $startWebApp = $false
-            Write-Warning "Error creating website. Message: $_"
+        finally {
+            if ($noAutoSelect) {
+                set-currentProject $oldContext
+            }
         }
 
-        if ($startWebApp) {
-            try {
-                Write-Information "Initializing Sitefinity"
-                create-startupConfig
-                start-app
-                if ($precompile) {
-                    sf-add-precompiledTemplates
-                }
-            }
-            catch {
-                Write-Warning "APP WAS NOT INITIALIZED. $_"
-                delete-startupConfig
-            }
-        }        
+        return $newContext
     }
 }
 
 function sf-clone-project {
     Param(
-        [SfProject]$context
+        [SfProject]$context,
+        [switch]$noAutoSelect
     )
 
     if (!$context) {
@@ -192,8 +205,9 @@ function sf-clone-project {
         throw "Error copying source files.`n $_"        
     }
 
+    [SfProject]$newProject = $null
     try {
-        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneDb -branch $context.branch -id $targetId
+        [SfProject]$newProject = sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneDb -branch $context.branch -id $targetId -noAutoSelect:$noAutoSelect
     }
     catch {
         throw "Error importing project.`n $_"        
@@ -205,6 +219,8 @@ function sf-clone-project {
     catch {
         throw "Error deleting app states.`n $_"        
     }
+
+    return $newProject
 }
 
 <#
@@ -227,7 +243,8 @@ function sf-import-project {
         [switch]$cloneDb,
         [string]$existingSiteName,
         [string]$branch,
-        [string]$id
+        [string]$id,
+        [switch]$noAutoSelect
     )
 
     if (!(Test-Path $path)) {
@@ -268,63 +285,58 @@ function sf-import-project {
     $oldContext = _get-selectedProject
     set-currentProject $newContext
     try {
-        _save-selectedProject $newContext
-    }
-    catch {
-        set-currentProject $oldContext
-        throw "Could not import sitefinity. Could not write project to db. $_"
-    }
-
-    # while ($prompt -ne 'c' -and $prompt -ne 'u') {
-    #     $prompt = Read-Host -Prompt '[c]reate new website or [u]se existing?'
-    # }
-
-    # $useExistingWebSite = $prompt -eq 'u'
-
-    if ($existingSiteName) {
-        $newContext.websiteName = $existingSiteName
-    }
-    else {
         try {
-            Write-Information "Creating website..."
-            sf-create-website -context $newContext > $null
+            _save-selectedProject $newContext
         }
         catch {
-            Write-Warning "Error during website creation. Message: $_"
-            $newContext.websiteName = ""
+            set-currentProject $oldContext
+            throw "Could not import sitefinity. Could not write project to db. $_"
         }
-    }
 
-    $currentDbName = sf-get-appDbName
-    if ($currentDbName) {
-        # while ($useCopy -ne 'y' -and $useCopy -ne 'n') {
-        #     $useCopy = Read-Host -Prompt 'Clone existing database? [y/n]'
-        # }
-
-        if ($cloneDb) {
+        if ($existingSiteName) {
+            $newContext.websiteName = $existingSiteName
+        }
+        else {
             try {
-                sf-set-appDbName $newContext.id
+                Write-Information "Creating website..."
+                sf-create-website -context $newContext > $null
             }
             catch {
-                Write-Warning "Error setting new database name in config ($($newContext.id)).`n $_"                    
+                Write-Warning "Error during website creation. Message: $_"
+                $newContext.websiteName = ""
             }
+        }
+
+        $currentDbName = sf-get-appDbName
+        if ($currentDbName) {
+            if ($cloneDb) {
+                try {
+                    sf-set-appDbName $newContext.id
+                }
+                catch {
+                    Write-Warning "Error setting new database name in config ($($newContext.id)).`n $_"                    
+                }
                     
-            try {
-                [SqlClient]$sql = _get-sqlClient
-                $sql.CopyDb($currentDbName, $newContext.id)
-            }
-            catch {
-                Write-Warning "Error copying old database. Source: $currentDbName Target $($newContext.id)`n $_"
+                try {
+                    [SqlClient]$sql = _get-sqlClient
+                    $sql.CopyDb($currentDbName, $newContext.id)
+                }
+                catch {
+                    Write-Warning "Error copying old database. Source: $currentDbName Target $($newContext.id)`n $_"
+                }
             }
         }
     }
+    finally {
+        if ($noAutoSelect) {
+            set-currentProject $oldContext
+        }
+    }
+    
+    return $newContext
 }
 
 function sf-delete-projects {
-    Param(
-        [switch]$force
-    )
-
     $sitefinities = @(get-allProjectsForCurrentContainer)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
@@ -350,7 +362,7 @@ function sf-delete-projects {
             sf-delete-project -context $selectedSitefinity -noPrompt
         }
         catch {
-            Write-Error "Error deleting project with id = $($selectedSitefinity.id)"                
+            Write-Error "Error deleting project with id = $($selectedSitefinity.id)"       
         }
     }
 }
@@ -613,12 +625,12 @@ function _get-isIdDuplicate ($id) {
     $sites = Get-Item "IIS:\Sites"
     if ($sites -and $sites.Children) {
         $names = $sites.Children.Keys | Where-Object { isDuplicate $_ }
-        if ($names) {return $true}
+        if ($names) { return $true }
     }
     $pools = Get-Item "IIS:\AppPools"
     if ($pools -and $pools.Children) {
         $names = $pools.Children.Keys | Where-Object { isDuplicate $_ }
-        if ($names) {return $true}
+        if ($names) { return $true }
     }
     [SqlClient]$sql = _get-sqlClient
     $dbs = $sql.GetDbs() | Where-Object { isDuplicate $_.name }
@@ -647,12 +659,27 @@ function _generateId {
 }
 
 function set-currentProject {
-    Param([SfProject]$newContext)
+    Param(
+        [SfProject]$newContext,
+        [switch]$fluentInited
+    )
 
     _validate-project $newContext
+    
+    if ($fluentInited) {
+        $Script:globalContext = $newContext
+        set-consoleTitle -newContext $newContext
+        Set-Prompt -project $newContext
+    }
+    else {
+        $Global:sf.Init($newContext)
+    }
+}
 
-    $Script:globalContext = $newContext
-    _set-fluent
+function set-consoleTitle {
+    param (
+        [SfProject]$newContext
+    )
 
     if ($newContext) {
         $ports = @(iis-get-websitePort $newContext.websiteName)

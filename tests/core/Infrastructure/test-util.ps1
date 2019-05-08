@@ -1,12 +1,3 @@
-function stop-allMsbuild {
-    try {
-        Get-Process msbuild -ErrorAction Stop | Stop-Process -ErrorAction Stop
-    }
-    catch {
-        Write-Error "MSBUILD stop: $_"
-    }
-}
-
 function set-testProject {
     Param(
         [switch]$oldest

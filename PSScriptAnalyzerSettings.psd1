@@ -32,6 +32,7 @@
         'PSAvoidTrailingWhitespace',
         'PSUseSingularNouns',
         'PSAvoidGlobalVars',
-        'PSUseShouldProcessForStateChangingFunctions'
+        'PSUseShouldProcessForStateChangingFunctions',
+        'PSAvoidUsingCmdletAliases'
         )
 }

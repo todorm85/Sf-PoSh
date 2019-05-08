@@ -1,5 +1,5 @@
 function _get-config {
-    [Config]$Script:config
+    [Config]$Script:sfDevConfig
 }
 
 function _get-sqlClient {
