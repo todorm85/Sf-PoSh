@@ -193,8 +193,7 @@ function sf-clone-project {
     }
 
     try {
-        $branch = tfs-get-branchPath -path $newContext.solutionPath
-        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneDb -branchToBindTo $branch -id $targetId
+        sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneDb -branch $context.branch -id $targetId
     }
     catch {
         throw "Error importing project.`n $_"        
@@ -227,6 +226,7 @@ function sf-import-project {
         [Parameter(Mandatory = $true)][string]$path,
         [switch]$cloneDb,
         [string]$existingSiteName,
+        [string]$branch,
         [string]$id
     )
 

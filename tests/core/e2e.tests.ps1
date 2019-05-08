@@ -101,7 +101,7 @@ InModuleScope sf-dev {
             [SfProject]$sourceProj = set-testProject
             $sourceName = $sourceProj.displayName
             $cloneTestName = "$sourceName-clone"
-            $sql.GetDbs() | where {$_.name -eq $sourceProj.id} | Should -HaveCount 1
+            $sql.GetDbs() | Where-Object {$_.name -eq $sourceProj.id} | Should -HaveCount 1
 
             # edit a file in source project
             $webConfigPath = "$($sourceProj.webAppPath)\web.config"
@@ -131,7 +131,8 @@ InModuleScope sf-dev {
             Test-Path "$($Script:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
             Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
-            $sql.GetDbs() | where {$_.name -eq $cloneTestId} | Should -HaveCount 1
+            $sql.GetDbs() | Where-Object {$_.name -eq $cloneTestId} | Should -HaveCount 1
+            tfs-get-branchPath -path $sf.solutionPath | Should -Not -Be $null
         }
     }
 

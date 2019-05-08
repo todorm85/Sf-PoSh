@@ -48,69 +48,89 @@ function _set-fluent {
 }
 
 class ProjectFluent {
-    [SolutionFluent] $solution
+    [SolutionFluent] hidden $solution
     [SfProject] hidden $project
 
+    [SfProject] hidden GetProject () {
+        if (!$this.project) {
+            throw "You must select a project to work with first."
+        }
+
+        return $this.project
+    }
+
+    ProjectFluent() {}
+
     ProjectFluent ([SfProject]$project) {
+        $this.Initialize($project)
+    }
+
+    [void] hidden Initialize ([SfProject]$project) {
         $this.project = $project
 
         $this.solution = [SolutionFluent]::new($project)
     }
 
-    [ProjectFluent] static Select () {
-        sf-select-container
-        return $Global:sf
+    [SolutionFluent] Solution() {
+        if (!$this.solution) {
+            throw "Solution facade not initialized. Perhaps no project selected?"
+        }
+
+        return $this.solution
     }
 
-    [ProjectFluent] static Create ([string]$name, [string]$branchPath) {
+    [void] Select () {
+        sf-select-project
+    }
+
+    [void] Create ([string]$name, [string]$branchPath) {
         sf-new-project -displayName $name -customBranch $branchPath
-        return $Global:sf
     }
 
-    [void] static Import ([string]$name, [string]$path) {
-        [ProjectFluent]::Import($name, $path, $null)
+    [void] Import ([string]$name, [string]$path) {
+        $this.Import($name, $path, $null)
     }
 
-    [void] static Import ([string]$name, [string]$path, [bool]$cloneDb) {
+    [void] Import ([string]$name, [string]$path, [bool]$cloneDb) {
         sf-import-project -displayName $name -path $path -cloneDb $cloneDb
     }
 
     [void] Clone() {
-        sf-clone-project -context $this.project
+        sf-clone-project -context $this.GetProject()
     }
     
     [void] Delete() {
-        sf-delete-project -context $this.project
+        sf-delete-project -context $this.GetProject()
     }
 
     [void] ShowDetails() {
-        sf-show-currentProject -detail -context $this.project
+        sf-show-currentProject -detail -context $this.GetProject()
     }
 
     [void] Rename([string]$newName) {
-        sf-rename-project -newName $newName -project $this.project
+        sf-rename-project -newName $newName -project $this.GetProject()
     }
 
     # shortcuts for more specific functionalities
 
     [void] Build () {
-        $this.solution.Build(3)
+        $this.Solution().Build(3)
     }
 
     [void] OpenSolution () {
-        $this.solution.Open()
+        $this.Solution().Open()
     }
 
     [void] OpenWebsite () {
-        sf-browse-webSite -project $this.project
+        sf-browse-webSite -project $this.GetProject()
     }
 
     [void] ResetWebApp () {
-        sf-reset-app -start -project $this.project
+        sf-reset-app -start -project $this.GetProject()
     }
 
     [void] ResetAppPool () {
-        sf-reset-pool -project $this.project
+        sf-reset-pool -project $this.GetProject()
     }
 }
 
@@ -151,5 +171,7 @@ class SolutionFluent {
 Set-Location ${PSScriptRoot}
 
 . "./bootstrap/bootstrap.ps1"
+
+$Global:sf = [ProjectFluent]::new()
 
 Export-ModuleMember -Function * -Alias *
