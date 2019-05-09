@@ -39,7 +39,7 @@ class SfProject {
     }
 
     [void] Details() {
-        sf-show-currentProject -detail -context $this
+        sf-show-currentProject -context $this
     }
 }
 
@@ -55,13 +55,19 @@ class FluentBase {
         return $this.project
     }
 
-    [void] SetProject([SfProject]$project) {
+    FluentBase([SfProject]$project) {
         $this.project = $project
     }
 
-    FluentBase([SfProject]$project) {
-        $this.SetProject($project)
-    }
+    # hide object methods from fluent intellisense
+
+    [string] hidden ToString() { return ([object]$this).ToString() }
+
+    [int] hidden GetHashCode() { return ([object]$this).GetHashCode() }
+
+    [bool] hidden Equals([object]$obj) { return ([object]$this).Equals($obj) }
+
+    [type] hidden GetType() { return ([object]$this).GetType() }
 }
 
 class ProjectFluent : FluentBase {
@@ -70,11 +76,6 @@ class ProjectFluent : FluentBase {
     [IISFluent] $IIS
 
     ProjectFluent ([SfProject]$project) : base($project) {
-        $this.Init($project)
-    }
-
-    [void] Init ([SfProject]$project) {
-        $this.SetProject($project)
         $this.solution = [SolutionFluent]::new($project)
         $this.webApp = [WebAppFluent]::new($project)
         $this.IIS = [IISFluent]::new($project)
@@ -82,8 +83,7 @@ class ProjectFluent : FluentBase {
     }
 
     [void] Select () {
-        [SfProject]$selectedSitefinity = prompt-projectSelect -showUnused
-        $this.Init($selectedSitefinity)
+        sf-select-project -showUnused
     }
 
     [void] Create () {
@@ -93,15 +93,11 @@ class ProjectFluent : FluentBase {
             $name = Read-Host -Prompt "Enter name"
         }
         
-        [SfProject]$newProject = sf-new-project -displayName $name -customBranch $selectedBranch -noAutoSelect
-
-        $this.Init($newProject)
+        sf-new-project -displayName $name -customBranch $selectedBranch
     }
 
     [void] Create ([string]$name, [string]$branchPath) {
-        [SfProject]$newProject = sf-new-project -displayName $name -customBranch $branchPath -noAutoSelect
-
-        $this.Init($newProject)
+        sf-new-project -displayName $name -customBranch $branchPath
     }
 
     [void] Import ([string]$name, [string]$path) {
@@ -109,19 +105,16 @@ class ProjectFluent : FluentBase {
     }
 
     [void] Import ([string]$name, [string]$path, [bool]$cloneDb) {
-        [SfProject]$newProj = sf-import-project -displayName $name -path $path -cloneDb $cloneDb -noAutoSelect
-
-        $this.Init($newProj)
+        sf-import-project -displayName $name -path $path -cloneDb $cloneDb
     }
 
     [void] Clone() {
-        [SfProject]$newProj = sf-clone-project -context $this.GetProject() -noAutoSelect
-        $this.Init($newProj)
+        sf-clone-project -context $this.GetProject()
     }
     
     [void] Delete() {
         sf-delete-project -context $this.GetProject() -noPrompt
-        $this.Init($null)
+        set-currentProject -newContext $null
     }
 
     [void] DeleteMany() {
@@ -130,7 +123,7 @@ class ProjectFluent : FluentBase {
         $currentProjectWasDeleted = @($sitefinities | where { $_.id -eq $this.project.id }).Count -eq 0
 
         if ($currentProjectWasDeleted) {
-            $this.Init($null)
+            $this.Select()
         }
     }
 

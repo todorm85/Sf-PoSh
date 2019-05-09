@@ -50,6 +50,7 @@ InModuleScope sf-dev {
             It "Intiialize facades" {
                 $facade = [ProjectFluent]::new([SfProject]@{ id = "testId3" })
                 $facade.solution | Should -Not -BeNullOrEmpty
+                $facade.webApp | Should -Not -BeNullOrEmpty
                 $facade.IIS | Should -Not -BeNullOrEmpty
             }
         }

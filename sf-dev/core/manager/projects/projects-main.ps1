@@ -672,7 +672,7 @@ function set-currentProject {
         Set-Prompt -project $newContext
     }
     else {
-        $Global:sf.Init($newContext)
+        $Global:sf = [ProjectFluent]::new($newContext)
     }
 }
 
