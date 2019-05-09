@@ -8,11 +8,15 @@
 function sf-setup-asSubApp {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true)][string]$subAppName
+        [Parameter(Mandatory = $true)][string]$subAppName,
+        [SfProject]$project
     )
 
-    $context = _get-selectedProject
-    $subApp = iis-get-subAppName -websiteName $context.websiteName
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
+    $subApp = iis-get-subAppName -websiteName $project.websiteName
     if ($subApp) {
         return
     }
@@ -22,17 +26,24 @@ function sf-setup-asSubApp {
         New-Item $dummyPath -ItemType Directory
     }
         
-    iis-set-sitePath $context.websiteName $dummyPath
-    iis-new-subApp $context.websiteName $subAppName $context.webAppPath
+    iis-set-sitePath $project.websiteName $dummyPath
+    iis-new-subApp $project.websiteName $subAppName $project.webAppPath
 }
 
 function sf-remove-subApp {
-    $context = _get-selectedProject
-    $subAppName = iis-get-subAppName $context.websiteName
-    if ($subAppName -eq $null) {
+    Param(
+        [SfProject]$project
+    )
+    
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
+    $subAppName = iis-get-subAppName $project.websiteName
+    if ($null -eq $subAppName) {
         return
     }
 
-    iis-remove-subApp $context.websiteName $subAppName
-    iis-set-sitePath $context.websiteName $context.webAppPath
+    iis-remove-subApp $project.websiteName $subAppName
+    iis-set-sitePath $project.websiteName $project.webAppPath
 }

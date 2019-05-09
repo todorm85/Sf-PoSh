@@ -1,10 +1,13 @@
 function sf-new-appState {
     Param(
         [Parameter(Mandatory=$true)]
-        $stateName
+        $stateName,
+        [SfProject]$project
     )
     
-    $context = _get-selectedProject
+    if (!$project) {
+        $project = _get-selectedProject
+    }
     
     $dbName = sf-get-appDbName
     [SqlClient]$sqlClient = _get-sqlClient
@@ -13,7 +16,7 @@ function sf-new-appState {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
     }
 
-    $statePath = "$($context.webAppPath)/sf-dev-tool/states/$stateName"
+    $statePath = "$($project.webAppPath)/sf-dev-tool/states/$stateName"
     if (Test-Path $statePath) {
         unlock-allFiles -path $statePath
         Remove-Item -Force -Recurse -Path $statePath
@@ -51,13 +54,21 @@ function get-statesPath {
     return $path
 }
 
-function sf-restore-appState ($stateName, $force = $false) {
-    $context = _get-selectedProject
-    if (-not $stateName) {
+function sf-restore-appState {
+    Param(
+        [string]$stateName,
+        [bool]$force = $false,
+        [SfProject]$project)
+
+    if (!$project) {
+        $project = _get-selectedProject
+    }
+
+    if (!$stateName) {
         $stateName = select-appState
     }
 
-    if (-not $stateName) {
+    if (!$stateName) {
         return
     }
     
@@ -75,7 +86,7 @@ function sf-restore-appState ($stateName, $force = $false) {
     Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
 
     $appDataStatePath = "$statePath/App_Data"
-    $appDataPath = "$($context.webAppPath)/App_Data"
+    $appDataPath = "$($project.webAppPath)/App_Data"
     if (-not (Test-Path $appDataPath)) {
         New-Item $appDataPath -ItemType Directory > $null
     }

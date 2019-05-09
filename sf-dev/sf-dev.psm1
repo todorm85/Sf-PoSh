@@ -1,6 +1,6 @@
 Using module toko-admin
 
-# declare types - all have to be here at psm file for intellisense, otherwise cannot be exported outside module
+# declare types - all have to be here at psm file to be able to export the types to be used outside the module. (also needed for intellisense in editors)
 
 class Config {
     [string]$dataPath
@@ -54,16 +54,22 @@ class FluentBase {
 
         return $this.project
     }
+
     [void] SetProject([SfProject]$project) {
         $this.project = $project
+    }
+
+    FluentBase([SfProject]$project) {
+        $this.SetProject($project)
     }
 }
 
 class ProjectFluent : FluentBase {
     [SolutionFluent] $solution
     [WebAppFluent] $webApp
+    [IISFluent] $IIS
 
-    ProjectFluent ([SfProject]$project) {
+    ProjectFluent ([SfProject]$project) : base($project) {
         $this.Init($project)
     }
 
@@ -71,6 +77,7 @@ class ProjectFluent : FluentBase {
         $this.SetProject($project)
         $this.solution = [SolutionFluent]::new($project)
         $this.webApp = [WebAppFluent]::new($project)
+        $this.IIS = [IISFluent]::new($project)
         set-currentProject -newContext $project -fluentInited
     }
 
@@ -132,28 +139,56 @@ class ProjectFluent : FluentBase {
     }
 }
 
-class WebAppFluent : FluentBase {
-    WebAppFluent([SfProject]$project) {
-        $this.SetProject($project)
-    }
-    
-    [void] OpenWebsite () {
-        sf-browse-webSite -project $this.GetProject()
+class IISFluent : FluentBase {
+    IISFluent([SfProject]$project) : base($project) { }
+
+    [void] SetupSubApp($subAppName) {
+        sf-setup-asSubApp -subAppName $subAppName -project $this.GetProject()
     }
 
+    [void] RemoveSubApp() {
+        sf-remove-subApp -project $this.GetProject()
+    }
+
+    [void] ResetApplicationPool () {
+        sf-reset-pool -project $this.GetProject()
+    }
+
+    [void] ResetApplciationThreads() {
+        sf-reset-thread -project $this.GetProject()
+    }
+    
+    [void] BrowseWebsite () {
+        sf-browse-webSite -project $this.GetProject()
+    }
+}
+
+class WebAppFluent : FluentBase {
+    WebAppFluent([SfProject]$project) : base($project) { }
+    
     [void] ResetApp () {
         sf-reset-app -start -project $this.GetProject()
     }
 
-    [void] ResetPool () {
-        sf-reset-pool -project $this.GetProject()
+    [void] SaveDbAndConfigs([string]$stateName) {
+        sf-new-appState -stateName $stateName -project $this.GetProject()
+    }
+
+    [void] SaveDbAndConfigs() {
+        $this.SaveDbAndConfigs($null)
+    }
+
+    [void] RestoreDbAndConfigs([string]$stateName) {
+        sf-restore-appState -stateName $stateName -project $this.GetProject()
+    }
+
+    [void] RestoreDbAndConfigs() {
+        $this.RestoreDbAndConfigs($null)
     }
 }
 
 class SolutionFluent : FluentBase {
-    SolutionFluent([SfProject]$project) {
-        $this.SetProject($project)
-    }
+    SolutionFluent([SfProject]$project) : base($project) { }
 
     [void] Build () {
         $this.Build(3)
@@ -182,10 +217,7 @@ class SolutionFluent : FluentBase {
 
 # module startup
 
-Set-Location ${PSScriptRoot}
-
-. "./bootstrap/bootstrap.ps1"
-
+. "$PSScriptRoot/bootstrap/bootstrap.ps1"
 $Global:sf = [ProjectFluent]::new($null)
 
 Export-ModuleMember -Function * -Alias *

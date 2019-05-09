@@ -8,11 +8,14 @@
 #>
 function sf-reset-thread {
     [CmdletBinding()]
-    Param([switch]$start)
+    Param([switch]$start,
+    [SfProject]$project)
 
-    $context = _get-selectedProject
+    if (!$project) {
+        $project = _get-selectedProject
+    }
 
-    $binPath = "$($context.webAppPath)\bin\dummy.sf"
+    $binPath = "$($project.webAppPath)\bin\dummy.sf"
     New-Item -ItemType file -Path $binPath > $null
     Remove-Item -Path $binPath > $null
 

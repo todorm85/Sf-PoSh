@@ -69,7 +69,7 @@ InModuleScope sf-dev {
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
             
-            sf-new-appState $stateName
+            $Global:sf.webApp.SaveDbAndConfigs($stateName)
             
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
@@ -88,7 +88,7 @@ InModuleScope sf-dev {
             $config = $sql.GetItems($dbName, $table, $where, $select)
             $config | Should -Not -BeNullOrEmpty
 
-            sf-restore-appState $stateName
+            $Global:sf.webApp.RestoreDbAndConfigs($stateName)
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse
@@ -165,7 +165,7 @@ InModuleScope sf-dev {
         $pool = iis-get-siteAppPool -websiteName $site
 
         It "create application and set its path and app pool" {
-            sf-setup-asSubApp -subAppName $subApp
+            $Global:sf.IIS.SetupSubApp($subApp)
             Test-Path "IIS:\Sites\$site\$subApp" | Should -Be $true
             (Get-Item -Path "IIS:\Sites\$site\$subApp").applicationPool | Should -Be $pool
             (Get-Item -Path "IIS:\Sites\$site").physicalPath | Should -Not -Be $project.webAppPath
@@ -175,7 +175,7 @@ InModuleScope sf-dev {
             $res.EndsWith($subApp) | Should -Be $true
         }
         It "remove sub app by deleting the application and setting the site path" {
-            sf-remove-subApp
+            $Global:sf.IIS.RemoveSubApp()
             Test-Path "IIS:\Sites\$site\$subApp" | Should -Be $false
             (Get-Item -Path "IIS:\Sites\$site").physicalPath | Should -Be $project.webAppPath
         }
