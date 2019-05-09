@@ -4,10 +4,10 @@ InModuleScope sf-dev {
     . "$PSScriptRoot\Infrastructure\test-util.ps1"
     [SqlClient]$sql = _get-sqlClient
 
-    Describe "Starting new project from scratch should" -Tags ("e2e-fluent") {
+    Describe "Starting new project from scratch should" -Tags ("e2e") {
         It "when creating the project get latest, make workspace, site, domain, app pool permissions" {
             $projName = generateRandomName
-            $sf.Create($projName, '$/CMS/Sitefinity 4.0/Code Base')
+            $Global:sf.Create($projName, '$/CMS/Sitefinity 4.0/Code Base')
 
             $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
@@ -28,11 +28,11 @@ InModuleScope sf-dev {
         }
         It "when building succeed after at least 3 retries" {
             set-testProject
-            $sf.Build()
+            $Global:sf.solution.Build()
         }
     }
 
-    Describe "Resetting app should" -Tags ("e2e-fluent") {
+    Describe "Resetting app should" -Tags ("e2e") {
         [SfProject]$project = set-testProject
         $testId = $project.id
         sf-reset-app -start -force
@@ -50,14 +50,14 @@ InModuleScope sf-dev {
         }
 
         It "start the app correctly again after deletion of data and database" {
-            $sf.ResetWebApp()
+            $Global:sf.webApp.ResetApp()
             $url = get-appUrl
             $result = _invoke-NonTerminatingRequest $url
             $result | Should -Be 200
         }
     }
 
-    Describe "States should" -Tags ("e2e-fluent") {
+    Describe "States should" -Tags ("e2e") {
         It "save and then restore app_data folder and database" {
             set-testProject
             [SfProject]$project = _get-selectedProject
@@ -97,7 +97,7 @@ InModuleScope sf-dev {
         }
     }
     
-    Describe "Clone should" -Tags ("e2e-fluent") {
+    Describe "Clone should" -Tags ("e2e") {
         It "create new project with separate workspace, site, database." {
             [SfProject]$sourceProj = set-testProject
             $sourceName = $sourceProj.displayName
@@ -116,28 +116,28 @@ InModuleScope sf-dev {
             $appSettings.AppendChild($newElement)
             $xmlData.Save($webConfigPath) > $null
 
-            $sf.Clone()
+            $Global:sf.Clone()
 
             $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $cloneTestName }
             $sitefinities | Should -HaveCount 1
-            [SfProject]$sf = $sitefinities[0]
-            $cloneTestId = $sf.id
-            $sf.containerName | Should -Be ''
-            $sf.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
-            $sf.solutionPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}"
-            $sf.webAppPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}\SitefinityWebApp"
-            $sf.websiteName | Should -Be $cloneTestId
-            existsInHostsFile -searchParam $sf.displayName | Should -Be $true
-            Test-Path "$($Script:projectsDirectory)\${cloneTestId}\$($sf.displayName)($($sf.id)).sln" | Should -Be $true
+            [SfProject]$project = $sitefinities[0]
+            $cloneTestId = $project.id
+            $project.containerName | Should -Be ''
+            $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
+            $project.solutionPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}"
+            $project.webAppPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}\SitefinityWebApp"
+            $project.websiteName | Should -Be $cloneTestId
+            existsInHostsFile -searchParam $project.displayName | Should -Be $true
+            Test-Path "$($Script:projectsDirectory)\${cloneTestId}\$($project.displayName)($($project.id)).sln" | Should -Be $true
             Test-Path "$($Script:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
             Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
             $sql.GetDbs() | Where-Object {$_.name -eq $cloneTestId} | Should -HaveCount 1
-            tfs-get-branchPath -path $sf.solutionPath | Should -Not -Be $null
+            tfs-get-branchPath -path $project.solutionPath | Should -Not -Be $null
         }
     }
 
-    Describe "Rename should" -Tags ("e2e-fluent") {
+    Describe "Rename should" -Tags ("e2e") {
         It "change the display name and domain" {
             [SfProject]$testProject = set-testProject
             $id = $testProject.id
@@ -148,7 +148,7 @@ InModuleScope sf-dev {
             Test-Path "$($Script:projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
             existsInHostsFile -searchParam $newName | Should -Be $false
 
-            $sf.Rename($newName)
+            $Global:sf.Rename($newName)
             
             existsInHostsFile -searchParam $newName | Should -Be $true
             existsInHostsFile -searchParam $oldName | Should -Be $false
@@ -158,7 +158,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "Subapp functionality should" -Tags ("e2e-fluent") {
+    Describe "Subapp functionality should" -Tags ("e2e") {
         [SfProject]$project = set-testProject
         $subApp = "subApp"
         $site = $project.websiteName
@@ -185,12 +185,12 @@ InModuleScope sf-dev {
         }
     }
     
-    Describe "Delete should" -Tags ("e2e-fluent", "delete") {
+    Describe "Delete should" -Tags ("e2e", "delete") {
         It "remove all" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
             
-            $sf.Delete()
+            $Global:sf.Delete()
             
             $sitefinities = @(_sfData-get-allProjects) | where {$_.id -eq $testId}
             $sitefinities | Should -HaveCount 0

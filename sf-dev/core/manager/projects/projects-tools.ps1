@@ -90,14 +90,14 @@ function sf-clean-allProjectsLeftovers {
 function sf-reset-project {
     param(
         [SfProject]
-        $sf
+        $project
     )
 
-    if (-not $sf) {
-        $sf = _get-selectedProject
+    if (-not $project) {
+        $project = _get-selectedProject
     }
 
-    if ($sf.lastGetLatest -and [System.DateTime]::Parse($sf.lastGetLatest) -lt [System.DateTime]::Today) {
+    if ($project.lastGetLatest -and [System.DateTime]::Parse($project.lastGetLatest) -lt [System.DateTime]::Today) {
         $shouldReset = $false
         if (sf-get-hasPendingChanges) {
             sf-undo-pendingChanges

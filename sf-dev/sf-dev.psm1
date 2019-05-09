@@ -44,31 +44,33 @@ class SfProject {
 }
 
 #fluent
-# no intellisense when inheritance
 
-class ProjectFluent {
-    [SolutionFluent] $solution
-    [SfProject] $project
-
-    [SfProject] hidden GetProject () {
+class FluentBase {
+    [SfProject] hidden $project
+    [SfProject] GetProject () {
         if (!$this.project) {
             throw "You must select a project to work with first."
         }
 
         return $this.project
     }
-
-    ProjectFluent() {
-        $this.Init($null)
+    [void] SetProject([SfProject]$project) {
+        $this.project = $project
     }
+}
+
+class ProjectFluent : FluentBase {
+    [SolutionFluent] $solution
+    [WebAppFluent] $webApp
 
     ProjectFluent ([SfProject]$project) {
         $this.Init($project)
     }
 
     [void] Init ([SfProject]$project) {
-        $this.project = $project
+        $this.SetProject($project)
         $this.solution = [SolutionFluent]::new($project)
+        $this.webApp = [WebAppFluent]::new($project)
         set-currentProject -newContext $project -fluentInited
     }
 
@@ -80,7 +82,7 @@ class ProjectFluent {
     [void] Create () {
         $selectedBranch = prompt-predefinedBranchSelect
         $name = $null
-        while(!$name) {
+        while (!$name) {
             $name = Read-Host -Prompt "Enter name"
         }
         
@@ -128,43 +130,33 @@ class ProjectFluent {
     [void] Rename([string]$newName) {
         sf-rename-project -newName $newName -project $this.GetProject()
     }
+}
 
-    # shortcuts for more specific functionalities
-
-    [void] Build () {
-        $this.solution.Build(3)
+class WebAppFluent : FluentBase {
+    WebAppFluent([SfProject]$project) {
+        $this.SetProject($project)
     }
-
-    [void] OpenSolution () {
-        $this.solution.Open()
-    }
-
+    
     [void] OpenWebsite () {
         sf-browse-webSite -project $this.GetProject()
     }
 
-    [void] ResetWebApp () {
+    [void] ResetApp () {
         sf-reset-app -start -project $this.GetProject()
     }
 
-    [void] ResetAppPool () {
+    [void] ResetPool () {
         sf-reset-pool -project $this.GetProject()
     }
 }
 
-class SolutionFluent {
-    [SfProject] hidden $project
-    
-    [SfProject] hidden GetProject () {
-        if (!$this.project) {
-            throw "You must select a project to work with first."
-        }
-
-        return $this.project
+class SolutionFluent : FluentBase {
+    SolutionFluent([SfProject]$project) {
+        $this.SetProject($project)
     }
 
-    SolutionFluent([SfProject]$project) {
-        $this.project = $project
+    [void] Build () {
+        $this.Build(3)
     }
 
     [void] Build ([int]$retryCount) {
@@ -183,10 +175,6 @@ class SolutionFluent {
         sf-clean-solution -project $this.GetProject()
     }
 
-    [void] Clean ([bool]$cleanPackages) {
-        sf-clean-solution -cleanPackages $cleanPackages -project $this.GetProject()
-    }
-
     [void] Open () {
         sf-open-solution -project $this.GetProject()
     }
@@ -198,6 +186,6 @@ Set-Location ${PSScriptRoot}
 
 . "./bootstrap/bootstrap.ps1"
 
-$Global:sf = [ProjectFluent]::new()
+$Global:sf = [ProjectFluent]::new($null)
 
 Export-ModuleMember -Function * -Alias *
