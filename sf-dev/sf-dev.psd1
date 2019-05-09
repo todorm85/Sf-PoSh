@@ -19,6 +19,11 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+## 1.0.0
+Improvements
+    Fluent API remove clutter methods
+    Fluent API project methods extracted to separate facades
+
 # 0.2.0
 Features
     Add fluent API
