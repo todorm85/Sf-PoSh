@@ -46,17 +46,17 @@ class SfProject {
 #fluent
 
 class FluentBase {
-    [SfProject] hidden $project
-    [SfProject] GetProject () {
-        if (!$this.project) {
+    [SfProject] hidden $_project
+    [SfProject] hidden GetProject () {
+        if (!$this._project) {
             throw "You must select a project to work with first."
         }
 
-        return $this.project
+        return $this._project
     }
 
     FluentBase([SfProject]$project) {
-        $this.project = $project
+        $this._project = $project
     }
 
     # hide object methods from fluent intellisense
@@ -70,17 +70,23 @@ class FluentBase {
     [type] hidden GetType() { return ([object]$this).GetType() }
 }
 
-class ProjectFluent : FluentBase {
+class MasterFluent : FluentBase {
     [SolutionFluent] $solution
     [WebAppFluent] $webApp
     [IISFluent] $IIS
+    [ProjectFluent] $project
 
-    ProjectFluent ([SfProject]$project) : base($project) {
+    MasterFluent ([SfProject]$project) : base($project) {
         $this.solution = [SolutionFluent]::new($project)
         $this.webApp = [WebAppFluent]::new($project)
         $this.IIS = [IISFluent]::new($project)
+        $this.project = [ProjectFluent]::new($project)
         set-currentProject -newContext $project -fluentInited
     }
+}
+
+class ProjectFluent : FluentBase {
+    ProjectFluent ([SfProject]$project) : base($project) { }
 
     [void] Select () {
         sf-select-project -showUnused
@@ -129,6 +135,10 @@ class ProjectFluent : FluentBase {
 
     [void] Rename([string]$newName) {
         sf-rename-project -newName $newName -project $this.GetProject()
+    }
+
+    [void] Details() {
+        sf-show-currentProject -detail -context $this.GetProject()
     }
 }
 
@@ -211,6 +221,6 @@ class SolutionFluent : FluentBase {
 # module startup
 
 . "$PSScriptRoot/bootstrap/bootstrap.ps1"
-$Global:sf = [ProjectFluent]::new($null)
+$Global:sf = [MasterFluent]::new($null)
 
 Export-ModuleMember -Function * -Alias *

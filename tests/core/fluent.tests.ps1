@@ -30,31 +30,38 @@ InModuleScope sf-dev {
                 }
             }
             
-            $Global:sf.Select()
+            $Global:sf.project.Select()
             $Global:sf.GetProject().id | Should -Be $testId
             (_get-selectedProject).id | Should -Be $testId
         }
     }
 
-    Describe "ProjectFluent should" {
+    Describe "MasterFluent should" {
         Mock _validate-project { }
         Mock Set-Location { }
         
         Context "initialize child facades" {
             It "Intiialize facades even if empty project" {
-                $facade = [ProjectFluent]::new($null)
+                $facade = [MasterFluent]::new($null)
                 $facade.solution | Should -Not -BeNullOrEmpty
                 $facade.webApp | Should -Not -BeNullOrEmpty
                 $facade.IIS | Should -Not -BeNullOrEmpty
+                $facade.project | Should -Not -BeNullOrEmpty
             }
             It "Intiialize facades" {
-                $facade = [ProjectFluent]::new([SfProject]@{ id = "testId3" })
+                $facade = [MasterFluent]::new([SfProject]@{ id = "testId3" })
                 $facade.solution | Should -Not -BeNullOrEmpty
                 $facade.webApp | Should -Not -BeNullOrEmpty
                 $facade.IIS | Should -Not -BeNullOrEmpty
+                $facade.project | Should -Not -BeNullOrEmpty
             }
         }
-            
+    }
+
+    Describe "Project fluent should" {
+        Mock _validate-project { }
+        Mock Set-Location { }
+
         Context "warn no project selected when" {
             $facade = [ProjectFluent]::new($null)
 

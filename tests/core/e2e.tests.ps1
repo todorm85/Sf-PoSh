@@ -7,7 +7,7 @@ InModuleScope sf-dev {
     Describe "Starting new project from scratch should" -Tags ("e2e") {
         It "when creating the project get latest, make workspace, site, domain, app pool permissions" {
             $projName = generateRandomName
-            $Global:sf.Create($projName, '$/CMS/Sitefinity 4.0/Code Base')
+            $Global:sf.project.Create($projName, '$/CMS/Sitefinity 4.0/Code Base')
 
             $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
@@ -116,7 +116,7 @@ InModuleScope sf-dev {
             $appSettings.AppendChild($newElement)
             $xmlData.Save($webConfigPath) > $null
 
-            $Global:sf.Clone()
+            $Global:sf.project.Clone()
 
             $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $cloneTestName }
             $sitefinities | Should -HaveCount 1
@@ -148,7 +148,7 @@ InModuleScope sf-dev {
             Test-Path "$($Script:projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
             existsInHostsFile -searchParam $newName | Should -Be $false
 
-            $Global:sf.Rename($newName)
+            $Global:sf.project.Rename($newName)
             
             existsInHostsFile -searchParam $newName | Should -Be $true
             existsInHostsFile -searchParam $oldName | Should -Be $false
@@ -190,7 +190,7 @@ InModuleScope sf-dev {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
             
-            $Global:sf.Delete()
+            $Global:sf.project.Delete()
             
             $sitefinities = @(_sfData-get-allProjects) | where {$_.id -eq $testId}
             $sitefinities | Should -HaveCount 0
