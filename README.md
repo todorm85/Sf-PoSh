@@ -6,9 +6,9 @@ Manage Sitefinity instances on local machine.
 
 ## QuickStart
 
-- To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-dev/). If problems see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
+To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-dev/). If problems see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
 
-- Run powershell as Administrator
+Run powershell as Administrator
 
 DO NOT USE ~~Import-Module~~, USE `Using module` instead
 ```powershell
@@ -17,7 +17,7 @@ Using module sf-dev
 
 _After first run you might get asked to setup paths to external tools. Config is at `%userprofile%\Documents\sf-dev\config.ps1.`. After modification restart powershell session_
 
-- Start typing
+Start typing
 ```powershell
 $sf.
 ```
