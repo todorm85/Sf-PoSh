@@ -39,6 +39,9 @@ To build the currently selected project use:
 $sf.solution.Build()
 ```
 
+## Documentation
+[Docs](./docs.md)
+
 ## Requirements
 
 - Powershell 5.1
