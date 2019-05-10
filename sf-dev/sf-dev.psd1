@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '1.0.1'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '0.2.0'; MaximumVersion = '0.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -19,6 +19,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+## 1.0.1
+Fixes
+    Better error handling when building solution
 ## 1.0.0
 Improvements
     Fluent API remove clutter methods
