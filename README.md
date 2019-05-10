@@ -6,7 +6,7 @@ Manage Sitefinity instances on local machine.
 
 ## Installation
 
-To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-dev/). If problems see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
+To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-dev/1.0.1). If problems see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
 
 ## QuickStart
 
