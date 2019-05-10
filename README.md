@@ -4,14 +4,6 @@
 
 Manage Sitefinity instances on local machine.
 
-## Prerequisites
-
-- Powershell 5.1
-- MSBuild.exe and TF.exe (Come with Visual Studio 2015 or later)
-- SQL Server PowerShell Module (SQLPS) (Comes with SQL Server Management Studio)
-- First run of internet explorer to have completed (this is required for the WebClient in .NET)
-- WebAdministration module (this should already be installed if IIS is enabled)
-
 ## QuickStart
 
 - To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-dev/). If problems see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
@@ -29,8 +21,7 @@ _After first run you might get asked to setup paths to external tools. You shoul
 ```powershell
 $sf.
 ```
-Assuming you are using standard Windows PowerShell console, press __LEFTCTRL+SPACE__ to see a list of available categories of operations
-select one or start typing any of it and press __TAB__ for autocomplete.
+Assuming you are using standard Windows PowerShell console, press __LEFTCTRL+SPACE__ to see a list of available categories of operations. Select one or start typing and press __TAB__ for autocomplete.
 
 First, you need to create a project
 ```powershell
@@ -53,3 +44,11 @@ To see other available commands for solution type
 $sf.solution.
 ```
 then press __LEFTCTRL+SPACE__
+
+## Requirements
+
+- Powershell 5.1
+- MSBuild.exe and TF.exe (Come with Visual Studio 2015 or later)
+- SQL Server PowerShell Module (SQLPS) (Comes with SQL Server Management Studio)
+- First run of internet explorer to have completed (this is required for the WebClient in .NET)
+- WebAdministration module (this should already be installed if IIS is enabled)
