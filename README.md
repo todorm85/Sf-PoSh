@@ -4,40 +4,50 @@
 
 Manage Sitefinity instances on local machine.
 
-## QuickStart
+## Installation
 
 To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-dev/). If problems see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
 
-Run powershell as Administrator
+## QuickStart
 
-DO NOT USE ~~Import-Module~~, USE `Using module` instead
-```powershell
-Using module sf-dev
-```
+1. Run powershell as Administrator and load module. DO NOT USE ~~Import-Module~~, USE `Using module` instead
+    ```powershell
+    Using module sf-dev
+    ```
 
-_After first run you might get asked to setup paths to external tools. Config is at `%userprofile%\Documents\sf-dev\config.ps1.`. After modification restart powershell session_
+    _After first run you might get asked to setup paths to external tools. Config is at `%userprofile%\Documents\sf-dev\config.ps1.`. After modification restart powershell session_
 
-Start typing
-```powershell
-$sf.
-```
-Assuming you are using standard Windows PowerShell console, press __LEFTCTRL+SPACE__ to see a list of available categories of operations. Or start typing and press __TAB__ for autocomplete.
+2. Start typing
+    ```powershell
+    $sf.
+    ```
+    Assuming you are using standard Windows PowerShell console, press __LEFTCTRL+SPACE__ to see a list of available categories of operations. Or start typing and press __TAB__ for autocomplete.
 
-First, you need to create a project.
-```powershell
-$sf.project.Create()
-```
-Choose branch to map from and the name of your Sitefinity instance.
+3. First, you need to create a project.
+    ```powershell
+    $sf.project.Create()
+    ```
+    Choose branch to map from and the name of your Sitefinity instance.
 
-A project is a Sitefinity instance that is managed by the tool. To select from all created and imported projects use
-```powershell
-$sf.project.Select()
-```
+    A project is a Sitefinity instance that is managed by the tool. To select from all created and imported projects use
+    ```powershell
+    $sf.project.Select()
+    ```
 
-To build the currently selected project use:
-```powershell
-$sf.solution.Build()
-```
+4. To build the currently selected project use:
+    ```powershell
+    $sf.solution.Build()
+    ```
+
+5. Initialise Sitefinity with database. Default credentials in config `%userprofile%\Documents\sf-dev\config.ps1.`:
+    ```powershell
+    $sf.webApp.ResetApp()
+    ```
+
+6. Open website
+    ```powershell
+    $sf.iis.BrowseWebsite()
+    ```
 
 ## Requirements
 
