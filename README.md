@@ -82,14 +82,12 @@ To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/
 - aliases for commonly used commands
 
   ```powerShell
-  function sf() {
-      $script = [ScriptBlock]::Create("using module sf-dev")
-      . $script
-
-      # instead of typing $sf.solution.Build() each time simply use sfbuild
-      New-Alias 'sfbuild' -Value '$sf.solution.Build()'
+  # instead of typing $sf.solution.Build() each time simply use sfbuild
+  function sfbuild() {
+      $sf.solution.Build()
   }
   ```
+  
 - use the module API to create your automation scripts
 
 - iterate through all projects and perform operations
