@@ -1,4 +1,4 @@
-# SF-DEV
+# SF-DEV PowerShell Module
 
 ## Description
 
