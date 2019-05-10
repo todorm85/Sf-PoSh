@@ -238,20 +238,16 @@ function build-proj {
     }
 
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
-    # $command = '"' + $msBuildPath + '" "' + $path + '"' + ' /nologo /maxcpucount /Verbosity:quiet /consoleloggerparameters:ErrorsOnly,Summary,PerformanceSummary'
-    # Invoke-Expression "& $command"
-    $verbosity = "quiet"
-    if ($InformationPreference -eq "Continue") {
-        $verbosity = "normal"
-    }
-
-    Invoke-Expression "& `"$msBuildPath`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:$verbosity /consoleloggerparameters:Summary"
-    
+    $output = Invoke-Expression "& `"$msBuildPath`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:d"
     $elapsed.Stop()
-    Write-Information "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
-    # Out-File "${PSScriptRoot}\..\build-errors.log"
+    
     if ($LastExitCode -ne 0) {
-        throw "Build errors occurred."
+        $errorLogPath = "$Script:moduleUserDir/MsBuild-Errors.log"
+        $output | Out-File $errorLogPath
+        throw "Build errors occurred. See log at $errorLogPath"
+    }
+    else {
+        Write-Information "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
     }
 }
 
