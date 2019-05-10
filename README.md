@@ -15,7 +15,7 @@ DO NOT USE ~~Import-Module~~, USE `Using module` instead
 Using module sf-dev
 ```
 
-_After first run you might get asked to setup paths to external tools. You should be fine if you have VS2017 Pro, SQL management tools and IIS enabled. Enter your env specific paths in your user profile dir `.\Documents\sf-dev\config.ps1.`. After that close and re-open a new powershell session and load the module again_
+_After first run you might get asked to setup paths to external tools. Config is at `.\Documents\sf-dev\config.ps1.`. After modification restart powershell session_
 
 - Start typing
 ```powershell
