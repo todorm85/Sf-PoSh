@@ -1,4 +1,4 @@
-# Tool for local sitefinity instance management
+# SF-DEV
 
 ## Description
 
