@@ -23,7 +23,7 @@ $sf.
 ```
 Assuming you are using standard Windows PowerShell console, press __LEFTCTRL+SPACE__ to see a list of available categories of operations. Or start typing and press __TAB__ for autocomplete.
 
-First, you need to create a project
+First, you need to create a project.
 ```powershell
 $sf.project.Create()
 ```
