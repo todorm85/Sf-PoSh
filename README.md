@@ -90,3 +90,17 @@ To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/
       New-Alias 'sfbuild' -Value '$sf.solution.Build()'
   }
   ```
+- use the module API to create your automation scripts
+
+- iterate through all projects and perform operations
+    ```PowerShell
+    # this function comes from the module and can be used to iterate and perform operations on each project managed by the module
+    sf-start-allProjectsBatch {
+        Param([SfProject]$project)
+        if ($project.displayName -eq 'myProject' -or $project.branch.StartsWith("Fixes_")) {
+            $sf.solution.Build()
+        }
+    }
+    ```
+
+    
