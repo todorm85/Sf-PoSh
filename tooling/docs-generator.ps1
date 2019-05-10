@@ -20,4 +20,4 @@ for ($i = 0; $i -lt $psmFileContent.Count; $i++) {
     }
 }
 
-$docText.Trim().Replace('[void]', '') | Out-File "$PSScriptRoot/../docs.md"
+$docText.Trim().Replace('[void]', '') | Out-File "$PSScriptRoot/../docs.md" -Encoding utf8
