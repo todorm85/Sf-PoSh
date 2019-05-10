@@ -16,7 +16,7 @@ for ($i = 0; $i -lt $psmFileContent.Count; $i++) {
             
         $elementName = $psmFileContent[$i + 1].Split(')')[0].Trim() + ')'
 
-        $docText += "`n- $elementName`n`n    $elementDescription`n"
+        $docText += "`n- $elementName`n`n    `_$elementDescription`_`n"
     }
 }
 

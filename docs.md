@@ -3,110 +3,110 @@
 
 -  Select ()
 
-    Prompts the user to select a project to work with from previously created or imported.
+    _Prompts the user to select a project to work with from previously created or imported._
 
 -  Create ()
 
-    Use to create new projects. The user will be prompted to select branch from configured ones and name for the project
+    _Use to create new projects. The user will be prompted to select branch from configured ones and name for the project_
 
 -  Create ([string]$name, [string]$branchPath)
 
-    Use to create new projects. $branchPath - the TFS branch path to the source
+    _Use to create new projects. $branchPath - the TFS branch path to the source_
 
 -  Import ([string]$name, [string]$path)
 
-    Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app
+    _Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app_
 
 -  Import ([string]$name, [string]$path, [bool]$cloneDb)
 
-    Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app. $cloneDb - whether to use the same database or clone
+    _Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app. $cloneDb - whether to use the same database or clone_
 
 -  Clone()
 
-    Use to clone the current project. Will create a copy of everything - site, database and map into a new workspace
+    _Use to clone the current project. Will create a copy of everything - site, database and map into a new workspace_
 
 -  Delete()
 
-    Delete the current project
+    _Delete the current project_
 
 -  DeleteMany()
 
-    Batch delete projects
+    _Batch delete projects_
 
 -  Rename([string]$newName)
 
-    Rename the current project
+    _Rename the current project_
 
 -  Details()
 
-    Display details about the current project
+    _Display details about the current project_
 
 ## IIS operations
 
 -  SetupSubApp($subAppName)
 
-    Setups the current project as a sub application in IIS
+    _Setups the current project as a sub application in IIS_
 
 -  RemoveSubApp()
 
-    Reverts the sub application mode in IIS of the current project if it was enabled
+    _Reverts the sub application mode in IIS of the current project if it was enabled_
 
 -  ResetApplicationPool ()
 
-    Resets the website ApplicationPool
+    _Resets the website ApplicationPool_
 
 -  ResetApplciationThreads()
 
-    Resets just the threads of the website application but leaves the ApplicationPool intact, useful if you need to restart hte app domain bu leave the debugger attached for startup debugging
+    _Resets just the threads of the website application but leaves the ApplicationPool intact, useful if you need to restart hte app domain bu leave the debugger attached for startup debugging_
 
 -  BrowseWebsite ()
 
-    Opens the configured web browser with the url of the project
+    _Opens the configured web browser with the url of the project_
 
 ## Web Application operations
 
 -  ResetApp ()
 
-    Resets and reinitializes the web application. This will delete database and restore AppData folder to original state, before initiating a Sitefinity startup
+    _Resets and reinitializes the web application. This will delete database and restore AppData folder to original state, before initiating a Sitefinity startup_
 
 -  SaveDbAndConfigs([string]$stateName)
 
-    Saves the current web application AppData and Database state for later restore. Useful when debugging tests that change the state of the system. Ex. switch from single to multilingual or delete some content items etc...
+    _Saves the current web application AppData and Database state for later restore. Useful when debugging tests that change the state of the system. Ex. switch from single to multilingual or delete some content items etc..._
 
 -  SaveDbAndConfigs()
 
-    Saves the current web application AppData and Database state for later restore. Useful when debugging tests that change the state of the system. Ex. switch from single to multilingual or delete some content items etc...
+    _Saves the current web application AppData and Database state for later restore. Useful when debugging tests that change the state of the system. Ex. switch from single to multilingual or delete some content items etc..._
 
 -  RestoreDbAndConfigs([string]$stateName)
 
-    Restores previously saved database and AppData folder
+    _Restores previously saved database and AppData folder_
 
 -  RestoreDbAndConfigs()
 
-    Restores previously saved database and AppData folder
+    _Restores previously saved database and AppData folder_
 
 ## Solution operations
 
 -  Build ()
 
-    Builds the solution with 3 retries. Also disables stylecop check for faster build. Uses msbuild configured for multi threaded building.
+    _Builds the solution with 3 retries. Also disables stylecop check for faster build. Uses msbuild configured for multi threaded building._
 
 -  Build ([int]$retryCount)
 
-    Builds the solution with given retries count. Also disables stylecop check for faster build. Uses msbuild configured for multi threaded building.
+    _Builds the solution with given retries count. Also disables stylecop check for faster build. Uses msbuild configured for multi threaded building._
 
 -  ReBuild ([int]$retryCount)
 
-    Performs a hard clean of the project before building. Deletes all bin and obj folders from all projects
+    _Performs a hard clean of the project before building. Deletes all bin and obj folders from all projects_
 
 -  CleanPackages ()
 
-    Cleans downloaded packages for solution
+    _Cleans downloaded packages for solution_
 
 -  Clean ()
 
-    Performs a hard delete of all bins and objs
+    _Performs a hard delete of all bins and objs_
 
 -  Open ()
 
-    Opens the solution in the configured editor of the tool config
+    _Opens the solution in the configured editor of the tool config_
