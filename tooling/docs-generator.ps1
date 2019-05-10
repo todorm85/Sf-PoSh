@@ -3,7 +3,7 @@ $classElementMarker = '# ::'
 
 $psmFileContent = Get-Content "$PSScriptRoot/../sf-dev/sf-dev.psm1"
 $docText = '# Sf-Dev PowerShell Module Auto-Generated Documentation'
-$indent = '    '
+
 for ($i = 0; $i -lt $psmFileContent.Count; $i++) {
     $line = $psmFileContent[$i].Trim()
     
