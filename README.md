@@ -49,3 +49,6 @@ $sf.solution.Build()
 - SQL Server PowerShell Module (SQLPS) (Comes with SQL Server Management Studio)
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
 - WebAdministration module (this should already be installed if IIS is enabled)
+
+## Release Notes
+[Docs](./sf-dev/sf-dev.psd1)
