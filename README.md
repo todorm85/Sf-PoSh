@@ -39,12 +39,6 @@ To build the currently selected project use:
 $sf.solution.Build()
 ```
 
-To see other available commands for solution type
-```powershell
-$sf.solution.
-```
-then press __LEFTCTRL+SPACE__
-
 ## Requirements
 
 - Powershell 5.1
