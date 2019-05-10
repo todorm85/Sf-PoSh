@@ -21,7 +21,7 @@ _After first run you might get asked to setup paths to external tools. You shoul
 ```powershell
 $sf.
 ```
-Assuming you are using standard Windows PowerShell console, press __LEFTCTRL+SPACE__ to see a list of available categories of operations. Select one or start typing and press __TAB__ for autocomplete.
+Assuming you are using standard Windows PowerShell console, press __LEFTCTRL+SPACE__ to see a list of available categories of operations. Or start typing and press __TAB__ for autocomplete.
 
 First, you need to create a project
 ```powershell
