@@ -39,9 +39,6 @@ To build the currently selected project use:
 $sf.solution.Build()
 ```
 
-## Documentation
-[Docs](./docs.md)
-
 ## Requirements
 
 - Powershell 5.1
@@ -50,5 +47,7 @@ $sf.solution.Build()
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
 - WebAdministration module (this should already be installed if IIS is enabled)
 
-## Release Notes
-[Docs](./sf-dev/sf-dev.psd1)
+## Links
+
+[Docs](./docs.md)
+[Release Notes](./sf-dev/sf-dev.psd1)
