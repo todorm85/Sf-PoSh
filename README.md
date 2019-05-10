@@ -15,7 +15,7 @@ DO NOT USE ~~Import-Module~~, USE `Using module` instead
 Using module sf-dev
 ```
 
-_After first run you might get asked to setup paths to external tools. Config is at `.\Documents\sf-dev\config.ps1.`. After modification restart powershell session_
+_After first run you might get asked to setup paths to external tools. Config is at `%userprofile%\Documents\sf-dev\config.ps1.`. After modification restart powershell session_
 
 - Start typing
 ```powershell
