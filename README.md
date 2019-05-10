@@ -52,3 +52,31 @@ $sf.solution.Build()
 [Docs](./docs.md)
 
 [Release Notes](./sf-dev/sf-dev.psd1)
+
+## Tips & Tricks
+
+- Function to load module into powershell sessions
+
+  Create file `%userprofile%\documents\WindowsPowerShell\profile.ps1` if it does not exist already.
+
+  Insert the following function in the file. Now every powershell session will contain that function which can be used to load the module. 
+  This way you can create alias and simply type 'sf' instead of 'Using module sf-dev' every time you want to use the module.
+
+  ```powerShell
+  function sf() {
+      $script = [ScriptBlock]::Create("using module sf-dev")
+      . $script
+  }
+  ```
+
+- aliases for commonly used commands
+
+  ```powerShell
+  function sf() {
+      $script = [ScriptBlock]::Create("using module sf-dev")
+      . $script
+
+      # instead of typing $sf.solution.Build() each time simply use sfbuild
+      New-Alias 'sfbuild' -Value '$sf.solution.Build()'
+  }
+  ```
