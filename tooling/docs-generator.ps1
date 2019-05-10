@@ -15,9 +15,10 @@ for ($i = 0; $i -lt $psmFileContent.Count; $i++) {
         $elementDescription = $line.TrimStart($classElementMarker)
             
         $elementName = $psmFileContent[$i + 1].Split(')')[0].Trim() + ')'
+        $elementName = $elementName.Replace('[void]', '').Trim()
 
-        $docText += "`n- $elementName`n`n    `_$elementDescription`_`n"
+        $docText += "`n- `__$elementName`__`n`n    `_$elementDescription`_`n"
     }
 }
 
-$docText.Trim().Replace('[void]', '') | Out-File "$PSScriptRoot/../docs.md" -Encoding utf8
+$docText.Trim() | Out-File "$PSScriptRoot/../docs.md" -Encoding utf8
