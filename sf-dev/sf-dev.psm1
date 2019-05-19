@@ -112,12 +112,7 @@ class ProjectFluent : FluentBase {
 
     # ::Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app
     [void] Import ([string]$name, [string]$path) {
-        $this.Import($name, $path, $null)
-    }
-
-    # ::Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app. $cloneDb - whether to use the same database or clone
-    [void] Import ([string]$name, [string]$path, [bool]$cloneDb) {
-        sf-import-project -displayName $name -path $path -cloneDb $cloneDb
+        sf-import-project -displayName $name -path $path
     }
 
     # ::Use to clone the current project. Will create a copy of everything - site, database and map into a new workspace
@@ -189,7 +184,12 @@ class WebAppFluent : FluentBase {
     
     # ::Resets and reinitializes the web application. This will delete database and restore AppData folder to original state, before initiating a Sitefinity startup
     [void] ResetApp () {
-        sf-reset-app -start -project $this.GetProject()
+        $this.ResetApp($false)
+    }
+
+    # ::Resets and reinitializes the web application. This will delete database and restore AppData folder to original state, before initiating a Sitefinity startup. Params: $force - forces the cleanup of App_Data folder - kills locking processes
+    [void] ResetApp ([bool]$force) {
+        sf-reset-app -start -project $this.GetProject() -force:$force
     }
 
     # ::Saves the current web application AppData and Database state for later restore. Useful when debugging tests that change the state of the system. Ex. switch from single to multilingual or delete some content items etc...

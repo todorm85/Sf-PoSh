@@ -174,7 +174,8 @@ function sf-new-project {
 function sf-clone-project {
     Param(
         [SfProject]$context,
-        [switch]$noAutoSelect
+        [switch]$noAutoSelect,
+        [switch]$skipSourceControlMapping
     )
 
     if (!$context) {
@@ -207,17 +208,48 @@ function sf-clone-project {
 
     [SfProject]$newProject = $null
     try {
-        [SfProject]$newProject = sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -cloneDb -branch $context.branch -id $targetId -noAutoSelect:$noAutoSelect
+        $branch = $context.branch
+        if ($skipSourceControlMapping) {
+            $branch = $null
+        }
+
+        [SfProject]$newProject = sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -branch $branch -id $targetId -noAutoSelect:$noAutoSelect
     }
     catch {
         throw "Error importing project.`n $_"        
     }
 
+    $oldProject = _get-selectedProject
+    set-currentProject $newProject
     try {
-        sf-delete-allAppStates
+        $sourceDbName = get-currentAppDbName -project $oldProject
+        if ($sourceDbName) {
+            $newDbName = $newProject.id
+            try {
+                sf-set-appDbName $newDbName
+            }
+            catch {
+                Write-Warning "Error setting new database name in config $newDbName).`n $_"                    
+            }
+                
+            try {
+                [SqlClient]$sql = _get-sqlClient
+                $sql.CopyDb($sourceDbName, $newDbName)
+            }
+            catch {
+                Write-Warning "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
+            }
+        }
+
+        try {
+            sf-delete-allAppStates
+        }
+        catch {
+            Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
+        }
     }
-    catch {
-        throw "Error deleting app states.`n $_"        
+    finally {
+        set-currentProject $oldProject
     }
 
     return $newProject
@@ -240,7 +272,6 @@ function sf-import-project {
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
         [Parameter(Mandatory = $true)][string]$path,
-        [switch]$cloneDb,
         [string]$existingSiteName,
         [string]$branch,
         [string]$id,
@@ -304,26 +335,6 @@ function sf-import-project {
             catch {
                 Write-Warning "Error during website creation. Message: $_"
                 $newContext.websiteName = ""
-            }
-        }
-
-        $currentDbName = sf-get-appDbName
-        if ($currentDbName) {
-            if ($cloneDb) {
-                try {
-                    sf-set-appDbName $newContext.id
-                }
-                catch {
-                    Write-Warning "Error setting new database name in config ($($newContext.id)).`n $_"                    
-                }
-                    
-                try {
-                    [SqlClient]$sql = _get-sqlClient
-                    $sql.CopyDb($currentDbName, $newContext.id)
-                }
-                catch {
-                    Write-Warning "Error copying old database. Source: $currentDbName Target $($newContext.id)`n $_"
-                }
             }
         }
     }

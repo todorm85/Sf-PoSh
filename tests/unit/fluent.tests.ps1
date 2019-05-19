@@ -1,4 +1,4 @@
-. "${PSScriptRoot}\Infrastructure\load-module.ps1"
+. "${PSScriptRoot}\..\test-utils\load-module.ps1"
 
 InModuleScope sf-dev {
 

@@ -3,8 +3,22 @@ function sf-get-appDbName ([SfProject]$context) {
         [SfProject]$context = _get-selectedProject
     }
 
+    $dbName = get-currentAppDbName -project $context
+    if ($dbName) {
+        return $dbName
+    }
+    else {
+        return $context.id
+    }
+}
+
+function get-currentAppDbName ([SfProject]$project) {
+    if (-not $project) {
+        [SfProject]$project = _get-selectedProject
+    }
+
     $data = New-Object XML
-    $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
+    $dataConfigPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
     if (Test-Path -Path $dataConfigPath) {
         $data.Load($dataConfigPath) > $null
         $conStr = $data.dataConfig.connectionStrings.add.connectionString
@@ -13,7 +27,7 @@ function sf-get-appDbName ([SfProject]$context) {
         return $dbName
     }
     else {
-        return $context.id
+        return $null
     }
 }
 

@@ -1,0 +1,111 @@
+$Global:testProjectDisplayName = 'e2e_tests'
+[SqlClient]$sql = _get-sqlClient
+
+function set-testProject {
+    if ($Global:sf_tests_test_project) {
+        try {
+            set-currentProject -newContext $Global:sf_tests_test_project
+            return $Global:sf_tests_test_project
+        }
+        catch {
+            Write-Warning "cloned test project corrupted, recreating..."            
+        }
+    }
+
+    $intializeTestsEnvResult = initialize-testEnvironment
+    
+    [SfProject[]]$allProjects = @(_sfData-get-allProjects)
+    $proj = $allProjects | where { $_.displayName -eq $Global:testProjectDisplayName }
+    if ($proj.Count -eq 0) {
+        throw 'Project named e2e_tests not found. Create and initialize one first.'
+    }
+
+    $proj = $proj[0]
+    $clonedProjResult = clone-testProject -sourceProj $proj
+    $startAppResult = start-app
+
+    $clonedProj = _get-selectedProject
+    $Global:sf_tests_test_project = $clonedProj
+    return $clonedProj
+}
+
+function clone-testProject ([SfProject]$sourceProj) {
+    set-currentProject -newContext $sourceProj
+    $sourceName = $sourceProj.displayName
+    $sql.GetDbs() | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
+
+    # edit a file in source project and mark as changed in TFS
+    $webConfigPath = "$($sourceProj.webAppPath)\web.config"
+    $checkoutOperationResult = tfs-checkout-file $webConfigPath
+    [xml]$xmlData = Get-Content $webConfigPath
+    [System.Xml.XmlElement]$appSettings = $xmlData.configuration.appSettings
+    $newElement = $xmlData.CreateElement("add")
+    $testKeyName = generateRandomName
+    $newElement.SetAttribute("key", $testKeyName)
+    $newElement.SetAttribute("value", "testing")
+    $appSettings.AppendChild($newElement)
+    $xmlData.Save($webConfigPath) > $null
+
+    sf-clone-project -skipSourceControlMapping
+
+    # verify project configuration
+    $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
+    $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $cloneTestName }
+    $sitefinities.Count | Should -BeGreaterThan 0
+    [SfProject]$project = $sitefinities[$sitefinities.Count - 1]
+    $cloneTestId = $project.id
+    $project.containerName | Should -Be ''
+    # $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
+    # tfs-get-branchPath -path $project.solutionPath | Should -Not -Be $null
+    $project.solutionPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}"
+    $project.webAppPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}\SitefinityWebApp"
+    $project.websiteName | Should -Be $cloneTestId
+
+    # verify project artifacts
+    existsInHostsFile -searchParam $project.displayName | Should -Be $true
+    Test-Path "$($Script:projectsDirectory)\${cloneTestId}\$($project.displayName)($($project.id)).sln" | Should -Be $true
+    Test-Path "$($Script:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
+    Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
+    Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
+    $sql.GetDbs() | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
+}
+
+function existsInHostsFile {
+    param (
+        $searchParam
+    )
+    if (-not $searchParam) {
+        throw "Cannot search for empty string in hosts file."
+    }
+
+    $found = $false
+    $hostsPath = "$($env:windir)\system32\Drivers\etc\hosts"
+    Get-Content $hostsPath | % {
+        if ($_.Contains($searchParam)) {
+            $found = $true 
+        }
+    }
+
+    return $found
+}
+
+function generateRandomName {
+    [string]$random = [Guid]::NewGuid().ToString().Replace('-', '_')
+    $random = $random.Substring(1)
+    "a$random"
+}
+    
+function initialize-testEnvironment {
+    Write-Information "Cleanup started."
+    [SfProject[]]$projects = _sfData-get-allProjects
+    if (!$Global:testProjectDisplayName) {
+        Write-Warning "e2e test project name not set, skipping clean."
+        return
+    }
+
+    foreach ($proj in $projects) {
+        if ($proj.displayName -ne $Global:testProjectDisplayName) {
+            sf-delete-project -context $proj -noPrompt
+        }
+    }
+}

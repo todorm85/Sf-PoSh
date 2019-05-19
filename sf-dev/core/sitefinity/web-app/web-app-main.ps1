@@ -153,7 +153,6 @@ function sf-add-precompiledTemplates {
 
 function start-app {
     param(
-        [string]$url,
         [Int32]$totalWaitSeconds = 10 * 60
     )
 

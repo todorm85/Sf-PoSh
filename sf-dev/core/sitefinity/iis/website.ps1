@@ -44,10 +44,10 @@ function sf-browse-webSite {
     }
 
     if (-not $useExistingBrowser) {
-        execute-native "& Start-Process `"$browserPath`""
+        execute-native "& Start-Process `"$browserPath`"" -successCodes @(100)
     }
     
-    execute-native "& `"$browserPath`" `"${appUrl}/Sitefinity`" -noframemerging"
+    execute-native "& `"$browserPath`" `"${appUrl}/Sitefinity`" -noframemerging" -successCodes @(100)
 }
 
 <#
