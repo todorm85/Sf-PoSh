@@ -191,8 +191,8 @@ function sf-clone-project {
         throw "Invalid app path";
     }
 
-    $targetId = _generateId
-    $targetPath = $Script:projectsDirectory + "\${targetId}"
+    $targetDirectoryName = [Guid]::NewGuid()
+    $targetPath = $Script:projectsDirectory + "\$targetDirectoryName"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
     }
@@ -208,15 +208,21 @@ function sf-clone-project {
 
     [SfProject]$newProject = $null
     try {
-        $branch = $context.branch
-        if ($skipSourceControlMapping) {
-            $branch = $null
-        }
-
-        [SfProject]$newProject = sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -branch $branch -id $targetId -noAutoSelect:$noAutoSelect
+        [SfProject]$newProject = sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -noAutoSelect:$noAutoSelect
     }
     catch {
-        throw "Error importing project.`n $_"        
+        Write-Warning "Cleaning up copied files"
+        Remove-Item -Path $targetPath -Force -Recurse 
+        throw "Error importing project.`n $_"       
+    }
+
+    try {
+        if (!$skipSourceControlMapping) {
+            _create-workspace -context $newProject -branch $context.branch
+        }
+    }
+    catch {
+        Write-Error "Clone project error. Error binding to TFS.`n$_"
     }
 
     $oldProject = _get-selectedProject
@@ -229,7 +235,7 @@ function sf-clone-project {
                 sf-set-appDbName $newDbName
             }
             catch {
-                Write-Warning "Error setting new database name in config $newDbName).`n $_"                    
+                Write-Error "Error setting new database name in config $newDbName).`n $_"                    
             }
                 
             try {
@@ -237,7 +243,7 @@ function sf-clone-project {
                 $sql.CopyDb($sourceDbName, $newDbName)
             }
             catch {
-                Write-Warning "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
+                Write-Error "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
             }
         }
 
@@ -273,8 +279,6 @@ function sf-import-project {
         [Parameter(Mandatory = $true)][string]$displayName,
         [Parameter(Mandatory = $true)][string]$path,
         [string]$existingSiteName,
-        [string]$branch,
-        [string]$id,
         [switch]$noAutoSelect
     )
 
@@ -292,25 +296,21 @@ function sf-import-project {
         throw "Cannot determine whether webapp or solution."
     }
 
-    [SfProject]$newContext = new-SfProject -displayName $displayName -id $id
+    [SfProject]$newContext = new-SfProject -displayName $displayName
     if ($isSolution) {
         $newContext.solutionPath = $path
         $newContext.webAppPath = $path + '\SitefinityWebApp'
-        $newContext.branch = $branch
-        if ($branch) {
-            try {
-                _create-workspace -context $newContext -branch $branch
-            }
-            catch {
-                Write-Error "Errors while creating workspace: $_"                
-            }
-        }
 
         _create-userFriendlySlnName $newContext
     }
     else {
         $newContext.solutionPath = ''
         $newContext.webAppPath = $path
+    }
+    
+    $branch = tfs-get-branchPath -path $newContext.webAppPath
+    if ($branch) {
+        $newContext.branch = $branch
     }
 
     $oldContext = _get-selectedProject
@@ -336,7 +336,7 @@ function sf-import-project {
                 Write-Warning "Error during website creation. Message: $_"
                 $newContext.websiteName = ""
             }
-        }
+        }        
     }
     finally {
         if ($noAutoSelect) {
@@ -745,8 +745,9 @@ function _create-workspace ($context, $branch) {
     try {
         # create and map workspace
         Write-Information "Creating workspace..."
+        [Config]$config = _get-config
         $workspaceName = $context.id
-        tfs-create-workspace $workspaceName $context.solutionPath $Script:tfsServerName
+        tfs-create-workspace $workspaceName $context.solutionPath $config.tfsServerName
     }
     catch {
         throw "Could not create workspace $workspaceName in $($context.solutionPath).`n $_"
@@ -754,7 +755,7 @@ function _create-workspace ($context, $branch) {
 
     try {
         Write-Information "Creating workspace mappings..."
-        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $Script:tfsServerName
+        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $config.tfsServerName
     }
     catch {
         throw "Could not create mapping $($branch) in $($context.solutionPath) for workspace ${workspaceName}.`n $_"
@@ -763,6 +764,7 @@ function _create-workspace ($context, $branch) {
     try {
         Write-Information "Getting latest workspace changes..."
         tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite > $null
+        $context.branch = $branch
         $context.lastGetLatest = [DateTime]::Today
         _save-selectedProject $context
     }
