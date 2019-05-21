@@ -278,7 +278,6 @@ function sf-import-project {
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
         [Parameter(Mandatory = $true)][string]$path,
-        [string]$existingSiteName,
         [switch]$noAutoSelect
     )
 
@@ -324,8 +323,9 @@ function sf-import-project {
             throw "Could not import sitefinity. Could not write project to db. $_"
         }
 
-        if ($existingSiteName) {
-            $newContext.websiteName = $existingSiteName
+        $siteName = iis-find-site -physicalPath $newContext.webAppPath
+        if ($siteName) {
+            $newContext.websiteName = $siteName
         }
         else {
             try {
@@ -336,7 +336,7 @@ function sf-import-project {
                 Write-Warning "Error during website creation. Message: $_"
                 $newContext.websiteName = ""
             }
-        }        
+        }
     }
     finally {
         if ($noAutoSelect) {
@@ -344,6 +344,7 @@ function sf-import-project {
         }
     }
     
+    _save-selectedProject $newContext
     return $newContext
 }
 

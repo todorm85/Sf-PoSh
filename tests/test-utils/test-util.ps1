@@ -57,14 +57,14 @@ function clone-testProject ([SfProject]$sourceProj) {
     $project.containerName | Should -Be ''
     # $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
     # tfs-get-branchPath -path $project.solutionPath | Should -Not -Be $null
-    $project.solutionPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}"
-    $project.webAppPath | Should -Be "$($Script:projectsDirectory)\${cloneTestId}\SitefinityWebApp"
+    $project.solutionPath.Contains($Script:projectsDirectory) | Should -Be $true
     $project.websiteName | Should -Be $cloneTestId
-
+    
     # verify project artifacts
+    Test-Path $project.solutionPath | Should -Be $true
     existsInHostsFile -searchParam $project.displayName | Should -Be $true
-    Test-Path "$($Script:projectsDirectory)\${cloneTestId}\$($project.displayName)($($project.id)).sln" | Should -Be $true
-    Test-Path "$($Script:projectsDirectory)\${cloneTestId}\Telerik.Sitefinity.sln" | Should -Be $true
+    Test-Path "$($project.solutionPath)\$($project.displayName)($($project.id)).sln" | Should -Be $true
+    Test-Path "$($project.solutionPath)\Telerik.Sitefinity.sln" | Should -Be $true
     Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
     Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
     $sql.GetDbs() | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
@@ -96,7 +96,7 @@ function generateRandomName {
 }
     
 function initialize-testEnvironment {
-    Write-Information "Cleanup started."
+    Write-Warning "Cleanup started."
     [SfProject[]]$projects = _sfData-get-allProjects
     if (!$Global:testProjectDisplayName) {
         Write-Warning "e2e test project name not set, skipping clean."

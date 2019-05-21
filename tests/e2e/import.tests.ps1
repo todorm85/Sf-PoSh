@@ -23,8 +23,8 @@ InModuleScope sf-dev {
             $importedProject.webAppPath | Should -Not -BeNullOrEmpty
             $importedProject.webAppPath | Should -Be $project.webAppPath
         }
-        It "create new website using the id" {
-            $importedProject.websiteName | Should -Be $importedProject.id
+        It "use existing website" {
+            $importedProject.websiteName | Should -Be $project.websiteName
             iis-test-isSiteNameDuplicate -name $importedProject.websiteName | Should -Be $true
         }
     }

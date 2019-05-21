@@ -12,14 +12,15 @@
     AliasesToExport   = '*'
     ModuleVersion     = '1.1.0'
     RequiredModules   = @(
-        @{ModuleName = 'toko-admin'; ModuleVersion = '0.2.0'; MaximumVersion = '0.*' },
+        @{ModuleName = 'toko-admin'; ModuleVersion = '0.3.0'; MaximumVersion = '0.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
     )
     PrivateData       = @{
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
-## 1.1.0
+## 1.1.0 (not released)
+    Fix importing project, site not detected if existing
 Fixes
     Import project form directory is broken
     Add more functions to fluent
