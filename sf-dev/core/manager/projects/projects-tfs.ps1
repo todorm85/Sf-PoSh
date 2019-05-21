@@ -5,26 +5,34 @@ function sf-update-allProjectsTfsInfo {
         
         [SfProject]$context = $_
 
-        $lastGetLatestTfs = _get-lastWorkspaceChangesetDate $context
-        if ($lastGetLatestTfs) {
-            if ($context.lastGetLatest) {
-                $lastGetLatestTool = [datetime]::Parse($context.lastGetLatest)
-                
-                # only update if not get-latest issued already from this tool later than what is in workspace
-                if ($lastGetLatestTool -lt $lastGetLatestTfs) {
-                    $context.lastGetLatest = $lastGetLatestTfs
-                    _sfData-save-project $context
-                }
-            }
-            else {
-                $context.lastGetLatest = $lastGetLatestTfs
-                _sfData-save-project $context
-            }
-        }
+        _update-lastGetLatest $context
 
         $branch = tfs-get-branchPath $context.webAppPath
         if ($branch) {
             $context.branch = $branch
+            _sfData-save-project $context
+        }
+    }
+}
+
+function _update-lastGetLatest {
+    param (
+        [SfProject]$context
+    )
+    
+    $lastGetLatestTfs = _get-lastWorkspaceChangesetDate $context
+    if ($lastGetLatestTfs) {
+        if ($context.lastGetLatest) {
+            $lastGetLatestTool = [datetime]::Parse($context.lastGetLatest)
+            
+            # only update if not get-latest issued already from this tool later than what is in workspace
+            if ($lastGetLatestTool -lt $lastGetLatestTfs) {
+                $context.lastGetLatest = $lastGetLatestTfs
+                _sfData-save-project $context
+            }
+        }
+        else {
+            $context.lastGetLatest = $lastGetLatestTfs
             _sfData-save-project $context
         }
     }

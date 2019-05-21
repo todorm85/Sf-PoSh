@@ -31,13 +31,16 @@ class SfProject {
     [string]$containerName
     [string]$lastGetLatest
 
-    SfProject() { }
-
-    SfProject($id, $displayName) {
-        $this.id = $id;
-        $this.displayName = $displayName;
+    SfProject() {
+        $this.id = _generateId
+        $this.displayName = $this.id
     }
 
+    SfProject([string]$id) {
+        $this.id = $id
+        $this.displayName = $id
+    }
+     
     [void] Details() {
         sf-show-currentProject -context $this
     }

@@ -68,9 +68,13 @@ function sf-new-project {
             $branch = $customBranch
         }
 
-        [SfProject]$newContext = new-SfProject -displayName $displayName
-        if (Test-Path $newContext.solutionPath) {
-            throw "Path already exists:" + $newContext.solutionPath
+        [Config]$config = _get-config
+        [SfProject]$newContext = [SfProject]::new()
+        $newContext.displayName = $displayName
+        $newContext.solutionPath = "$($config.projectsDirectory)\$($newContext.id)"
+        $newContext.webAppPath = "$($newContext.solutionPath)\SitefinityWebApp";
+        if (Test-Path $newContext.webAppPath) {
+            throw "Path already exists:" + $newContext.webAppPath
         }
 
         $oldContext = _get-selectedProject
@@ -83,10 +87,8 @@ function sf-new-project {
             _create-workspace $newContext -branch $branch
             $newContext.lastGetLatest = [datetime]::Today
 
-            $webAppPath = $newContext.solutionPath + '\SitefinityWebApp'
-            $newContext.webAppPath = $webAppPath
-
             Write-Information "Backing up original App_Data folder..."
+            $webAppPath = $newContext.webAppPath
             $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
             New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
             copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
@@ -139,7 +141,6 @@ function sf-new-project {
 
         try {
             set-currentProject $newContext
-            _create-userFriendlySlnName $newContext
 
             if ($buildSolution) {
                 Write-Information "Building solution..."
@@ -208,7 +209,7 @@ function sf-clone-project {
 
     [SfProject]$newProject = $null
     try {
-        [SfProject]$newProject = sf-import-project -displayName "$($context.displayName)-clone" -path $targetPath -noAutoSelect:$noAutoSelect
+        [SfProject]$newProject = sf-import-project -displayName "$($context.displayName)-clone" -path "$targetPath\SitefinityWebApp" -noAutoSelect:$noAutoSelect
     }
     catch {
         Write-Warning "Cleaning up copied files"
@@ -217,7 +218,7 @@ function sf-clone-project {
     }
 
     try {
-        if (!$skipSourceControlMapping) {
+        if (!$skipSourceControlMapping -and $context.branch) {
             _create-workspace -context $newProject -branch $context.branch
         }
     }
@@ -238,7 +239,8 @@ function sf-clone-project {
     set-currentProject $newProject
     try {
         $sourceDbName = get-currentAppDbName -project $oldProject
-        if ($sourceDbName) {
+        [SqlClient]$sql = _get-sqlClient
+        if ($sourceDbName -and $sql.IsDuplicate($sourceDbName)) {
             $newDbName = $newProject.id
             try {
                 sf-set-appDbName $newDbName
@@ -248,7 +250,6 @@ function sf-clone-project {
             }
                 
             try {
-                [SqlClient]$sql = _get-sqlClient
                 $sql.CopyDb($sourceDbName, $newDbName)
             }
             catch {
@@ -267,6 +268,7 @@ function sf-clone-project {
         set-currentProject $oldProject
     }
 
+    _save-selectedProject $newProject
     return $newProject
 }
 
@@ -290,57 +292,17 @@ function sf-import-project {
         [switch]$noAutoSelect
     )
 
-    if (!(Test-Path $path)) {
-        throw "Invalid path"
-    }
-
-    $isSolution = Test-Path "$path\Telerik.Sitefinity.sln"
     $isWebApp = Test-Path "$path\web.config"
-    if (-not $isWebApp -and -not $isSolution) {
-        throw "No web app or solution found."
+    if (!$isWebApp) {
+        throw "No asp.net web app found."
     }
 
-    if ($isWebApp -and $isSolution) {
-        throw "Cannot determine whether webapp or solution."
-    }
-
-    [SfProject]$newContext = new-SfProject -displayName $displayName
-    if ($isSolution) {
-        $newContext.solutionPath = $path
-        $newContext.webAppPath = $path + '\SitefinityWebApp'
-
-        _create-userFriendlySlnName $newContext
-    }
-    else {
-        $newContext.solutionPath = ''
-        $newContext.webAppPath = $path
-    }
+    [SfProject]$newContext = [SfProject]::new()
+    $newContext.displayName = $displayName
+    $newContext.webAppPath = $path
     
-    $branch = tfs-get-branchPath -path $newContext.webAppPath
-    if ($branch) {
-        $newContext.branch = $branch
-    }
-
-    $oldContext = _get-selectedProject
-    set-currentProject $newContext
-    try {
-        try {
-            _save-selectedProject $newContext
-        }
-        catch {
-            set-currentProject $oldContext
-            throw "Could not import sitefinity. Could not write project to db. $_"
-        }
-
-        $siteName = iis-find-site -physicalPath $newContext.webAppPath
-        if ($siteName) {
-            $newContext.websiteName = $siteName
-        }
-    }
-    finally {
-        if ($noAutoSelect) {
-            set-currentProject $oldContext
-        }
+    if (!$noAutoSelect) {
+        set-currentProject $newContext
     }
     
     _save-selectedProject $newContext
@@ -580,7 +542,9 @@ function sf-rename-project {
 function _create-userFriendlySlnName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     $targetFilePath = "$($context.solutionPath)\$(generate-solutionFriendlyName $context)"
-    Copy-Item -Path $solutionFilePath -Destination $targetFilePath
+    if (!(Test-Path $targetFilePath)) {
+        Copy-Item -Path $solutionFilePath -Destination $targetFilePath
+    }
 }
 
 function _save-selectedProject {
@@ -675,8 +639,11 @@ function set-currentProject {
         [switch]$fluentInited
     )
 
-    _validate-project $newContext
-    
+    if ($null -ne $newContext) {
+        _initialize-project $newContext
+        _validate-project $newContext
+    }    
+
     if ($fluentInited) {
         $Script:globalContext = $newContext
         set-consoleTitle -newContext $newContext
@@ -775,4 +742,48 @@ function _create-workspace ($context, $branch) {
 
 function _get-unusedProjectName {
     return "free"
+}
+
+function _initialize-project {
+    param (
+        [Parameter(Mandatory = $true)][SfProject]$project
+    )
+    
+    if (!$project.displayName -or !$project.id) {
+        throw "Cannot initialize a project with no display name or id."    
+    }
+
+    if (!(Test-Path $project.webAppPath)) {
+        throw "Invalid path project web app path! $($project.webAppPath) does not exist for project with id $($project.id)"
+    }
+
+    $isSolution = Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.sln"
+    if ($isSolution) {
+        $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
+        _create-userFriendlySlnName $project
+    }
+    
+    $branch = tfs-get-branchPath -path $project.webAppPath
+    if ($branch) {
+        $project.branch = $branch
+        _update-lastGetLatest -context $project
+    }
+    else {
+        Write-Warning "Could not detect source control branch, TFS related functionaliuty for the project will not work."
+    }
+    
+    $siteName = iis-find-site -physicalPath $project.webAppPath
+    if ($siteName) {
+        $project.websiteName = $siteName
+    }
+    else {
+        Write-Warning "Could not detect website for the current project."
+    }
+
+    try {
+        _save-selectedProject $project
+    }
+    catch {
+        throw "Could not import sitefinity. Could not write project to db. $_"
+    }
 }

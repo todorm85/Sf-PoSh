@@ -74,8 +74,8 @@ function sf-create-website {
         $port++
     }
 
-    while ([string]::IsNullOrEmpty($context.websiteName) -or (iis-test-isSiteNameDuplicate $context.websiteName)) {
-        throw "Website with name $($context.websiteName) already exists or no name provided:"
+    while ([string]::IsNullOrEmpty($context.id) -or (iis-test-isSiteNameDuplicate $context.id)) {
+        throw "Website with name $($context.id) already exists or no name provided:"
     }
 
 
@@ -83,7 +83,7 @@ function sf-create-website {
     $newAppPool = $context.id
     $domain = generate-domainName -context $context
     try {
-        iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
+        iis-create-website -newWebsiteName $context.id -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
     catch {
         throw "Error creating site: $_"

@@ -6,21 +6,22 @@ function _sfData-get-allProjects {
         $sfs | ForEach-Object {
             if ($_.lastGetLatest) {
                 $lastGetLatest = [System.DateTime]::Parse($_.lastGetLatest)
-            } else {
+            }
+            else {
                 $lastGetLatest = $null
             }
 
-            New-Object SfProject -Property @{
-                branch = $_.branch;
-                containerName = $_.containerName;
-                description = $_.description;
-                displayName = $_.displayName;
-                id = $_.id;
-                solutionPath = $_.solutionPath;
-                webAppPath = $_.webAppPath;
-                websiteName = $_.websiteName;
-                lastGetLatest = $lastGetLatest;
-            }
+            $clone = [SfProject]::new($_.id)
+            $clone.branch = $_.branch;
+            $clone.containerName = $_.containerName;
+            $clone.description = $_.description;
+            $clone.displayName = $_.displayName;
+            $clone.solutionPath = $_.solutionPath;
+            $clone.webAppPath = $_.webAppPath;
+            $clone.websiteName = $_.websiteName;
+            $clone.lastGetLatest = $lastGetLatest;
+
+            $clone
         }
     }
 }
