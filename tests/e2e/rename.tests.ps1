@@ -20,8 +20,8 @@ InModuleScope sf-dev {
             
             existsInHostsFile -searchParam $newName | Should -Be $true
             existsInHostsFile -searchParam $oldName | Should -Be $false
-            Test-Path "$($Script:projectsDirectory)\$id\$newName($id).sln" | Should -Be $true
-            Test-Path "$($Script:projectsDirectory)\$id\$oldName($id).sln" | Should -Be $false
+            Test-Path "$($testProject.solutionPath)\$newName($id).sln" | Should -Be $true
+            Test-Path "$($testProject.solutionPath)\$oldName($id).sln" | Should -Be $false
             ([string](get-appUrl)).IndexOf($newName) | Should -BeGreaterThan -1
         }
     }

@@ -213,7 +213,7 @@ function sf-clone-project {
     catch {
         Write-Warning "Cleaning up copied files"
         Remove-Item -Path $targetPath -Force -Recurse 
-        throw "Error importing project.`n $_"       
+        throw "Error importing project.`n $_"
     }
 
     try {
@@ -223,6 +223,15 @@ function sf-clone-project {
     }
     catch {
         Write-Error "Clone project error. Error binding to TFS.`n$_"
+    }
+
+    try {
+        Write-Information "Creating website..."
+        sf-create-website -context $newProject > $null
+    }
+    catch {
+        Write-Warning "Error during website creation. Message: $_"
+        $newProject.websiteName = ""
     }
 
     $oldProject = _get-selectedProject
@@ -326,16 +335,6 @@ function sf-import-project {
         $siteName = iis-find-site -physicalPath $newContext.webAppPath
         if ($siteName) {
             $newContext.websiteName = $siteName
-        }
-        else {
-            try {
-                Write-Information "Creating website..."
-                sf-create-website -context $newContext > $null
-            }
-            catch {
-                Write-Warning "Error during website creation. Message: $_"
-                $newContext.websiteName = ""
-            }
         }
     }
     finally {
