@@ -4,6 +4,7 @@ InModuleScope sf-dev {
 
     Describe "`$Global:sf should" -Tags ("fluent") {
         Mock _validate-project { }
+        Mock _initialize-project { }
         Mock Set-Location { }
 
         It "initialize with empty project after module load" {
@@ -38,6 +39,7 @@ InModuleScope sf-dev {
 
     Describe "MasterFluent should" {
         Mock _validate-project { }
+        Mock _initialize-project { }
         Mock Set-Location { }
         
         Context "initialize child facades" {
@@ -60,6 +62,7 @@ InModuleScope sf-dev {
 
     Describe "Project fluent should" {
         Mock _validate-project { }
+        Mock _initialize-project { }
         Mock Set-Location { }
 
         Context "warn no project selected when" {
