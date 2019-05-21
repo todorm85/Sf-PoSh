@@ -748,14 +748,18 @@ function _initialize-project {
     param (
         [Parameter(Mandatory = $true)][SfProject]$project
     )
+
     
     if (!$project.displayName -or !$project.id) {
         throw "Cannot initialize a project with no display name or id."    
     }
 
+    $errorMessgePrefix = "ERROR Working with project $($project.displayName) in $($project.webAppPath) and id $($project.id)."
+
     if (!(Test-Path $project.webAppPath)) {
-        throw "Invalid path project web app path! $($project.webAppPath) does not exist for project with id $($project.id)"
+        throw "$errorMessgePrefix $($project.webAppPath) does not exist."
     }
+
 
     $isSolution = Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.sln"
     if ($isSolution) {
@@ -769,7 +773,7 @@ function _initialize-project {
         _update-lastGetLatest -context $project
     }
     else {
-        Write-Warning "Could not detect source control branch, TFS related functionaliuty for the project will not work."
+        Write-Warning "$errorMessgePrefix Could not detect source control branch, TFS related functionaliuty for the project will not work."
     }
     
     $siteName = iis-find-site -physicalPath $project.webAppPath
@@ -777,13 +781,13 @@ function _initialize-project {
         $project.websiteName = $siteName
     }
     else {
-        Write-Warning "Could not detect website for the current project."
+        Write-Warning "$errorMessgePrefix Could not detect website for the current project."
     }
 
     try {
         _save-selectedProject $project
     }
     catch {
-        throw "Could not import sitefinity. Could not write project to db. $_"
+        throw "$errorMessgePrefix Could not write project to db. $_"
     }
 }
