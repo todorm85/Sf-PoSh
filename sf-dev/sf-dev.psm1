@@ -98,6 +98,12 @@ class ProjectFluent : FluentBase {
         sf-select-project -showUnused
     }
 
+    # ::Shows all projects managed by the tool.
+    [void] ShowAll () {
+        $sfs = _sfData-get-allProjects
+        sf-show-projects -sitefinities $sfs
+    }
+
     # ::Use to create new projects. The user will be prompted to select branch from configured ones and name for the project
     [void] Create () {
         $selectedBranch = prompt-predefinedBranchSelect
@@ -215,6 +221,21 @@ class WebAppFluent : FluentBase {
     [void] RestoreDbAndConfigs() {
         $this.RestoreDbAndConfigs($null)
     }
+
+    # ::Opens the webapp location in windows explorer
+    [void] OpenLocation () {
+        ii ([SfProject]$this.GetProject()).webAppPath
+    }
+
+    # ::Precompiles all pages for faster loading
+    [void] AddPrecompileTemplates () {
+        sf-add-precompiledTemplates
+    }
+
+    # ::Removes any precompiled templates
+    [void] RemovePrecompileTemplates () {
+        sf-add-precompiledTemplates -revert
+    }
 }
 
 # class::Solution operations
@@ -249,6 +270,30 @@ class SolutionFluent : FluentBase {
     # ::Opens the solution in the configured editor of the tool config
     [void] Open () {
         sf-open-solution -project $this.GetProject()
+    }
+
+    # ::Opens the solution location in windows explorer
+    [void] OpenLocation () {
+        ii ([SfProject]$this.GetProject()).solutionPath
+    }
+}
+# class::Source control operations
+class TfsFluent : FluentBase {
+    TfsFluent ([SfProject]$project) : base($project) { }
+
+    # ::Gets latest changes
+    [void] GetLatest ([bool]$overwrite) {
+        sf-get-latestChanges -overwrite:$overwrite
+    }
+
+    # ::Shows pending changes
+    [void] ShowPending ([bool]$detailed) {
+        sf-show-pendingChanges -detailed:$detailed
+    }
+
+    # ::Undos all pending changes
+    [void] Undo () {
+        sf-undo-pendingChanges
     }
 }
 

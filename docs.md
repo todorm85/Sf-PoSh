@@ -5,6 +5,10 @@
 
     _Prompts the user to select a project to work with from previously created or imported._
 
+- __ShowAll ()__
+
+    _Shows all projects managed by the tool._
+
 - __Create ()__
 
     _Use to create new projects. The user will be prompted to select branch from configured ones and name for the project_
@@ -16,10 +20,6 @@
 - __Import ([string]$name, [string]$path)__
 
     _Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app_
-
-- __Import ([string]$name, [string]$path, [bool]$cloneDb)__
-
-    _Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app. $cloneDb - whether to use the same database or clone_
 
 - __Clone()__
 
@@ -69,6 +69,10 @@
 
     _Resets and reinitializes the web application. This will delete database and restore AppData folder to original state, before initiating a Sitefinity startup_
 
+- __ResetApp ([bool]$force)__
+
+    _Resets and reinitializes the web application. This will delete database and restore AppData folder to original state, before initiating a Sitefinity startup. Params: $force - forces the cleanup of App_Data folder - kills locking processes_
+
 - __SaveDbAndConfigs([string]$stateName)__
 
     _Saves the current web application AppData and Database state for later restore. Useful when debugging tests that change the state of the system. Ex. switch from single to multilingual or delete some content items etc..._
@@ -84,6 +88,18 @@
 - __RestoreDbAndConfigs()__
 
     _Restores previously saved database and AppData folder_
+
+- __OpenLocation ()__
+
+    _Opens the webapp location in windows explorer_
+
+- __AddPrecompileTemplates ()__
+
+    _Precompiles all pages for faster loading_
+
+- __RemovePrecompileTemplates ()__
+
+    _Removes any precompiled templates_
 
 ## Solution operations
 
@@ -110,3 +126,21 @@
 - __Open ()__
 
     _Opens the solution in the configured editor of the tool config_
+
+- __OpenLocation ()__
+
+    _Opens the solution location in windows explorer_
+
+## Source control operations
+
+- __GetLatest ([bool]$overwrite)__
+
+    _Gets latest changes_
+
+- __ShowPending ([bool]$detailed)__
+
+    _Shows pending changes_
+
+- __Undo ()__
+
+    _Undos all pending changes_
