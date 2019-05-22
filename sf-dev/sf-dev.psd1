@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '1.1.0'
+    ModuleVersion     = '1.1.1'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '0.3.0'; MaximumVersion = '0.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -19,6 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+## 1.1.1 (unreleased)
+    Persisted project updated with latest initialized data
 ## 1.1.0
     Importing Web Application Folder is Broken - various errors
     Auto-detect website on import
