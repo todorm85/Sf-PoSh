@@ -34,8 +34,13 @@ function sf-reset-app {
 
     $oldProject = $null
     if ($project) {
-        $oldProject = _get-selectedProject
-        set-currentProject -newContext $project
+        [SfProject]$oldProject = _get-selectedProject
+        if ($oldProject -and ($oldProject.id -ne $project.id)) {
+            set-currentProject -newContext $project
+        }
+        else {
+            $oldProject = $null
+        }
     }
 
     try {

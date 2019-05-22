@@ -30,7 +30,6 @@ function set-testProject {
 }
 
 function clone-testProject ([SfProject]$sourceProj) {
-    set-currentProject -newContext $sourceProj
     $sourceName = $sourceProj.displayName
     $sql.GetDbs() | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
 
@@ -46,15 +45,14 @@ function clone-testProject ([SfProject]$sourceProj) {
     $appSettings.AppendChild($newElement)
     $xmlData.Save($webConfigPath) > $null
 
-    sf-clone-project -skipSourceControlMapping
+    sf-clone-project -skipSourceControlMapping -context $sourceProj
 
     # verify project configuration
+    [SfProject]$project = _get-selectedProject
     $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
-    $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $cloneTestName }
-    $sitefinities.Count | Should -BeGreaterThan 0
-    [SfProject]$project = $sitefinities[$sitefinities.Count - 1]
+    $project.displayName | Should -Be $cloneTestName
     $cloneTestId = $project.id
-    $project.containerName | Should -Be ''
+    $project.containerName | Should -BeNullOrEmpty
     # $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
     # tfs-get-branchPath -path $project.solutionPath | Should -Not -Be $null
     $project.solutionPath.Contains($Script:projectsDirectory) | Should -Be $true

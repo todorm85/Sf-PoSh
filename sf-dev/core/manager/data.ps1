@@ -1,4 +1,4 @@
-function _sfData-get-allProjects {
+function _sfData-get-allProjects ([switch]$skipInit) {
     $data = New-Object XML
     $data.Load($Script:dataPath)
     $sfs = $data.data.sitefinities.sitefinity
@@ -20,6 +20,10 @@ function _sfData-get-allProjects {
             $clone.webAppPath = $_.webAppPath;
             $clone.websiteName = $_.websiteName;
             $clone.lastGetLatest = $lastGetLatest;
+
+            if (!$skipInit) {
+                _initialize-project -project $clone -suppressWarnings
+            }
 
             $clone
         }

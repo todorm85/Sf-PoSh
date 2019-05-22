@@ -9,12 +9,12 @@ InModuleScope sf-dev {
         It "change the display name and domain" {
             [SfProject]$testProject = set-testProject
             $id = $testProject.id
-            $oldName = $testProject.displayName
+            $oldName = "$($testProject.displayName)_$($testProject.id)"
             $newName = generateRandomName
 
             existsInHostsFile -searchParam $newName | Should -Be $false
             Test-Path "$($Script:projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
-            existsInHostsFile -searchParam $newName | Should -Be $false
+            existsInHostsFile -searchParam $oldName | Should -Be $true
 
             $Global:sf.project.Rename($newName)
             

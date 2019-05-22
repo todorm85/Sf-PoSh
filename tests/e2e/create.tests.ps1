@@ -51,7 +51,6 @@ InModuleScope sf-dev {
 
             foreach ($proj in $projects) {
                 if ($proj.displayName -eq $projName) {
-                    set-currentProject -newContext $proj
                     sf-rename-project -project $proj -newName $Global:testProjectDisplayName
                 }
             }

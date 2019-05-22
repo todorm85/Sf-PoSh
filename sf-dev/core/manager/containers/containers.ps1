@@ -18,8 +18,7 @@ function sf-delete-container {
     $projects = @(_sfData-get-allProjects) | Where-Object {$_.containerName -eq $container.name}
     foreach ($proj in $projects) {
         if ($removeProjects) {
-            set-currentProject $proj
-            sf-delete-project -noPrompt
+            sf-delete-project -context $proj -noPrompt
         }
         else {
             $proj.containerName = ""
@@ -45,8 +44,8 @@ function sf-set-projectContainer {
     _save-selectedProject $context
 }
 
-function get-allProjectsForCurrentContainer {
-    $sitefinities = _sfData-get-allProjects
+function get-allProjectsForCurrentContainer ([switch]$skipInit) {
+    $sitefinities = _sfData-get-allProjects -skipInit:$skipInit
     foreach ($sitefinity in $sitefinities) {
         if ($Script:selectedContainer.name -eq $sitefinity.containerName) {
             $sitefinity

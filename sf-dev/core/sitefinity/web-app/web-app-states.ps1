@@ -44,8 +44,11 @@ function sf-new-appState {
     copy-sfRuntimeFiles -dest $appDataStatePath
 }
 
-function get-statesPath {
-    $context = _get-selectedProject
+function get-statesPath ([SfProject]$context) {
+    if (!$context) {
+        $context = _get-selectedProject
+    }
+
     $path = "$($context.webAppPath)/sf-dev-tool/states"
     if (-not (Test-Path $path)) {
         New-Item $path -ItemType Directory
@@ -94,34 +97,34 @@ function sf-restore-appState {
     restore-sfRuntimeFiles "$appDataStatePath/*"
 }
 
-function sf-delete-appState ($stateName) {
+function sf-delete-appState ($stateName, [SfProject]$context) {
     if ([string]::IsNullOrEmpty($stateName)) {
-        $stateName = select-appState
+        $stateName = select-appState -context $context
     }
 
     if (-not $stateName) {
         return
     }
 
-    $statesPath = get-statesPath
+    $statesPath = get-statesPath -context $context
     if ($statesPath) {
         $statePath = "${statesPath}/$stateName"
         Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse
     }
 }
 
-function sf-delete-allAppStates {
-    $statesPath = get-statesPath
+function sf-delete-allAppStates ([SfProject]$context) {
+    $statesPath = get-statesPath -context $context
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
-            sf-delete-appState $state.Name
+            sf-delete-appState $state.Name -context $context
         }
     }
 }
 
-function select-appState {
-    $statesPath = get-statesPath
+function select-appState ([SfProject]$context) {
+    $statesPath = get-statesPath -context $context
     $states = Get-Item "${statesPath}/*"
     if (-not $states) {
         Write-Warning "No states."

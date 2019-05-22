@@ -78,12 +78,15 @@ function sf-create-website {
         throw "Website with name $($context.id) already exists or no name provided:"
     }
 
-
+    if (!$context.websiteName) {
+        $context.websiteName = $context.id
+    }
+    
     $newAppPath = $context.webAppPath
     $newAppPool = $context.id
     $domain = generate-domainName -context $context
     try {
-        iis-create-website -newWebsiteName $context.id -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
+        iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
     catch {
         throw "Error creating site: $_"

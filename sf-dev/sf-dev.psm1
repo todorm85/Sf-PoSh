@@ -30,6 +30,7 @@ class SfProject {
     [string]$description
     [string]$containerName
     [string]$lastGetLatest
+    [bool]$isInitialized
 
     SfProject() {
         $this.id = _generateId

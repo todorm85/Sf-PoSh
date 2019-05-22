@@ -209,7 +209,9 @@ function sf-clone-project {
 
     [SfProject]$newProject = $null
     try {
-        [SfProject]$newProject = sf-import-project -displayName "$($context.displayName)-clone" -path "$targetPath\SitefinityWebApp" -noAutoSelect:$noAutoSelect
+        [SfProject]$newProject = [SfProject]::new()
+        $newProject.displayName = "$($context.displayName)-clone"
+        $newProject.webAppPath = "$targetPath\SitefinityWebApp"
     }
     catch {
         Write-Warning "Cleaning up copied files"
@@ -235,41 +237,34 @@ function sf-clone-project {
         $newProject.websiteName = ""
     }
 
-    $oldProject = _get-selectedProject
-    set-currentProject $newProject
-    try {
-        $sourceDbName = get-currentAppDbName -project $oldProject
-        [SqlClient]$sql = _get-sqlClient
-        if ($sourceDbName -and $sql.IsDuplicate($sourceDbName)) {
-            $newDbName = $newProject.id
-            try {
-                sf-set-appDbName $newDbName
-            }
-            catch {
-                Write-Error "Error setting new database name in config $newDbName).`n $_"                    
-            }
-                
-            try {
-                $sql.CopyDb($sourceDbName, $newDbName)
-            }
-            catch {
-                Write-Error "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
-            }
-        }
-
+    $oldProject = $context
+    $sourceDbName = get-currentAppDbName -project $oldProject
+    [SqlClient]$sql = _get-sqlClient
+    if ($sourceDbName -and $sql.IsDuplicate($sourceDbName)) {
+        $newDbName = $newProject.id
         try {
-            sf-delete-allAppStates
+            sf-set-appDbName $newDbName -context $newProject
         }
         catch {
-            Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
+            Write-Error "Error setting new database name in config $newDbName).`n $_"                    
+        }
+                
+        try {
+            $sql.CopyDb($sourceDbName, $newDbName)
+        }
+        catch {
+            Write-Error "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
         }
     }
-    finally {
-        set-currentProject $oldProject
+
+    try {
+        sf-delete-allAppStates -context $newProject
+    }
+    catch {
+        Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
     }
 
-    _save-selectedProject $newProject
-    return $newProject
+    set-currentProject -newContext $newProject
 }
 
 <#
@@ -288,8 +283,7 @@ function sf-import-project {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
-        [Parameter(Mandatory = $true)][string]$path,
-        [switch]$noAutoSelect
+        [Parameter(Mandatory = $true)][string]$path
     )
 
     $isWebApp = Test-Path "$path\web.config"
@@ -301,10 +295,7 @@ function sf-import-project {
     $newContext.displayName = $displayName
     $newContext.webAppPath = $path
     
-    if (!$noAutoSelect) {
-        set-currentProject $newContext
-    }
-    
+    set-currentProject $newContext
     _save-selectedProject $newContext
     return $newContext
 }
@@ -369,7 +360,14 @@ function sf-delete-project {
     }
 
     $solutionPath = $context.solutionPath
-    $workspaceName = tfs-get-workspaceName $context.webAppPath
+    $workspaceName = $null
+    try {
+        $workspaceName = tfs-get-workspaceName $context.webAppPath
+    }
+    catch {
+        Write-Warning "No workspace to delete, no TFS mapping found."        
+    }
+
     $dbName = sf-get-appDbName $context
     $websiteName = $context.websiteName
     
@@ -382,21 +380,10 @@ function sf-delete-project {
         }
     }
 
-    # while ($true) {
-    #     $isConfirmed = Read-Host -Prompt "WARNING! Current operation will reset IIS. You also need to have closed the current sitefinity solution in Visual Studio and any opened browsers for complete deletion. Continue [y/n]?"
-    #     if ($isConfirmed -eq 'y') {
-    #         break;
-    #     }
-
-    #     if ($isConfirmed -eq 'n') {
-    #         return
-    #     }
-    # }
-
     Set-Location -Path $PSScriptRoot
 
     # Del workspace
-    if ($workspaceName -ne '' -and !($keepWorkspace)) {
+    if ($workspaceName -and !($keepWorkspace)) {
         Write-Information "Deleting workspace..."
         try {
             tfs-delete-workspace $workspaceName $Script:tfsServerName
@@ -536,7 +523,6 @@ function sf-rename-project {
     Remove-Item -Path $oldSolutionPath -Force
 
     _save-selectedProject $context
-    set-currentProject $context
 }
 
 function _create-userFriendlySlnName ($context) {
@@ -563,13 +549,13 @@ function _validate-project {
             throw "Invalid sitefinity context. No sitefinity id."
         }
 
-        if ($context.solutionPath -ne '') {
+        if ($context.solutionPaths) {
             if (-not (Test-Path $context.solutionPath)) {
                 throw "Invalid sitefinity context. Solution path does not exist."
             }
         }
         
-        if (-not $context.webAppPath -and -not(Test-Path $context.webAppPath)) {
+        if (-not ($context.webAppPath -and (Test-Path $context.webAppPath))) {
             throw "Invalid sitefinity context. No web app path or it does not exist."
         }
     }
@@ -583,7 +569,7 @@ function _get-isIdDuplicate ($id) {
         return $false
     }
 
-    $sitefinities = [SfProject[]](_sfData-get-allProjects)
+    $sitefinities = [SfProject[]](_sfData-get-allProjects -skipInit)
     $sitefinities | % {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {
@@ -594,7 +580,7 @@ function _get-isIdDuplicate ($id) {
     if (Test-Path "$Script:projectsDirectory\$id") { return $true }
 
     $wss = tfs-get-workspaces $Script:tfsServerName | Where-Object { isDuplicate $_ }
-    if ($wss) { return $false }
+    if ($wss) { return $true }
 
     Import-Module WebAdministration
     $sites = Get-Item "IIS:\Sites"
@@ -609,7 +595,7 @@ function _get-isIdDuplicate ($id) {
     }
     [SqlClient]$sql = _get-sqlClient
     $dbs = $sql.GetDbs() | Where-Object { isDuplicate $_.name }
-    if ($dbs) { return $false }
+    if ($dbs) { return $true }
 
     return $false;
 }
@@ -639,17 +625,17 @@ function set-currentProject {
         [switch]$fluentInited
     )
 
-    if ($null -ne $newContext) {
-        _initialize-project $newContext
-        _validate-project $newContext
-    }    
-
     if ($fluentInited) {
         $Script:globalContext = $newContext
         set-consoleTitle -newContext $newContext
         Set-Prompt -project $newContext
     }
     else {
+        if ($null -ne $newContext) {
+            _initialize-project $newContext
+            _validate-project $newContext
+        }
+
         $Global:sf = [MasterFluent]::new($newContext)
     }
 }
@@ -746,10 +732,20 @@ function _get-unusedProjectName {
 
 function _initialize-project {
     param (
-        [Parameter(Mandatory = $true)][SfProject]$project
+        [Parameter(Mandatory = $true)][SfProject]$project,
+        [switch]$suppressWarnings
     )
-
     
+    if ($project.isInitialized) {
+        Write-Information "Project already initialized."
+        return
+    }
+
+    $oldWarningPreference = $WarningPreference
+    if ($suppressWarnings) {
+        $WarningPreference = 'SilentlyContinue'
+    }
+
     if (!$project.displayName -or !$project.id) {
         throw "Cannot initialize a project with no display name or id."    
     }
@@ -784,10 +780,7 @@ function _initialize-project {
         Write-Warning "$errorMessgePrefix Could not detect website for the current project."
     }
 
-    try {
-        _save-selectedProject $project
-    }
-    catch {
-        throw "$errorMessgePrefix Could not write project to db. $_"
-    }
+    $project.isInitialized = $true
+
+    $WarningPreference = $oldWarningPreference
 }

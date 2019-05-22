@@ -12,13 +12,13 @@ InModuleScope sf-dev {
             
             $Global:sf.project.Delete()
             
-            $sitefinities = @(_sfData-get-allProjects) | where { $_.id -eq $testId }
+            $sitefinities = @(_sfData-get-allProjects -skipInit) | where { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0
             Test-Path "$($Script:projectsDirectory)\${testId}" | Should -Be $false
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $false
             Test-Path "IIS:\Sites\${testId}" | Should -Be $false
             $sql.GetDbs() | Where-Object { $_.Name.Contains($testId) } | Should -HaveCount 0
-            existsInHostsFile -searchParam $proj.displayName | Should -Be $false
+            existsInHostsFile -searchParam "$($proj.displayName)_$($proj.id)" | Should -Be $false
         }
     }
 }

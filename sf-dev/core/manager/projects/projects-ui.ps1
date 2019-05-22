@@ -23,7 +23,7 @@ function prompt-projectSelect {
         [switch]$showUnused
     )
 
-    $sitefinities = @(get-allProjectsForCurrentContainer)
+    $sitefinities = @(get-allProjectsForCurrentContainer -skipInit)
     if ($null -eq $sitefinities[0]) {
         Write-Warning "No sitefinities in current container! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
         return
