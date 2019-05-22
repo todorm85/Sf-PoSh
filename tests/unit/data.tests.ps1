@@ -1,20 +1,10 @@
 . "${PSScriptRoot}\..\test-utils\load-module.ps1"
 
 InModuleScope sf-dev {
-    
-    Describe "_sfData-get-allProjects" {
-        $oldDataPath
+    . "$PSScriptRoot\init.ps1"
 
-        BeforeAll {
-            $oldDataPath = $Script:dataPath
-            $Script:dataPath = "$($Script:prjectsDirectory)\data-tests-db.xml"
-            if (Test-Path $dataPath) {
-                Remove-Item $dataPath -Force
-            }
-            else {
-                . "${PSScriptRoot}\..\..\sf-dev\core\manager\manager.init.ps1"
-            }
-        }
+    Describe "_sfData-get-allProjects" {
+        Mock _initialize-project { }
 
         It "return empty collection when no projects" {
             $projects = _sfData-get-allProjects
@@ -54,19 +44,5 @@ InModuleScope sf-dev {
             $projects[0].branch | Should -Be "test-branch"
             $projects[0].containerName | Should -Be "test-container"
         }
-
-        AfterAll {
-            try {
-                Write-Information "Module test db cleanup"
-                Remove-Item $Script:dataPath -ErrorAction SilentlyContinue
-            }
-            catch {
-                Write-Warning "Module db file was not cleaned up: $_"
-            }
-            finally {
-                $Script:dataPath = $oldDataPath
-            }
-        }
-
     }
 }

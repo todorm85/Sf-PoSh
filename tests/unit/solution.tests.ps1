@@ -1,6 +1,7 @@
 . "${PSScriptRoot}\..\test-utils\load-module.ps1"
 
 InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
     
     Describe "sf-switch-styleCop" {
         

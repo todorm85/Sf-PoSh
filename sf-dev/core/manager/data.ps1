@@ -19,6 +19,7 @@ function _sfData-get-allProjects ([switch]$skipInit) {
             $clone.solutionPath = $_.solutionPath;
             $clone.webAppPath = $_.webAppPath;
             $clone.websiteName = $_.websiteName;
+            $clone.tags = $_.tags;
             $clone.lastGetLatest = $lastGetLatest;
 
             if (!$skipInit) {
@@ -80,6 +81,7 @@ function _sfData-save-project {
     $sitefinityEntry.SetAttribute("branch", $context.branch)
     $sitefinityEntry.SetAttribute("description", $context.description)
     $sitefinityEntry.SetAttribute("containerName", $context.containerName)
+    $sitefinityEntry.SetAttribute("tags", $context.tags)
     $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
 
     $data.Save($dataPath) > $null

@@ -1,6 +1,7 @@
 . "${PSScriptRoot}\..\test-utils\load-module.ps1"
 
 InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
 
     Describe "`$Global:sf should" -Tags ("fluent") {
         Mock _validate-project { }

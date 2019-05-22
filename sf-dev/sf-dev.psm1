@@ -31,6 +31,7 @@ class SfProject {
     [string]$containerName
     [string]$lastGetLatest
     [bool]$isInitialized
+    [string]$tags
 
     SfProject() {
         $this.id = _generateId
@@ -89,9 +90,66 @@ class MasterFluent : FluentBase {
     }
 }
 
+# class::Tags operations
+class TagsFluent : FluentBase {
+    TagsFluent ([SfProject]$project) : base($project) { }
+
+    [void] hidden ValidateTag([string]$tag) {
+        if (!$tag -or $tag.StartsWith('-') -or $tag.Contains(' ')) {
+            throw "Invalid tag name. Must not contain spaces and start with '-'"
+        }
+    }
+
+    # ::Tags the current project
+    [void] Add([string]$tagName) {
+        $this.ValidateTag($tagName)
+        [SfProject]$project = $this.GetProject()
+        if (!$project.tags) {
+            $project.tags = $tagName
+        }
+        else {
+            $project.tags += " $tagName"
+        }
+
+        _save-selectedProject -context $project
+    }
+
+    # ::Removes the tag from current project
+    [void] Remove([string]$tagName) {
+        $this.ValidateTag($tagName)
+        if (!$tagName) {
+            throw "Invalid tag name to remove."
+        }
+
+        [SfProject]$project = $this.GetProject()
+        if ($project.tags -and $project.tags.Contains($tagName)) {
+            $project.tags = $project.tags.Replace($tagName, '').Replace('  ', ' ').Trim()
+        }
+
+        _save-selectedProject -context $project
+    }
+
+    # ::Removes all tags from current project
+    [void] RemoveAll() {
+        [SfProject]$project = $this.GetProject()
+        $project.tags = ''
+        _save-selectedProject -context $project
+    }
+
+    # ::Removes all tags from current project
+    [string] GetAll() {
+        [SfProject]$project = $this.GetProject()
+        return $project.tags
+    }
+}
+
 # class::Project operations
 class ProjectFluent : FluentBase {
-    ProjectFluent ([SfProject]$project) : base($project) { }
+    [TagsFluent] $tags
+
+    ProjectFluent ([SfProject]$project) : base($project) {
+        $this.tags = [TagsFluent]::new($project)
+    }
 
     # ::Prompts the user to select a project to work with from previously created or imported.
     [void] Select () {
