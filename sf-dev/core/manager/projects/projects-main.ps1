@@ -780,6 +780,7 @@ function _initialize-project {
         Write-Warning "$errorMessgePrefix Could not detect website for the current project."
     }
 
+    _save-selectedProject -context $project
     $project.isInitialized = $true
 
     $WarningPreference = $oldWarningPreference
