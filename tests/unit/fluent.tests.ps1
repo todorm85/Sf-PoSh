@@ -6,6 +6,7 @@ InModuleScope sf-dev {
     Describe "`$Global:sf should" -Tags ("fluent") {
         Mock _validate-project { }
         Mock _initialize-project { }
+        Mock _sfData-get-allProjects { [SfProject]::new([Guid]::NewGuid()) }
         Mock Set-Location { }
 
         It "initialize with empty project after module load" {

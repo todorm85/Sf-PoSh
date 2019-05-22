@@ -11,7 +11,18 @@ function sf-select-project {
         [switch]$showUnused
     )
     
-    $selectedSitefinity = prompt-projectSelect -showUnused:$showUnused
+    $sitefinities = @(_sfData-get-allProjects -skipInit)
+    if (!$sitefinities[0]) {
+        Write-Warning "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
+        return
+    }
+
+    if (!$showUnused) {
+        $unusedProjectsName = _get-unusedProjectName
+        $sitefinities = $sitefinities | Where-Object { ([SfProject]$_).displayName -ne $unusedProjectsName }
+    }
+
+    $selectedSitefinity = prompt-projectSelect -sitefinities $sitefinities
 
     set-currentProject $selectedSitefinity
     
@@ -20,30 +31,16 @@ function sf-select-project {
 
 function prompt-projectSelect {
     param (
-        [switch]$showUnused
+        [SfProject[]]$sitefinities
     )
-
-    $sitefinities = @(get-allProjectsForCurrentContainer -skipInit)
-    if ($null -eq $sitefinities[0]) {
-        Write-Warning "No sitefinities in current container! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
-        return
-    }
-    
-    if (-not $showUnused) {
-        $unusedProjectsName = _get-unusedProjectName
-        $sitefinities = $sitefinities | Where-Object { ([SfProject]$_).displayName -ne $unusedProjectsName }
-    }
-    else {
-        $sitefinities = $sitefinities | Sort-Object -Property @{Expression = "displayName" }, @{Expression = "branch" }
-    }
 
     if (-not $sitefinities) {
         Write-Warning "No sitefinities found. Make sure you are showing unused as well or create some."
         return
     }
-
+    
+    $sitefinities = $sitefinities | Sort-Object -Property @{Expression = "displayName" }, @{Expression = "branch" }
     sf-show-projects $sitefinities
-
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
         $selectedSitefinity = $sitefinities[$choice]
@@ -148,13 +145,6 @@ function sf-show-projects {
         $index = [array]::IndexOf($sitefinities, $sitefinity)
         
         $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]; Ports = "$ports"; ID = "$($sitefinity.id)"; LastGet = _get-daysSinceLastGetLatest $sitefinity }) > $null
-    }
-    $currentContainerName = $Script:selectedContainer.name
-    if ($currentContainerName -ne '') {
-        Write-Host "`nProjects in $currentContainerName"
-    }
-    else {
-        Write-Host "`nAll projects in no container"
     }
 
     $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id, LastGet | Out-String | ForEach-Object { Write-Host $_ }

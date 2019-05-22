@@ -11,17 +11,9 @@ function Set-Prompt {
         [SfProject]$project
     )
 
-    $currentContainer = $project.containerName 
     $projectName = $project.displayName
-
     if ($projectName) {
-        $prompt = " ["
-
-        if ($currentContainer) {
-            $prompt = " [$currentContainer | "
-        }
-
-        $prompt = "$prompt$projectName]"
+        $prompt = " [$projectName]"
     } 
     else {
         $prompt = ""

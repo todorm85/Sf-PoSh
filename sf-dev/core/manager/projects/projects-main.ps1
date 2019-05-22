@@ -301,7 +301,7 @@ function sf-import-project {
 }
 
 function sf-delete-projects {
-    $sitefinities = @(get-allProjectsForCurrentContainer)
+    $sitefinities = @(_sfData-get-allProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return

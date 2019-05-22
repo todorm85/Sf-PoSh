@@ -15,7 +15,7 @@ InModuleScope sf-dev {
 
         It "Add single tag to project" {
             $sf.project.tags.Add($testTag1)
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             $proj.tags | Should -Be $testTag1
             set-currentProject $proj
             $sf.project.tags.GetAll() | Should -Be $testTag1
@@ -24,7 +24,7 @@ InModuleScope sf-dev {
             $expectedTags = "$testTag1 $testTag2 $testTag3"
             $sf.project.tags.Add($testTag2)
             $sf.project.tags.Add($testTag3)
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             $proj.tags | Should -Be $expectedTags
             set-currentProject $proj
             $sf.project.tags.GetAll() | Should -Be $expectedTags
@@ -32,11 +32,11 @@ InModuleScope sf-dev {
         It "Remove tag from project" {
             $expectedTags = "$testTag1 $testTag3"
 
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             set-currentProject $proj
             $sf.project.tags.Remove($testTag2)
             
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             set-currentProject $proj
             $proj.tags | Should -Be $expectedTags
             $sf.project.tags.GetAll() | Should -Be $expectedTags
@@ -46,12 +46,12 @@ InModuleScope sf-dev {
             $sf.project.tags.Add($testTag2)
             $sf.project.tags.Add($testTag4)
 
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             set-currentProject $proj
             $sf.project.tags.Remove($testTag2)
             $sf.project.tags.Remove($testTag3)
             
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             set-currentProject $proj
             $proj.tags | Should -Be $expectedTags
             $sf.project.tags.GetAll() | Should -Be $expectedTags
@@ -59,11 +59,11 @@ InModuleScope sf-dev {
         It "Remove first tag" {
             $expectedTags = "$testTag4"
 
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             set-currentProject $proj
             $sf.project.tags.Remove($testTag1)
             
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             set-currentProject $proj
             $proj.tags | Should -Be $expectedTags
             $sf.project.tags.GetAll() | Should -Be $expectedTags
@@ -72,11 +72,11 @@ InModuleScope sf-dev {
             $expectedTags = "$testTag4"
             $sf.project.tags.Add($testTag2)
 
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             set-currentProject $proj
             $sf.project.tags.Remove($testTag2)
             
-            [SfProject]$proj = (get-allProjectsForCurrentContainer)[0]
+            [SfProject]$proj = (_sfData-get-allProjects)[0]
             set-currentProject $proj
             $proj.tags | Should -Be $expectedTags
             $sf.project.tags.GetAll() | Should -Be $expectedTags

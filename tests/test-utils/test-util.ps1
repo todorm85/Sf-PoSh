@@ -52,7 +52,6 @@ function clone-testProject ([SfProject]$sourceProj) {
     $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
     $project.displayName | Should -Be $cloneTestName
     $cloneTestId = $project.id
-    $project.containerName | Should -BeNullOrEmpty
     # $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
     # tfs-get-branchPath -path $project.solutionPath | Should -Not -Be $null
     $project.solutionPath.Contains($Script:projectsDirectory) | Should -Be $true

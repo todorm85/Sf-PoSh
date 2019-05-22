@@ -28,7 +28,6 @@ class SfProject {
     #needed for performance when selecting sitefinities
     [string]$branch
     [string]$description
-    [string]$containerName
     [string]$lastGetLatest
     [bool]$isInitialized
     [string]$tags

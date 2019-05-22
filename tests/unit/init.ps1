@@ -3,4 +3,4 @@ if (Test-Path $dataPath) {
     Remove-Item $dataPath -Force
 }
 
-. "${PSScriptRoot}\..\..\sf-dev\core\manager\manager.init.ps1"
+init-managerData

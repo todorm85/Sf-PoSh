@@ -9,7 +9,7 @@ function sf-start-allProjectsBatch ($scriptBlock) {
             sf-start-batch $scriptBlock
         }
         catch {
-            $sfStamp = "ID: $($sitefinity.id), Name: $($sitefinity.containerName) $($sitefinity.displayName)"
+            $sfStamp = "ID: $($sitefinity.id), Name: $($sitefinity.displayName)"
             $errors = "$errors`n---------------------------------`n$sfStamp`nError while processing script:`n$_`nCommand: $($_.InvocationInfo.MyCommand)`nStack: $($_.Exception.StackTrace)"
         }
     }

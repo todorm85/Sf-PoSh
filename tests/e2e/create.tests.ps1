@@ -15,7 +15,6 @@ InModuleScope sf-dev {
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id
 
-            $createdSf.containerName | Should -Be ''
             $createdSf.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
             $createdSf.solutionPath | Should -Be "$($Script:projectsDirectory)\${id}"
             $createdSf.webAppPath | Should -Be "$($Script:projectsDirectory)\${id}\SitefinityWebApp"
