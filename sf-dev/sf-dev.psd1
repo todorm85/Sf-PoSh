@@ -19,8 +19,13 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
-## 1.1.0 (not released)
-    Fix importing project, site not detected if existing
+## 1.1.0
+    Importing Web Application Folder is Broken - various errors
+    Auto-detect website on import
+    Auto-detect and update settings when loading project
+    Improve error messages
+    Check for workspace only at startup and stop showing the error
+    Simplify fluent api
 Fixes
     Import project form directory is broken
     Add more functions to fluent
