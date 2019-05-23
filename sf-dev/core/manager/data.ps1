@@ -34,8 +34,7 @@ function _sfData-get-allProjects {
         }
     }
 
-    $sitefinities = filter-projectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
-    $sitefinities
+    filter-projectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
 }
 
 function _sfData-delete-project {
