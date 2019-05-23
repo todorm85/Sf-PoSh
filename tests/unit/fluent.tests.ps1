@@ -80,6 +80,15 @@ InModuleScope sf-dev {
                 { $facade.Rename('test') } | Should -Throw -ExpectedMessage "You must select a project to work with first."
             }
         }
+
+        It "Select uses defaultTags" {
+            Mock sf-select-project {
+                $tagsFilter | Should -Be "-test gosho pe6o"
+            }
+            
+            $sf.project.tags.SetDefaultTagFilter("-test gosho pe6o")
+            $sf.project.Select()
+        }
     }
 
     Describe "`$Tags fluent" -Tags ("fluent") {

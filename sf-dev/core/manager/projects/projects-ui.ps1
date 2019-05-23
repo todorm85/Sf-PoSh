@@ -32,11 +32,13 @@ function prompt-projectSelect {
         return
     }
     
-    $sitefinities = $sitefinities | Sort-Object -Property @{Expression = "displayName" }, @{Expression = "branch" }, @{Expression = "tags" }
-    sf-show-projects $sitefinities
+    $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
+
+    sf-show-projects $sortedSitefinities
+
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
-        $selectedSitefinity = $sitefinities[$choice]
+        $selectedSitefinity = $sortedSitefinities[$choice]
         if ($null -ne $selectedSitefinity) {
             break;
         }

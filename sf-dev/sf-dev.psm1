@@ -140,6 +140,16 @@ class TagsFluent : FluentBase {
         [SfProject]$project = $this.GetProject()
         return $project.tags
     }
+
+    # ::Sets a default filtering to apply when selecting items without providing a tagFilter
+    [void] SetDefaultTagFilter([string]$tagsFilter) {
+        _sfData-save-defaultTagsFilter -defaultTagsFilter $tagsFilter
+    }
+    
+    # ::Gets the default tagFilter
+    [string] GetDefaultTagFilter() {
+        return _sfData-get-defaultTagsFilter
+    }
 }
 
 # class::Project operations
@@ -152,7 +162,8 @@ class ProjectFluent : FluentBase {
 
     # ::Prompts the user to select a project to work with from previously created or imported.
     [void] Select () {
-        $this.Select('')
+        $filter = $this.tags.GetDefaultTagFilter()
+        $this.Select($filter)
     }
 
     # ::Prompts the user to select a projects managed by the tool filtered by their tags. If tagsFilter is equal to '+' only untagged projects are shown. Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.

@@ -65,7 +65,7 @@ function _sfData-save-project {
 
     $context = [SfProject]$context
     $data = New-Object XML
-    $data.Load($dataPath) > $null
+    $data.Load($Script:dataPath) > $null
     $sitefinities = $data.data.sitefinities.sitefinity
     ForEach ($sitefinity in $sitefinities) {
         if ($sitefinity.id -eq $context.id) {
@@ -90,7 +90,25 @@ function _sfData-save-project {
     $sitefinityEntry.SetAttribute("tags", $context.tags)
     $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
 
-    $data.Save($dataPath) > $null
+    $data.Save($Script:dataPath) > $null
+}
+
+function _sfData-save-defaultTagsFilter {
+    param (
+        [string]$defaultTagsFilter
+    )
+    
+    $data = New-Object XML
+    $data.Load($Script:dataPath) > $null
+    $data.data.SetAttribute("defaultTagsFilter", $defaultTagsFilter) > $null
+    
+    $data.Save($Script:dataPath) > $null
+}
+
+function _sfData-get-defaultTagsFilter {
+    $data = New-Object XML
+    $data.Load($Script:dataPath) > $null
+    $data.data.GetAttribute("defaultTagsFilter", $defaultTagsFilter)
 }
 
 <#
