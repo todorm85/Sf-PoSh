@@ -1,13 +1,47 @@
 ﻿# Sf-Dev PowerShell Module Auto-Generated Documentation
+## Tags operations
+
+- __Add([string]$tagName)__
+
+    _Tags the current project_
+
+- __Remove([string]$tagName)__
+
+    _Removes the tag from current project_
+
+- __RemoveAll()__
+
+    _Removes all tags from current project_
+
+- __[string] GetAll()__
+
+    _Removes all tags from current project_
+
+- __SetDefaultTagFilter([string]$tagsFilter)__
+
+    _Sets a default filtering to apply when selecting items without providing a tagFilter_
+
+- __[string] GetDefaultTagFilter()__
+
+    _Gets the default tagFilter_
+
 ## Project operations
 
 - __Select ()__
 
     _Prompts the user to select a project to work with from previously created or imported._
 
+- __Select ([string]$tagsFilter)__
+
+    _Prompts the user to select a projects managed by the tool filtered by their tags. If tagsFilter is equal to '+' only untagged projects are shown. Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones._
+
 - __ShowAll ()__
 
     _Shows all projects managed by the tool._
+
+- __ShowAll ([string]$tagsFilter)__
+
+    _Shows all projects managed by the tool filtered by their tags. If tagsFilter is equal to '+' only untagged projects are shown. Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones._
 
 - __Create ()__
 
