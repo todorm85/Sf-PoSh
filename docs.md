@@ -45,11 +45,15 @@
 
 - __Create ()__
 
-    _Use to create new projects. The user will be prompted to select branch from configured ones and name for the project_
+    _Use to create new projects. The user will be prompted for parameters._
 
-- __Create ([string]$name, [string]$branchPath)__
+- __Create ([string]$path)__
 
-    _Use to create new projects. $branchPath - the TFS branch path to the source_
+    _Use to create new projects. The path can be either TFS branch path or file system location to Sitefinity Build (containing licence file and SitefinityWebApp.zip file)_
+
+- __Create ([string]$name, [string]$sourcePath)__
+
+    _Use to create new projects. The path can be either TFS branch path or file system location to Sitefinity Build (containing licence file and SitefinityWebApp.zip file)_
 
 - __Import ([string]$name, [string]$path)__
 
