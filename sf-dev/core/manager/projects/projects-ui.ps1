@@ -32,7 +32,7 @@ function prompt-projectSelect {
         return
     }
     
-    $sitefinities = $sitefinities | Sort-Object -Property @{Expression = "displayName" }, @{Expression = "branch" }
+    $sitefinities = $sitefinities | Sort-Object -Property @{Expression = "displayName" }, @{Expression = "branch" }, @{Expression = "tags" }
     sf-show-projects $sitefinities
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
@@ -115,6 +115,7 @@ function sf-show-currentProject {
         [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
         [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $branch; }
         [pscustomobject]@{id = 9; Parameter = "Last get"; Value = _get-daysSinceLastGetLatest $context; }
+        [pscustomobject]@{id = 10; Parameter = "Tags"; Value = $context.tags }
     )
 
     $details = $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders | Out-String
@@ -137,10 +138,18 @@ function sf-show-projects {
         [SfProject]$sitefinity = $sitefinity
         $index = [array]::IndexOf($sitefinities, $sitefinity)
         
-        $output.add([pscustomobject]@{order = $index; Title = "$index : $($sitefinity.displayName)"; Branch = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]; Ports = "$ports"; ID = "$($sitefinity.id)"; LastGet = _get-daysSinceLastGetLatest $sitefinity }) > $null
+        $output.add([pscustomobject]@{
+                order   = $index;
+                Title   = "$index : $($sitefinity.displayName)";
+                Branch  = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0];
+                Ports   = "$ports";
+                ID      = "$($sitefinity.id)";
+                LastGet = _get-daysSinceLastGetLatest $sitefinity;
+                Tags = $sitefinity.tags
+            }) > $null
     }
 
-    $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id, LastGet | Out-String | ForEach-Object { Write-Host $_ }
+    $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id, LastGet, Tags | Out-String | ForEach-Object { Write-Host $_ }
 }
 
 function _get-daysSinceLastGetLatest ([SfProject]$context) {
