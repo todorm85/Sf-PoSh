@@ -1,7 +1,12 @@
-function _sfData-get-allProjects ([switch]$skipInit) {
+function _sfData-get-allProjects {
+    param(
+        [switch]$skipInit,
+        [string]$tagsFilter
+    )
     $data = New-Object XML
     $data.Load($Script:dataPath)
     $sfs = $data.data.sitefinities.sitefinity
+    [System.Collections.Generic.List``1[SfProject]]$sitefinities = New-Object System.Collections.Generic.List``1[SfProject]
     if ($sfs) {
         $sfs | ForEach-Object {
             if ($_.lastGetLatest) {
@@ -25,9 +30,12 @@ function _sfData-get-allProjects ([switch]$skipInit) {
                 _initialize-project -project $clone -suppressWarnings
             }
 
-            $clone
+            $sitefinities.Add($clone)
         }
     }
+
+    $sitefinities = filter-projectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
+    $sitefinities
 }
 
 function _sfData-delete-project {
@@ -83,4 +91,53 @@ function _sfData-save-project {
     $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
 
     $data.Save($dataPath) > $null
+}
+
+<#
+    passing '+' in include tags will take only untagged
+    exclude tags take precedence
+    exclude tags are prefixed with '-'
+ #>
+ function filter-projectsByTags {
+    param (
+        [SfProject[]]$sitefinities,
+        [string]$tagsFilter
+    )
+    
+    if ($tagsFilter -eq '+') {
+        $sitefinities = $sitefinities | where {!$_.tags}
+    }
+    elseif ($tagsFilter) {
+        $includeTags = $tagsFilter.Split(' ') | where { !$_.StartsWith('-') }
+        if ($includeTags.Count -gt 0) {
+            $sitefinities = $sitefinities | where { check-ifTagged -sitefinity $_ -tags $includeTags }
+        }
+
+        $excludeTags = $tagsFilter.Split(' ') | where { $_.StartsWith('-') } | %  { $_.Remove(0,1)}
+        if ($excludeTags.Count -gt 0) {
+            $sitefinities = $sitefinities | where { !(check-ifTagged -sitefinity $_ -tags $excludeTags) }
+        }
+    }
+
+    $sitefinities
+}
+
+function check-ifTagged {
+    param (
+        [SfProject]$sitefinity,
+        [string[]]$tagsToCheck
+    )
+
+    if (!$sitefinity.tags) {
+        return $false
+    }
+
+    $sfTags = $sitefinity.tags.Split(' ')
+    foreach ($tagToCheck in $tagsToCheck) {
+        if ($sfTags.Contains($tagToCheck)) {
+            return $true
+        }
+    }
+
+    return $false
 }

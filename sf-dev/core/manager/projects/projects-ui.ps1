@@ -8,24 +8,17 @@
 #>
 function sf-select-project {
     [CmdletBinding()]Param(
-        [switch]$showUnused
+        [string]$tagsFilter
     )
     
-    $sitefinities = @(_sfData-get-allProjects -skipInit)
+    [SfProject[]]$sitefinities = @(_sfData-get-allProjects -skipInit -tagsFilter $tagsFilter)
     if (!$sitefinities[0]) {
-        Write-Warning "No sitefinities! Create one first. sf-create-sitefinity or manually add in sf-data.xml"
+        Write-Warning "No projects found."
         return
     }
 
-    if (!$showUnused) {
-        $unusedProjectsName = _get-unusedProjectName
-        $sitefinities = $sitefinities | Where-Object { ([SfProject]$_).displayName -ne $unusedProjectsName }
-    }
-
     $selectedSitefinity = prompt-projectSelect -sitefinities $sitefinities
-
     set-currentProject $selectedSitefinity
-    
     sf-show-currentProject
 }
 

@@ -449,18 +449,9 @@ function sf-delete-project {
     }
 }
 
-<#
-    .SYNOPSIS
-    Renames the current selected sitefinity.
-    .PARAMETER markUnused
-    If set renames the instanse to '-' and the workspace name to 'unused_{current date}.
-    .OUTPUTS
-    None
-#>
 function sf-rename-project {
     [CmdletBinding()]
     Param(
-        [switch]$markUnused,
         [string]$newName,
         [switch]$setDescription,
         [SfProject]$project
@@ -477,11 +468,7 @@ function sf-rename-project {
     [SfProject]$context = $project
     $oldName = $context.displayName
 
-    if ($markUnused) {
-        $newName = _get-unusedProjectName
-        $context.description = ""
-    }
-    elseif (-not $newName) {
+    if (-not $newName) {
         $oldName | Set-Clipboard
         while ([string]::IsNullOrEmpty($newName) -or (-not (validate-nameSyntax $newName))) {
             if ($newName) {
@@ -724,10 +711,6 @@ function _create-workspace ($context, $branch) {
     catch {
         throw "Could not get latest workapce changes. $_"
     }
-}
-
-function _get-unusedProjectName {
-    return "free"
 }
 
 function _initialize-project {

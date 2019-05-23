@@ -152,12 +152,22 @@ class ProjectFluent : FluentBase {
 
     # ::Prompts the user to select a project to work with from previously created or imported.
     [void] Select () {
-        sf-select-project -showUnused
+        $this.Select('')
+    }
+
+    # ::Prompts the user to select a projects managed by the tool filtered by their tags. If tagsFilter is equal to '+' only untagged projects are shown. Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
+    [void] Select ([string]$tagsFilter) {
+        sf-select-project -tagsFilter $tagsFilter
     }
 
     # ::Shows all projects managed by the tool.
     [void] ShowAll () {
-        $sfs = _sfData-get-allProjects
+        $this.ShowAll('')
+    }
+    
+    # ::Shows all projects managed by the tool filtered by their tags. If tagsFilter is equal to '+' only untagged projects are shown. Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
+    [void] ShowAll ([string]$tagsFilter) {
+        $sfs = _sfData-get-allProjects -tagsFilter $tagsFilter
         sf-show-projects -sitefinities $sfs
     }
 
