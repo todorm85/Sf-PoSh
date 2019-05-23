@@ -21,155 +21,108 @@ function sf-new-project {
         [switch]$buildSolution,
         [switch]$startWebApp,
         [switch]$precompile,
-        [string]$customBranch,
+        [string]$sourcePath,
         [switch]$noAutoSelect
     )
 
-    DynamicParam {
-        # Set the dynamic parameters' name
-        $ParameterName = 'predefinedBranch'
-        
-        # Create the dictionary 
-        $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-
-        # Create the collection of attributes
-        $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-        
-        # Create and set the parameters' attributes
-        $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-        $ParameterAttribute.Mandatory = $false
-        $ParameterAttribute.Position = 1
-
-        # Add the attributes to the attributes collection
-        $AttributeCollection.Add($ParameterAttribute)
-
-        # Generate and set the ValidateSet 
-        $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($predefinedBranches)
-
-        # Add the ValidateSet to the attributes collection
-        $AttributeCollection.Add($ValidateSetAttribute)
-
-        # Create and return the dynamic parameter
-        $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributeCollection)
-        $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-        return $RuntimeParameterDictionary
+    [SfProject]$newContext = [SfProject]::new()
+    if (!$displayName) {
+        $displayName = 'Untitled'
     }
 
-    begin {
-        # Bind the parameter to a friendly variable
-        $predefinedBranch = $PsBoundParameters[$ParameterName]
+    $newContext.displayName = $displayName
+
+    $oldContext = _get-selectedProject
+
+    try {
+        create-projectFilesFromSource -sourcePath $sourcePath -project $newContext 
+
+        Write-Information "Backing up original App_Data folder..."
+        $webAppPath = $newContext.webAppPath
+        $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
+        New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
+        copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
+
+        Write-Information "Creating website..."
+        sf-create-website -context $newContext
+
+        _save-selectedProject $newContext
     }
-
-    process {
-        if ($null -ne $predefinedBranch) {
-            $branch = $predefinedBranch
-        }
-        else {
-            $branch = $customBranch
-        }
-
-        [Config]$config = _get-config
-        [SfProject]$newContext = [SfProject]::new()
-        $newContext.displayName = $displayName
-        $newContext.solutionPath = "$($config.projectsDirectory)\$($newContext.id)"
-        $newContext.webAppPath = "$($newContext.solutionPath)\SitefinityWebApp";
-        if (Test-Path $newContext.webAppPath) {
-            throw "Path already exists:" + $newContext.webAppPath
-        }
-
-        $oldContext = _get-selectedProject
-
+    catch {
+        Write-Warning "############ CLEANING UP ############"
+        Set-Location $PSScriptRoot
+        
         try {
-            Write-Information "Creating solution path..."
-            New-Item $newContext.solutionPath -type directory > $null
-
-            $newContext.branch = $branch
-            _create-workspace $newContext -branch $branch
-            $newContext.lastGetLatest = [datetime]::Today
-
-            Write-Information "Backing up original App_Data folder..."
-            $webAppPath = $newContext.webAppPath
-            $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
-            New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
-            copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
-
-            Write-Information "Creating website..."
-            sf-create-website -context $newContext
-
-            # persist current context to script data
-            _save-selectedProject $newContext
+            Write-Information "Deleting workspace..."
+            tfs-delete-workspace $newContext.id $Script:tfsServerName
         }
         catch {
-            Write-Warning "############ CLEANING UP ############"
-            Set-Location $PSScriptRoot
-        
-            try {
-                Write-Information "Deleting workspace..."
-                tfs-delete-workspace $newContext.id $Script:tfsServerName
-            }
-            catch {
-                Write-Warning "Error cleaning workspace or it was not created."
-            }
-
-            try {
-                Write-Information "Deleting solution..."
-                Remove-Item -Path $newContext.solutionPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
-            }
-            catch {
-                Write-Warning "Error cleaning solution directory or it was not created."
-            }
-
-            try {
-                Write-Information "Removing website..."
-                delete-website -context $newContext
-            }
-            catch {
-                Write-Warning "Could not remove website or it was not created"
-            }
-
-            if ($oldContext) {
-                set-currentProject $oldContext
-            }
-            $ii = $_.InvocationInfo
-            $msg = $_
-            if ($ii) {
-                $msg = "$msg`n$($ii.PositionMessage)"
-            }
-
-            throw $msg
+            Write-Warning "Error cleaning workspace or it was not created."
         }
 
         try {
-            set-currentProject $newContext
-
-            if ($buildSolution) {
-                Write-Information "Building solution..."
-                sf-build-solution -retryCount 3
+            Write-Information "Deleting project files..."
+            $path = $newContext.solutionPath
+            if (!$path) {
+                $path = $newContext.webAppPath
             }
 
-            if ($startWebApp) {
-                try {
-                    Write-Information "Initializing Sitefinity"
-                    create-startupConfig
-                    start-app
-                    if ($precompile) {
-                        sf-add-precompiledTemplates
-                    }
-                }
-                catch {
-                    Write-Warning "APP WAS NOT INITIALIZED. $_"
-                    delete-startupConfig
-                }
-            }        
+            Remove-Item -Path $path -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
         }
-        finally {
-            if ($noAutoSelect) {
-                set-currentProject $oldContext
-            }
+        catch {
+            Write-Warning "Error cleaning project directory or it was not created."
         }
 
-        return $newContext
+        try {
+            Write-Information "Removing website..."
+            delete-website -context $newContext
+        }
+        catch {
+            Write-Warning "Could not remove website or it was not created"
+        }
+
+        if ($oldContext) {
+            set-currentProject $oldContext
+        }
+        $ii = $_.InvocationInfo
+        $msg = $_
+        if ($ii) {
+            $msg = "$msg`n$($ii.PositionMessage)"
+        }
+
+        throw $msg
     }
+
+    try {
+        set-currentProject $newContext
+
+        if ($buildSolution) {
+            Write-Information "Building solution..."
+            sf-build-solution -retryCount 3
+        }
+
+        if ($startWebApp) {
+            try {
+                Write-Information "Initializing Sitefinity"
+                create-startupConfig
+                start-app
+                if ($precompile) {
+                    sf-add-precompiledTemplates
+                }
+            }
+            catch {
+                Write-Warning "APP WAS NOT INITIALIZED. $_"
+                delete-startupConfig
+            }
+        }        
+    }
+    finally {
+        if ($noAutoSelect) {
+            set-currentProject $oldContext
+        }
+    }
+
+    return $newContext
 }
 
 function sf-clone-project {
@@ -767,4 +720,34 @@ function _initialize-project {
     $project.isInitialized = $true
 
     $WarningPreference = $oldWarningPreference
+}
+
+function create-projectFilesFromSource {
+    param (
+        [Parameter(Mandatory=$true)][Sfproject]$project,
+        [Parameter(Mandatory=$true)][string]$sourcePath
+    )
+    
+    [Config]$config = _get-config
+    $projectDirectory = "$($config.projectsDirectory)\$($project.id)"
+    if (Test-Path $projectDirectory) {
+        throw "Path already exists:" + $projectDirectory
+    }
+
+    New-Item $projectDirectory -type directory > $null
+
+    if ($sourcePath.StartsWith("$/CMS/")) {
+        Write-Information "Creating project files..."
+        $project.solutionPath = $projectDirectory
+        $newContext.webAppPath = "$projectDirectory\SitefinityWebApp";
+        _create-workspace $project $sourcePath
+    }
+    else {
+        if (!(Test-Path -Path $sourcePath) -or !(Test-Path -path "$sourcePath\SitefinityWebApp.zip")) {
+            throw "Source path does not exist $sourcePath, unreachable or no SitefinityWebApp.zip archive found in it."
+        }
+
+        $project.webAppPath = $projectDirectory
+        expand-archive -path "$sourcePath\SitefinityWebApp.zip" -destinationpath $project.webAppPath
+    }
 }

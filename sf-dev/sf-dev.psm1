@@ -182,20 +182,22 @@ class ProjectFluent : FluentBase {
         sf-show-projects -sitefinities $sfs
     }
 
-    # ::Use to create new projects. The user will be prompted to select branch from configured ones and name for the project
+    # ::Use to create new projects. The user will be prompted for parameters.
     [void] Create () {
-        $selectedBranch = prompt-predefinedBranchSelect
-        $name = $null
-        while (!$name) {
-            $name = Read-Host -Prompt "Enter name"
-        }
-        
-        sf-new-project -displayName $name -customBranch $selectedBranch
+        # TODO: Prompt to select from branch or source
+        $sourcePath = prompt-predefinedBranchSelect
+        $this.Create($sourcePath)
     }
 
-    # ::Use to create new projects. $branchPath - the TFS branch path to the source
-    [void] Create ([string]$name, [string]$branchPath) {
-        sf-new-project -displayName $name -customBranch $branchPath
+    # ::Use to create new projects. The path can be either TFS branch path or file system location to Sitefinity Build (containing licence file and SitefinityWebApp.zip file)
+    [void] Create ([string]$path) {
+        $name = Read-Host -Prompt "Enter name"
+        $this.Create($name, $path)
+    }
+
+    # ::Use to create new projects. The path can be either TFS branch path or file system location to Sitefinity Build (containing licence file and SitefinityWebApp.zip file)
+    [void] Create ([string]$name, [string]$sourcePath) {
+        sf-new-project -displayName $name -sourcePath $sourcePath
     }
 
     # ::Use to import existing sitefinity projects to be managed by the tool. $name - the name of the imported project. $path - the directory of the Sitefinity web app
@@ -352,7 +354,12 @@ class SolutionFluent : FluentBase {
 
     # ::Opens the solution location in windows explorer
     [void] OpenLocation () {
-        ii ([SfProject]$this.GetProject()).solutionPath
+        $path = ([SfProject]$this.GetProject()).solutionPath
+        if (!$path -or !(Test-Path $path)) {
+            throw "No solution path or not found."
+        }
+        
+        ii $path
     }
 }
 # class::Source control operations
