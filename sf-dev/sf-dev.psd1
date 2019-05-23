@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '1.1.1'
+    ModuleVersion     = '1.2.0'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '0.3.0'; MaximumVersion = '0.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -19,7 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
-## 1.1.1 (unreleased)
+## 1.2.0
+    (Project filtering by tags)[https://github.com/todorm85/sitefinity-dev-orchestration/issues/30]
     Persisted project updated with latest initialized data
 ## 1.1.0
     Importing Web Application Folder is Broken - various errors
