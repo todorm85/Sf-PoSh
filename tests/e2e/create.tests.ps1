@@ -5,7 +5,7 @@
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
 
-    Describe "Creating project from build location" {
+    Describe "Creating project from build location" -Tags ("create") {
         It "create site, add domain and set project properties correctly" {
             $projName = generateRandomName
             $Global:sf.project.Create($projName, "$PSScriptRoot\files\Build")
@@ -28,10 +28,9 @@ InModuleScope sf-dev {
     }
 
     Describe "Starting new project from scratch should" -Tags ("create") {
-        $projName = $null
+        $projName = generateRandomName
         
         It "when creating the project from branch get latest, make workspace, site, domain, app pool permissions" {
-            $projName = generateRandomName
             $Global:sf.project.Create($projName, '$/CMS/Sitefinity 4.0/Code Base')
 
             $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $projName }

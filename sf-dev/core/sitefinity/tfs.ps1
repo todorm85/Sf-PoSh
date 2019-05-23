@@ -10,6 +10,10 @@ function sf-undo-pendingChanges {
     Param()
 
     $context = _get-selectedProject
+    if (!$context.branch) {
+        return
+    }
+    
     if (!(Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
     }
@@ -37,6 +41,10 @@ function sf-show-pendingChanges {
     }
 
     $context = _get-selectedProject
+    if (!$context.branch) {
+        return
+    }
+
     if (-not $context -or -not $context.solutionPath -or -not (Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
     }
@@ -68,6 +76,10 @@ function sf-get-latestChanges {
     )
     
     [SfProject]$context = _get-selectedProject
+    if (!$context.branch) {
+        return
+    }
+    
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
