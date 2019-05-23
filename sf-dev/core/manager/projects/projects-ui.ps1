@@ -192,3 +192,27 @@ function prompt-predefinedBranchSelect {
 
     return $selectedBranch
 }
+
+function prompt-predefinedBuildPathSelect {
+    [Config]$conf = _get-config
+    $paths = @($conf.predefinedBuildPaths)
+
+    if ($paths.Count -eq 0) {
+        $selectedPath = Read-Host -Prompt 'No predefined build paths, enter build path'
+        return $selectedPath
+    }
+
+    $i = 0
+    foreach ($path in $paths) {
+        $i++
+        Write-Host "[$i] : $path"
+    }
+
+    $selectedPath = $null
+    while (!$selectedPath) {
+        $userInput = Read-Host -Prompt "Select path"
+        $selectedPath = $paths[$userInput - 1]
+    }
+
+    return $selectedPath
+}

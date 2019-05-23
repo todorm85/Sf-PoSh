@@ -21,6 +21,7 @@ $Script:sfDevConfig = New-Object Config -Property @{
     sqlUser            = $configFile.sqlUser
     sqlPass            = $configFile.sqlPass
     predefinedBranches = $configFile.predefinedBranches
+    predefinedBuildPaths = $configFile.predefinedBuildPaths
 }
     
 # for backwards compatibility should be removed

@@ -89,9 +89,24 @@ InModuleScope sf-dev {
             $sf.project.tags.SetDefaultTagFilter("-test gosho pe6o")
             $sf.project.Select()
         }
+
+        Context "create should" {
+            It "use branch when predefined branch selected" {
+                Mock Read-Host { '1' }
+                Mock prompt-predefinedBranchSelect { "testPath" }
+                Mock sf-new-project { $sourcePath | Should -Be "testPath"}
+                $sf.project.Create()
+            }
+            It "use build path when build path selected" {
+                Mock Read-Host { '2' }
+                Mock prompt-predefinedBuildPathSelect { "testPath" }
+                Mock sf-new-project { $sourcePath | Should -Be "testPath"}
+                $sf.project.Create()
+            }
+        }
     }
 
-    Describe "`$Tags fluent" -Tags ("fluent") {
+    Describe "Tags fluent" -Tags ("fluent") {
         Mock _initialize-project { }
         Mock _validate-project { }
         Mock set-consoleTitle { }

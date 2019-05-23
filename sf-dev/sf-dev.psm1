@@ -16,6 +16,7 @@ class Config {
     [string]$sqlUser
     [string]$sqlPass
     [string[]]$predefinedBranches
+    [string[]]$predefinedBuildPaths
 }
 
 class SfProject {
@@ -184,8 +185,19 @@ class ProjectFluent : FluentBase {
 
     # ::Use to create new projects. The user will be prompted for parameters.
     [void] Create () {
-        # TODO: Prompt to select from branch or source
-        $sourcePath = prompt-predefinedBranchSelect
+        $selectFrom = $null
+        while ($selectFrom -ne 1 -and $selectFrom -ne 2) {
+            $selectFrom = Read-Host -Prompt "Create from?`n1.Branch`n2.Build"
+        }
+
+        $sourcePath = $null
+        if ($selectFrom -eq 1) {
+            $sourcePath = prompt-predefinedBranchSelect
+        }
+        else {
+            $sourcePath = prompt-predefinedBuildPathSelect
+        }
+
         $this.Create($sourcePath)
     }
 
