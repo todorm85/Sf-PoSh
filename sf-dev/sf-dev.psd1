@@ -19,6 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+    Prompting for branches fixes
+    
 1.3.0
     Ability to create project from build path
 1.2.0

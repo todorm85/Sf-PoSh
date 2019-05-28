@@ -187,7 +187,10 @@ function prompt-predefinedBranchSelect {
     $selectedBranch = $null
     while (!$selectedBranch) {
         $userInput = Read-Host -Prompt "Select branch"
-        $selectedBranch = $branches[$userInput - 1]
+        $userInput--
+        if ($userInput -gt -1 -and $userInput -lt $branches.Count) {
+            $selectedBranch = $branches[$userInput]
+        }
     }
 
     return $selectedBranch
@@ -211,8 +214,47 @@ function prompt-predefinedBuildPathSelect {
     $selectedPath = $null
     while (!$selectedPath) {
         $userInput = Read-Host -Prompt "Select path"
-        $selectedPath = $paths[$userInput - 1]
+        $userInput--
+        if ($userInput -gt -1 -and $userInput -lt $paths.Length) {
+            $selectedPath = $paths[$userInput - 1]
+        }
     }
 
     return $selectedPath
+}
+
+<#
+    .SYNOPSIS 
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
+function sf-goto {
+    [CmdletBinding()]
+    Param(
+        [switch]$configs,
+        [switch]$logs,
+        [switch]$root,
+        [switch]$webConfig
+    )
+
+    $context = _get-selectedProject
+    $webAppPath = $context.webAppPath
+
+    if ($configs) {
+        cd "${webAppPath}\App_Data\Sitefinity\Configuration"
+        ls
+    }
+    elseif ($logs) {
+        cd "${webAppPath}\App_Data\Sitefinity\Logs"
+        ls
+    }
+    elseif ($root) {
+        cd "${webAppPath}"
+        ls
+    }
+    elseif ($webConfig) {
+        & "${webAppPath}\Web.config"
+    }
 }
