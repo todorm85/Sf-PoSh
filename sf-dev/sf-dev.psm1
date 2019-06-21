@@ -301,7 +301,7 @@ class WebAppFluent : FluentBase {
 
     # ::Saves the current web application AppData and Database state for later restore. Useful when debugging tests that change the state of the system. Ex. switch from single to multilingual or delete some content items etc...
     [void] SaveDbAndConfigs() {
-        $this.SaveDbAndConfigs($null)
+        $this.SaveDbAndConfigs("temp")
     }
 
     # ::Restores previously saved database and AppData folder
@@ -311,7 +311,7 @@ class WebAppFluent : FluentBase {
 
     # ::Restores previously saved database and AppData folder
     [void] RestoreDbAndConfigs() {
-        $this.RestoreDbAndConfigs($null)
+        $this.RestoreDbAndConfigs("temp")
     }
 
     # ::Opens the webapp location in windows explorer

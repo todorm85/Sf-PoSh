@@ -1,6 +1,7 @@
 function sf-new-appState {
     Param(
         [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         $stateName,
         [SfProject]$project
     )
@@ -30,7 +31,7 @@ function sf-new-appState {
     $Acl.SetAccessRule($Ar)
     Set-Acl $statePath $Acl
 
-    $backupName = get-sqlBackupStateName
+    $backupName = get-sqlBackupStateName -stateName $stateName
     Backup-SqlDatabase -ServerInstance $Script:sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
     
     $stateDataPath = "$statePath/data.xml"
@@ -44,22 +45,12 @@ function sf-new-appState {
     copy-sfRuntimeFiles -dest $appDataStatePath
 }
 
-function get-statesPath ([SfProject]$context) {
-    if (!$context) {
-        $context = _get-selectedProject
-    }
-
-    $path = "$($context.webAppPath)/sf-dev-tool/states"
-    if (-not (Test-Path $path)) {
-        New-Item $path -ItemType Directory
-    }
-    
-    return $path
-}
-
 function sf-restore-appState {
     Param(
-        [string]$stateName,
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $stateName,
         [bool]$force = $false,
         [SfProject]$project)
 
@@ -85,7 +76,7 @@ function sf-restore-appState {
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
     [SqlClient]$sql = _get-sqlClient
     $sql.Delete($dbName)
-    $backupName = get-sqlBackupStateName
+    $backupName = get-sqlBackupStateName -stateName $stateName
     Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
 
     $appDataStatePath = "$statePath/App_Data"
@@ -95,6 +86,19 @@ function sf-restore-appState {
     }
     
     restore-sfRuntimeFiles "$appDataStatePath/*"
+}
+
+function get-statesPath ([SfProject]$context) {
+    if (!$context) {
+        $context = _get-selectedProject
+    }
+
+    $path = "$($context.webAppPath)/sf-dev-tool/states"
+    if (-not (Test-Path $path)) {
+        New-Item $path -ItemType Directory
+    }
+    
+    return $path
 }
 
 function sf-delete-appState ($stateName, [SfProject]$context) {
@@ -150,7 +154,7 @@ function select-appState ([SfProject]$context) {
 
 function get-sqlBackupStateName {
     param (
-        $stateName
+        [Parameter(Mandatory=$true)]$stateName
     )
     
     [SfProject]$context = _get-selectedProject

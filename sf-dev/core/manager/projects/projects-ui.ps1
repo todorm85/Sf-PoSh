@@ -187,6 +187,7 @@ function prompt-predefinedBranchSelect {
     $selectedBranch = $null
     while (!$selectedBranch) {
         $userInput = Read-Host -Prompt "Select branch"
+        $userInput = $userInput -as [int]
         $userInput--
         if ($userInput -gt -1 -and $userInput -lt $branches.Count) {
             $selectedBranch = $branches[$userInput]
