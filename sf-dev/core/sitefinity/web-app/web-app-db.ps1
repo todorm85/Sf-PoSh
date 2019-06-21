@@ -23,12 +23,13 @@ function get-currentAppDbName ([SfProject]$project) {
         $data.Load($dataConfigPath) > $null
         $conStr = $data.dataConfig.connectionStrings.add.connectionString
         $conStr -match "initial catalog='{0,1}(?<dbName>.*?)'{0,1}(;|$)" > $null
-        $dbName = $matches['dbName']
-        return $dbName
+        if ($matches) {
+            $dbName = $matches['dbName']
+            return $dbName
+        }
     }
-    else {
-        return $null
-    }
+
+    return $null
 }
 
 function sf-set-appDbName ($newName, [SfProject]$context) {
