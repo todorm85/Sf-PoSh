@@ -93,9 +93,9 @@
 
     _Resets the website ApplicationPool_
 
-- __ResetApplciationThreads()__
+- __ResetApplicationThreads()__
 
-    _Resets just the threads of the website application but leaves the ApplicationPool intact, useful if you need to restart hte app domain bu leave the debugger attached for startup debugging_
+    _Resets just the threads of the website application but leaves the ApplicationPool intact, useful if you need to restart the app domain but leave the debugger attached for startup debugging_
 
 - __BrowseWebsite ()__
 
