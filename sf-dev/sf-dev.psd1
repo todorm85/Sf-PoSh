@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '1.3.1'
+    ModuleVersion     = '1.3.2'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '0.3.0'; MaximumVersion = '0.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -19,6 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+1.3.2
+    Fix prompting for build path
 1.3.1            
     Fix Prompting for branches
     Fix states
