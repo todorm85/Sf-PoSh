@@ -7,5 +7,6 @@ Set-Location "$PSScriptRoot"
 git commit --quiet -a -m "Update docs"
 
 git tag $version
+git push origin --tags
 
 Publish-Module -Name "sf-dev" -NuGetApiKey $Env:NuGetApiKey
