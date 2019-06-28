@@ -16,17 +16,30 @@ function get-currentAppDbName ([SfProject]$project) {
     if (-not $project) {
         [SfProject]$project = _get-selectedProject
     }
+    
+    [XML]$data = _get-dataConfig $project
+    if ($data) {
+        $conStrs = $data.dataConfig.connectionStrings.add
+        $sfConStrEl = $conStrs | where { $_.name -eq 'Sitefinity' }
+        if ($sfConStrEl) {
+            $connection = $sfConStrEl.connectionString
+            $connection -match "initial catalog='{0,1}(?<dbName>.*?)'{0,1}(;|$)" > $null
+            if ($matches) {
+                $dbName = $matches['dbName']
+                return $dbName
+            }
+        }
+    }    
 
+    return $null
+}
+
+function _get-dataConfig ([SfProject]$project) {
     $data = New-Object XML
     $dataConfigPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
     if (Test-Path -Path $dataConfigPath) {
         $data.Load($dataConfigPath) > $null
-        $conStr = $data.dataConfig.connectionStrings.add.connectionString
-        $conStr -match "initial catalog='{0,1}(?<dbName>.*?)'{0,1}(;|$)" > $null
-        if ($matches) {
-            $dbName = $matches['dbName']
-            return $dbName
-        }
+        return $data
     }
 
     return $null

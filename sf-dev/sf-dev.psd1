@@ -19,6 +19,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+1.3.4
+    BUG fix Cannot get appDbName when more than one connection strings in data.config #52
+
 1.3.3
     Fix fallback to opening webapppath when no solution
     Fix wrong build selected from prompt
