@@ -215,6 +215,7 @@ function prompt-predefinedBuildPathSelect {
     $selectedPath = $null
     while (!$selectedPath) {
         $userInput = Read-Host -Prompt "Select path"
+        $userInput = $userInput -as [int]
         $userInput--
         if ($userInput -gt -1 -and $userInput -lt $paths.Length) {
             $selectedPath = $paths[$userInput - 1]
