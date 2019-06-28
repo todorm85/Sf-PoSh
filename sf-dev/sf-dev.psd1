@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '1.3.3'
+    ModuleVersion     = '1.3.4'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '0.3.0'; MaximumVersion = '0.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -21,7 +21,7 @@
             ReleaseNotes = @'
 1.3.4
     BUG fix Cannot get appDbName when more than one connection strings in data.config #52
-
+    Fix error message when initializing the webapp older Sitefinity version #23
 1.3.3
     Fix fallback to opening webapppath when no solution
     Fix wrong build selected from prompt
