@@ -177,7 +177,7 @@ function start-app {
 
     # Send initial request to begin bootstrapping sitefinity
     $response = _invoke-NonTerminatingRequest $url
-    if ($response -ne 200 -and $response -ne 503) {
+    if ($response -and $response -ne 200 -and $response -ne 503) {
         throw "Could not make initial connection to Sitefinity. - StatusCode: $response"
     }
 
