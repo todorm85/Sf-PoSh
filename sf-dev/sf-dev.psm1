@@ -311,7 +311,10 @@ class WebAppFluent : FluentBase {
 
     # ::Restores previously saved database and AppData folder
     [void] RestoreDbAndConfigs() {
-        $this.RestoreDbAndConfigs("temp")
+        $stateName = select-appState
+        if ($stateName) {
+            $this.RestoreDbAndConfigs($stateName)
+        }
     }
 
     # ::Opens the webapp location in windows explorer

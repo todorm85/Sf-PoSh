@@ -32,7 +32,7 @@ function sf-new-appState {
     Set-Acl $statePath $Acl
 
     $backupName = get-sqlBackupStateName -stateName $stateName
-    Backup-SqlDatabase -ServerInstance $Script:sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
+    Backup-SqlDatabase -ServerInstance $Script:sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials) -Initialize
     
     $stateDataPath = "$statePath/data.xml"
     New-Item $stateDataPath > $null
@@ -58,14 +58,6 @@ function sf-restore-appState {
         $project = _get-selectedProject
     }
 
-    if (!$stateName) {
-        $stateName = select-appState
-    }
-
-    if (!$stateName) {
-        return
-    }
-    
     sf-reset-pool
     if ($force) {
         sf-unlock-allFiles
