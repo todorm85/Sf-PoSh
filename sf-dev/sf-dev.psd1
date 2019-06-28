@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '1.3.4'
+    ModuleVersion     = '1.3.5'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '0.3.0'; MaximumVersion = '0.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -19,6 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+1.3.5
+    BUG Fix DbBackups not overriden
 1.3.4
     BUG fix Cannot get appDbName when more than one connection strings in data.config #52
     Fix error message when initializing the webapp older Sitefinity version #23
