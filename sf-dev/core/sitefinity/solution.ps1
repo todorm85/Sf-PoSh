@@ -164,23 +164,30 @@ function sf-open-solution {
         $project = _get-selectedProject
     }
     
-    $solutionPath = $project.solutionPath
-    if ($solutionPath -eq '') {
-        throw "invalid or no solution path"
+    if (!$project.solutionPath -and !$project.webAppPath) {
+        throw "invalid or no solution path and webApp path"
     }
 
-    if ($useDefault) {
-        $solutionName = "Telerik.Sitefinity.sln"
+    $path = $project.solutionPath
+
+    if (!$path) {
+        $path = $project.webAppPath
+        $projectName = "SitefinityWebApp.csproj"
     }
     else {
-        $solutionName = generate-solutionFriendlyName
+        if ($useDefault) {
+            $projectName = "Telerik.Sitefinity.sln"
+        }
+        else {
+            $projectName = generate-solutionFriendlyName
+        }
     }
 
     if (!(Test-Path $vsPath)) {
         throw "Invalid visual studio path configured ($vsPath). Configure it in $Script:userConfigPath -> vsPath"
     }
 
-    execute-native "& `"$vsPath`" `"${solutionPath}\${solutionName}`"" -successCodes @(1)
+    execute-native "& `"$vsPath`" `"$path\$projectName`"" -successCodes @(1)
 }
 
 <#
