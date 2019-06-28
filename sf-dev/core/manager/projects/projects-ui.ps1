@@ -218,7 +218,7 @@ function prompt-predefinedBuildPathSelect {
         $userInput = $userInput -as [int]
         $userInput--
         if ($userInput -gt -1 -and $userInput -lt $paths.Length) {
-            $selectedPath = $paths[$userInput - 1]
+            $selectedPath = $paths[$userInput]
         }
     }
 
