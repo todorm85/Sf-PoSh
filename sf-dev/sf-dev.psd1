@@ -19,6 +19,7 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+    Fix: renaming a project does not change the console title
 1.3.5
     BUG Fix DbBackups not overriden
 1.3.4

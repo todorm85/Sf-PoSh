@@ -13,7 +13,7 @@ function sf-select-project {
     
     [SfProject[]]$sitefinities = @(_sfData-get-allProjects -skipInit -tagsFilter $tagsFilter)
     if (!$sitefinities[0]) {
-        Write-Warning "No projects found."
+        Write-Warning "No projects found. Check if not using default tag filter."
         return
     }
 
@@ -28,7 +28,7 @@ function prompt-projectSelect {
     )
 
     if (-not $sitefinities) {
-        Write-Warning "No sitefinities found. Make sure you are showing unused as well or create some."
+        Write-Warning "No sitefinities found. Check if not filtered with default tags."
         return
     }
     

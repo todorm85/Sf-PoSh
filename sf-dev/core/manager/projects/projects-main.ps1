@@ -444,29 +444,36 @@ function sf-rename-project {
     $context.displayName = $newName
 
     $newSolutionName = generate-solutionFriendlyName -context $context
-    Copy-Item -Path "$($context.solutionPath)\$oldSolutionName" -Destination "$($context.solutionPath)\$newSolutionName" -Force
+    $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
+    if (Test-Path $oldSolutionPath) {
+        Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
+        
+        $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
+        $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
+        $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
+        if (Test-Path $oldSolutionCachePath) {
+            Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
+            unlock-allFiles -path $oldSolutionCachePath
+            Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+        }
 
-    $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
-    $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
-    $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
-    if (Test-Path $oldSolutionCachePath) {
-        Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
-        unlock-allFiles -path $oldSolutionCachePath
-        Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+        unlock-allFiles -path $oldSolutionPath
+        Remove-Item -Path $oldSolutionPath -Force
     }
-
+    
     $domain = generate-domainName -context $context
     change-domain -context $context -domainName $domain
-
-    $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
-    unlock-allFiles -path $oldSolutionPath
-    Remove-Item -Path $oldSolutionPath -Force
-
+    
     _save-selectedProject $context
+    set-currentProject -newContext $context 
 }
 
 function _create-userFriendlySlnName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    if (!(Test-Path $solutionFilePath)) {
+        Write-Warning "Solution file not available."    
+    }
+
     $targetFilePath = "$($context.solutionPath)\$(generate-solutionFriendlyName $context)"
     if (!(Test-Path $targetFilePath)) {
         Copy-Item -Path $solutionFilePath -Destination $targetFilePath
@@ -724,8 +731,8 @@ function _initialize-project {
 
 function create-projectFilesFromSource {
     param (
-        [Parameter(Mandatory=$true)][Sfproject]$project,
-        [Parameter(Mandatory=$true)][string]$sourcePath
+        [Parameter(Mandatory = $true)][Sfproject]$project,
+        [Parameter(Mandatory = $true)][string]$sourcePath
     )
     
     [Config]$config = _get-config
