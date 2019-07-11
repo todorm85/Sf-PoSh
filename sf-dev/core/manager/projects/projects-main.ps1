@@ -394,7 +394,14 @@ function sf-delete-project {
     }
 
     Write-Information "Deleting data entry..."
-    _sfData-delete-project $context
+    try {
+        _sfData-delete-project $context
+    }
+    catch {
+        [Config]$config = _get-config
+        Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($config.dataPath)"
+    }
+    
     set-currentProject $null
 
     if (-not ($noPrompt)) {
