@@ -1,23 +1,5 @@
 Using module toko-admin
 
-# declare types - all have to be here at psm file to be able to export the types to be used outside the module. (also needed for intellisense in editors)
-
-class Config {
-    [string]$dataPath
-    [string]$idPrefix
-    [string]$projectsDirectory
-    [string]$browserPath
-    [string]$vsPath
-    [string]$msBuildPath
-    [string]$tfsServerName
-    [string]$defaultUser
-    [string]$defaultPassword
-    [string]$sqlServerInstance
-    [string]$sqlUser
-    [string]$sqlPass
-    [string[]]$predefinedBranches
-    [string[]]$predefinedBuildPaths
-}
 
 class SfProject {
     [string]$id
@@ -230,7 +212,7 @@ class ProjectFluent : FluentBase {
 
     # ::Batch delete projects
     [void] DeleteMany() {
-        sf-delete-projects
+        sf-delete-manyProjects
         [SfProject[]]$sitefinities = @(sf-get-allProjects)
         $currentProjectWasDeleted = @($sitefinities | where { $_.id -eq $this.project.id }).Count -eq 0
 

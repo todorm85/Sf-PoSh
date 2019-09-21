@@ -3,6 +3,8 @@ if (-not (Test-Path $Script:moduleUserDir)) {
     New-Item -Path $Script:moduleUserDir -ItemType Directory
 }
 
+. "$PSScriptRoot/Config.ps1"
+
 $defaultConfigPath = "$PSScriptRoot\default_config.json"
 $Script:userConfigPath = "$Script:moduleUserDir\config.json"
 $configFile = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
