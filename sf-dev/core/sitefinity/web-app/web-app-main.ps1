@@ -158,7 +158,7 @@ function sf-add-precompiledTemplates {
 
 function start-app {
     param(
-        [Int32]$totalWaitSeconds = 10 * 60
+        [Int32]$totalWaitSeconds = 5 * 60
     )
 
     # $port = @(iis-get-websitePort $context.websiteName)[0]
