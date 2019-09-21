@@ -10,7 +10,7 @@ InModuleScope sf-dev {
             $projName = generateRandomName
             $Global:sf.project.Create($projName, "$PSScriptRoot\files\Build")
 
-            $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $projName }
+            $sitefinities = @(sf-get-allProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id

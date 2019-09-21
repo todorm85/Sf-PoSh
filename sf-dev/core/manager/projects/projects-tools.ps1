@@ -1,6 +1,11 @@
+<#
+.SYNOPSIS
+    Cleans all project artefacts in case a project was not deleted successfuly - deletes websites, databases, host file mappings based on a search
+    using the id prefix and checking whether a project in the tools database still exist or has been removed from the tool.
+#>
 function sf-clean-allProjectsLeftovers {
     $projectsDir = $Script:projectsDirectory
-    $idsInUse = _sfData-get-allProjects | ForEach-Object { $_.id }
+    $idsInUse = sf-get-allProjects | ForEach-Object { $_.id }
     
     function shouldClean {
         param (
@@ -87,32 +92,39 @@ function sf-clean-allProjectsLeftovers {
     }
 }
 
-function sf-reset-project {
-    param(
-        [SfProject]
-        $project
+<#
+    .SYNOPSIS
+    Quick naviagtion in project directories. Sets the console working directory.
+    .DESCRIPTION
+    .PARAMETER xxxx
+    .OUTPUTS
+    None
+#>
+function sf-goto {
+    [CmdletBinding()]
+    Param(
+        [switch]$configs,
+        [switch]$logs,
+        [switch]$root,
+        [switch]$webConfig
     )
 
-    if (-not $project) {
-        $project = _get-selectedProject
+    $context = sf-get-currentProject
+    $webAppPath = $context.webAppPath
+
+    if ($configs) {
+        cd "${webAppPath}\App_Data\Sitefinity\Configuration"
+        ls
     }
-
-    if ($project.lastGetLatest -and [System.DateTime]::Parse($project.lastGetLatest) -lt [System.DateTime]::Today) {
-        $shouldReset = $false
-        if (sf-get-hasPendingChanges) {
-            sf-undo-pendingChanges
-            $shouldReset = $true
-        }
-
-        $getLatestOutput = sf-get-latestChanges -overwrite
-        if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
-            $shouldReset = $true
-        }
-
-        if ($shouldReset) {
-            sf-clean-solution -cleanPackages $true
-            sf-reset-app -start -build -precompile
-            sf-new-appState -stateName initial
-        }
+    elseif ($logs) {
+        cd "${webAppPath}\App_Data\Sitefinity\Logs"
+        ls
+    }
+    elseif ($root) {
+        cd "${webAppPath}"
+        ls
+    }
+    elseif ($webConfig) {
+        & "${webAppPath}\Web.config"
     }
 }

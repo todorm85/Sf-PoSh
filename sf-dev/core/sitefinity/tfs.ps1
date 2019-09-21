@@ -9,7 +9,7 @@ function sf-undo-pendingChanges {
     [CmdletBinding()]
     Param()
 
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
     if (!$context.branch) {
         return
     }
@@ -40,7 +40,7 @@ function sf-show-pendingChanges {
         $format = "Brief"
     }
 
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
     if (!$context.branch) {
         return
     }
@@ -75,7 +75,7 @@ function sf-get-latestChanges {
         [switch]$overwrite
     )
     
-    [SfProject]$context = _get-selectedProject
+    [SfProject]$context = sf-get-currentProject
     if (!$context.branch) {
         return
     }

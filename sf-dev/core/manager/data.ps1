@@ -1,4 +1,4 @@
-function _sfData-get-allProjects {
+function sf-get-allProjects {
     param(
         [switch]$skipInit,
         [string]$tagsFilter
@@ -32,6 +32,10 @@ function _sfData-get-allProjects {
 
             $sitefinities.Add($clone)
         }
+    }
+
+    if (!$tagsFilter) {
+        $tagsFilter = sf-get-defaultTagFilter
     }
 
     filter-projectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter

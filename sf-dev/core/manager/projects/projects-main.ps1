@@ -25,6 +25,20 @@ function sf-new-project {
         [switch]$noAutoSelect
     )
 
+    if (!$sourcePath) {
+        while ($selectFrom -ne 1 -and $selectFrom -ne 2) {
+            $selectFrom = Read-Host -Prompt "Create from?`n1.Branch`n2.Build"
+        }
+
+        $sourcePath = $null
+        if ($selectFrom -eq 1) {
+            $sourcePath = prompt-predefinedBranchSelect
+        }
+        else {
+            $sourcePath = prompt-predefinedBuildPathSelect
+        }
+    }
+
     [SfProject]$newContext = [SfProject]::new()
     if (!$displayName) {
         $displayName = 'Untitled'
@@ -32,7 +46,7 @@ function sf-new-project {
 
     $newContext.displayName = $displayName
 
-    $oldContext = _get-selectedProject
+    $oldContext = sf-get-currentProject
 
     try {
         create-projectFilesFromSource -sourcePath $sourcePath -project $newContext 
@@ -133,7 +147,7 @@ function sf-clone-project {
     )
 
     if (!$context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     $sourcePath = $context.solutionPath;
@@ -253,8 +267,8 @@ function sf-import-project {
     return $newContext
 }
 
-function sf-delete-projects {
-    $sitefinities = @(_sfData-get-allProjects)
+function sf-delete-manyProjects {
+    $sitefinities = @(sf-get-allProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
@@ -309,7 +323,7 @@ function sf-delete-project {
     )
     
     if ($null -eq $context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     $solutionPath = $context.solutionPath
@@ -418,7 +432,7 @@ function sf-rename-project {
     )
 
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     if ($newName -and (-not (validate-nameSyntax $newName))) {
@@ -475,6 +489,54 @@ function sf-rename-project {
     set-currentProject -newContext $context 
 }
 
+<#
+.SYNOPSIS
+Undos all pending changes, gets latest, builds and initializes.
+#>
+function sf-reset-project {
+    param(
+        [SfProject]
+        $project
+    )
+
+    if (-not $project) {
+        $project = sf-get-currentProject
+    }
+
+    if ($project.lastGetLatest -and [System.DateTime]::Parse($project.lastGetLatest) -lt [System.DateTime]::Today) {
+        $shouldReset = $false
+        if (sf-get-hasPendingChanges) {
+            sf-undo-pendingChanges
+            $shouldReset = $true
+        }
+
+        $getLatestOutput = sf-get-latestChanges -overwrite
+        if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
+            $shouldReset = $true
+        }
+
+        if ($shouldReset) {
+            sf-clean-solution -cleanPackages $true
+            sf-reset-app -start -build -precompile
+            sf-new-appState -stateName initial
+        }
+    }
+}
+
+function sf-get-currentProject {
+    [OutputType([SfProject])]
+    $currentContext = $Script:globalContext
+    if ($currentContext -eq '') {
+        return $null
+    }
+    elseif ($null -eq $currentContext) {
+        return $null
+    }
+
+    $context = $currentContext.PsObject.Copy()
+    return [SfProject]$context
+}
+
 function _create-userFriendlySlnName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     if (!(Test-Path $solutionFilePath)) {
@@ -523,7 +585,7 @@ function _get-isIdDuplicate ($id) {
         return $false
     }
 
-    $sitefinities = [SfProject[]](_sfData-get-allProjects -skipInit)
+    $sitefinities = [SfProject[]](sf-get-allProjects -skipInit)
     $sitefinities | % {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {
@@ -622,26 +684,12 @@ function generate-solutionFriendlyName {
     )
     
     if (-not ($context)) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"
     
     return $solutionName
-}
-
-function _get-selectedProject {
-    [OutputType([SfProject])]
-    $currentContext = $Script:globalContext
-    if ($currentContext -eq '') {
-        return $null
-    }
-    elseif ($null -eq $currentContext) {
-        return $null
-    }
-
-    $context = $currentContext.PsObject.Copy()
-    return [SfProject]$context
 }
 
 function validate-nameSyntax ($name) {

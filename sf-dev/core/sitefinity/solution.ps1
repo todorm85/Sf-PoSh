@@ -12,7 +12,7 @@ function sf-build-solution {
     )
     
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
@@ -63,7 +63,7 @@ function sf-rebuild-solution {
         [SfProject]$project)
     
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     Write-Information "Rebuilding solution..."
@@ -84,7 +84,7 @@ function sf-clean-solution {
 
     Write-Information "Cleaning solution..."
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     $solutionPath = $project.solutionPath
@@ -131,7 +131,7 @@ function sf-clean-packages {
     )
 
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     if (!(Test-Path "${solutionPath}\packages")) {
@@ -161,7 +161,7 @@ function sf-open-solution {
         [SfProject]$project
     )
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
     
     if (!$project.solutionPath -and !$project.webAppPath) {
@@ -199,7 +199,7 @@ function sf-open-solution {
 function sf-build-webAppProj () {
     [CmdletBinding()]
 
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"
@@ -214,7 +214,7 @@ function sf-unlock-allFiles {
     )
 
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     if ($project.solutionPath -ne "") {
@@ -265,7 +265,7 @@ function sf-switch-styleCop {
     )
     
     if (-not $context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     $styleCopTaskPath = "$($context.solutionPath)\Builds\StyleCop\StyleCop.Targets"

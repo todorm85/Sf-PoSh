@@ -12,7 +12,7 @@ InModuleScope sf-dev {
             
             $Global:sf.project.Delete()
             
-            $sitefinities = @(_sfData-get-allProjects -skipInit) | where { $_.id -eq $testId }
+            $sitefinities = @(sf-get-allProjects -skipInit) | where { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0
             Test-Path "$($Script:projectsDirectory)\${testId}" | Should -Be $false
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $false

@@ -2,16 +2,17 @@
     .SYNOPSIS 
     Displays a list of available sitefinities to select from.
     .DESCRIPTION
-    Sitefinities that are displayed are displayed by their names. These are sitefinities that were either provisioned or imported by this script. 
-    .OUTPUTS
-    None
+    Sitefinities that are displayed are displayed by their names. These are sitefinities that were either provisioned or imported by this script.
+    .INPUTS
+    tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
+    If tagsFilter is equal to '+' only untagged projects are shown. 
 #>
 function sf-select-project {
     [CmdletBinding()]Param(
         [string]$tagsFilter
     )
     
-    [SfProject[]]$sitefinities = @(_sfData-get-allProjects -skipInit -tagsFilter $tagsFilter)
+    [SfProject[]]$sitefinities = @(sf-get-allProjects -skipInit -tagsFilter $tagsFilter)
     if (!$sitefinities[0]) {
         Write-Warning "No projects found. Check if not using default tag filter."
         return
@@ -20,31 +21,6 @@ function sf-select-project {
     $selectedSitefinity = prompt-projectSelect -sitefinities $sitefinities
     set-currentProject $selectedSitefinity
     sf-show-currentProject
-}
-
-function prompt-projectSelect {
-    param (
-        [SfProject[]]$sitefinities
-    )
-
-    if (-not $sitefinities) {
-        Write-Warning "No sitefinities found. Check if not filtered with default tags."
-        return
-    }
-    
-    $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
-
-    sf-show-projects $sortedSitefinities
-
-    while ($true) {
-        [int]$choice = Read-Host -Prompt 'Choose sitefinity'
-        $selectedSitefinity = $sortedSitefinities[$choice]
-        if ($null -ne $selectedSitefinity) {
-            break;
-        }
-    }
-
-    $selectedSitefinity
 }
 
 <#
@@ -58,7 +34,7 @@ function sf-show-currentProject {
     )
 
     if (!$context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
     
     if ($null -eq ($context)) {
@@ -156,7 +132,7 @@ function sf-show-projects {
 
 function _get-daysSinceLastGetLatest ([SfProject]$context) {
     if (-not $context) {
-        [SfProject]$context = _get-selectedProject
+        [SfProject]$context = sf-get-currentProject
     }
 
     if ($context.lastGetLatest) {
@@ -225,38 +201,27 @@ function prompt-predefinedBuildPathSelect {
     return $selectedPath
 }
 
-<#
-    .SYNOPSIS 
-    .DESCRIPTION
-    .PARAMETER xxxx
-    .OUTPUTS
-    None
-#>
-function sf-goto {
-    [CmdletBinding()]
-    Param(
-        [switch]$configs,
-        [switch]$logs,
-        [switch]$root,
-        [switch]$webConfig
+function prompt-projectSelect {
+    param (
+        [SfProject[]]$sitefinities
     )
 
-    $context = _get-selectedProject
-    $webAppPath = $context.webAppPath
+    if (-not $sitefinities) {
+        Write-Warning "No sitefinities found. Check if not filtered with default tags."
+        return
+    }
+    
+    $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
 
-    if ($configs) {
-        cd "${webAppPath}\App_Data\Sitefinity\Configuration"
-        ls
+    sf-show-projects $sortedSitefinities
+
+    while ($true) {
+        [int]$choice = Read-Host -Prompt 'Choose sitefinity'
+        $selectedSitefinity = $sortedSitefinities[$choice]
+        if ($null -ne $selectedSitefinity) {
+            break;
+        }
     }
-    elseif ($logs) {
-        cd "${webAppPath}\App_Data\Sitefinity\Logs"
-        ls
-    }
-    elseif ($root) {
-        cd "${webAppPath}"
-        ls
-    }
-    elseif ($webConfig) {
-        & "${webAppPath}\Web.config"
-    }
+
+    $selectedSitefinity
 }

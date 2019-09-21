@@ -17,7 +17,7 @@ function sf-set-storageMode {
         [string]$restrictionLevel
     )
 
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
 
     if ($storageMode -eq '') {
         do {
@@ -106,7 +106,7 @@ function sf-get-storageMode {
     [CmdletBinding()]
     Param()
 
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
 
     # set web.config readonly off
     $webConfigPath = $context.webAppPath + '\web.config'

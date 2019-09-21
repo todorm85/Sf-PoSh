@@ -14,7 +14,7 @@ function set-testProject {
 
     $intializeTestsEnvResult = initialize-testEnvironment
     
-    [SfProject[]]$allProjects = @(_sfData-get-allProjects)
+    [SfProject[]]$allProjects = @(sf-get-allProjects)
     $proj = $allProjects | where { $_.displayName -eq $Global:testProjectDisplayName }
     if ($proj.Count -eq 0) {
         throw 'Project named e2e_tests not found. Create and initialize one first.'
@@ -24,7 +24,7 @@ function set-testProject {
     $clonedProjResult = clone-testProject -sourceProj $proj
     $startAppResult = start-app
 
-    $clonedProj = _get-selectedProject
+    $clonedProj = sf-get-currentProject
     $Global:sf_tests_test_project = $clonedProj
     return $clonedProj
 }
@@ -48,7 +48,7 @@ function clone-testProject ([SfProject]$sourceProj) {
     sf-clone-project -skipSourceControlMapping -context $sourceProj
 
     # verify project configuration
-    [SfProject]$project = _get-selectedProject
+    [SfProject]$project = sf-get-currentProject
     $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
     $project.displayName | Should -Be $cloneTestName
     $cloneTestId = $project.id
@@ -94,7 +94,7 @@ function generateRandomName {
     
 function initialize-testEnvironment {
     Write-Warning "Cleanup started."
-    [SfProject[]]$projects = _sfData-get-allProjects
+    [SfProject[]]$projects = sf-get-allProjects
     if (!$Global:testProjectDisplayName) {
         Write-Warning "e2e test project name not set, skipping clean."
         return

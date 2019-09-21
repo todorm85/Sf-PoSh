@@ -8,7 +8,7 @@ InModuleScope sf-dev {
     Describe "States should" -Tags ("states") {
         It "save and then restore app_data folder and database" {
             set-testProject
-            [SfProject]$project = _get-selectedProject
+            [SfProject]$project = sf-get-currentProject
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             [string]$stateName = generateRandomName
             $stateName = $stateName.Replace('-', '_')

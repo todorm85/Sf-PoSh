@@ -13,7 +13,7 @@ function sf-setup-asSubApp {
     )
 
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     $subApp = iis-get-subAppName -websiteName $project.websiteName
@@ -36,7 +36,7 @@ function sf-remove-subApp {
     )
     
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     $subAppName = iis-get-subAppName $project.websiteName

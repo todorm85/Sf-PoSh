@@ -22,7 +22,7 @@ InModuleScope sf-dev {
         }
 
         It "start successfully after reset" {
-            $sf.webApp.ResetApp()
+            sf-reset-app
             Test-Path $configsPath | Should -Be $true
             $dbName = get-currentAppDbName            
             $sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1

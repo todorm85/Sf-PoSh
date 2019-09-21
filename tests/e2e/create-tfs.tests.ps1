@@ -10,7 +10,7 @@ InModuleScope sf-dev {
         It "when creating the project from branch get latest, make workspace, site, domain, app pool permissions" {
             $Global:sf.project.Create($projName, '$/CMS/Sitefinity 4.0/Code Base')
 
-            $sitefinities = @(_sfData-get-allProjects) | Where-Object { $_.displayName -eq $projName }
+            $sitefinities = @(sf-get-allProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id
@@ -36,7 +36,7 @@ InModuleScope sf-dev {
             $result | Should -Be 200
 
             # update the test project only if the newly created was successful
-            [SfProject[]]$projects = _sfData-get-allProjects
+            [SfProject[]]$projects = sf-get-allProjects
             if (!$Global:testProjectDisplayName) {
                 Write-Warning "e2e test project name not set, skipping clean."
                 return

@@ -4,7 +4,7 @@ function sf-rename-website {
         [string]$newName
     )
 
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
     try {
         iis-rename-website $context.websiteName $newName
     }
@@ -35,7 +35,7 @@ function sf-browse-webSite {
     )
 
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     $appUrl = get-appUrl -context $project
@@ -66,7 +66,7 @@ function sf-create-website {
     )
 
     if (-not $context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     $port = 2111
@@ -106,7 +106,7 @@ function sf-create-website {
 
 function delete-website ([SfProject]$context) {
     if (-not $context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     $websiteName = $context.websiteName
@@ -151,7 +151,7 @@ function change-domain {
     )
 
     if (-not $context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     $websiteName = $context.websiteName

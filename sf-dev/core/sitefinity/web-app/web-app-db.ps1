@@ -1,6 +1,6 @@
 function sf-get-appDbName ([SfProject]$context) {
     if (-not $context) {
-        [SfProject]$context = _get-selectedProject
+        [SfProject]$context = sf-get-currentProject
     }
 
     $dbName = get-currentAppDbName -project $context
@@ -14,7 +14,7 @@ function sf-get-appDbName ([SfProject]$context) {
 
 function get-currentAppDbName ([SfProject]$project) {
     if (-not $project) {
-        [SfProject]$project = _get-selectedProject
+        [SfProject]$project = sf-get-currentProject
     }
     
     [XML]$data = _get-dataConfig $project
@@ -47,7 +47,7 @@ function _get-dataConfig ([SfProject]$project) {
 
 function sf-set-appDbName ($newName, [SfProject]$context) {
     if (!$context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
     
     $dbName = sf-get-appDbName -context $context

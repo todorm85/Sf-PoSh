@@ -6,7 +6,7 @@ InModuleScope sf-dev {
     Describe "`$Global:sf should" -Tags ("fluent") {
         Mock _validate-project { }
         Mock _initialize-project { }
-        Mock _sfData-get-allProjects { [SfProject]::new([Guid]::NewGuid()) }
+        Mock sf-get-allProjects { [SfProject]::new([Guid]::NewGuid()) }
         Mock Set-Location { }
 
         It "initialize with empty project after module load" {
@@ -26,7 +26,7 @@ InModuleScope sf-dev {
         It "initialize global scope when selecting project from fluent" {
             $testId = "testId2";
             $Global:sf.GetProject().id | Should -Not -Be $testId
-            (_get-selectedProject).id | Should -Not -Be $testId
+            (sf-get-currentProject).id | Should -Not -Be $testId
             Mock prompt-projectSelect {
                 [SfProject]@{
                     id = $testId
@@ -35,7 +35,7 @@ InModuleScope sf-dev {
             
             $Global:sf.project.Select()
             $Global:sf.GetProject().id | Should -Be $testId
-            (_get-selectedProject).id | Should -Be $testId
+            (sf-get-currentProject).id | Should -Be $testId
         }
     }
 
@@ -88,6 +88,7 @@ InModuleScope sf-dev {
             
             $sf.project.tags.SetDefaultTagFilter("-test gosho pe6o")
             $sf.project.Select()
+            $sf.project.tags.SetDefaultTagFilter("")
         }
 
         Context "create should" {
@@ -118,7 +119,7 @@ InModuleScope sf-dev {
 
         It "Add single tag to project" {
             $sf.project.tags.Add($testTag1)
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             $proj.tags | Should -Be $testTag1
             set-currentProject $proj
             $sf.project.tags.GetAll() | Should -Be $testTag1
@@ -127,7 +128,7 @@ InModuleScope sf-dev {
             $expectedTags = "$testTag1 $testTag2 $testTag3"
             $sf.project.tags.Add($testTag2)
             $sf.project.tags.Add($testTag3)
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             $proj.tags | Should -Be $expectedTags
             set-currentProject $proj
             $sf.project.tags.GetAll() | Should -Be $expectedTags
@@ -135,11 +136,11 @@ InModuleScope sf-dev {
         It "Remove tag from project" {
             $expectedTags = "$testTag1 $testTag3"
 
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             set-currentProject $proj
             $sf.project.tags.Remove($testTag2)
             
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             set-currentProject $proj
             $proj.tags | Should -Be $expectedTags
             $sf.project.tags.GetAll() | Should -Be $expectedTags
@@ -149,12 +150,12 @@ InModuleScope sf-dev {
             $sf.project.tags.Add($testTag2)
             $sf.project.tags.Add($testTag4)
 
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             set-currentProject $proj
             $sf.project.tags.Remove($testTag2)
             $sf.project.tags.Remove($testTag3)
             
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             set-currentProject $proj
             $proj.tags | Should -Be $expectedTags
             $sf.project.tags.GetAll() | Should -Be $expectedTags
@@ -162,11 +163,11 @@ InModuleScope sf-dev {
         It "Remove first tag" {
             $expectedTags = "$testTag4"
 
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             set-currentProject $proj
             $sf.project.tags.Remove($testTag1)
             
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             set-currentProject $proj
             $proj.tags | Should -Be $expectedTags
             $sf.project.tags.GetAll() | Should -Be $expectedTags
@@ -175,11 +176,11 @@ InModuleScope sf-dev {
             $expectedTags = "$testTag4"
             $sf.project.tags.Add($testTag2)
 
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             set-currentProject $proj
             $sf.project.tags.Remove($testTag2)
             
-            [SfProject]$proj = (_sfData-get-allProjects)[0]
+            [SfProject]$proj = (sf-get-allProjects)[0]
             set-currentProject $proj
             $proj.tags | Should -Be $expectedTags
             $sf.project.tags.GetAll() | Should -Be $expectedTags

@@ -7,7 +7,7 @@ function sf-new-appState {
     )
     
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
     
     $dbName = sf-get-appDbName
@@ -55,7 +55,7 @@ function sf-restore-appState {
         [SfProject]$project)
 
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     sf-reset-pool
@@ -82,7 +82,7 @@ function sf-restore-appState {
 
 function get-statesPath ([SfProject]$context) {
     if (!$context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     $path = "$($context.webAppPath)/sf-dev-tool/states"
@@ -149,7 +149,7 @@ function get-sqlBackupStateName {
         [Parameter(Mandatory=$true)]$stateName
     )
     
-    [SfProject]$context = _get-selectedProject
+    [SfProject]$context = sf-get-currentProject
     return "$($context.id)_$stateName.bak"
 }
 

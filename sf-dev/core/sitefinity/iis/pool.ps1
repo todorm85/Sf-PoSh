@@ -12,7 +12,7 @@ function sf-reset-thread {
     [SfProject]$project)
 
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     $binPath = "$($project.webAppPath)\bin\dummy.sf"
@@ -40,7 +40,7 @@ function sf-reset-pool {
     )
 
     if (!$project) {
-        $project = _get-selectedProject
+        $project = sf-get-currentProject
     }
 
     $appPool = @(iis-get-siteAppPool $project.websiteName)
@@ -57,7 +57,7 @@ function sf-reset-pool {
 
 function sf-stop-pool ([SfProject]$context) {
     if (-not $context) {
-        $context = _get-selectedProject
+        $context = sf-get-currentProject
     }
 
     try {
@@ -81,7 +81,7 @@ function sf-change-pool {
     [CmdletBinding()]
     Param()
 
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
     $websiteName = $context.websiteName
 
     if ($websiteName -eq '') {
@@ -124,7 +124,7 @@ function sf-get-poolId {
     [CmdletBinding()]
     Param()
     
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
 
     $appPools = iis-show-appPoolPid
     $currentAppPool = @(iis-get-siteAppPool $context.websiteName)

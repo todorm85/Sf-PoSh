@@ -1,12 +1,18 @@
+<#
+.SYNOPSIS
+Iterates through all projects and passes each project as a parameter to the script block.
+.INPUTS
+scriptBlock - The script to execute against each project.
+#>
 function sf-start-allProjectsBatch ($scriptBlock) {
-    $initialProject = _get-selectedProject
-    $sitefinities = _sfData-get-allProjects
+    $initialProject = sf-get-currentProject
+    $sitefinities = sf-get-allProjects
     $errors = ''
     foreach ($sitefinity in $sitefinities) {
         [SfProject]$sitefinity = $sitefinity
         set-currentProject $sitefinity
         try {
-            sf-start-batch $scriptBlock
+            _execute-batchBlock $scriptBlock
         }
         catch {
             $sfStamp = "ID: $($sitefinity.id), Name: $($sitefinity.displayName)"
@@ -21,7 +27,7 @@ function sf-start-allProjectsBatch ($scriptBlock) {
     }
 }
 
-function sf-start-batch ($scriptBlock) {
-    $sitefinity = _get-selectedProject
+function _execute-batchBlock ($scriptBlock) {
+    $sitefinity = sf-get-currentProject
     & $scriptBlock $sitefinity
 }

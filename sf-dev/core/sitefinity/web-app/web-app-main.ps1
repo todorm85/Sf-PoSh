@@ -34,7 +34,7 @@ function sf-reset-app {
 
     $oldProject = $null
     if ($project) {
-        [SfProject]$oldProject = _get-selectedProject
+        [SfProject]$oldProject = sf-get-currentProject
         if ($oldProject -and ($oldProject.id -ne $project.id)) {
             set-currentProject -newContext $project
         }
@@ -139,7 +139,7 @@ function sf-add-precompiledTemplates {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
     
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
     $webAppPath = $context.webAppPath
     $appUrl = get-appUrl
     if ($revert) {
@@ -232,7 +232,7 @@ function _invoke-NonTerminatingRequest ($url) {
 }
 
 function delete-startupConfig {
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
     if ($ProcessError) {
@@ -249,7 +249,7 @@ function create-startupConfig {
         [string]$sqlPass = $Script:sqlPass
     )
 
-    $context = _get-selectedProject
+    $context = sf-get-currentProject
     $webAppPath = $context.webAppPath
     
     Write-Information "Creating StartupConfig..."
@@ -304,7 +304,7 @@ function create-startupConfig {
 }
 
 function reset-appDataFiles {
-    [SfProject]$context = _get-selectedProject
+    [SfProject]$context = sf-get-currentProject
     $webAppPath = $context.webAppPath
     $errorMessage = ''
     $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
@@ -332,7 +332,7 @@ function reset-appDataFiles {
 }
 
 function clean-sfRuntimeFiles {
-    [SfProject]$context = _get-selectedProject
+    [SfProject]$context = sf-get-currentProject
     $webAppPath = $context.webAppPath
 
     $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude @("*.pfx", "*.lic") -File
@@ -348,7 +348,7 @@ function clean-sfRuntimeFiles {
 
 function copy-sfRuntimeFiles ([SfProject]$project, $dest) {
     if (-not $project) {
-        [SfProject]$project = _get-selectedProject
+        [SfProject]$project = sf-get-currentProject
     }
 
     $src = "$($project.webAppPath)\App_Data\*"
@@ -357,7 +357,7 @@ function copy-sfRuntimeFiles ([SfProject]$project, $dest) {
 }
 
 function restore-sfRuntimeFiles ($src) {
-    [SfProject]$context = _get-selectedProject
+    [SfProject]$context = sf-get-currentProject
     $webAppPath = $context.webAppPath
 
     clean-sfRuntimeFiles
