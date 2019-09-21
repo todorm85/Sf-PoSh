@@ -155,8 +155,8 @@ function sf-get-configContentFromDb {
     )
 
     $dbName = sf-get-appDbName
-    [SqlClient]$sql = _get-sqlClient
-    $config = $sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
+    
+    $config = $tokoAdmin.sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
 
     if ($null -ne $config -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -187,8 +187,8 @@ function sf-clear-configContentInDb {
     $table = 'sf_xml_config_items'
     $value = "dta = '<${configName}/>'"
     $where = "path='${configName}.config'"
-    [SqlClient]$sql = _get-sqlClient
-    $sql.UpdateItems($dbName, $table, $where, $value)
+    
+    $tokoAdmin.sql.UpdateItems($dbName, $table, $where, $value)
 }
 
 <#
@@ -216,6 +216,6 @@ function sf-insert-configContentInDb {
     $value = "dta='$xmlString'"
     $where = "path='${configName}.config'"
 
-    [SqlClient]$sql = _get-sqlClient
-    $sql.UpdateItems($dbName, $table, $where, $value)
+    
+    $tokoAdmin.sql.UpdateItems($dbName, $table, $where, $value)
 }

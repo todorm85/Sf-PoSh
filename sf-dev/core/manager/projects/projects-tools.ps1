@@ -66,10 +66,10 @@ function sf-clean-allProjectsLeftovers {
 
     try {
         Write-Information "DBs cleanup"
-        [SqlClient]$sql = _get-sqlClient
-        $dbs = $sql.GetDbs()
+        
+        $dbs = $tokoAdmin.sql.GetDbs()
         $dbs | Where-Object { $_.name.StartsWith("$Script:idPrefix") -and (shouldClean $_.name) } | ForEach-Object {
-            $sql.Delete($_.name)
+            $tokoAdmin.sql.Delete($_.name)
         }
     }
     catch {

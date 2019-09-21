@@ -73,8 +73,8 @@ function sf-reset-app {
         if (-not [string]::IsNullOrEmpty($dbName)) {
             Write-Information "Deleting database..."
             try {
-                [SqlClient]$sql = _get-sqlClient
-                $sql.Delete($dbName)
+                
+                $tokoAdmin.sql.Delete($dbName)
             }
             catch {
                 throw "Erros while deleting database: $_"
@@ -273,8 +273,8 @@ function create-startupConfig {
             $dbName = sf-get-appDbName
         }
         
-        [SqlClient]$sql = _get-sqlClient
-        if (($sql.IsDuplicate($dbName)) -or [string]::IsNullOrEmpty($dbName)) {
+        
+        if (($tokoAdmin.sql.IsDuplicate($dbName)) -or [string]::IsNullOrEmpty($dbName)) {
             throw "Error creating startup.config. Database with name $dbName already exists."
         }
 

@@ -16,7 +16,8 @@ function sf-get-allProjects {
                 $lastGetLatest = $null
             }
 
-            $clone = [SfProject]::new($_.id)
+            $clone = [SfProject]::new()
+            $clone.id = $_.id;
             $clone.branch = $_.branch;
             $clone.description = $_.description;
             $clone.displayName = $_.displayName;

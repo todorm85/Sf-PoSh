@@ -1,5 +1,5 @@
 $Global:testProjectDisplayName = 'e2e_tests'
-[SqlClient]$sql = _get-sqlClient
+
 
 function set-testProject {
     if ($Global:sf_tests_test_project) {
@@ -31,7 +31,7 @@ function set-testProject {
 
 function clone-testProject ([SfProject]$sourceProj) {
     $sourceName = $sourceProj.displayName
-    $sql.GetDbs() | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
+    $tokoAdmin.sql.GetDbs() | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
 
     # edit a file in source project and mark as changed in TFS
     $webConfigPath = "$($sourceProj.webAppPath)\web.config"
@@ -64,7 +64,7 @@ function clone-testProject ([SfProject]$sourceProj) {
     Test-Path "$($project.solutionPath)\Telerik.Sitefinity.sln" | Should -Be $true
     Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
     Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
-    $sql.GetDbs() | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
+    $tokoAdmin.sql.GetDbs() | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
 }
 
 function existsInHostsFile {

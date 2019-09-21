@@ -8,7 +8,7 @@ InModuleScope sf-dev {
     Describe "Creating project from TFS branch should" -Tags ("create-tfs") {
         $projName = generateRandomName
         It "when creating the project from branch get latest, make workspace, site, domain, app pool permissions" {
-            $Global:sf.project.Create($projName, '$/CMS/Sitefinity 4.0/Code Base')
+            sf-new-project -displayName $projName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
 
             $sitefinities = @(sf-get-allProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
@@ -27,10 +27,10 @@ InModuleScope sf-dev {
             existsInHostsFile -searchParam $projName | Should -Be $true
         }
         It "when building succeed after at least 3 retries" {
-            $Global:sf.solution.Build()
+            sf-build-solution -retryCount 3
         }
         It "start the app correctly" {
-            $Global:sf.webApp.ResetApp()
+            sf-reset-app -start
             $url = get-appUrl
             $result = _invoke-NonTerminatingRequest $url
             $result | Should -Be 200

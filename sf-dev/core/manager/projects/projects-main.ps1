@@ -39,7 +39,7 @@ function sf-new-project {
         }
     }
 
-    [SfProject]$newContext = [SfProject]::new()
+    [SfProject]$newContext = new-objectSfProject
     if (!$displayName) {
         $displayName = 'Untitled'
     }
@@ -176,7 +176,7 @@ function sf-clone-project {
 
     [SfProject]$newProject = $null
     try {
-        [SfProject]$newProject = [SfProject]::new()
+        [SfProject]$newProject = new-objectSfProject
         $newProject.displayName = "$($context.displayName)-clone"
         $newProject.webAppPath = "$targetPath\SitefinityWebApp"
     }
@@ -206,8 +206,8 @@ function sf-clone-project {
 
     $oldProject = $context
     $sourceDbName = get-currentAppDbName -project $oldProject
-    [SqlClient]$sql = _get-sqlClient
-    if ($sourceDbName -and $sql.IsDuplicate($sourceDbName)) {
+    
+    if ($sourceDbName -and $tokoAdmin.sql.IsDuplicate($sourceDbName)) {
         $newDbName = $newProject.id
         try {
             sf-set-appDbName $newDbName -context $newProject
@@ -217,7 +217,7 @@ function sf-clone-project {
         }
                 
         try {
-            $sql.CopyDb($sourceDbName, $newDbName)
+            $tokoAdmin.sql.CopyDb($sourceDbName, $newDbName)
         }
         catch {
             Write-Error "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
@@ -258,7 +258,7 @@ function sf-import-project {
         throw "No asp.net web app found."
     }
 
-    [SfProject]$newContext = [SfProject]::new()
+    [SfProject]$newContext = new-objectSfProject
     $newContext.displayName = $displayName
     $newContext.webAppPath = $path
     
@@ -363,9 +363,9 @@ function sf-delete-project {
     # Del db
     if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
         Write-Information "Deleting sitefinity database..."
-        [SqlClient]$sql = _get-sqlClient
+        
         try {
-            $sql.Delete($dbName)
+            $tokoAdmin.sql.Delete($dbName)
         }
         catch {
             Write-Warning "Could not delete database: ${dbName}. $_"
@@ -609,8 +609,8 @@ function _get-isIdDuplicate ($id) {
         $names = $pools.Children.Keys | Where-Object { isDuplicate $_ }
         if ($names) { return $true }
     }
-    [SqlClient]$sql = _get-sqlClient
-    $dbs = $sql.GetDbs() | Where-Object { isDuplicate $_.name }
+    
+    $dbs = $tokoAdmin.sql.GetDbs() | Where-Object { isDuplicate $_.name }
     if ($dbs) { return $true }
 
     return $false;
@@ -637,23 +637,17 @@ function _generateId {
 
 function set-currentProject {
     Param(
-        [SfProject]$newContext,
-        [switch]$fluentInited
+        [SfProject]$newContext
     )
+        
+    if ($null -ne $newContext) {
+        _initialize-project $newContext
+        _validate-project $newContext        
+    } 
 
-    if ($fluentInited) {
-        $Script:globalContext = $newContext
-        set-consoleTitle -newContext $newContext
-        Set-Prompt -project $newContext
-    }
-    else {
-        if ($null -ne $newContext) {
-            _initialize-project $newContext
-            _validate-project $newContext
-        }
-
-        $Global:sf = [MasterFluent]::new($newContext)
-    }
+    $Script:globalContext = $newContext
+    set-consoleTitle -newContext $newContext
+    Set-Prompt -project $newContext
 }
 
 function set-consoleTitle {
@@ -735,7 +729,6 @@ function _initialize-project {
     )
     
     if ($project.isInitialized) {
-        Write-Information "Project already initialized."
         return
     }
 

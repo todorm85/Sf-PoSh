@@ -17,7 +17,7 @@ InModuleScope sf-dev {
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
             
-            $Global:sf.webApp.SaveDbAndConfigs($stateName)
+            sf-new-appState -stateName $stateName
             
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
@@ -25,22 +25,22 @@ InModuleScope sf-dev {
             Remove-Item -Path $beforeSaveFilePath
             $dbName = sf-get-appDbName
             $dbName | Should -Not -BeNullOrEmpty
-            [SqlClient]$sql = _get-sqlClient
+            
             $table = 'sf_xml_config_items'
             $columns = "path, dta, last_modified, id"
             $values = "'test', '<testConfigs/>', '$([System.DateTime]::Now.ToString())', '$([System.Guid]::NewGuid())'"
-            $sql.InsertItems($dbName, $table, $columns, $values)
+            $tokoAdmin.sql.InsertItems($dbName, $table, $columns, $values)
 
             $select = 'dta'
             $where = "dta = '<testConfigs/>'"
-            $config = $sql.GetItems($dbName, $table, $where, $select)
+            $config = $tokoAdmin.sql.GetItems($dbName, $table, $where, $select)
             $config | Should -Not -BeNullOrEmpty
 
-            $Global:sf.webApp.RestoreDbAndConfigs($stateName)
+            sf-restore-appState -stateName $stateName
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse
-            $config = $sql.GetItems($dbName, $table, $where, $select)
+            $config = $tokoAdmin.sql.GetItems($dbName, $table, $where, $select)
             $config | Should -BeNullOrEmpty
         }
     }

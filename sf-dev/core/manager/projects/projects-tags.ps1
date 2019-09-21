@@ -2,6 +2,8 @@ function sf-add-tagToProject {
     param (
         [string]$tagName
     )
+
+    _validate-tag $tagName
     
     [SfProject]$project = sf-get-currentProject
     if (!$project.tags) {
@@ -60,7 +62,7 @@ function _validate-tag {
         $tagName
     )
     
-    if (!$tag -or $tag.StartsWith('-') -or $tag.Contains(' ')) {
+    if (!$tagName -or $tagName.StartsWith('-') -or $tagName.Contains(' ')) {
         throw "Invalid tag name. Must not contain spaces and start with '-'"
     }
 }

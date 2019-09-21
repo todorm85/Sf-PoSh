@@ -6,7 +6,8 @@ InModuleScope sf-dev {
         param (
             [string]$tags
         )
-        $proj = [SfProject]::new([Guid]::NewGuid())
+
+        $proj = new-objectSfProject -id "$([System.Guid]::NewGuid().ToString())"
         $proj.tags = $tags
         $proj
     }

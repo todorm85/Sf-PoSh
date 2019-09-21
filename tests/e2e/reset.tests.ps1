@@ -12,20 +12,20 @@ InModuleScope sf-dev {
         Test-Path $configsPath | Should -Be $true
         $dbName = sf-get-appDbName
         $dbName | Should -Not -BeNullOrEmpty
-        $sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+        $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
 
         sf-reset-app
 
         It "remove app data and database" {            
-            $sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
+            $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
             Test-Path $configsPath | Should -Be $false            
         }
 
         It "start successfully after reset" {
-            sf-reset-app
+            sf-reset-app -start
             Test-Path $configsPath | Should -Be $true
             $dbName = get-currentAppDbName            
-            $sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+            $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
         }
     }
 }

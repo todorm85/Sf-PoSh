@@ -11,8 +11,7 @@ function sf-new-appState {
     }
     
     $dbName = sf-get-appDbName
-    [SqlClient]$sqlClient = _get-sqlClient
-    $db = $sqlClient.GetDbs() | Where-Object { $_.Name -eq $dbName }
+    $db = $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
     }
@@ -66,8 +65,8 @@ function sf-restore-appState {
     $statesPath = get-statesPath
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
-    [SqlClient]$sql = _get-sqlClient
-    $sql.Delete($dbName)
+    
+    $tokoAdmin.sql.Delete($dbName)
     $backupName = get-sqlBackupStateName -stateName $stateName
     Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials)
 
