@@ -518,7 +518,7 @@ function sf-reset-project {
         if ($shouldReset) {
             sf-clean-solution -cleanPackages $true
             sf-reset-app -start -build -precompile
-            sf-new-appState -stateName initial
+            sf-save-appState -stateName initial
         }
     }
 }

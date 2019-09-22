@@ -1,4 +1,4 @@
-function sf-new-appState {
+function sf-save-appState {
     Param(
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
@@ -46,15 +46,16 @@ function sf-new-appState {
 
 function sf-restore-appState {
     Param(
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $stateName,
+        [string]$stateName,
         [bool]$force = $false,
         [SfProject]$project)
 
     if (!$project) {
         $project = sf-get-currentProject
+    }
+
+    if ([string]::IsNullOrEmpty($stateName)) {
+        $stateName = select-appState -context $context
     }
 
     sf-reset-pool
@@ -77,19 +78,6 @@ function sf-restore-appState {
     }
     
     restore-sfRuntimeFiles "$appDataStatePath/*"
-}
-
-function get-statesPath ([SfProject]$context) {
-    if (!$context) {
-        $context = sf-get-currentProject
-    }
-
-    $path = "$($context.webAppPath)/sf-dev-tool/states"
-    if (-not (Test-Path $path)) {
-        New-Item $path -ItemType Directory
-    }
-    
-    return $path
 }
 
 function sf-delete-appState ($stateName, [SfProject]$context) {
@@ -156,4 +144,17 @@ function get-sqlCredentials {
     $password = ConvertTo-SecureString $Script:sqlPass -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential ($Script:sqlUser, $password)
     $credential
+}
+
+function get-statesPath ([SfProject]$context) {
+    if (!$context) {
+        $context = sf-get-currentProject
+    }
+
+    $path = "$($context.webAppPath)/sf-dev-tool/states"
+    if (-not (Test-Path $path)) {
+        New-Item $path -ItemType Directory
+    }
+    
+    return $path
 }

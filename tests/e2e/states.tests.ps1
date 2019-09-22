@@ -17,7 +17,7 @@ InModuleScope sf-dev {
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
             
-            sf-new-appState -stateName $stateName
+            sf-save-appState -stateName $stateName
             
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
