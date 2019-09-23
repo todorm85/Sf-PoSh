@@ -440,10 +440,8 @@ function sf-rename-project {
     }
 
     [SfProject]$context = $project
-    $oldName = $context.displayName
 
     if (-not $newName) {
-        $oldName | Set-Clipboard
         while ([string]::IsNullOrEmpty($newName) -or (-not (validate-nameSyntax $newName))) {
             if ($newName) {
                 Write-Warning "Invalid name syntax."
