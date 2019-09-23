@@ -435,14 +435,10 @@ function sf-rename-project {
         $project = sf-get-currentProject
     }
 
-    if ($newName -and (-not (validate-nameSyntax $newName))) {
-        Write-Error "Name syntax is not valid. Use only alphanumerics and underscores"
-    }
-
     [SfProject]$context = $project
 
     if (-not $newName) {
-        while ([string]::IsNullOrEmpty($newName) -or (-not (validate-nameSyntax $newName))) {
+        while ([string]::IsNullOrEmpty($newName)) {
             if ($newName) {
                 Write-Warning "Invalid name syntax."
             }
@@ -453,6 +449,14 @@ function sf-rename-project {
         if ($setDescription) {
             $context.description = $(Read-Host -Prompt "Enter description:`n").ToString()
         }
+    }
+
+    $azureDevOpsResult = Get-AzureDevOpsTitleAndLink $newName
+    $newName = $azureDevOpsResult.name
+    $context.description = $azureDevOpsResult.link
+
+    if ($newName -and (-not (validate-nameSyntax $newName))) {
+        Write-Error "Name syntax is not valid. Use only alphanumerics and underscores"
     }
 
     $oldSolutionName = generate-solutionFriendlyName -context $context
@@ -533,6 +537,16 @@ function sf-get-currentProject {
 
     $context = $currentContext.PsObject.Copy()
     return [SfProject]$context
+}
+
+function sf-open-description {
+    $context = sf-get-currentProject
+    if ($context.description -and $context.description.StartsWith("https://")) {
+        $browserPath = ([Config](_get-config)).browserPath;
+        execute-native "& `"$browserPath`" `"$($context.description)`" -noframemerging" -successCodes @(100)
+    } else {
+        $context.description
+    }
 }
 
 function _create-userFriendlySlnName ($context) {
@@ -685,7 +699,7 @@ function generate-solutionFriendlyName {
 }
 
 function validate-nameSyntax ($name) {
-    return $name -match "^[A-Za-z]\w+$"
+    return $name -match "^[A-Za-z]\w+$" -and $name.Length -lt 75
 }
 
 function _create-workspace ($context, $branch) {
@@ -803,4 +817,60 @@ function create-projectFilesFromSource {
         $project.webAppPath = $projectDirectory
         expand-archive -path "$sourcePath\SitefinityWebApp.zip" -destinationpath $project.webAppPath
     }
+}
+
+function Get-AzureDevOpsTitleAndLink {
+    Param([string]$name)
+    $description = ''
+    $titleKeys = @("Product Backlog Item ", "Bug ", "Task ");
+    foreach ($key in $titleKeys) {
+        if ($name.StartsWith($key)) {
+            $name = $name.Replace($key, '');
+            $nameParts = $name.Split(':');
+            $itemId = $nameParts[0].Trim();
+            $title = $nameParts[1].Trim();
+            $resultTitle = ''
+            for ($i = 0; $i -lt $name.Length; $i++) {
+                $resultTitle = "${resultTitle}:$($title[$i])";
+            }
+            
+            $name = $name.Trim();
+            $name = Get-ValidTitle $name
+
+            $description = "https://prgs-sitefinity.visualstudio.com/sitefinity/_workitems/edit/$itemId"
+        }
+    }
+
+    return @{ name = $name; link = $description }
+}
+
+function Get-ValidTitle {
+    param (
+        [string]$title
+    )
+
+    $validStartEnd = "^[A-Za-z]$";
+    $validMiddle = "^\w$";
+    while (!($title[0] -match $validStartEnd)) {
+        $title = $title.Substring(1)
+    }
+
+    while (!($title[$title.Length - 1] -match $validStartEnd)) {
+        $title = $title.Substring($title.Length - 2)
+    }
+
+    $resultTitle = '';
+    for ($i = 0; $i -lt $title.Length; $i++) {
+        if ($title[$i] -match $validMiddle) {
+            $resultTitle = "$resultTitle$($title[$i])"
+        } elseif ($title[$i] -eq ' ') {
+            $resultTitle = "${resultTitle}_"
+        }
+    }
+
+    if ($resultTitle.Length -ge 73) {
+        $resultTitle = $resultTitle.Remove(72);
+    }
+    
+    return $resultTitle;
 }
