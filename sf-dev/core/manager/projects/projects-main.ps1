@@ -32,10 +32,10 @@ function sf-new-project {
 
         $sourcePath = $null
         if ($selectFrom -eq 1) {
-            $sourcePath = prompt-predefinedBranchSelect
+            $sourcePath = _prompt-predefinedBranchSelect
         }
         else {
-            $sourcePath = prompt-predefinedBuildPathSelect
+            $sourcePath = _prompt-predefinedBuildPathSelect
         }
     }
 
@@ -55,7 +55,7 @@ function sf-new-project {
         $webAppPath = $newContext.webAppPath
         $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
         New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
-        copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
+        _copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
 
         Write-Information "Creating website..."
         sf-create-website -context $newContext
@@ -89,7 +89,7 @@ function sf-new-project {
 
         try {
             Write-Information "Removing website..."
-            delete-website -context $newContext
+            _delete-website -context $newContext
         }
         catch {
             Write-Warning "Could not remove website or it was not created"
@@ -118,15 +118,15 @@ function sf-new-project {
         if ($startWebApp) {
             try {
                 Write-Information "Initializing Sitefinity"
-                create-startupConfig
-                start-app
+                _create-startupConfig
+                _start-app
                 if ($precompile) {
                     sf-add-precompiledTemplates
                 }
             }
             catch {
                 Write-Warning "APP WAS NOT INITIALIZED. $_"
-                delete-startupConfig
+                _delete-startupConfig
             }
         }        
     }
@@ -205,7 +205,7 @@ function sf-clone-project {
     }
 
     $oldProject = $context
-    $sourceDbName = get-currentAppDbName -project $oldProject
+    $sourceDbName = _get-currentAppDbName -project $oldProject
     
     if ($sourceDbName -and $tokoAdmin.sql.IsDuplicate($sourceDbName)) {
         $newDbName = $newProject.id
@@ -376,7 +376,7 @@ function sf-delete-project {
     Write-Information "Deleting website..."
     if ($websiteName) {
         try {
-            delete-website $context
+            _delete-website $context
         }
         catch {
             Write-Warning "Errors deleting website ${websiteName}. $_"
@@ -483,8 +483,8 @@ function sf-rename-project {
         Remove-Item -Path $oldSolutionPath -Force
     }
     
-    $domain = generate-domainName -context $context
-    change-domain -context $context -domainName $domain
+    $domain = _generate-domainName -context $context
+    _change-domain -context $context -domainName $domain
     
     _save-selectedProject $context
     set-currentProject -newContext $context 

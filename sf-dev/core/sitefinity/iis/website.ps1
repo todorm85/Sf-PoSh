@@ -38,7 +38,7 @@ function sf-browse-webSite {
         $project = sf-get-currentProject
     }
 
-    $appUrl = get-appUrl -context $project
+    $appUrl = _get-appUrl -context $project
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:userConfigPath -> browserPath"
     }
@@ -84,7 +84,7 @@ function sf-create-website {
     
     $newAppPath = $context.webAppPath
     $newAppPool = $context.id
-    $domain = generate-domainName -context $context
+    $domain = _generate-domainName -context $context
     try {
         iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
@@ -104,7 +104,7 @@ function sf-create-website {
     }
 }
 
-function delete-website ([SfProject]$context) {
+function _delete-website ([SfProject]$context) {
     if (-not $context) {
         $context = sf-get-currentProject
     }
@@ -144,7 +144,7 @@ function delete-website ([SfProject]$context) {
     }
 }
 
-function change-domain {
+function _change-domain {
     param (
         $context,
         $domainName

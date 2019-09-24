@@ -21,7 +21,7 @@ function sf-reset-thread {
 
     if ($start) {
         Start-Sleep -s 1
-        start-app
+        _start-app
     }
 }
 
@@ -51,7 +51,7 @@ function sf-reset-pool {
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
     if ($start) {
         Start-Sleep -s 1
-        start-app
+        _start-app
     }
 }
 

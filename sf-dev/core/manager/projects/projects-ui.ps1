@@ -19,7 +19,7 @@ function sf-select-project {
         return
     }
 
-    $selectedSitefinity = prompt-projectSelect -sitefinities $sitefinities
+    $selectedSitefinity = _prompt-projectSelect -sitefinities $sitefinities
     set-currentProject $selectedSitefinity
     sf-show-currentProject
 }
@@ -146,7 +146,7 @@ function _get-daysSinceLastGetLatest ([SfProject]$context) {
     }
 }
 
-function prompt-predefinedBranchSelect {
+function _prompt-predefinedBranchSelect {
     $branches = @($GLOBAL:Sf.Config.predefinedBranches)
 
     if ($branches.Count -eq 0) {
@@ -173,7 +173,7 @@ function prompt-predefinedBranchSelect {
     return $selectedBranch
 }
 
-function prompt-predefinedBuildPathSelect {
+function _prompt-predefinedBuildPathSelect {
     $paths = @($GLOBAL:Sf.Config.predefinedBuildPaths)
 
     if ($paths.Count -eq 0) {
@@ -200,7 +200,7 @@ function prompt-predefinedBuildPathSelect {
     return $selectedPath
 }
 
-function prompt-projectSelect {
+function _prompt-projectSelect {
     param (
         [SfProject[]]$sitefinities
     )

@@ -3,7 +3,7 @@ function sf-get-appDbName ([SfProject]$context) {
         [SfProject]$context = sf-get-currentProject
     }
 
-    $dbName = get-currentAppDbName -project $context
+    $dbName = _get-currentAppDbName -project $context
     if ($dbName) {
         return $dbName
     }
@@ -12,7 +12,7 @@ function sf-get-appDbName ([SfProject]$context) {
     }
 }
 
-function get-currentAppDbName ([SfProject]$project) {
+function _get-currentAppDbName ([SfProject]$project) {
     if (-not $project) {
         [SfProject]$project = sf-get-currentProject
     }

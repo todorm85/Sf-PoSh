@@ -27,7 +27,7 @@ function sf-build-solution {
             else {
                 try {
                     sf-switch-styleCop -context $project -enable:$false
-                    build-proj $solutionPath
+                    _build-proj $solutionPath
                 }
                 finally {
                     sf-switch-styleCop -context $project -enable:$true
@@ -205,7 +205,7 @@ function sf-build-webAppProj () {
         throw "invalid or no solution or web app project path"
     }
 
-    build-proj $path
+    _build-proj $path
 }
 
 function sf-unlock-allFiles {
@@ -228,7 +228,7 @@ function sf-unlock-allFiles {
         unlock-allFiles $path
     }
 }
-function build-proj {
+function _build-proj {
     
     Param(
         [Parameter(Mandatory)][string]$path
@@ -296,9 +296,9 @@ function sf-switch-styleCop {
         }
     }
 
-    write-File -content $newContent -path $styleCopTaskPath
+    _write-File -content $newContent -path $styleCopTaskPath
 }
 
-function write-File ($content, $path) {
+function _write-File ($content, $path) {
     $content | Out-File -FilePath $path -Force -Encoding utf8 -ErrorAction Stop
 }

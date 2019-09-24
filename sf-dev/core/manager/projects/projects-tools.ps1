@@ -24,7 +24,7 @@ function sf-clean-allProjectsLeftovers {
     }
 
     $errors = ''
-    function add-error ($text) {
+    function _add-error ($text) {
         $errors = "$errors$text`n"
     }
 
@@ -39,7 +39,7 @@ function sf-clean-allProjectsLeftovers {
         }
     }
     catch {
-        add-error "Sites were not cleaned up: $_"
+        _add-error "Sites were not cleaned up: $_"
     }
 
     try {
@@ -52,7 +52,7 @@ function sf-clean-allProjectsLeftovers {
         }
     }
     catch {
-        add-error "Application pools were not cleaned up: $_"
+        _add-error "Application pools were not cleaned up: $_"
     }
 
     try {
@@ -61,7 +61,7 @@ function sf-clean-allProjectsLeftovers {
         $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:Sf.Config.tfsServerName }
     }
     catch {
-        add-error "Tfs workspaces were not cleaned up: $_"
+        _add-error "Tfs workspaces were not cleaned up: $_"
     }
 
     try {
@@ -73,7 +73,7 @@ function sf-clean-allProjectsLeftovers {
         }
     }
     catch {
-        add-error "Databases were not cleaned up: $_"
+        _add-error "Databases were not cleaned up: $_"
     }
 
     try {
@@ -84,7 +84,7 @@ function sf-clean-allProjectsLeftovers {
         Get-ChildItem $projectsDir | Where-Object { shouldClean $_.Name } | % { Remove-Item $_.FullName -Force -Recurse }
     }
     catch {
-        add-error "Test sitefinities were not cleaned up: $_"
+        _add-error "Test sitefinities were not cleaned up: $_"
     }
 
     if ($errors) {
