@@ -25,18 +25,3 @@ $GLOBAL:SfDevConfig = New-Object Config -Property @{
     predefinedBranches = $configFile.predefinedBranches
     predefinedBuildPaths = $configFile.predefinedBuildPaths
 }
-    
-# for backwards compatibility should be removed
-$Script:dataPath = "$Script:moduleUserDir\db.xml"
-$Script:idPrefix = $configFile.idPrefix
-$Script:projectsDirectory = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)
-$Script:browserPath = $configFile.browserPath
-$Script:vsPath = $configFile.vsPath
-$Script:msBuildPath = $configFile.msBuildPath
-$Script:tfsServerName = $configFile.tfsServerName
-$Script:defaultUser = $configFile.sitefinityUser
-$Script:defaultPassword = $configFile.sitefinityPassword
-$Script:sqlServerInstance = $configFile.sqlServerInstance
-$Script:sqlUser = $configFile.sqlUser
-$Script:sqlPass = $configFile.sqlPass
-$Script:predefinedBranches = $configFile.predefinedBranches

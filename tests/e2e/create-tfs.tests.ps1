@@ -16,12 +16,12 @@ InModuleScope sf-dev {
             $id = $createdSf.id
 
             $createdSf.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
-            $createdSf.solutionPath | Should -Be "$($Script:projectsDirectory)\${id}"
-            $createdSf.webAppPath | Should -Be "$($Script:projectsDirectory)\${id}\SitefinityWebApp"
+            $createdSf.solutionPath | Should -Be "$($GLOBAL:SfDevConfig.projectsDirectory)\${id}"
+            $createdSf.webAppPath | Should -Be "$($GLOBAL:SfDevConfig.projectsDirectory)\${id}\SitefinityWebApp"
             $createdSf.websiteName | Should -Be $id
 
-            Test-Path "$($Script:projectsDirectory)\${id}\$($createdSf.displayName)($($createdSf.id)).sln" | Should -Be $true
-            Test-Path "$($Script:projectsDirectory)\${id}\Telerik.Sitefinity.sln" | Should -Be $true
+            Test-Path "$($GLOBAL:SfDevConfig.projectsDirectory)\${id}\$($createdSf.displayName)($($createdSf.id)).sln" | Should -Be $true
+            Test-Path "$($GLOBAL:SfDevConfig.projectsDirectory)\${id}\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${id}" | Should -Be $true
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
             existsInHostsFile -searchParam $projName | Should -Be $true

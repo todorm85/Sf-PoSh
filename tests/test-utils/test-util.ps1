@@ -54,7 +54,7 @@ function clone-testProject ([SfProject]$sourceProj) {
     $cloneTestId = $project.id
     # $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
     # tfs-get-branchPath -path $project.solutionPath | Should -Not -Be $null
-    $project.solutionPath.Contains($Script:projectsDirectory) | Should -Be $true
+    $project.solutionPath.Contains($GLOBAL:SfDevConfig.projectsDirectory) | Should -Be $true
     $project.websiteName | Should -Be $cloneTestId
     
     # verify project artifacts

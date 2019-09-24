@@ -68,7 +68,7 @@ function sf-new-project {
         
         try {
             Write-Information "Deleting workspace..."
-            tfs-delete-workspace $newContext.id $Script:tfsServerName
+            tfs-delete-workspace $newContext.id $GLOBAL:SfDevConfig.tfsServerName
         }
         catch {
             Write-Warning "Error cleaning workspace or it was not created."
@@ -160,7 +160,7 @@ function sf-clone-project {
     }
 
     $targetDirectoryName = [Guid]::NewGuid()
-    $targetPath = $Script:projectsDirectory + "\$targetDirectoryName"
+    $targetPath = $GLOBAL:SfDevConfig.projectsDirectory + "\$targetDirectoryName"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
     }
@@ -353,7 +353,7 @@ function sf-delete-project {
     if ($workspaceName -and !($keepWorkspace)) {
         Write-Information "Deleting workspace..."
         try {
-            tfs-delete-workspace $workspaceName $Script:tfsServerName
+            tfs-delete-workspace $workspaceName $GLOBAL:SfDevConfig.tfsServerName
         }
         catch {
             Write-Warning "Could not delete workspace $_"
@@ -605,9 +605,9 @@ function _get-isIdDuplicate ($id) {
         }
     }
 
-    if (Test-Path "$Script:projectsDirectory\$id") { return $true }
+    if (Test-Path "$($GLOBAL:SfDevConfig.projectsDirectory)\$id") { return $true }
 
-    $wss = tfs-get-workspaces $Script:tfsServerName | Where-Object { isDuplicate $_ }
+    $wss = tfs-get-workspaces $GLOBAL:SfDevConfig.tfsServerName | Where-Object { isDuplicate $_ }
     if ($wss) { return $true }
 
     Import-Module WebAdministration
@@ -631,7 +631,7 @@ function _get-isIdDuplicate ($id) {
 function _generateId {
     $i = 0;
     while ($true) {
-        $name = "$($Script:idPrefix)$i"
+        $name = "$($GLOBAL:SfDevConfig.idPrefix)$i"
         $isDuplicate = (_get-isIdDuplicate $name)
         if (-not $isDuplicate) {
             break;

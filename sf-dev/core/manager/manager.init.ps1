@@ -1,10 +1,10 @@
 function init-managerData {
-    if (!(Test-Path $Script:dataPath)) {
+    if (!(Test-Path $GLOBAL:SfDevConfig.dataPath)) {
         Write-Information "Initializing script data..."
-        New-Item -ItemType file -Path $Script:dataPath
+        New-Item -ItemType file -Path $GLOBAL:SfDevConfig.dataPath
 
         # Create The Document
-        $XmlWriter = New-Object System.XMl.XmlTextWriter($Script:dataPath, $Null)
+        $XmlWriter = New-Object System.XMl.XmlTextWriter($GLOBAL:SfDevConfig.dataPath, $Null)
 
         # Set The Formatting
         $xmlWriter.Formatting = "Indented"
