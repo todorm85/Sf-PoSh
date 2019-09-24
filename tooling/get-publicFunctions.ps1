@@ -5,7 +5,8 @@ $functionsLines = $modulesLines | Where-Object { $_.contains("function") }
 
 $functionNamePattern = "^\s*?function\s+?(?<name>(sf-).+?)\s+({|\().*$"
 $filteredNames = $functionsLines | Where-Object { $_ -match $functionNamePattern } | % { $Matches["name"] }
-$functionNames = New-Object System.Collections.ArrayList($null)
-$functionNames.AddRange($filteredNames) > $null
 
-$functionNames
+$res = ''
+$filteredNames | % { $res = "$res, '$_'" }
+$res = $res.Remove(0,2)
+$res | Set-Clipboard
