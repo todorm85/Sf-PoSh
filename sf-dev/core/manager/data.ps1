@@ -4,7 +4,7 @@ function sf-get-allProjects {
         [string]$tagsFilter
     )
     $data = New-Object XML
-    $data.Load($GLOBAL:SfDevConfig.dataPath)
+    $data.Load($GLOBAL:Sf.Config.dataPath)
     $sfs = $data.data.sitefinities.sitefinity
     [System.Collections.Generic.List``1[SfProject]]$sitefinities = New-Object System.Collections.Generic.List``1[SfProject]
     if ($sfs) {
@@ -48,7 +48,7 @@ function _sfData-delete-project {
     $id = $context.id
     try {
         $data = New-Object XML
-        $data.Load($GLOBAL:SfDevConfig.dataPath) > $null
+        $data.Load($GLOBAL:Sf.Config.dataPath) > $null
         $sitefinities = $data.data.sitefinities.sitefinity
         ForEach ($sitefinity in $sitefinities) {
             if ($sitefinity.id -eq $id) {
@@ -57,7 +57,7 @@ function _sfData-delete-project {
             }
         }
 
-        $data.Save($GLOBAL:SfDevConfig.dataPath) > $null
+        $data.Save($GLOBAL:Sf.Config.dataPath) > $null
     }
     catch {
         throw "Error deleting sitefinity from ${dataPath}. Message: $_"
@@ -69,7 +69,7 @@ function _sfData-save-project {
 
     $context = [SfProject]$context
     $data = New-Object XML
-    $data.Load($GLOBAL:SfDevConfig.dataPath) > $null
+    $data.Load($GLOBAL:Sf.Config.dataPath) > $null
     $sitefinities = $data.data.sitefinities.sitefinity
     ForEach ($sitefinity in $sitefinities) {
         if ($sitefinity.id -eq $context.id) {
@@ -94,7 +94,7 @@ function _sfData-save-project {
     $sitefinityEntry.SetAttribute("tags", $context.tags)
     $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
 
-    $data.Save($GLOBAL:SfDevConfig.dataPath) > $null
+    $data.Save($GLOBAL:Sf.Config.dataPath) > $null
 }
 
 function _sfData-save-defaultTagsFilter {
@@ -103,15 +103,15 @@ function _sfData-save-defaultTagsFilter {
     )
     
     $data = New-Object XML
-    $data.Load($GLOBAL:SfDevConfig.dataPath) > $null
+    $data.Load($GLOBAL:Sf.Config.dataPath) > $null
     $data.data.SetAttribute("defaultTagsFilter", $defaultTagsFilter) > $null
     
-    $data.Save($GLOBAL:SfDevConfig.dataPath) > $null
+    $data.Save($GLOBAL:Sf.Config.dataPath) > $null
 }
 
 function _sfData-get-defaultTagsFilter {
     $data = New-Object XML
-    $data.Load($GLOBAL:SfDevConfig.dataPath) > $null
+    $data.Load($GLOBAL:Sf.Config.dataPath) > $null
     $data.data.GetAttribute("defaultTagsFilter", $defaultTagsFilter)
 }
 

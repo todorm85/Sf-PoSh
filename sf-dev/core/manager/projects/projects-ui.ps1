@@ -8,7 +8,8 @@
     If tagsFilter is equal to '+' only untagged projects are shown. 
 #>
 function sf-select-project {
-    [CmdletBinding()]Param(
+    [CmdletBinding()]
+    Param(
         [string]$tagsFilter
     )
     
@@ -146,7 +147,7 @@ function _get-daysSinceLastGetLatest ([SfProject]$context) {
 }
 
 function prompt-predefinedBranchSelect {
-    [Config]$conf = $GLOBAL:SfDevConfig
+    [Config]$conf = $GLOBAL:Sf.Config
     $branches = @($conf.predefinedBranches)
 
     if ($branches.Count -eq 0) {
@@ -174,7 +175,7 @@ function prompt-predefinedBranchSelect {
 }
 
 function prompt-predefinedBuildPathSelect {
-    [Config]$conf = $GLOBAL:SfDevConfig
+    [Config]$conf = $GLOBAL:Sf.Config
     $paths = @($conf.predefinedBuildPaths)
 
     if ($paths.Count -eq 0) {

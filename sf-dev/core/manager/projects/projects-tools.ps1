@@ -4,7 +4,7 @@
     using the id prefix and checking whether a project in the tools database still exist or has been removed from the tool.
 #>
 function sf-clean-allProjectsLeftovers {
-    $projectsDir = $GLOBAL:SfDevConfig.projectsDirectory
+    $projectsDir = $GLOBAL:Sf.Config.projectsDirectory
     $idsInUse = sf-get-allProjects | ForEach-Object { $_.id }
     
     function shouldClean {
@@ -12,7 +12,7 @@ function sf-clean-allProjectsLeftovers {
             $id
         )
 
-        if (-not ($id -match "$($GLOBAL:SfDevConfig.idPrefix)\d+")) {
+        if (-not ($id -match "$($GLOBAL:Sf.Config.idPrefix)\d+")) {
             return $false
         }
         
@@ -57,8 +57,8 @@ function sf-clean-allProjectsLeftovers {
 
     try {
         Write-Information "TFS cleanup"
-        $wss = tfs-get-workspaces $GLOBAL:SfDevConfig.tfsServerName
-        $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:SfDevConfig.tfsServerName }
+        $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName
+        $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:Sf.Config.tfsServerName }
     }
     catch {
         add-error "Tfs workspaces were not cleaned up: $_"
@@ -68,7 +68,7 @@ function sf-clean-allProjectsLeftovers {
         Write-Information "DBs cleanup"
         
         $dbs = $tokoAdmin.sql.GetDbs()
-        $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:SfDevConfig.idPrefix)") -and (shouldClean $_.name) } | ForEach-Object {
+        $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:Sf.Config.idPrefix)") -and (shouldClean $_.name) } | ForEach-Object {
             $tokoAdmin.sql.Delete($_.name)
         }
     }

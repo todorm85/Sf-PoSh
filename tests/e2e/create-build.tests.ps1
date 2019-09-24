@@ -17,10 +17,10 @@ InModuleScope sf-dev {
 
             $createdSf.branch | Should -BeNullOrEmpty
             $createdSf.solutionPath | Should -BeNullOrEmpty
-            $createdSf.webAppPath | Should -Be "$($GLOBAL:SfDevConfig.projectsDirectory)\${id}"
+            $createdSf.webAppPath | Should -Be "$($GLOBAL:Sf.Config.projectsDirectory)\${id}"
             $createdSf.websiteName | Should -Be $id
 
-            Test-Path "$($GLOBAL:SfDevConfig.projectsDirectory)\${id}\SitefinityWebApp.csproj" | Should -Be $true
+            Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\${id}\SitefinityWebApp.csproj" | Should -Be $true
             Test-Path "IIS:\AppPools\${id}" | Should -Be $true
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
             existsInHostsFile -searchParam $projName | Should -Be $true

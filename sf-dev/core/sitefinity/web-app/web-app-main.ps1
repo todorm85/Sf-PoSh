@@ -242,11 +242,11 @@ function delete-startupConfig {
 
 function create-startupConfig {
     param(
-        [string]$user = $GLOBAL:SfDevConfig.defaultUser,
+        [string]$user = $GLOBAL:Sf.Config.defaultUser,
         [string]$dbName = $null,
-        [string]$password = $GLOBAL:SfDevConfig.defaultPassword,
-        [string]$sqlUser = $GLOBAL:SfDevConfig.sqlUser,
-        [string]$sqlPass = $GLOBAL:SfDevConfig.sqlPass
+        [string]$password = $GLOBAL:Sf.Config.defaultPassword,
+        [string]$sqlUser = $GLOBAL:Sf.Config.sqlUser,
+        [string]$sqlPass = $GLOBAL:Sf.Config.sqlPass
     )
 
     $context = sf-get-currentProject

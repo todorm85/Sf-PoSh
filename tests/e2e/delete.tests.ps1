@@ -14,7 +14,7 @@ InModuleScope sf-dev {
             
             $sitefinities = @(sf-get-allProjects -skipInit) | where { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0
-            Test-Path "$($GLOBAL:SfDevConfig.projectsDirectory)\${testId}" | Should -Be $false
+            Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\${testId}" | Should -Be $false
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $false
             Test-Path "IIS:\Sites\${testId}" | Should -Be $false
             $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name.Contains($testId) } | Should -HaveCount 0

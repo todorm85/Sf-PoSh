@@ -1,6 +1,6 @@
-$GLOBAL:SfDevConfig.dataPath = "$($GLOBAL:SfDevConfig.projectsDirectory)\data-tests-db.xml"
-if (Test-Path $GLOBAL:SfDevConfig.dataPath) {
-    Remove-Item $GLOBAL:SfDevConfig.dataPath -Force
+$GLOBAL:Sf.Config.dataPath = "$($GLOBAL:Sf.Config.projectsDirectory)\data-tests-db.xml"
+if (Test-Path $GLOBAL:Sf.Config.dataPath) {
+    Remove-Item $GLOBAL:Sf.Config.dataPath -Force
 }
 
 init-managerData

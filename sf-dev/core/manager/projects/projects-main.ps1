@@ -68,7 +68,7 @@ function sf-new-project {
         
         try {
             Write-Information "Deleting workspace..."
-            tfs-delete-workspace $newContext.id $GLOBAL:SfDevConfig.tfsServerName
+            tfs-delete-workspace $newContext.id $GLOBAL:Sf.Config.tfsServerName
         }
         catch {
             Write-Warning "Error cleaning workspace or it was not created."
@@ -160,7 +160,7 @@ function sf-clone-project {
     }
 
     $targetDirectoryName = [Guid]::NewGuid()
-    $targetPath = $GLOBAL:SfDevConfig.projectsDirectory + "\$targetDirectoryName"
+    $targetPath = $GLOBAL:Sf.Config.projectsDirectory + "\$targetDirectoryName"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
     }
@@ -353,7 +353,7 @@ function sf-delete-project {
     if ($workspaceName -and !($keepWorkspace)) {
         Write-Information "Deleting workspace..."
         try {
-            tfs-delete-workspace $workspaceName $GLOBAL:SfDevConfig.tfsServerName
+            tfs-delete-workspace $workspaceName $GLOBAL:Sf.Config.tfsServerName
         }
         catch {
             Write-Warning "Could not delete workspace $_"
@@ -412,7 +412,7 @@ function sf-delete-project {
         _sfData-delete-project $context
     }
     catch {
-        [Config]$config = $GLOBAL:SfDevConfig
+        [Config]$config = $GLOBAL:Sf.Config
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($config.dataPath)"
     }
     
@@ -542,7 +542,7 @@ function sf-get-currentProject {
 function sf-open-description {
     $context = sf-get-currentProject
     if ($context.description -and $context.description.StartsWith("https://")) {
-        $browserPath = $GLOBAL:SfDevConfig.browserPath;
+        $browserPath = $GLOBAL:Sf.Config.browserPath;
         execute-native "& `"$browserPath`" `"$($context.description)`" -noframemerging" -successCodes @(100)
     } else {
         $context.description
@@ -605,9 +605,9 @@ function _get-isIdDuplicate ($id) {
         }
     }
 
-    if (Test-Path "$($GLOBAL:SfDevConfig.projectsDirectory)\$id") { return $true }
+    if (Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\$id") { return $true }
 
-    $wss = tfs-get-workspaces $GLOBAL:SfDevConfig.tfsServerName | Where-Object { isDuplicate $_ }
+    $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName | Where-Object { isDuplicate $_ }
     if ($wss) { return $true }
 
     Import-Module WebAdministration
@@ -631,7 +631,7 @@ function _get-isIdDuplicate ($id) {
 function _generateId {
     $i = 0;
     while ($true) {
-        $name = "$($GLOBAL:SfDevConfig.idPrefix)$i"
+        $name = "$($GLOBAL:Sf.Config.idPrefix)$i"
         $isDuplicate = (_get-isIdDuplicate $name)
         if (-not $isDuplicate) {
             break;
@@ -706,7 +706,7 @@ function _create-workspace ($context, $branch) {
     try {
         # create and map workspace
         Write-Information "Creating workspace..."
-        [Config]$config = $GLOBAL:SfDevConfig
+        [Config]$config = $GLOBAL:Sf.Config
         $workspaceName = $context.id
         tfs-create-workspace $workspaceName $context.solutionPath $config.tfsServerName
     }
@@ -795,7 +795,7 @@ function create-projectFilesFromSource {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
     
-    [Config]$config = $GLOBAL:SfDevConfig
+    [Config]$config = $GLOBAL:Sf.Config
     $projectDirectory = "$($config.projectsDirectory)\$($project.id)"
     if (Test-Path $projectDirectory) {
         throw "Path already exists:" + $projectDirectory

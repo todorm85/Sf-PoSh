@@ -13,7 +13,7 @@ InModuleScope sf-dev {
             $newName = generateRandomName
 
             existsInHostsFile -searchParam $newName | Should -Be $false
-            Test-Path "$($GLOBAL:SfDevConfig.projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
+            Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
             existsInHostsFile -searchParam $oldName | Should -Be $true
 
             sf-rename-project $newName

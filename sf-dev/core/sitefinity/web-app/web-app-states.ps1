@@ -31,7 +31,7 @@ function sf-save-appState {
     Set-Acl $statePath $Acl
 
     $backupName = get-sqlBackupStateName -stateName $stateName
-    Backup-SqlDatabase -ServerInstance $GLOBAL:SfDevConfig.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials) -Initialize
+    Backup-SqlDatabase -ServerInstance $GLOBAL:Sf.Config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(get-sqlCredentials) -Initialize
     
     $stateDataPath = "$statePath/data.xml"
     New-Item $stateDataPath > $null
@@ -141,8 +141,8 @@ function get-sqlBackupStateName {
 }
 
 function get-sqlCredentials {
-    $password = ConvertTo-SecureString $GLOBAL:SfDevConfig.sqlPass -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential ($GLOBAL:SfDevConfig.sqlUser, $password)
+    $password = ConvertTo-SecureString $GLOBAL:Sf.Config.sqlPass -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential ($GLOBAL:Sf.Config.sqlUser, $password)
     $credential
 }
 

@@ -3,13 +3,11 @@ if (-not (Test-Path $Script:moduleUserDir)) {
     New-Item -Path $Script:moduleUserDir -ItemType Directory
 }
 
-. "$PSScriptRoot/config.type.ps1"
-
 $defaultConfigPath = "$PSScriptRoot\default_config.json"
 $Script:userConfigPath = "$Script:moduleUserDir\config.json"
 $configFile = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
 
-$GLOBAL:SfDevConfig = New-Object Config -Property @{
+$config = New-Object PSCustomObject -Property @{
     dataPath           = "$Script:moduleUserDir\db.xml"
     idPrefix           = $configFile.idPrefix
     projectsDirectory  = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)
@@ -25,3 +23,5 @@ $GLOBAL:SfDevConfig = New-Object Config -Property @{
     predefinedBranches = $configFile.predefinedBranches
     predefinedBuildPaths = $configFile.predefinedBuildPaths
 }
+
+Add-Member -InputObject $GLOBAL:Sf -MemberType NoteProperty -Name config -Value $config 
