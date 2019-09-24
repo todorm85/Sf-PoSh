@@ -868,8 +868,8 @@ function Get-ValidTitle {
         }
     }
 
-    if ($resultTitle.Length -ge 73) {
-        $resultTitle = $resultTitle.Remove(72);
+    if ($resultTitle.Length -ge 51) {
+        $resultTitle = $resultTitle.Remove(50);
     }
     
     return $resultTitle;
