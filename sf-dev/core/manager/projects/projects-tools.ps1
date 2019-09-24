@@ -101,7 +101,7 @@ function sf-clean-allProjectsLeftovers {
     None
 #>
 function sf-goto {
-    [CmdletBinding()]
+    
     Param(
         [switch]$configs,
         [switch]$logs,

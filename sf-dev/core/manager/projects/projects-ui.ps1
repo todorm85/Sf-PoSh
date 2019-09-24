@@ -8,7 +8,7 @@
     If tagsFilter is equal to '+' only untagged projects are shown. 
 #>
 function sf-select-project {
-    [CmdletBinding()]
+    
     Param(
         [string]$tagsFilter
     )

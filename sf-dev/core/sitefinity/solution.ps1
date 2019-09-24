@@ -5,7 +5,7 @@
     None
 #>
 function sf-build-solution {
-    [CmdletBinding()]
+    
     Param(
         $retryCount = 0,
         [SfProject]$project
@@ -56,7 +56,7 @@ function sf-build-solution {
     None
 #>
 function sf-rebuild-solution {
-    [CmdletBinding()]
+    
     Param(
         [bool]$cleanPackages = $false,
         $retryCount = 0,
@@ -155,7 +155,7 @@ function sf-clean-packages {
     None
 #>
 function sf-open-solution {
-    [CmdletBinding()]
+    
     Param(
         [switch]$useDefault,
         [SfProject]$project
@@ -197,7 +197,7 @@ function sf-open-solution {
     None
 #>
 function sf-build-webAppProj () {
-    [CmdletBinding()]
+    
 
     $context = sf-get-currentProject
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
@@ -229,7 +229,7 @@ function sf-unlock-allFiles {
     }
 }
 function build-proj {
-    [CmdletBinding()]
+    
     Param(
         [Parameter(Mandatory)][string]$path
     )

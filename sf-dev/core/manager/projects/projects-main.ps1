@@ -15,7 +15,7 @@
     None
 #>
 function sf-new-project {
-    [CmdletBinding()]
+    
     Param(
         [string]$displayName,
         [switch]$buildSolution,
@@ -247,7 +247,7 @@ function sf-clone-project {
     None
 #>
 function sf-import-project {
-    [CmdletBinding()]
+    
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
         [Parameter(Mandatory = $true)][string]$path
@@ -313,7 +313,7 @@ function sf-delete-manyProjects {
     None
 #>
 function sf-delete-project {
-    [CmdletBinding()]
+    
     Param(
         [switch]$keepDb,
         [switch]$keepWorkspace,
@@ -423,7 +423,7 @@ function sf-delete-project {
 }
 
 function sf-rename-project {
-    [CmdletBinding()]
+    
     Param(
         [string]$newName,
         [switch]$setDescription,

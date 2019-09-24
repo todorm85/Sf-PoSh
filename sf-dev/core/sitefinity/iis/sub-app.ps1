@@ -6,7 +6,7 @@
     None
 #>
 function sf-setup-asSubApp {
-    [CmdletBinding()]
+    
     Param(
         [Parameter(Mandatory = $true)][string]$subAppName,
         [SfProject]$project

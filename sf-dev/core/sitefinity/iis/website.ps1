@@ -28,7 +28,7 @@ function sf-rename-website {
     None
 #>
 function sf-browse-webSite {
-    [CmdletBinding()]
+    
     Param(
         [switch]$useExistingBrowser,
         [SfProject]$project

@@ -11,7 +11,7 @@
     None
 #>
 function sf-set-storageMode {
-    [CmdletBinding()]
+    
     Param (
         [string]$storageMode,
         [string]$restrictionLevel
@@ -103,7 +103,7 @@ function sf-set-storageMode {
     psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
 #>
 function sf-get-storageMode {
-    [CmdletBinding()]
+    
     Param()
 
     $context = sf-get-currentProject
@@ -148,7 +148,7 @@ function sf-get-storageMode {
     None
 #>
 function sf-get-configContentFromDb {
-    [CmdletBinding()]
+    
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbExport.xml"
@@ -178,7 +178,7 @@ function sf-get-configContentFromDb {
     The sitefinity config name withouth extension
 #>
 function sf-clear-configContentInDb {
-    [CmdletBinding()]
+    
     Param(
         [Parameter(Mandatory = $true)]$configName
     )
@@ -204,7 +204,7 @@ function sf-clear-configContentInDb {
     None
 #>
 function sf-insert-configContentInDb {
-    [CmdletBinding()]
+    
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbImport.xml"

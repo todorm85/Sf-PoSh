@@ -19,7 +19,7 @@
     None
 #>
 function sf-reset-app {
-    [CmdletBinding()]
+    
     Param(
         [switch]$start,
         [switch]$rebuild,
@@ -127,7 +127,7 @@ function sf-reset-app {
     None
 #>
 function sf-add-precompiledTemplates {
-    [CmdletBinding()]
+    
     param(
         [switch]$revert
     )

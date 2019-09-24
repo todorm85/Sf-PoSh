@@ -7,7 +7,7 @@
     None
 #>
 function sf-reset-thread {
-    [CmdletBinding()]
+    
     Param([switch]$start,
     [SfProject]$project)
 
@@ -33,7 +33,7 @@ function sf-reset-thread {
     None
 #>
 function sf-reset-pool {
-    [CmdletBinding()]
+    
     Param(
         [switch]$start,
         [SfProject]$project
@@ -78,7 +78,7 @@ function sf-stop-pool ([SfProject]$context) {
     None
 #>
 function sf-change-pool {
-    [CmdletBinding()]
+    
     Param()
 
     $context = sf-get-currentProject
@@ -121,7 +121,7 @@ function sf-change-pool {
     None
 #>
 function sf-get-poolId {
-    [CmdletBinding()]
+    
     Param()
     
     $context = sf-get-currentProject

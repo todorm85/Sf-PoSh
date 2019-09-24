@@ -6,7 +6,7 @@
     None
 #>
 function sf-undo-pendingChanges {
-    [CmdletBinding()]
+    
     Param()
 
     $context = sf-get-currentProject
@@ -29,7 +29,7 @@ function sf-undo-pendingChanges {
     None
 #>
 function sf-show-pendingChanges {
-    [CmdletBinding()]
+    
     Param(
         [switch]$detailed
         )
@@ -70,7 +70,7 @@ function sf-get-hasPendingChanges {
     None
 #>
 function sf-get-latestChanges {
-    [CmdletBinding()]
+    
     Param(
         [switch]$overwrite
     )
