@@ -28,7 +28,7 @@ function Get-AllProjects {
             $clone.lastGetLatest = $lastGetLatest;
 
             if (!$skipInit) {
-                _initialize-project -project $clone -suppressWarnings
+                initialize-project_ -project $clone -suppressWarnings
             }
 
             $sitefinities.Add($clone)
@@ -39,10 +39,10 @@ function Get-AllProjects {
         $tagsFilter = Get-DefaultTagFilter
     }
 
-    _filter-projectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
+    filter-projectsByTags_ -sitefinities $sitefinities -tagsFilter $tagsFilter
 }
 
-function _sfData-delete-project {
+function sfData-delete-project_ {
     Param($context)
     Write-Information "Updating script databse..."
     $id = $context.id
@@ -64,7 +64,7 @@ function _sfData-delete-project {
     }
 }
 
-function _sfData-save-project {
+function sfData-save-project_ {
     Param([SfProject]$context)
 
     $context = [SfProject]$context
@@ -97,7 +97,7 @@ function _sfData-save-project {
     $data.Save($GLOBAL:Sf.Config.dataPath) > $null
 }
 
-function _sfData-save-defaultTagsFilter {
+function sfData-save-defaultTagsFilter_ {
     param (
         [string]$defaultTagsFilter
     )
@@ -109,7 +109,7 @@ function _sfData-save-defaultTagsFilter {
     $data.Save($GLOBAL:Sf.Config.dataPath) > $null
 }
 
-function _sfData-get-defaultTagsFilter {
+function sfData-get-defaultTagsFilter_ {
     $data = New-Object XML
     $data.Load($GLOBAL:Sf.Config.dataPath) > $null
     $data.data.GetAttribute("defaultTagsFilter", $defaultTagsFilter)
@@ -120,7 +120,7 @@ function _sfData-get-defaultTagsFilter {
     exclude tags take precedence
     exclude tags are prefixed with '-'
  #>
- function _filter-projectsByTags {
+ function filter-projectsByTags_ {
     param (
         [SfProject[]]$sitefinities,
         [string]$tagsFilter
@@ -132,19 +132,19 @@ function _sfData-get-defaultTagsFilter {
     elseif ($tagsFilter) {
         $includeTags = $tagsFilter.Split(' ') | where { !$_.StartsWith('-') }
         if ($includeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | where { _check-ifTagged -sitefinity $_ -tags $includeTags }
+            $sitefinities = $sitefinities | where { check-ifTagged_ -sitefinity $_ -tags $includeTags }
         }
 
         $excludeTags = $tagsFilter.Split(' ') | where { $_.StartsWith('-') } | %  { $_.Remove(0,1)}
         if ($excludeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | where { !(_check-ifTagged -sitefinity $_ -tags $excludeTags) }
+            $sitefinities = $sitefinities | where { !(check-ifTagged_ -sitefinity $_ -tags $excludeTags) }
         }
     }
 
     $sitefinities
 }
 
-function _check-ifTagged {
+function check-ifTagged_ {
     param (
         [SfProject]$sitefinity,
         [string[]]$tagsToCheck

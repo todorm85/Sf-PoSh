@@ -27,7 +27,7 @@ function Build-Solution {
             else {
                 try {
                     Switch-StyleCop -context $project -enable:$false
-                    _build-proj $solutionPath
+                    build-proj_ $solutionPath
                 }
                 finally {
                     Switch-StyleCop -context $project -enable:$true
@@ -179,7 +179,7 @@ function Open-Solution {
             $projectName = "Telerik.Sitefinity.sln"
         }
         else {
-            $projectName = _generate-solutionFriendlyName
+            $projectName = generate-solutionFriendlyName_
         }
     }
 
@@ -206,7 +206,7 @@ function Build-WebAppProj () {
         throw "invalid or no solution or web app project path"
     }
 
-    _build-proj $path
+    build-proj_ $path
 }
 
 function  Unlock-AllProjectFiles {
@@ -229,7 +229,7 @@ function  Unlock-AllProjectFiles {
         unlock-allFiles $path
     }
 }
-function _build-proj {
+function build-proj_ {
     
     Param(
         [Parameter(Mandatory)][string]$path
@@ -297,9 +297,9 @@ function Switch-StyleCop {
         }
     }
 
-    _write-File -content $newContent -path $styleCopTaskPath
+    write-File_ -content $newContent -path $styleCopTaskPath
 }
 
-function _write-File ($content, $path) {
+function write-File_ ($content, $path) {
     $content | Out-File -FilePath $path -Force -Encoding utf8 -ErrorAction Stop
 }

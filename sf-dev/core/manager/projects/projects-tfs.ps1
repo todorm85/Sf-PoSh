@@ -5,22 +5,22 @@ function Update-AllProjectsTfsInfo {
         
         [SfProject]$context = $_
 
-        _update-lastGetLatest $context
+        update-lastGetLatest_ $context
 
         $branch = tfs-get-branchPath $context.webAppPath
         if ($branch) {
             $context.branch = $branch
-            _sfData-save-project $context
+            sfData-save-project_ $context
         }
     }
 }
 
-function _update-lastGetLatest {
+function update-lastGetLatest_ {
     param (
         [SfProject]$context
     )
     
-    $lastGetLatestTfs = _get-lastWorkspaceChangesetDate $context
+    $lastGetLatestTfs = get-lastWorkspaceChangesetDate_ $context
     if ($lastGetLatestTfs) {
         if ($context.lastGetLatest) {
             $lastGetLatestTool = [datetime]::Parse($context.lastGetLatest)
@@ -28,17 +28,17 @@ function _update-lastGetLatest {
             # only update if not get-latest issued already from this tool later than what is in workspace
             if ($lastGetLatestTool -lt $lastGetLatestTfs) {
                 $context.lastGetLatest = $lastGetLatestTfs
-                _sfData-save-project $context
+                sfData-save-project_ $context
             }
         }
         else {
             $context.lastGetLatest = $lastGetLatestTfs
-            _sfData-save-project $context
+            sfData-save-project_ $context
         }
     }
 }
 
-function _get-lastWorkspaceChangesetDate ([SfProject]$context) {
+function get-lastWorkspaceChangesetDate_ ([SfProject]$context) {
     if (-not $context) {
         [SfProject]$context = Get-CurrentProject
     }

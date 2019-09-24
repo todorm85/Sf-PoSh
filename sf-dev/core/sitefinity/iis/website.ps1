@@ -13,7 +13,7 @@ function rename-website {
     }
     
     $context.websiteName = $newName
-    _save-selectedProject $context
+    save-selectedProject_ $context
 
 }
 
@@ -39,7 +39,7 @@ function browse-webSite {
     }
 
     $browserPath = $GLOBAL:Sf.Config.browserPath;
-    $appUrl = _get-appUrl -context $project
+    $appUrl = get-appUrl_ -context $project
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:userConfigPath -> browserPath"
     }
@@ -85,7 +85,7 @@ function create-website {
     
     $newAppPath = $context.webAppPath
     $newAppPool = $context.id
-    $domain = _generate-domainName -context $context
+    $domain = generate-domainName_ -context $context
     try {
         iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
@@ -93,7 +93,7 @@ function create-website {
         throw "Error creating site: $_"
     }
 
-    _save-selectedProject $context
+    save-selectedProject_ $context
 
     try {
         if ($domain) {
@@ -105,7 +105,7 @@ function create-website {
     }
 }
 
-function _delete-website ([SfProject]$context) {
+function delete-website_ ([SfProject]$context) {
     if (-not $context) {
         $context = get-currentProject
     }
@@ -119,12 +119,12 @@ function _delete-website ([SfProject]$context) {
     $domain = (iis-get-binding $websiteName).domain
     $context.websiteName = ''
     try {
-        _save-selectedProject $context
+        save-selectedProject_ $context
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
     }
     catch {
         $context.websiteName = $websiteName
-        _save-selectedProject $context
+        save-selectedProject_ $context
         throw "Error deleting website ${websiteName}: $_"
     }
 
@@ -145,7 +145,7 @@ function _delete-website ([SfProject]$context) {
     }
 }
 
-function _change-domain {
+function change-domain_ {
     param (
         $context,
         $domainName

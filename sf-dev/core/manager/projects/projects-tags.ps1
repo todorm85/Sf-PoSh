@@ -3,7 +3,7 @@ function Add-TagToProject {
         [string]$tagName
     )
 
-    _validate-tag $tagName
+    validate-tag_ $tagName
     
     [SfProject]$project = Get-CurrentProject
     if (!$project.tags) {
@@ -13,7 +13,7 @@ function Add-TagToProject {
         $project.tags += " $tagName"
     }
 
-    _save-selectedProject -context $project
+    save-selectedProject_ -context $project
 }
 
 function Remove-TagFromProject {
@@ -21,7 +21,7 @@ function Remove-TagFromProject {
         [string]$tagName
     )
     
-    _validate-tag $tagName
+    validate-tag_ $tagName
     if (!$tagName) {
         throw "Invalid tag name to remove."
     }
@@ -31,13 +31,13 @@ function Remove-TagFromProject {
         $project.tags = $project.tags.Replace($tagName, '').Replace('  ', ' ').Trim()
     }
 
-    _save-selectedProject -context $project
+    save-selectedProject_ -context $project
 }
 
 function Remove-AllTagsFromProject {
     [SfProject]$project = Get-CurrentProject
     $project.tags = ''
-    _save-selectedProject -context $project
+    save-selectedProject_ -context $project
 }
 
 function Get-AllTagsForProject {
@@ -50,14 +50,14 @@ function Set-DefaultTagFilter {
         $filter
     )
 
-    _sfData-save-defaultTagsFilter -defaultTagsFilter $filter
+    sfData-save-defaultTagsFilter_ -defaultTagsFilter $filter
 }
 
 function Get-DefaultTagFilter {
-    return _sfData-get-defaultTagsFilter
+    return sfData-get-defaultTagsFilter_
 }
 
-function _validate-tag {
+function validate-tag_ {
     param (
         $tagName
     )

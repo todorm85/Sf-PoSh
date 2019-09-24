@@ -10,9 +10,9 @@ function Start-AllProjectsBatch ($scriptBlock) {
     $errors = ''
     foreach ($sitefinity in $sitefinities) {
         [SfProject]$sitefinity = $sitefinity
-        _set-currentProject $sitefinity
+        set-currentProject_ $sitefinity
         try {
-            _execute-batchBlock $scriptBlock
+            execute-batchBlock_ $scriptBlock
         }
         catch {
             $sfStamp = "ID: $($sitefinity.id), Name: $($sitefinity.displayName)"
@@ -20,14 +20,14 @@ function Start-AllProjectsBatch ($scriptBlock) {
         }
     }
 
-    _set-currentProject $initialProject
+    set-currentProject_ $initialProject
 
     if ($errors) {
         throw $errors
     }
 }
 
-function _execute-batchBlock ($scriptBlock) {
+function execute-batchBlock_ ($scriptBlock) {
     $sitefinity = Get-CurrentProject
     & $scriptBlock $sitefinity
 }

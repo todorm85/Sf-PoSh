@@ -40,7 +40,7 @@ function Reset-App {
     if ($project) {
         [SfProject]$oldProject = Get-CurrentProject
         if ($oldProject -and ($oldProject.id -ne $project.id)) {
-            _set-currentProject -newContext $project
+            set-currentProject_ -newContext $project
         }
         else {
             $oldProject = $null
@@ -68,7 +68,7 @@ function Reset-App {
 
         Write-Information "Resetting App_Data files..."
         try {
-            _reset-appDataFiles
+            reset-appDataFiles_
         }
         catch {
             Write-Warning "Errors ocurred while resetting App_Data files.`n $_"
@@ -86,26 +86,26 @@ function Reset-App {
         }
 
         if ($createStartupConfig) {
-            _create-startupConfig $user $dbName
+            create-startupConfig_ $user $dbName
         }
 
         if ($start) {
             Start-Sleep -s 2
 
             try {
-                _create-startupConfig $user $dbName
+                create-startupConfig_ $user $dbName
             }
             catch {
                 throw "Erros while creating startupConfig: $_"
             }
 
             try {
-                $appUrl = _get-appUrl
-                _start-app -url $appUrl
+                $appUrl = get-appUrl_
+                start-app_ -url $appUrl
             }
             catch {
                 throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
-                _delete-startupConfig
+                delete-startupConfig_
             }
         }
 
@@ -115,7 +115,7 @@ function Reset-App {
     }
     finally {
         if ($oldProject) {
-            _set-currentProject -newContext $oldProject
+            set-currentProject_ -newContext $oldProject
         }
     }
 }
@@ -145,7 +145,7 @@ function Add-PrecompiledTemplates {
     
     $context = Get-CurrentProject
     $webAppPath = $context.webAppPath
-    $appUrl = _get-appUrl
+    $appUrl = get-appUrl_
     if ($revert) {
         $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
         try {
@@ -160,7 +160,7 @@ function Add-PrecompiledTemplates {
     }
 }
 
-function _start-app {
+function start-app_ {
     param(
         [Int32]$totalWaitSeconds = 5 * 60
     )
@@ -173,14 +173,14 @@ function _start-app {
     #     $url = "http://localhost:$($port)"
     # }
 
-    $url = _get-appUrl
+    $url = get-appUrl_
     $statusUrl = "$url/appstatus"
 
     Write-Information "Starting Sitefinity..."
     $ErrorActionPreference = "Continue"
 
     # Send initial request to begin bootstrapping sitefinity
-    $response = _invoke-NonTerminatingRequest $url
+    $response = invoke-NonTerminatingRequest_ $url
     if ($response -and $response -ne 200 -and $response -ne 503) {
         throw "Could not make initial connection to Sitefinity. - StatusCode: $response"
     }
@@ -191,7 +191,7 @@ function _start-app {
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     while ($true) {
         Write-Information "..."
-        $response = _invoke-NonTerminatingRequest $statusUrl
+        $response = invoke-NonTerminatingRequest_ $statusUrl
         if ($elapsed.Elapsed.TotalSeconds -gt $totalWaitSeconds) {
             throw "Sitefinity did NOT start in the specified maximum time"
         }
@@ -203,7 +203,7 @@ function _start-app {
 
         # if request to appstatus returned 404, sitefinity has initialized
         if ($response -eq 404 -or $response -eq "NotFound") {
-            $response = _invoke-NonTerminatingRequest $url
+            $response = invoke-NonTerminatingRequest_ $url
             # if request to base url is 200 ok sitefinity has started
             if ($response -eq 200) {
                 Write-Information "Sitefinity has started after $($elapsed.Elapsed.TotalSeconds) second(s)"
@@ -219,7 +219,7 @@ function _start-app {
     }
 }
 
-function _invoke-NonTerminatingRequest ($url) {
+function invoke-NonTerminatingRequest_ ($url) {
     $result = $null
     try {
         $response = Invoke-WebRequest $url -TimeoutSec 120
@@ -235,7 +235,7 @@ function _invoke-NonTerminatingRequest ($url) {
     return $result
 }
 
-function _delete-startupConfig {
+function delete-startupConfig_ {
     $context = Get-CurrentProject
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
@@ -244,7 +244,7 @@ function _delete-startupConfig {
     }
 }
 
-function _create-startupConfig {
+function create-startupConfig_ {
     param(
         [string]$user = $GLOBAL:Sf.Config.defaultUser,
         [string]$dbName = $null,
@@ -307,7 +307,7 @@ function _create-startupConfig {
     }
 }
 
-function _reset-appDataFiles {
+function reset-appDataFiles_ {
     [SfProject]$context = Get-CurrentProject
     $webAppPath = $context.webAppPath
     $errorMessage = ''
@@ -315,7 +315,7 @@ function _reset-appDataFiles {
     Set-Location $context.webAppPath
     if (Test-Path $originalAppDataFilesPath) {
         Write-Information "Restoring Sitefinity web app App_Data files to original state."
-        _restore-sfRuntimeFiles "$originalAppDataFilesPath/*"
+        restore-sfRuntimeFiles_ "$originalAppDataFilesPath/*"
     }
     elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
         Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
@@ -335,7 +335,7 @@ function _reset-appDataFiles {
     }
 }
 
-function _clean-sfRuntimeFiles {
+function clean-sfRuntimeFiles_ {
     [SfProject]$context = Get-CurrentProject
     $webAppPath = $context.webAppPath
 
@@ -350,7 +350,7 @@ function _clean-sfRuntimeFiles {
     } while ($dirs.count -gt 0)
 }
 
-function _copy-sfRuntimeFiles ([SfProject]$project, $dest) {
+function copy-sfRuntimeFiles_ ([SfProject]$project, $dest) {
     if (-not $project) {
         [SfProject]$project = Get-CurrentProject
     }
@@ -360,10 +360,10 @@ function _copy-sfRuntimeFiles ([SfProject]$project, $dest) {
     Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude @("*.pfx", "*.lic")
 }
 
-function _restore-sfRuntimeFiles ($src) {
+function restore-sfRuntimeFiles_ ($src) {
     [SfProject]$context = Get-CurrentProject
     $webAppPath = $context.webAppPath
 
-    _clean-sfRuntimeFiles
+    clean-sfRuntimeFiles_
     Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude @("*.pfx", "*.lic") # exclude is here for backward comaptibility
 }

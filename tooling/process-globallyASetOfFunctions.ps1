@@ -1,4 +1,4 @@
-$oldNames = & "$PSScriptRoot/get-publicFunctions.ps1" -path "C:\Users\User\Desktop\sf-dev\tests"
+$oldNames = Invoke-Expression "& `"$PSScriptRoot/get-publicFunctions.ps1`" -path `"C:\Users\User\Desktop\sf-dev\sf-dev\core`""
 
 function Convert-ToPascalCase {
     param (
@@ -33,8 +33,9 @@ $scripts = Get-ChildItem "$PSScriptRoot\..\sf-dev\core" -Recurse | Where-Object 
 $scripts | % { 
     $content = Get-Content $_.FullName
     $oldNames | % {
-        $newTitle = Convert-ToPascalCase($_)
-        # $newTitle = "_$_"
+        # $newTitle = Convert-ToPascalCase($_)
+        $newTitle = $_ + "_";
+        $newTitle = $newTitle.Remove(0, 1)
         $content = $content -replace $_, $newTitle
     }
 
