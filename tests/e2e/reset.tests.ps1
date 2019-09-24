@@ -21,7 +21,7 @@ InModuleScope sf-dev {
             Test-Path $configsPath | Should -Be $false            
         }
 
-        It "start successfully after reset" {
+        It "start successfully after reset" -Skip {
             sf-reset-app -start
             Test-Path $configsPath | Should -Be $true
             $dbName = get-currentAppDbName            
