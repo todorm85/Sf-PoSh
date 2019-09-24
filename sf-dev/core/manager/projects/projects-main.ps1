@@ -412,8 +412,7 @@ function sf-delete-project {
         _sfData-delete-project $context
     }
     catch {
-        [Config]$config = $GLOBAL:Sf.Config
-        Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($config.dataPath)"
+        Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:Sf.Config.dataPath)"
     }
     
     set-currentProject $null
@@ -706,9 +705,8 @@ function _create-workspace ($context, $branch) {
     try {
         # create and map workspace
         Write-Information "Creating workspace..."
-        [Config]$config = $GLOBAL:Sf.Config
         $workspaceName = $context.id
-        tfs-create-workspace $workspaceName $context.solutionPath $config.tfsServerName
+        tfs-create-workspace $workspaceName $context.solutionPath $GLOBAL:Sf.Config.tfsServerName
     }
     catch {
         throw "Could not create workspace $workspaceName in $($context.solutionPath).`n $_"
@@ -716,7 +714,7 @@ function _create-workspace ($context, $branch) {
 
     try {
         Write-Information "Creating workspace mappings..."
-        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $config.tfsServerName
+        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $GLOBAL:Sf.Config.tfsServerName
     }
     catch {
         throw "Could not create mapping $($branch) in $($context.solutionPath) for workspace ${workspaceName}.`n $_"
@@ -795,8 +793,7 @@ function create-projectFilesFromSource {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
     
-    [Config]$config = $GLOBAL:Sf.Config
-    $projectDirectory = "$($config.projectsDirectory)\$($project.id)"
+    $projectDirectory = "$($GLOBAL:Sf.Config.projectsDirectory)\$($project.id)"
     if (Test-Path $projectDirectory) {
         throw "Path already exists:" + $projectDirectory
     }

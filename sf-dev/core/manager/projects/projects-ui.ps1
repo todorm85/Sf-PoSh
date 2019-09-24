@@ -147,8 +147,7 @@ function _get-daysSinceLastGetLatest ([SfProject]$context) {
 }
 
 function prompt-predefinedBranchSelect {
-    [Config]$conf = $GLOBAL:Sf.Config
-    $branches = @($conf.predefinedBranches)
+    $branches = @($GLOBAL:Sf.Config.predefinedBranches)
 
     if ($branches.Count -eq 0) {
         $selectedBranch = Read-Host -Prompt 'No predefined branches, enter branch path'
@@ -175,8 +174,7 @@ function prompt-predefinedBranchSelect {
 }
 
 function prompt-predefinedBuildPathSelect {
-    [Config]$conf = $GLOBAL:Sf.Config
-    $paths = @($conf.predefinedBuildPaths)
+    $paths = @($GLOBAL:Sf.Config.predefinedBuildPaths)
 
     if ($paths.Count -eq 0) {
         $selectedPath = Read-Host -Prompt 'No predefined build paths, enter build path'
