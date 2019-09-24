@@ -24,4 +24,4 @@ $config = New-Object PSCustomObject -Property @{
     predefinedBuildPaths = $configFile.predefinedBuildPaths
 }
 
-Add-Member -InputObject $GLOBAL:Sf -MemberType NoteProperty -Name config -Value $config 
+Add-Member -InputObject $GLOBAL:Sf -MemberType NoteProperty -Name config -Value $config
