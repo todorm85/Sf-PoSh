@@ -412,7 +412,7 @@ function sf-delete-project {
         _sfData-delete-project $context
     }
     catch {
-        [Config]$config = _get-config
+        [Config]$config = $GLOBAL:SfDevConfig
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($config.dataPath)"
     }
     
@@ -542,7 +542,7 @@ function sf-get-currentProject {
 function sf-open-description {
     $context = sf-get-currentProject
     if ($context.description -and $context.description.StartsWith("https://")) {
-        $browserPath = ([Config](_get-config)).browserPath;
+        $browserPath = $GLOBAL:SfDevConfig.browserPath;
         execute-native "& `"$browserPath`" `"$($context.description)`" -noframemerging" -successCodes @(100)
     } else {
         $context.description
@@ -706,7 +706,7 @@ function _create-workspace ($context, $branch) {
     try {
         # create and map workspace
         Write-Information "Creating workspace..."
-        [Config]$config = _get-config
+        [Config]$config = $GLOBAL:SfDevConfig
         $workspaceName = $context.id
         tfs-create-workspace $workspaceName $context.solutionPath $config.tfsServerName
     }
@@ -795,7 +795,7 @@ function create-projectFilesFromSource {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
     
-    [Config]$config = _get-config
+    [Config]$config = $GLOBAL:SfDevConfig
     $projectDirectory = "$($config.projectsDirectory)\$($project.id)"
     if (Test-Path $projectDirectory) {
         throw "Path already exists:" + $projectDirectory

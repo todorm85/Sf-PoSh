@@ -19,7 +19,3 @@ public class Config
 "@
 
 Add-Type -TypeDefinition $definition
-
-function _get-config {
-    [Config]$Script:sfDevConfig
-}

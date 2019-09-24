@@ -146,7 +146,7 @@ function _get-daysSinceLastGetLatest ([SfProject]$context) {
 }
 
 function prompt-predefinedBranchSelect {
-    [Config]$conf = _get-config
+    [Config]$conf = $GLOBAL:SfDevConfig
     $branches = @($conf.predefinedBranches)
 
     if ($branches.Count -eq 0) {
@@ -174,7 +174,7 @@ function prompt-predefinedBranchSelect {
 }
 
 function prompt-predefinedBuildPathSelect {
-    [Config]$conf = _get-config
+    [Config]$conf = $GLOBAL:SfDevConfig
     $paths = @($conf.predefinedBuildPaths)
 
     if ($paths.Count -eq 0) {
