@@ -1,4 +1,4 @@
-function sf-get-allProjects {
+function Get-AllProjects {
     param(
         [switch]$skipInit,
         [string]$tagsFilter
@@ -36,10 +36,10 @@ function sf-get-allProjects {
     }
 
     if (!$tagsFilter) {
-        $tagsFilter = sf-get-defaultTagFilter
+        $tagsFilter = Get-DefaultTagFilter
     }
 
-    filter-projectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
+    _filter-projectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
 }
 
 function _sfData-delete-project {
@@ -120,7 +120,7 @@ function _sfData-get-defaultTagsFilter {
     exclude tags take precedence
     exclude tags are prefixed with '-'
  #>
- function filter-projectsByTags {
+ function _filter-projectsByTags {
     param (
         [SfProject[]]$sitefinities,
         [string]$tagsFilter
@@ -132,19 +132,19 @@ function _sfData-get-defaultTagsFilter {
     elseif ($tagsFilter) {
         $includeTags = $tagsFilter.Split(' ') | where { !$_.StartsWith('-') }
         if ($includeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | where { check-ifTagged -sitefinity $_ -tags $includeTags }
+            $sitefinities = $sitefinities | where { _check-ifTagged -sitefinity $_ -tags $includeTags }
         }
 
         $excludeTags = $tagsFilter.Split(' ') | where { $_.StartsWith('-') } | %  { $_.Remove(0,1)}
         if ($excludeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | where { !(check-ifTagged -sitefinity $_ -tags $excludeTags) }
+            $sitefinities = $sitefinities | where { !(_check-ifTagged -sitefinity $_ -tags $excludeTags) }
         }
     }
 
     $sitefinities
 }
 
-function check-ifTagged {
+function _check-ifTagged {
     param (
         [SfProject]$sitefinity,
         [string[]]$tagsToCheck

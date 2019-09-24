@@ -4,13 +4,13 @@ Iterates through all projects and passes each project as a parameter to the scri
 .INPUTS
 scriptBlock - The script to execute against each project.
 #>
-function sf-start-allProjectsBatch ($scriptBlock) {
-    $initialProject = sf-get-currentProject
-    $sitefinities = sf-get-allProjects
+function Start-AllProjectsBatch ($scriptBlock) {
+    $initialProject = Get-CurrentProject
+    $sitefinities = Get-AllProjects
     $errors = ''
     foreach ($sitefinity in $sitefinities) {
         [SfProject]$sitefinity = $sitefinity
-        set-currentProject $sitefinity
+        _set-currentProject $sitefinity
         try {
             _execute-batchBlock $scriptBlock
         }
@@ -20,7 +20,7 @@ function sf-start-allProjectsBatch ($scriptBlock) {
         }
     }
 
-    set-currentProject $initialProject
+    _set-currentProject $initialProject
 
     if ($errors) {
         throw $errors
@@ -28,6 +28,6 @@ function sf-start-allProjectsBatch ($scriptBlock) {
 }
 
 function _execute-batchBlock ($scriptBlock) {
-    $sitefinity = sf-get-currentProject
+    $sitefinity = Get-CurrentProject
     & $scriptBlock $sitefinity
 }

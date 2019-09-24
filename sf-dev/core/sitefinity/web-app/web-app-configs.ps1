@@ -10,14 +10,14 @@
     .OUTPUTS
     None
 #>
-function sf-set-storageMode {
+function Set-StorageMode {
     
     Param (
         [string]$storageMode,
         [string]$restrictionLevel
     )
 
-    $context = sf-get-currentProject
+    $context = Get-CurrentProject
 
     if ($storageMode -eq '') {
         do {
@@ -102,11 +102,11 @@ function sf-set-storageMode {
     .OUTPUTS
     psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
 #>
-function sf-get-storageMode {
+function Get-StorageMode {
     
     Param()
 
-    $context = sf-get-currentProject
+    $context = Get-CurrentProject
 
     # set web.config readonly off
     $webConfigPath = $context.webAppPath + '\web.config'
@@ -147,14 +147,14 @@ function sf-get-storageMode {
     .OUTPUTS
     None
 #>
-function sf-get-configContentFromDb {
+function Get-ConfigContentFromDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbExport.xml"
     )
 
-    $dbName = sf-get-appDbName
+    $dbName = Get-AppDbName
     
     $config = $tokoAdmin.sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
 
@@ -177,13 +177,13 @@ function sf-get-configContentFromDb {
     .PARAMETER configName
     The sitefinity config name withouth extension
 #>
-function sf-clear-configContentInDb {
+function Clear-ConfigContentInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName
     )
 
-    $dbName = sf-get-appDbName
+    $dbName = Get-AppDbName
     $table = 'sf_xml_config_items'
     $value = "dta = '<${configName}/>'"
     $where = "path='${configName}.config'"
@@ -203,14 +203,14 @@ function sf-clear-configContentInDb {
     .OUTPUTS
     None
 #>
-function sf-insert-configContentInDb {
+function Insert-ConfigContentInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbImport.xml"
     )
 
-    $dbName = sf-get-appDbName
+    $dbName = Get-AppDbName
     $table = 'sf_xml_config_items'
     $xmlString = Get-Content $filePath -Raw
     $value = "dta='$xmlString'"

@@ -4,7 +4,7 @@
     .OUTPUTS
     None
 #>
-function sf-build-solution {
+function Build-Solution {
     
     Param(
         $retryCount = 0,
@@ -12,7 +12,7 @@ function sf-build-solution {
     )
     
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
 
     $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
@@ -22,15 +22,15 @@ function sf-build-solution {
     while ($tries -le $retryCount -and (-not $isBuilt)) {
         try {
             if (!(Test-Path $solutionPath)) {
-                sf-build-webAppProj
+                Build-WebAppProj
             }
             else {
                 try {
-                    sf-switch-styleCop -context $project -enable:$false
+                    Switch-StyleCop -context $project -enable:$false
                     _build-proj $solutionPath
                 }
                 finally {
-                    sf-switch-styleCop -context $project -enable:$true
+                    Switch-StyleCop -context $project -enable:$true
                 }
             }
             
@@ -55,7 +55,7 @@ function sf-build-solution {
     .OUTPUTS
     None
 #>
-function sf-rebuild-solution {
+function Rebuild-Solution {
     
     Param(
         [bool]$cleanPackages = $false,
@@ -63,28 +63,28 @@ function sf-rebuild-solution {
         [SfProject]$project)
     
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
 
     Write-Information "Rebuilding solution..."
     try {
-        sf-clean-solution -cleanPackages $cleanPackages -project $project
+        Clean-Solution -cleanPackages $cleanPackages -project $project
     }
     catch {
         Write-Warning "Errors while cleaning solution: $_"
     }
 
-    sf-build-solution -retryCount $retryCount -project $project
+    Build-Solution -retryCount $retryCount -project $project
 }
 
-function sf-clean-solution {
+function Clean-Solution {
     Param(
         [bool]$cleanPackages = $false,
         [SfProject]$project)
 
     Write-Information "Cleaning solution..."
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
 
     $solutionPath = $project.solutionPath
@@ -92,7 +92,7 @@ function sf-clean-solution {
         throw "invalid or no solution path"
     }
 
-    sf-unlock-allFiles -project $project
+     Unlock-AllProjectFiles -project $project
 
     $errorMessage = ''
     #delete all bin, obj and packages
@@ -113,7 +113,7 @@ function sf-clean-solution {
 
     if ($cleanPackages) {
         try {
-            sf-clean-packages -project $project
+            Clean-Packages -project $project
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
@@ -125,13 +125,13 @@ function sf-clean-solution {
     }
 }
 
-function sf-clean-packages {
+function Clean-Packages {
     Param(
         [SfProject]$project
     )
 
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
 
     if (!(Test-Path "${solutionPath}\packages")) {
@@ -154,14 +154,14 @@ function sf-clean-packages {
     .OUTPUTS
     None
 #>
-function sf-open-solution {
+function Open-Solution {
     
     Param(
         [switch]$useDefault,
         [SfProject]$project
     )
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
     
     if (!$project.solutionPath -and !$project.webAppPath) {
@@ -179,10 +179,11 @@ function sf-open-solution {
             $projectName = "Telerik.Sitefinity.sln"
         }
         else {
-            $projectName = generate-solutionFriendlyName
+            $projectName = _generate-solutionFriendlyName
         }
     }
 
+    $vsPath = $Global:Sf.config.vsPath
     if (!(Test-Path $vsPath)) {
         throw "Invalid visual studio path configured ($vsPath). Configure it in $Script:userConfigPath -> vsPath"
     }
@@ -196,10 +197,10 @@ function sf-open-solution {
     .OUTPUTS
     None
 #>
-function sf-build-webAppProj () {
+function Build-WebAppProj () {
     
 
-    $context = sf-get-currentProject
+    $context = Get-CurrentProject
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"
@@ -208,13 +209,13 @@ function sf-build-webAppProj () {
     _build-proj $path
 }
 
-function sf-unlock-allFiles {
+function  Unlock-AllProjectFiles {
     Param(
         [SfProject]$project
     )
 
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
 
     if ($project.solutionPath -ne "") {
@@ -240,12 +241,12 @@ function _build-proj {
 
     Write-Information "Building ${path}"
 
-    if (!(Test-Path $msBuildPath)) {
-        throw "Invalid ms build tools path configured ($msBuildPath). Configure it in $Script:userConfigPath -> msBuildPath"
+    if (!(Test-Path $Global:Sf.config.msBuildPath)) {
+        throw "Invalid ms build tools path configured $($Global:Sf.config.msBuildPath). Configure it in $Script:userConfigPath -> msBuildPath"
     }
 
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
-    $output = Invoke-Expression "& `"$msBuildPath`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:d"
+    $output = Invoke-Expression "& `"$($Global:Sf.config.msBuildPath)`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:d"
     $elapsed.Stop()
     
     if ($LastExitCode -ne 0) {
@@ -258,14 +259,14 @@ function _build-proj {
     }
 }
 
-function sf-switch-styleCop {
+function Switch-StyleCop {
     param (
         [SfProject]$context,
         [switch]$enable
     )
     
     if (-not $context) {
-        $context = sf-get-currentProject
+        $context = Get-CurrentProject
     }
 
     $styleCopTaskPath = "$($context.solutionPath)\Builds\StyleCop\StyleCop.Targets"

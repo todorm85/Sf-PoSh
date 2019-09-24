@@ -1,4 +1,4 @@
-function sf-save-appState {
+function Save-AppState {
     Param(
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
@@ -7,10 +7,10 @@ function sf-save-appState {
     )
     
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
     
-    $dbName = sf-get-appDbName
+    $dbName = Get-AppDbName
     $db = $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
@@ -44,23 +44,23 @@ function sf-save-appState {
     _copy-sfRuntimeFiles -dest $appDataStatePath
 }
 
-function sf-restore-appState {
+function Restore-AppState {
     Param(
         [string]$stateName,
         [bool]$force = $false,
         [SfProject]$project)
 
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
 
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = _select-appState -context $context
     }
 
-    sf-reset-pool
+    Reset-Pool
     if ($force) {
-        sf-unlock-allFiles
+         Unlock-AllProjectFiles
     }
     
     $statesPath = _get-statesPath
@@ -69,7 +69,7 @@ function sf-restore-appState {
     
     $tokoAdmin.sql.Delete($dbName)
     $backupName = _get-sqlBackupStateName -stateName $stateName
-    Restore-SqlDatabase -ServerInstance $sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_get-sqlCredentials)
+    Restore-SqlDatabase -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_get-sqlCredentials)
 
     $appDataStatePath = "$statePath/App_Data"
     $appDataPath = "$($project.webAppPath)/App_Data"
@@ -80,7 +80,7 @@ function sf-restore-appState {
     _restore-sfRuntimeFiles "$appDataStatePath/*"
 }
 
-function sf-delete-appState ($stateName, [SfProject]$context) {
+function Delete-AppState ($stateName, [SfProject]$context) {
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = _select-appState -context $context
     }
@@ -96,12 +96,12 @@ function sf-delete-appState ($stateName, [SfProject]$context) {
     }
 }
 
-function sf-delete-allAppStates ([SfProject]$context) {
+function Delete-AllAppStates ([SfProject]$context) {
     $statesPath = _get-statesPath -context $context
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
-            sf-delete-appState $state.Name -context $context
+            Delete-AppState $state.Name -context $context
         }
     }
 }
@@ -136,7 +136,7 @@ function _get-sqlBackupStateName {
         [Parameter(Mandatory=$true)]$stateName
     )
     
-    [SfProject]$context = sf-get-currentProject
+    [SfProject]$context = Get-CurrentProject
     return "$($context.id)_$stateName.bak"
 }
 
@@ -148,7 +148,7 @@ function _get-sqlCredentials {
 
 function _get-statesPath ([SfProject]$context) {
     if (!$context) {
-        $context = sf-get-currentProject
+        $context = Get-CurrentProject
     }
 
     $path = "$($context.webAppPath)/sf-dev-tool/states"

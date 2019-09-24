@@ -1,10 +1,10 @@
 
-function sf-rename-website {
+function rename-website {
     Param(
         [string]$newName
     )
 
-    $context = sf-get-currentProject
+    $context = get-currentProject
     try {
         iis-rename-website $context.websiteName $newName
     }
@@ -27,7 +27,7 @@ function sf-rename-website {
     .OUTPUTS
     None
 #>
-function sf-browse-webSite {
+function browse-webSite {
     
     Param(
         [switch]$useExistingBrowser,
@@ -35,9 +35,10 @@ function sf-browse-webSite {
     )
 
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = get-currentProject
     }
 
+    $browserPath = $GLOBAL:Sf.Config.browserPath;
     $appUrl = _get-appUrl -context $project
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:userConfigPath -> browserPath"
@@ -60,13 +61,13 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function sf-create-website {
+function create-website {
     Param(
         [SfProject]$context
     )
 
     if (-not $context) {
-        $context = sf-get-currentProject
+        $context = get-currentProject
     }
 
     $port = 2111
@@ -106,7 +107,7 @@ function sf-create-website {
 
 function _delete-website ([SfProject]$context) {
     if (-not $context) {
-        $context = sf-get-currentProject
+        $context = get-currentProject
     }
 
     $websiteName = $context.websiteName
@@ -151,7 +152,7 @@ function _change-domain {
     )
 
     if (-not $context) {
-        $context = sf-get-currentProject
+        $context = get-currentProject
     }
 
     $websiteName = $context.websiteName

@@ -18,7 +18,7 @@
     .OUTPUTS
     None
 #>
-function sf-reset-app {
+function Reset-App {
     
     Param(
         [switch]$start,
@@ -26,17 +26,21 @@ function sf-reset-app {
         [switch]$precompile,
         [switch]$createStartupConfig,
         [switch]$build,
-        [string]$user = $defaultUser,
+        [string]$user,
         [switch]$configRestrictionSafe,
         [switch]$force,
         [SfProject]$project
     )
 
+    if (!$user) {
+        $user = $Global:Sf.config.defaultUser
+    }
+
     $oldProject = $null
     if ($project) {
-        [SfProject]$oldProject = sf-get-currentProject
+        [SfProject]$oldProject = Get-CurrentProject
         if ($oldProject -and ($oldProject.id -ne $project.id)) {
-            set-currentProject -newContext $project
+            _set-currentProject -newContext $project
         }
         else {
             $oldProject = $null
@@ -44,22 +48,22 @@ function sf-reset-app {
     }
 
     try {
-        $dbName = sf-get-appDbName # this needs to be here before DataConfig.config gets deleted!!!
+        $dbName = Get-AppDbName # this needs to be here before DataConfig.config gets deleted!!!
     
         Write-Information "Restarting app pool..."
-        sf-reset-pool
+        Reset-Pool
 
         if ($force) {
             Write-Information "Unlocking files..."
-            sf-unlock-allFiles
+             Unlock-AllProjectFiles
         }
     
         if ($rebuild) {
-            sf-rebuild-solution -retryCount 3
+            Rebuild-Solution -retryCount 3
         }
 
         if ($build) {
-            sf-build-solution -retryCount 3
+            Build-Solution -retryCount 3
         }
 
         Write-Information "Resetting App_Data files..."
@@ -106,12 +110,12 @@ function sf-reset-app {
         }
 
         if ($precompile) {
-            sf-add-precompiledTemplates
+            Add-PrecompiledTemplates
         }
     }
     finally {
         if ($oldProject) {
-            set-currentProject -newContext $oldProject
+            _set-currentProject -newContext $oldProject
         }
     }
 }
@@ -126,7 +130,7 @@ function sf-reset-app {
     .OUTPUTS
     None
 #>
-function sf-add-precompiledTemplates {
+function Add-PrecompiledTemplates {
     
     param(
         [switch]$revert
@@ -139,7 +143,7 @@ function sf-add-precompiledTemplates {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
     
-    $context = sf-get-currentProject
+    $context = Get-CurrentProject
     $webAppPath = $context.webAppPath
     $appUrl = _get-appUrl
     if ($revert) {
@@ -232,7 +236,7 @@ function _invoke-NonTerminatingRequest ($url) {
 }
 
 function _delete-startupConfig {
-    $context = sf-get-currentProject
+    $context = Get-CurrentProject
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
     if ($ProcessError) {
@@ -249,7 +253,7 @@ function _create-startupConfig {
         [string]$sqlPass = $GLOBAL:Sf.Config.sqlPass
     )
 
-    $context = sf-get-currentProject
+    $context = Get-CurrentProject
     $webAppPath = $context.webAppPath
     
     Write-Information "Creating StartupConfig..."
@@ -270,11 +274,11 @@ function _create-startupConfig {
         
         $username = $user.split('@')[0]
         if ([string]::IsNullOrEmpty($dbName)) {
-            $dbName = sf-get-appDbName
+            $dbName = Get-AppDbName
         }
         
         
-        if (($tokoAdmin.sql.IsDuplicate($dbName)) -or [string]::IsNullOrEmpty($dbName)) {
+        if (($tokoAdmin.sql.isDuplicate($dbName)) -or [string]::IsNullOrEmpty($dbName)) {
             throw "Error creating startup.config. Database with name $dbName already exists."
         }
 
@@ -290,7 +294,7 @@ function _create-startupConfig {
         $XmlWriter.WriteAttributeString("lastName", $username)
         $XmlWriter.WriteAttributeString("dbName", $dbName)
         $XmlWriter.WriteAttributeString("dbType", "SqlServer")
-        $XmlWriter.WriteAttributeString("sqlInstance", $sqlServerInstance)
+        $XmlWriter.WriteAttributeString("sqlInstance", $GLOBAL:Sf.config.sqlServerInstance)
         $XmlWriter.WriteAttributeString("sqlAuthUserName", $sqlUser)
         $XmlWriter.WriteAttributeString("sqlAuthUserPassword", $sqlPass)
         $xmlWriter.WriteEndElement()
@@ -304,7 +308,7 @@ function _create-startupConfig {
 }
 
 function _reset-appDataFiles {
-    [SfProject]$context = sf-get-currentProject
+    [SfProject]$context = Get-CurrentProject
     $webAppPath = $context.webAppPath
     $errorMessage = ''
     $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
@@ -332,7 +336,7 @@ function _reset-appDataFiles {
 }
 
 function _clean-sfRuntimeFiles {
-    [SfProject]$context = sf-get-currentProject
+    [SfProject]$context = Get-CurrentProject
     $webAppPath = $context.webAppPath
 
     $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude @("*.pfx", "*.lic") -File
@@ -348,7 +352,7 @@ function _clean-sfRuntimeFiles {
 
 function _copy-sfRuntimeFiles ([SfProject]$project, $dest) {
     if (-not $project) {
-        [SfProject]$project = sf-get-currentProject
+        [SfProject]$project = Get-CurrentProject
     }
 
     $src = "$($project.webAppPath)\App_Data\*"
@@ -357,7 +361,7 @@ function _copy-sfRuntimeFiles ([SfProject]$project, $dest) {
 }
 
 function _restore-sfRuntimeFiles ($src) {
-    [SfProject]$context = sf-get-currentProject
+    [SfProject]$context = Get-CurrentProject
     $webAppPath = $context.webAppPath
 
     _clean-sfRuntimeFiles

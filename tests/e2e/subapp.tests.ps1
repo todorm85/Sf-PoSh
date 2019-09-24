@@ -12,22 +12,22 @@ InModuleScope sf-dev {
         $pool = iis-get-siteAppPool -websiteName $site
 
         It "create application and set its path and app pool" {
-            sf-setup-asSubApp -subAppName $subApp
+            setup-asSubApp -subAppName $subApp
             Test-Path "IIS:\Sites\$site\$subApp" | Should -Be $true
             (Get-Item -Path "IIS:\Sites\$site\$subApp").applicationPool | Should -Be $pool
             (Get-Item -Path "IIS:\Sites\$site").physicalPath | Should -Not -Be $project.webAppPath
         }
         It "return the correct url for subapp" {
-            $res = get-appUrl
+            $res = _get-appUrl
             $res.EndsWith($subApp) | Should -Be $true
         }
         It "remove sub app by deleting the application and setting the site path" {
-            sf-remove-subApp
+            remove-subApp
             Test-Path "IIS:\Sites\$site\$subApp" | Should -Be $false
             (Get-Item -Path "IIS:\Sites\$site").physicalPath | Should -Be $project.webAppPath
         }
         It "build the correct url after subapp removal" {
-            $res = get-appUrl
+            $res = _get-appUrl
             $res.EndsWith($subApp) | Should -Not -Be $true
         }
     }

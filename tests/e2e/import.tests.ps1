@@ -7,15 +7,15 @@ InModuleScope sf-dev {
     
     Describe "Import" -Tags ("import") {
         [SfProject]$project = set-testProject
-        sf-import-project -displayName "test-import" -path $project.webAppPath
-        [SfProject]$importedProject = sf-get-currentProject
+        import-project -displayName "test-import" -path $project.webAppPath
+        [SfProject]$importedProject = get-currentProject
         
         It "generate new id" {
             $importedProject.id | Should -Not -Be $project.id
         }
         It "use same db" {
-            $importedProjectDbName = get-currentAppDbName -project $importedProject
-            $sourceProjectDbName = get-currentAppDbName -project $project
+            $importedProjectDbName = _get-currentAppDbName -project $importedProject
+            $sourceProjectDbName = _get-currentAppDbName -project $project
             $importedProjectDbName | Should -Be $sourceProjectDbName
             $importedProjectDbName | Should -Not -BeNullOrEmpty
         }

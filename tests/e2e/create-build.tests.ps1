@@ -8,9 +8,9 @@ InModuleScope sf-dev {
     Describe "Creating project from build location should" -Tags ("create-build") {
         It "create site, add domain and set project properties correctly" {
             $projName = generateRandomName
-            sf-new-project -displayName $projName -sourcePath "$PSScriptRoot\files\Build"
+            new-project -displayName $projName -sourcePath "$PSScriptRoot\files\Build"
 
-            $sitefinities = @(sf-get-allProjects) | Where-Object { $_.displayName -eq $projName }
+            $sitefinities = @(get-allProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id

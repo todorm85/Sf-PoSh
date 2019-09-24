@@ -10,11 +10,11 @@ InModuleScope sf-dev {
 
         $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
         Test-Path $configsPath | Should -Be $true
-        $dbName = sf-get-appDbName
+        $dbName = get-appDbName
         $dbName | Should -Not -BeNullOrEmpty
         $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
 
-        sf-reset-app
+        reset-app
 
         It "remove app data and database" {            
             $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
@@ -22,9 +22,9 @@ InModuleScope sf-dev {
         }
 
         It "start successfully after reset" {
-            sf-reset-app -start
+            reset-app -start
             Test-Path $configsPath | Should -Be $true
-            $dbName = get-currentAppDbName            
+            $dbName = _get-currentAppDbName            
             $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
         }
     }

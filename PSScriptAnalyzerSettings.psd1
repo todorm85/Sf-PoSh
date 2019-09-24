@@ -24,15 +24,11 @@
     # the default rules except for those you exclude below.
     # Note: if a rule is in both IncludeRules and ExcludeRules, the rule
     # will be excluded.
-    ExcludeRules = @('PSAvoidUsingWriteHost',
-        'PSUseApprovedVerbs',
+    ExcludeRules = @(
         'PSAvoidUsingUserNameAndPassWordParams',
         'PSAvoidUsingPlainTextForPassword',
         'PSAvoidUsingEmptyCatchBlock',
-        'PSAvoidTrailingWhitespace',
-        'PSUseSingularNouns',
         'PSAvoidGlobalVars',
-        'PSUseShouldProcessForStateChangingFunctions',
-        'PSAvoidUsingCmdletAliases'
+        'PSUseShouldProcessForStateChangingFunctions'
         )
 }

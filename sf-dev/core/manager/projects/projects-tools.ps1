@@ -3,11 +3,11 @@
     Cleans all project artefacts in case a project was not deleted successfuly - deletes websites, databases, host file mappings based on a search
     using the id prefix and checking whether a project in the tools database still exist or has been removed from the tool.
 #>
-function sf-clean-allProjectsLeftovers {
+function Clean-AllProjectsLeftovers {
     $projectsDir = $GLOBAL:Sf.Config.projectsDirectory
-    $idsInUse = sf-get-allProjects | ForEach-Object { $_.id }
+    $idsInUse = Get-AllProjects | ForEach-Object { $_.id }
     
-    function shouldClean {
+    function _shouldClean {
         param (
             $id
         )
@@ -32,7 +32,7 @@ function sf-clean-allProjectsLeftovers {
         Write-Information "Sites cleanup"
         Import-Module WebAdministration
         $sites = Get-Item "IIS:\Sites" 
-        $names = $sites.Children.Keys | Where-Object { shouldClean $_ }
+        $names = $sites.Children.Keys | Where-Object { _shouldClean $_ }
         
         foreach ($site in $names) {
             Remove-Item "IIS:\Sites\$($site)" -Force -Recurse
@@ -46,7 +46,7 @@ function sf-clean-allProjectsLeftovers {
         Write-Information "App pool cleanup"
         Import-Module WebAdministration
         $pools = Get-Item "IIS:\AppPools" 
-        $names = $pools.Children.Keys | Where-Object { shouldClean $_ }
+        $names = $pools.Children.Keys | Where-Object { _shouldClean $_ }
         foreach ($poolName in $names) {
             Remove-Item "IIS:\AppPools\$($poolName)" -Force -Recurse
         }
@@ -58,7 +58,7 @@ function sf-clean-allProjectsLeftovers {
     try {
         Write-Information "TFS cleanup"
         $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName
-        $wss | Where-Object { shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:Sf.Config.tfsServerName }
+        $wss | Where-Object { _shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:Sf.Config.tfsServerName }
     }
     catch {
         _add-error "Tfs workspaces were not cleaned up: $_"
@@ -68,7 +68,7 @@ function sf-clean-allProjectsLeftovers {
         Write-Information "DBs cleanup"
         
         $dbs = $tokoAdmin.sql.GetDbs()
-        $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:Sf.Config.idPrefix)") -and (shouldClean $_.name) } | ForEach-Object {
+        $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:Sf.Config.idPrefix)") -and (_shouldClean $_.name) } | ForEach-Object {
             $tokoAdmin.sql.Delete($_.name)
         }
     }
@@ -81,7 +81,7 @@ function sf-clean-allProjectsLeftovers {
         sleep.exe 5
         Write-Information "Projects directory cleanup"
         unlock-allFiles $projectsDir
-        Get-ChildItem $projectsDir | Where-Object { shouldClean $_.Name } | % { Remove-Item $_.FullName -Force -Recurse }
+        Get-ChildItem $projectsDir | Where-Object { _shouldClean $_.Name } | % { Remove-Item $_.FullName -Force -Recurse }
     }
     catch {
         _add-error "Test sitefinities were not cleaned up: $_"
@@ -100,7 +100,7 @@ function sf-clean-allProjectsLeftovers {
     .OUTPUTS
     None
 #>
-function sf-goto {
+function Goto {
     
     Param(
         [switch]$configs,
@@ -109,7 +109,7 @@ function sf-goto {
         [switch]$webConfig
     )
 
-    $context = sf-get-currentProject
+    $context = Get-CurrentProject
     $webAppPath = $context.webAppPath
 
     if ($configs) {

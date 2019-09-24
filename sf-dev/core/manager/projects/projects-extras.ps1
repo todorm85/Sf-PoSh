@@ -2,8 +2,8 @@
 .SYNOPSIS
 Sets a longer description for the current project.
 #>
-function sf-set-description {
-    $context = sf-get-currentProject
+function Set-Description {
+    $context = Get-CurrentProject
 
     $context.description = $(Read-Host -Prompt "Enter description: ").ToString()
 

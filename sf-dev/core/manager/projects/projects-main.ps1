@@ -14,7 +14,7 @@
     .OUTPUTS
     None
 #>
-function sf-new-project {
+function New-Project {
     
     Param(
         [string]$displayName,
@@ -39,17 +39,17 @@ function sf-new-project {
         }
     }
 
-    [SfProject]$newContext = new-objectSfProject
+    [SfProject]$newContext = _new-objectSfProject
     if (!$displayName) {
         $displayName = 'Untitled'
     }
 
     $newContext.displayName = $displayName
 
-    $oldContext = sf-get-currentProject
+    $oldContext = Get-CurrentProject
 
     try {
-        create-projectFilesFromSource -sourcePath $sourcePath -project $newContext 
+        _create-projectFilesFromSource -sourcePath $sourcePath -project $newContext 
 
         Write-Information "Backing up original App_Data folder..."
         $webAppPath = $newContext.webAppPath
@@ -58,7 +58,7 @@ function sf-new-project {
         _copy-sfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
 
         Write-Information "Creating website..."
-        sf-create-website -context $newContext
+        Create-Website -context $newContext
 
         _save-selectedProject $newContext
     }
@@ -96,7 +96,7 @@ function sf-new-project {
         }
 
         if ($oldContext) {
-            set-currentProject $oldContext
+            _set-currentProject $oldContext
         }
         $ii = $_.InvocationInfo
         $msg = $_
@@ -108,11 +108,11 @@ function sf-new-project {
     }
 
     try {
-        set-currentProject $newContext
+        _set-currentProject $newContext
 
         if ($buildSolution) {
             Write-Information "Building solution..."
-            sf-build-solution -retryCount 3
+            Build-Solution -retryCount 3
         }
 
         if ($startWebApp) {
@@ -121,7 +121,7 @@ function sf-new-project {
                 _create-startupConfig
                 _start-app
                 if ($precompile) {
-                    sf-add-precompiledTemplates
+                    Add-PrecompiledTemplates
                 }
             }
             catch {
@@ -132,14 +132,14 @@ function sf-new-project {
     }
     finally {
         if ($noAutoSelect) {
-            set-currentProject $oldContext
+            _set-currentProject $oldContext
         }
     }
 
     return $newContext
 }
 
-function sf-clone-project {
+function Clone-Project {
     Param(
         [SfProject]$context,
         [switch]$noAutoSelect,
@@ -147,7 +147,7 @@ function sf-clone-project {
     )
 
     if (!$context) {
-        $context = sf-get-currentProject
+        $context = Get-CurrentProject
     }
 
     $sourcePath = $context.solutionPath;
@@ -176,7 +176,7 @@ function sf-clone-project {
 
     [SfProject]$newProject = $null
     try {
-        [SfProject]$newProject = new-objectSfProject
+        [SfProject]$newProject = _new-objectSfProject
         $newProject.displayName = "$($context.displayName)-clone"
         $newProject.webAppPath = "$targetPath\SitefinityWebApp"
     }
@@ -197,7 +197,7 @@ function sf-clone-project {
 
     try {
         Write-Information "Creating website..."
-        sf-create-website -context $newProject > $null
+        Create-Website -context $newProject > $null
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -207,10 +207,10 @@ function sf-clone-project {
     $oldProject = $context
     $sourceDbName = _get-currentAppDbName -project $oldProject
     
-    if ($sourceDbName -and $tokoAdmin.sql.IsDuplicate($sourceDbName)) {
+    if ($sourceDbName -and $tokoAdmin.sql.isDuplicate($sourceDbName)) {
         $newDbName = $newProject.id
         try {
-            sf-set-appDbName $newDbName -context $newProject
+            Set-AppDbName $newDbName -context $newProject
         }
         catch {
             Write-Error "Error setting new database name in config $newDbName).`n $_"                    
@@ -225,13 +225,13 @@ function sf-clone-project {
     }
 
     try {
-        sf-delete-allAppStates -context $newProject
+        Delete-AllAppStates -context $newProject
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
     }
 
-    set-currentProject -newContext $newProject
+    _set-currentProject -newContext $newProject
 }
 
 <#
@@ -246,7 +246,7 @@ function sf-clone-project {
     .OUTPUTS
     None
 #>
-function sf-import-project {
+function Import-Project {
     
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
@@ -258,23 +258,23 @@ function sf-import-project {
         throw "No asp.net web app found."
     }
 
-    [SfProject]$newContext = new-objectSfProject
+    [SfProject]$newContext = _new-objectSfProject
     $newContext.displayName = $displayName
     $newContext.webAppPath = $path
     
-    set-currentProject $newContext
+    _set-currentProject $newContext
     _save-selectedProject $newContext
     return $newContext
 }
 
-function sf-delete-manyProjects {
-    $sitefinities = @(sf-get-allProjects)
+function Delete-ManyProjects {
+    $sitefinities = @(Get-AllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
     }
 
-    sf-show-projects $sitefinities
+    Show-Projects $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')
@@ -290,7 +290,7 @@ function sf-delete-manyProjects {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sf-delete-project -context $selectedSitefinity -noPrompt
+            Delete-Project -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"       
@@ -312,7 +312,7 @@ function sf-delete-manyProjects {
     .OUTPUTS
     None
 #>
-function sf-delete-project {
+function Delete-Project {
     
     Param(
         [switch]$keepDb,
@@ -323,7 +323,7 @@ function sf-delete-project {
     )
     
     if ($null -eq $context) {
-        $context = sf-get-currentProject
+        $context = Get-CurrentProject
     }
 
     $solutionPath = $context.solutionPath
@@ -335,12 +335,12 @@ function sf-delete-project {
         Write-Warning "No workspace to delete, no TFS mapping found."        
     }
 
-    $dbName = sf-get-appDbName $context
+    $dbName = Get-AppDbName $context
     $websiteName = $context.websiteName
     
     if ($websiteName) {
         try {
-            sf-stop-pool -context $context
+            Stop-Pool -context $context
         }
         catch {
             Write-Warning "Could not stop app pool: $_"            
@@ -387,7 +387,7 @@ function sf-delete-project {
     if (!($keepProjectFiles)) {
         try {
             Write-Information "Unlocking all locked files in solution directory..."
-            sf-unlock-allFiles
+             Unlock-AllProjectFiles
 
             Write-Information "Deleting solution directory..."
             if ($solutionPath -ne "") {
@@ -415,14 +415,14 @@ function sf-delete-project {
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:Sf.Config.dataPath)"
     }
     
-    set-currentProject $null
+    _set-currentProject $null
 
     if (-not ($noPrompt)) {
-        sf-select-project
+        Select-Project
     }
 }
 
-function sf-rename-project {
+function Rename-Project {
     
     Param(
         [string]$newName,
@@ -431,7 +431,7 @@ function sf-rename-project {
     )
 
     if (!$project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
 
     [SfProject]$context = $project
@@ -454,18 +454,18 @@ function sf-rename-project {
     $newName = $azureDevOpsResult.name
     $context.description = $azureDevOpsResult.link
 
-    if ($newName -and (-not (validate-nameSyntax $newName))) {
+    if ($newName -and (-not (_validate-nameSyntax $newName))) {
         Write-Error "Name syntax is not valid. Use only alphanumerics and underscores"
     }
 
-    $oldSolutionName = generate-solutionFriendlyName -context $context
+    $oldSolutionName = _generate-solutionFriendlyName -context $context
     if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
         _create-userFriendlySlnName -context $context
     }
 
     $context.displayName = $newName
 
-    $newSolutionName = generate-solutionFriendlyName -context $context
+    $newSolutionName = _generate-solutionFriendlyName -context $context
     $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
     if (Test-Path $oldSolutionPath) {
         Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
@@ -487,44 +487,44 @@ function sf-rename-project {
     _change-domain -context $context -domainName $domain
     
     _save-selectedProject $context
-    set-currentProject -newContext $context 
+    _set-currentProject -newContext $context 
 }
 
 <#
 .SYNOPSIS
 Undos all pending changes, gets latest, builds and initializes.
 #>
-function sf-reset-project {
+function Reset-Project {
     param(
         [SfProject]
         $project
     )
 
     if (-not $project) {
-        $project = sf-get-currentProject
+        $project = Get-CurrentProject
     }
 
     if ($project.lastGetLatest -and [System.DateTime]::Parse($project.lastGetLatest) -lt [System.DateTime]::Today) {
         $shouldReset = $false
-        if (sf-get-hasPendingChanges) {
-            sf-undo-pendingChanges
+        if (Get-HasPendingChanges) {
+            Undo-PendingChanges
             $shouldReset = $true
         }
 
-        $getLatestOutput = sf-get-latestChanges -overwrite
+        $getLatestOutput = Get-LatestChanges -overwrite
         if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
             $shouldReset = $true
         }
 
         if ($shouldReset) {
-            sf-clean-solution -cleanPackages $true
-            sf-reset-app -start -build -precompile
-            sf-save-appState -stateName initial
+            Clean-Solution -cleanPackages $true
+            Reset-App -start -build -precompile
+            Save-AppState -stateName initial
         }
     }
 }
 
-function sf-get-currentProject {
+function Get-CurrentProject {
     [OutputType([SfProject])]
     $currentContext = $Script:globalContext
     if ($currentContext -eq '') {
@@ -538,8 +538,8 @@ function sf-get-currentProject {
     return [SfProject]$context
 }
 
-function sf-open-description {
-    $context = sf-get-currentProject
+function Open-Description {
+    $context = Get-CurrentProject
     if ($context.description -and $context.description.StartsWith("https://")) {
         $browserPath = $GLOBAL:Sf.Config.browserPath;
         execute-native "& `"$browserPath`" `"$($context.description)`" -noframemerging" -successCodes @(100)
@@ -554,7 +554,7 @@ function _create-userFriendlySlnName ($context) {
         Write-Warning "Solution file not available."    
     }
 
-    $targetFilePath = "$($context.solutionPath)\$(generate-solutionFriendlyName $context)"
+    $targetFilePath = "$($context.solutionPath)\$(_generate-solutionFriendlyName $context)"
     if (!(Test-Path $targetFilePath)) {
         Copy-Item -Path $solutionFilePath -Destination $targetFilePath
     }
@@ -589,14 +589,14 @@ function _validate-project {
 }
 
 function _get-isIdDuplicate ($id) {
-    function isDuplicate ($name) {
+    function _isDuplicate ($name) {
         if ($name -and $name.Contains($id)) {
             return $true
         }
         return $false
     }
 
-    $sitefinities = [SfProject[]](sf-get-allProjects -skipInit)
+    $sitefinities = [SfProject[]](Get-AllProjects -skipInit)
     $sitefinities | % {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {
@@ -606,22 +606,22 @@ function _get-isIdDuplicate ($id) {
 
     if (Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\$id") { return $true }
 
-    $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName | Where-Object { isDuplicate $_ }
+    $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName | Where-Object { _isDuplicate $_ }
     if ($wss) { return $true }
 
     Import-Module WebAdministration
     $sites = Get-Item "IIS:\Sites"
     if ($sites -and $sites.Children) {
-        $names = $sites.Children.Keys | Where-Object { isDuplicate $_ }
+        $names = $sites.Children.Keys | Where-Object { _isDuplicate $_ }
         if ($names) { return $true }
     }
     $pools = Get-Item "IIS:\AppPools"
     if ($pools -and $pools.Children) {
-        $names = $pools.Children.Keys | Where-Object { isDuplicate $_ }
+        $names = $pools.Children.Keys | Where-Object { _isDuplicate $_ }
         if ($names) { return $true }
     }
     
-    $dbs = $tokoAdmin.sql.GetDbs() | Where-Object { isDuplicate $_.name }
+    $dbs = $tokoAdmin.sql.GetDbs() | Where-Object { _isDuplicate $_.name }
     if ($dbs) { return $true }
 
     return $false;
@@ -631,22 +631,22 @@ function _generateId {
     $i = 0;
     while ($true) {
         $name = "$($GLOBAL:Sf.Config.idPrefix)$i"
-        $isDuplicate = (_get-isIdDuplicate $name)
-        if (-not $isDuplicate) {
+        $_isDuplicate = (_get-isIdDuplicate $name)
+        if (-not $_isDuplicate) {
             break;
         }
         
         $i++
     }
 
-    if ([string]::IsNullOrEmpty($name) -or (-not (validate-nameSyntax $name))) {
+    if ([string]::IsNullOrEmpty($name) -or (-not (_validate-nameSyntax $name))) {
         throw "Invalid id $name"
     }
     
     return $name
 }
 
-function set-currentProject {
+function _set-currentProject {
     Param(
         [SfProject]$newContext
     )
@@ -657,11 +657,11 @@ function set-currentProject {
     } 
 
     $Script:globalContext = $newContext
-    set-consoleTitle -newContext $newContext
+    _set-consoleTitle -newContext $newContext
     Set-Prompt -project $newContext
 }
 
-function set-consoleTitle {
+function _set-consoleTitle {
     param (
         [SfProject]$newContext
     )
@@ -683,13 +683,13 @@ function set-consoleTitle {
     }
 }
 
-function generate-solutionFriendlyName {
+function _generate-solutionFriendlyName {
     Param(
         [SfProject]$context
     )
     
     if (-not ($context)) {
-        $context = sf-get-currentProject
+        $context = Get-CurrentProject
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"
@@ -697,7 +697,7 @@ function generate-solutionFriendlyName {
     return $solutionName
 }
 
-function validate-nameSyntax ($name) {
+function _validate-nameSyntax ($name) {
     return $name -match "^[A-Za-z]\w+$" -and $name.Length -lt 75
 }
 
@@ -787,7 +787,7 @@ function _initialize-project {
     $WarningPreference = $oldWarningPreference
 }
 
-function create-projectFilesFromSource {
+function _create-projectFilesFromSource {
     param (
         [Parameter(Mandatory = $true)][Sfproject]$project,
         [Parameter(Mandatory = $true)][string]$sourcePath

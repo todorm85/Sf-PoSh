@@ -5,7 +5,7 @@ function _get-appUrl {
     )
 
     if (!$context) {
-        $context = sf-get-currentProject
+        $context = Get-CurrentProject
     }
     
     if ($useDevUrl) {
@@ -38,14 +38,14 @@ function _get-appUrl {
 
 function _generate-domainName ([SfProject]$context) {
     if (-not $context) {        
-        $context = sf-get-currentProject
+        $context = Get-CurrentProject
     }
     
     return "$($context.displayName)_$($context.id).com"
 }
 
 function _get-devAppUrl {
-    $context = sf-get-currentProject
+    $context = Get-CurrentProject
     
     $port = @(iis-get-websitePort $context.websiteName)[0]
     if ($port -eq '' -or $null -eq $port) {

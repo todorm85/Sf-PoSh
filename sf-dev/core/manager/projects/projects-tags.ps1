@@ -1,11 +1,11 @@
-function sf-add-tagToProject {
+function Add-TagToProject {
     param (
         [string]$tagName
     )
 
     _validate-tag $tagName
     
-    [SfProject]$project = sf-get-currentProject
+    [SfProject]$project = Get-CurrentProject
     if (!$project.tags) {
         $project.tags = $tagName
     }
@@ -16,7 +16,7 @@ function sf-add-tagToProject {
     _save-selectedProject -context $project
 }
 
-function sf-remove-tagFromProject {
+function Remove-TagFromProject {
     param (
         [string]$tagName
     )
@@ -26,7 +26,7 @@ function sf-remove-tagFromProject {
         throw "Invalid tag name to remove."
     }
 
-    [SfProject]$project = sf-get-currentProject
+    [SfProject]$project = Get-CurrentProject
     if ($project.tags -and $project.tags.Contains($tagName)) {
         $project.tags = $project.tags.Replace($tagName, '').Replace('  ', ' ').Trim()
     }
@@ -34,18 +34,18 @@ function sf-remove-tagFromProject {
     _save-selectedProject -context $project
 }
 
-function sf-remove-allTagsFromProject {
-    [SfProject]$project = sf-get-currentProject
+function Remove-AllTagsFromProject {
+    [SfProject]$project = Get-CurrentProject
     $project.tags = ''
     _save-selectedProject -context $project
 }
 
-function sf-get-allTagsForProject {
-    [SfProject]$project = sf-get-currentProject
+function Get-AllTagsForProject {
+    [SfProject]$project = Get-CurrentProject
     return $project.tags
 }
 
-function sf-set-defaultTagFilter {
+function Set-DefaultTagFilter {
     param (
         $filter
     )
@@ -53,7 +53,7 @@ function sf-set-defaultTagFilter {
     _sfData-save-defaultTagsFilter -defaultTagsFilter $filter
 }
 
-function sf-get-defaultTagFilter {
+function Get-DefaultTagFilter {
     return _sfData-get-defaultTagsFilter
 }
 

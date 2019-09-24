@@ -7,10 +7,16 @@ InModuleScope sf-dev {
 
     Describe "Creating project from TFS branch should" -Tags ("create-tfs") {
         $projName = generateRandomName
-        It "when creating the project from branch get latest, make workspace, site, domain, app pool permissions" {
-            sf-new-project -displayName $projName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
+        function _Set-TestProject {
+            $sitefinities = @(get-allProjects)
+            $context = $sitefinities[$sitefinities.Count - 1]
+            _set-currentProject -newContext $context
+        }
 
-            $sitefinities = @(sf-get-allProjects) | Where-Object { $_.displayName -eq $projName }
+        It "when creating the project from branch get latest, make workspace, site, domain, app pool permissions" {
+            new-project -displayName $projName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
+
+            $sitefinities = @(get-allProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id
@@ -27,16 +33,18 @@ InModuleScope sf-dev {
             existsInHostsFile -searchParam $projName | Should -Be $true
         }
         It "when building succeed after at least 3 retries" {
-            sf-build-solution -retryCount 3
+            _Set-TestProject
+            build-solution -retryCount 3
         }
         It "start the app correctly" {
-            sf-reset-app -start
-            $url = get-appUrl
+            _Set-TestProject
+            reset-app -start
+            $url = _get-appUrl
             $result = _invoke-NonTerminatingRequest $url
             $result | Should -Be 200
 
             # update the test project only if the newly created was successful
-            [SfProject[]]$projects = sf-get-allProjects
+            [SfProject[]]$projects = get-allProjects
             if (!$Global:testProjectDisplayName) {
                 Write-Warning "e2e test project name not set, skipping clean."
                 return
@@ -44,13 +52,13 @@ InModuleScope sf-dev {
 
             foreach ($proj in $projects) {
                 if ($proj.displayName -ne $projName) {
-                    sf-delete-project -context $proj -noPrompt
+                    delete-project -context $proj -noPrompt
                 }
             }
 
             foreach ($proj in $projects) {
                 if ($proj.displayName -eq $projName) {
-                    sf-rename-project -project $proj -newName $Global:testProjectDisplayName
+                    rename-project -project $proj -newName $Global:testProjectDisplayName
                 }
             }
         }

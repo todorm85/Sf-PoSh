@@ -19,7 +19,7 @@ public class SfProject
 
 Add-Type -TypeDefinition $definition
 
-function new-objectSfProject ($id) {
+function _new-objectSfProject ($id) {
     [SfProject]$newProject = [SfProject]::new()
     if (!$id) {        
         $newProject.id = _generateId    

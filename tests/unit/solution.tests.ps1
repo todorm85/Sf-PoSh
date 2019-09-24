@@ -26,7 +26,7 @@ InModuleScope sf-dev {
         )
 
         $Script:result = ''
-        Mock write-File {
+        Mock _write-File {
             $Script:result = $content
         }
 
@@ -35,7 +35,7 @@ InModuleScope sf-dev {
                 $expectedOn
             }
 
-            sf-switch-styleCop -enable:$false
+            switch-styleCop -enable:$false
 
             $Script:result.Count | Should -BeExactly $expectedOff.Count
 
@@ -49,7 +49,7 @@ InModuleScope sf-dev {
                 $expectedOff
             }
 
-            sf-switch-styleCop -enable:$true
+            switch-styleCop -enable:$true
 
             $Script:result.Count | Should -BeExactly $expectedOn.Count
 
