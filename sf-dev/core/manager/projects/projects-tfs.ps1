@@ -10,7 +10,7 @@ function Update-AllProjectsTfsInfo {
         $branch = tfs-get-branchPath $context.webAppPath
         if ($branch) {
             $context.branch = $branch
-            sfData-save-project_ $context
+            set-projectData_ $context
         }
     }
 }
@@ -28,12 +28,12 @@ function update-lastGetLatest_ {
             # only update if not get-latest issued already from this tool later than what is in workspace
             if ($lastGetLatestTool -lt $lastGetLatestTfs) {
                 $context.lastGetLatest = $lastGetLatestTfs
-                sfData-save-project_ $context
+                set-projectData_ $context
             }
         }
         else {
             $context.lastGetLatest = $lastGetLatestTfs
-            sfData-save-project_ $context
+            set-projectData_ $context
         }
     }
 }

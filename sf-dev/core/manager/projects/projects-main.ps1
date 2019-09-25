@@ -409,7 +409,7 @@ function Delete-Project {
 
     Write-Information "Deleting data entry..."
     try {
-        sfData-delete-project_ $context
+        remove-projectData_ $context
     }
     catch {
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:Sf.Config.dataPath)"
@@ -565,7 +565,7 @@ function save-selectedProject_ {
 
     validate-project_ $context
 
-    sfData-save-project_ $context
+    set-projectData_ $context
 }
 
 function validate-project_ {

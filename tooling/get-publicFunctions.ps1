@@ -9,7 +9,7 @@ $scripts = Get-ChildItem $path -Recurse | Where-Object { $_.Extension -eq '.ps1'
 $modulesLines = $scripts | Get-Content
 $functionsLines = $modulesLines | Where-Object { $_.contains("function") }
 
-$functionNamePattern = "^\s*?function\s+?(?<name>(_).+?)\s+({|\().*$"
+$functionNamePattern = "^\s*?function\s+?(?<name>.+?_)\s+({|\().*$"
 $functionsLines | Where-Object { $_ -match $functionNamePattern } | % { $Matches["name"] }
 
 # $res = ''

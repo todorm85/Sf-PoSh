@@ -8,12 +8,16 @@
     If tagsFilter is equal to '+' only untagged projects are shown. 
 #>
 function Select-Project {
-    
     Param(
         [string]$tagsFilter
     )
     
+    if (!$tagsFilter) {
+        $tagsFilter = Get-DefaultTagFilter
+    }
+
     [SfProject[]]$sitefinities = @(Get-AllProjects -skipInit -tagsFilter $tagsFilter)
+
     if (!$sitefinities[0]) {
         Write-Warning "No projects found. Check if not using default tag filter."
         return
