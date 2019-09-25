@@ -10,15 +10,21 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '2.0.0'
+    ModuleVersion     = '3.0.0'
     RequiredModules   = @(
-        @{ModuleName = 'toko-admin'; ModuleVersion = '1.0.0'; MaximumVersion = '1.*' },
+        @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.0'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
     )
     PrivateData       = @{
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            3.0.0
+                Powershell standards compliance - function names
+                No Config type
+                Add config global object
+                Fixes for default tags
+                Other bugfixes
             2.0.0
                 When renaming to a title of AzureDevOps copied item title it is automatically recognized and processed.
                 Clipboard is no longer modified when renaming a project.
