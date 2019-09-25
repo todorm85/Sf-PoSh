@@ -203,7 +203,7 @@ function Clear-ConfigContentInDb {
     .OUTPUTS
     None
 #>
-function Insert-ConfigContentInDb {
+function Set-ConfigContentInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,

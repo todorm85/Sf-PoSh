@@ -34,7 +34,7 @@ InModuleScope sf-dev {
         }
         It "when building succeed after at least 3 retries" {
             _Set-TestProject
-            build-solution -retryCount 3
+            Start-SolutionBuild -retryCount 3
         }
         It "start the app correctly" {
             _Set-TestProject
@@ -52,7 +52,7 @@ InModuleScope sf-dev {
 
             foreach ($proj in $projects) {
                 if ($proj.displayName -ne $projName) {
-                    delete-project -context $proj -noPrompt
+                    Remove-Project -context $proj -noPrompt
                 }
             }
 

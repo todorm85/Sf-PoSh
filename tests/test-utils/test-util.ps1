@@ -45,7 +45,7 @@ function clone-testProject ([SfProject]$sourceProj) {
     $appSettings.AppendChild($newElement)
     $xmlData.Save($webConfigPath) > $null
 
-    clone-project -skipSourceControlMapping -context $sourceProj
+    Copy-Project -skipSourceControlMapping -context $sourceProj
 
     # verify project configuration
     [SfProject]$project = get-currentProject
@@ -102,7 +102,7 @@ function initialize-testEnvironment {
 
     foreach ($proj in $projects) {
         if ($proj.displayName -ne $Global:testProjectDisplayName) {
-            delete-project -context $proj -noPrompt
+            Remove-Project -context $proj -noPrompt
         }
     }
 }

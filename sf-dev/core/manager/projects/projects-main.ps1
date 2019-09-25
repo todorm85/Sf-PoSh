@@ -58,7 +58,7 @@ function New-Project {
         copy-sfRuntimeFiles_ -project $newContext -dest $originalAppDataSaveLocation
 
         Write-Information "Creating website..."
-        Create-Website -context $newContext
+        New-Website -context $newContext
 
         save-selectedProject_ $newContext
     }
@@ -112,7 +112,7 @@ function New-Project {
 
         if ($buildSolution) {
             Write-Information "Building solution..."
-            Build-Solution -retryCount 3
+            Start-SolutionBuild -retryCount 3
         }
 
         if ($startWebApp) {
@@ -139,7 +139,7 @@ function New-Project {
     return $newContext
 }
 
-function Clone-Project {
+function Copy-Project {
     Param(
         [SfProject]$context,
         [switch]$noAutoSelect,
@@ -197,7 +197,7 @@ function Clone-Project {
 
     try {
         Write-Information "Creating website..."
-        Create-Website -context $newProject > $null
+        New-Website -context $newProject > $null
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -225,7 +225,7 @@ function Clone-Project {
     }
 
     try {
-        Delete-AllAppStates -context $newProject
+        Remove-AllAppStates -context $newProject
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
@@ -267,7 +267,7 @@ function Import-Project {
     return $newContext
 }
 
-function Delete-ManyProjects {
+function Remove-ManyProjects {
     $sitefinities = @(Get-AllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
@@ -290,7 +290,7 @@ function Delete-ManyProjects {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            Delete-Project -context $selectedSitefinity -noPrompt
+            Remove-Project -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"       
@@ -312,7 +312,7 @@ function Delete-ManyProjects {
     .OUTPUTS
     None
 #>
-function Delete-Project {
+function Remove-Project {
     
     Param(
         [switch]$keepDb,
@@ -517,7 +517,7 @@ function Reset-Project {
         }
 
         if ($shouldReset) {
-            Clean-Solution -cleanPackages $true
+            Start-SolutionClean -cleanPackages $true
             Reset-App -start -build -precompile
             Save-AppState -stateName initial
         }

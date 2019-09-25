@@ -77,7 +77,7 @@ function Stop-Pool ([SfProject]$context) {
     .OUTPUTS
     None
 #>
-function Change-Pool {
+function Switch-AppPool {
     
     Param()
 

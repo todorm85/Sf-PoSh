@@ -10,7 +10,7 @@ InModuleScope sf-dev {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
             
-            delete-project -noPrompt
+            Remove-Project -noPrompt
             
             $sitefinities = @(get-allProjects -skipInit) | where { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0

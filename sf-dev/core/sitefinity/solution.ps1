@@ -4,7 +4,7 @@
     .OUTPUTS
     None
 #>
-function Build-Solution {
+function Start-SolutionBuild {
     
     Param(
         $retryCount = 0,
@@ -22,7 +22,7 @@ function Build-Solution {
     while ($tries -le $retryCount -and (-not $isBuilt)) {
         try {
             if (!(Test-Path $solutionPath)) {
-                Build-WebAppProj
+                Start-WebAppProjBuild
             }
             else {
                 try {
@@ -55,7 +55,7 @@ function Build-Solution {
     .OUTPUTS
     None
 #>
-function Rebuild-Solution {
+function Start-SolutionReBuild {
     
     Param(
         [bool]$cleanPackages = $false,
@@ -68,16 +68,16 @@ function Rebuild-Solution {
 
     Write-Information "Rebuilding solution..."
     try {
-        Clean-Solution -cleanPackages $cleanPackages -project $project
+        Start-SolutionClean -cleanPackages $cleanPackages -project $project
     }
     catch {
         Write-Warning "Errors while cleaning solution: $_"
     }
 
-    Build-Solution -retryCount $retryCount -project $project
+    Start-SolutionBuild -retryCount $retryCount -project $project
 }
 
-function Clean-Solution {
+function Start-SolutionClean {
     Param(
         [bool]$cleanPackages = $false,
         [SfProject]$project)
@@ -113,7 +113,7 @@ function Clean-Solution {
 
     if ($cleanPackages) {
         try {
-            Clean-Packages -project $project
+            Clear-Packages -project $project
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
@@ -125,7 +125,7 @@ function Clean-Solution {
     }
 }
 
-function Clean-Packages {
+function Clear-Packages {
     Param(
         [SfProject]$project
     )
@@ -197,7 +197,7 @@ function Open-Solution {
     .OUTPUTS
     None
 #>
-function Build-WebAppProj () {
+function Start-WebAppProjBuild () {
     
 
     $context = Get-CurrentProject

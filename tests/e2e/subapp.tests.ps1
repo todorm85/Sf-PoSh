@@ -12,7 +12,7 @@ InModuleScope sf-dev {
         $pool = iis-get-siteAppPool -websiteName $site
 
         It "create application and set its path and app pool" {
-            setup-asSubApp -subAppName $subApp
+            Set-SubApp -subAppName $subApp
             Test-Path "IIS:\Sites\$site\$subApp" | Should -Be $true
             (Get-Item -Path "IIS:\Sites\$site\$subApp").applicationPool | Should -Be $pool
             (Get-Item -Path "IIS:\Sites\$site").physicalPath | Should -Not -Be $project.webAppPath

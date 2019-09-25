@@ -80,7 +80,7 @@ function Restore-AppState {
     restore-sfRuntimeFiles_ "$appDataStatePath/*"
 }
 
-function Delete-AppState ($stateName, [SfProject]$context) {
+function Remove-AppState ($stateName, [SfProject]$context) {
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = select-appState_ -context $context
     }
@@ -96,12 +96,12 @@ function Delete-AppState ($stateName, [SfProject]$context) {
     }
 }
 
-function Delete-AllAppStates ([SfProject]$context) {
+function Remove-AllAppStates ([SfProject]$context) {
     $statesPath = get-statesPath_ -context $context
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
-            Delete-AppState $state.Name -context $context
+            Remove-AppState $state.Name -context $context
         }
     }
 }

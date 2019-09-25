@@ -5,7 +5,7 @@
     .OUTPUTS
     None
 #>
-function Setup-AsSubApp {
+function Set-SubApp {
     
     Param(
         [Parameter(Mandatory = $true)][string]$subAppName,

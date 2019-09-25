@@ -27,7 +27,7 @@ function rename-website {
     .OUTPUTS
     None
 #>
-function browse-webSite {
+function Open-WebSite {
     
     Param(
         [switch]$useExistingBrowser,
@@ -61,7 +61,7 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function create-website {
+function New-Website {
     Param(
         [SfProject]$context
     )
@@ -87,7 +87,7 @@ function create-website {
     $newAppPool = $context.id
     $domain = generate-domainName_ -context $context
     try {
-        iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
+        iis-New-Website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
     catch {
         throw "Error creating site: $_"

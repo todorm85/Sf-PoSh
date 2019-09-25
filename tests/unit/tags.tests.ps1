@@ -93,6 +93,6 @@ InModuleScope sf-dev {
             { add-tagToProject $null } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
 
-        delete-project -context $testProj -noPrompt
+        Remove-Project -context $testProj -noPrompt
     }
 }

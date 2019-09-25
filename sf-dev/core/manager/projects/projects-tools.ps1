@@ -3,7 +3,7 @@
     Cleans all project artefacts in case a project was not deleted successfuly - deletes websites, databases, host file mappings based on a search
     using the id prefix and checking whether a project in the tools database still exist or has been removed from the tool.
 #>
-function Clean-AllProjectsLeftovers {
+function Clear-AllProjectsLeftovers {
     $projectsDir = $GLOBAL:Sf.Config.projectsDirectory
     $idsInUse = Get-AllProjects | ForEach-Object { $_.id }
     

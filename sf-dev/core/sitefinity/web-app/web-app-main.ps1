@@ -59,11 +59,11 @@ function Reset-App {
         }
     
         if ($rebuild) {
-            Rebuild-Solution -retryCount 3
+            Start-SolutionReBuild -retryCount 3
         }
 
         if ($build) {
-            Build-Solution -retryCount 3
+            Start-SolutionBuild -retryCount 3
         }
 
         Write-Information "Resetting App_Data files..."
