@@ -87,7 +87,7 @@ function New-Website {
     $newAppPool = $context.id
     $domain = GenerateDomainName -context $context
     try {
-        iis-New-Website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
+        iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
     catch {
         throw "Error creating site: $_"
