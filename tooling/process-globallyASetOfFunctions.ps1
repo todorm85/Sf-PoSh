@@ -1,11 +1,14 @@
-$oldNames = Invoke-Expression "& `"$PSScriptRoot/get-publicFunctions.ps1`" -path `"C:\Users\User\Desktop\sf-dev\sf-dev\core`""
+$path = "$PSScriptRoot\..\sf-dev\core"
+# $path = "$PSScriptRoot\..\tests"
 
-function Convert-ToPascalCase {
+$oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
+
+function Rename-Function {
     param (
         [string]$text
     )
     
-    $text = $text.Replace("sf-", "");
+    $text = $text.Replace("_", "");
     $result = "";
     $setCapital = $true;
     for ($i = 0; $i -lt $text.Length; $i++) {
@@ -15,12 +18,11 @@ function Convert-ToPascalCase {
         } else {
             $newResult = $letter
         }
-        
-        $result = "$result$newResult"
 
         if ($letter -eq '-') {
             $setCapital = $true;
         } else {
+            $result = "$result$newResult"
             $setCapital = $false;
         }
     }
@@ -28,14 +30,12 @@ function Convert-ToPascalCase {
     $result
 }
 
-$scripts = Get-ChildItem "$PSScriptRoot\..\sf-dev\core" -Recurse | Where-Object { $_.Extension -eq '.ps1'}
+$scripts = Get-ChildItem $path -Recurse | Where-Object { $_.Extension -eq '.ps1'}
 
 $scripts | % { 
     $content = Get-Content $_.FullName
     $oldNames | % {
-        # $newTitle = Convert-ToPascalCase($_)
-        $newTitle = $_ + "_";
-        $newTitle = $newTitle.Remove(0, 1)
+        $newTitle = Rename-Function($_)
         $content = $content -replace $_, $newTitle
     }
 
