@@ -17,7 +17,7 @@ InModuleScope sf-dev {
                 id            = "id1";
             }
 
-            set-projectData_ -context $proj1
+            SetProjectData -context $proj1
             [SfProject[]]$projects = get-allProjects
             $projects | Should -HaveCount 1
             $projects[0].id | Should -Be "id1"
@@ -30,9 +30,9 @@ InModuleScope sf-dev {
                 id            = "id1";
             }
 
-            set-projectData_ -context $proj1
+            SetProjectData -context $proj1
             $proj1.id = 'id2'
-            set-projectData_ -context $proj1
+            SetProjectData -context $proj1
 
             [SfProject[]]$projects = get-allProjects
             $projects | Should -HaveCount 2
