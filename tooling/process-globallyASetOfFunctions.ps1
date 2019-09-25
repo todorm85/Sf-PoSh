@@ -1,5 +1,5 @@
 # $path = "$PSScriptRoot\..\sf-dev\core"
-$path = "$PSScriptRoot\..\sf-dev\core"
+$path = "$PSScriptRoot\..\tests"
 
 # $oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
 $oldNames = @('RemoveProjectData','SetProjectData','SetDefaultTagsFilter','GetDefaultTagsFilter','InitManagerData','NewSfProjectObject','GetAzureDevOpsTitleAndLink','GetValidTitle','CreateUserFriendlySlnName','SaveSelectedProject','ValidateProject','GetIsIdDuplicate','IsDuplicate','GenerateId','SetConsoleTitle','GenerateSolutionFriendlyName','ValidateNameSyntax','CreateWorkspace','InitializeProject','aliuty','CreateProjectFilesFromSource','ValidateTag','FilterProjectsByTags','CheckIfTagged','GetDaysSinceLastGetLatest','PromptPredefinedBranchSelect','PromptPredefinedBuildPathSelect','PromptProjectSelect','ExecuteBatchBlock','ShouldClean','AddError','UpdateLastGetLatest','GetLastWorkspaceChangesetDate','BuildProj','SwitchStyleCop','WriteFile','GetAppUrl','GenerateDomainName','GetDevAppUrl','DeleteWebsite','ChangeDomain','GetCurrentAppDbName','GetDataConfig','StartApp','InvokeNonTerminatingRequest','DeleteStartupConfig','CreateStartupConfig','ResetAppDataFiles','CleanSfRuntimeFiles','CopySfRuntimeFiles','RestoreSfRuntimeFiles','SelectAppState','GetSqlBackupStateName','GetSqlCredentials','GetStatesPath')

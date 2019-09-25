@@ -91,13 +91,13 @@ function tfs_getLatestChanges {
 
     Write-Information "Getting latest changes for path ${solutionPath}."
     if ($overwrite) {
-        tfs-tfs_getLatestChanges -branchMapPath $solutionPath -overwrite
+        tfs-get-latestChanges -branchMapPath $solutionPath -overwrite
     } else {
-        tfs-tfs_getLatestChanges -branchMapPath $solutionPath
+        tfs-get-latestChanges -branchMapPath $solutionPath
     }
     
     $context.lastGetLatest = [System.DateTime]::Today
-    SaveSelectedProject $context
+    _saveSelectedProject $context
 
     Write-Information "Getting latest changes complete."
 }

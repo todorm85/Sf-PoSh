@@ -7,7 +7,7 @@ function proj_tools_clearAllProjectsLeftovers {
     $projectsDir = $GLOBAL:Sf.Config.projectsDirectory
     $idsInUse = data_getAllProjects | ForEach-Object { $_.id }
     
-    function ShouldClean {
+    function _shouldClean {
         param (
             $id
         )
@@ -24,7 +24,7 @@ function proj_tools_clearAllProjectsLeftovers {
     }
 
     $errors = ''
-    function AddError ($text) {
+    function _addError ($text) {
         $errors = "$errors$text`n"
     }
 
@@ -32,48 +32,48 @@ function proj_tools_clearAllProjectsLeftovers {
         Write-Information "Sites cleanup"
         Import-Module WebAdministration
         $sites = Get-Item "IIS:\Sites" 
-        $names = $sites.Children.Keys | Where-Object { ShouldClean $_ }
+        $names = $sites.Children.Keys | Where-Object { _shouldClean $_ }
         
         foreach ($site in $names) {
             Remove-Item "IIS:\Sites\$($site)" -Force -Recurse
         }
     }
     catch {
-        AddError "Sites were not cleaned up: $_"
+        _addError "Sites were not cleaned up: $_"
     }
 
     try {
         Write-Information "App pool cleanup"
         Import-Module WebAdministration
         $pools = Get-Item "IIS:\AppPools" 
-        $names = $pools.Children.Keys | Where-Object { ShouldClean $_ }
+        $names = $pools.Children.Keys | Where-Object { _shouldClean $_ }
         foreach ($poolName in $names) {
             Remove-Item "IIS:\AppPools\$($poolName)" -Force -Recurse
         }
     }
     catch {
-        AddError "Application pools were not cleaned up: $_"
+        _addError "Application pools were not cleaned up: $_"
     }
 
     try {
         Write-Information "TFS cleanup"
         $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName
-        $wss | Where-Object { ShouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:Sf.Config.tfsServerName }
+        $wss | Where-Object { _shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:Sf.Config.tfsServerName }
     }
     catch {
-        AddError "Tfs workspaces were not cleaned up: $_"
+        _addError "Tfs workspaces were not cleaned up: $_"
     }
 
     try {
         Write-Information "DBs cleanup"
         
         $dbs = $tokoAdmin.sql.GetDbs()
-        $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:Sf.Config.idPrefix)") -and (ShouldClean $_.name) } | ForEach-Object {
+        $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:Sf.Config.idPrefix)") -and (_shouldClean $_.name) } | ForEach-Object {
             $tokoAdmin.sql.Delete($_.name)
         }
     }
     catch {
-        AddError "Databases were not cleaned up: $_"
+        _addError "Databases were not cleaned up: $_"
     }
 
     try {
@@ -81,10 +81,10 @@ function proj_tools_clearAllProjectsLeftovers {
         sleep.exe 5
         Write-Information "Projects directory cleanup"
         unlock-allFiles $projectsDir
-        Get-ChildItem $projectsDir | Where-Object { ShouldClean $_.Name } | ForEach-Object { Remove-Item $_.FullName -Force -Recurse }
+        Get-ChildItem $projectsDir | Where-Object { _shouldClean $_.Name } | ForEach-Object { Remove-Item $_.FullName -Force -Recurse }
     }
     catch {
-        AddError "Test sitefinities were not cleaned up: $_"
+        _addError "Test sitefinities were not cleaned up: $_"
     }
 
     if ($errors) {

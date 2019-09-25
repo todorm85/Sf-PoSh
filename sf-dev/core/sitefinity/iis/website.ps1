@@ -13,7 +13,7 @@ function srv_site_rename {
     }
     
     $context.websiteName = $newName
-    SaveSelectedProject $context
+    _saveSelectedProject $context
 
 }
 
@@ -39,7 +39,7 @@ function srv_site_open {
     }
 
     $browserPath = $GLOBAL:Sf.Config.browserPath;
-    $appUrl = GetAppUrl -context $project
+    $appUrl = _getAppUrl -context $project
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:userConfigPath -> browserPath"
     }
@@ -85,7 +85,7 @@ function srv_site_new {
     
     $newAppPath = $context.webAppPath
     $newAppPool = $context.id
-    $domain = GenerateDomainName -context $context
+    $domain = _generateDomainName -context $context
     try {
         iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
@@ -93,7 +93,7 @@ function srv_site_new {
         throw "Error creating site: $_"
     }
 
-    SaveSelectedProject $context
+    _saveSelectedProject $context
 
     try {
         if ($domain) {
@@ -105,7 +105,7 @@ function srv_site_new {
     }
 }
 
-function DeleteWebsite ([SfProject]$context) {
+function _deleteWebsite ([SfProject]$context) {
     if (-not $context) {
         $context = proj_getCurrent
     }
@@ -119,12 +119,12 @@ function DeleteWebsite ([SfProject]$context) {
     $domain = (iis-get-binding $websiteName).domain
     $context.websiteName = ''
     try {
-        SaveSelectedProject $context
+        _saveSelectedProject $context
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
     }
     catch {
         $context.websiteName = $websiteName
-        SaveSelectedProject $context
+        _saveSelectedProject $context
         throw "Error deleting website ${websiteName}: $_"
     }
 
@@ -145,7 +145,7 @@ function DeleteWebsite ([SfProject]$context) {
     }
 }
 
-function ChangeDomain {
+function _changeDomain {
     param (
         $context,
         $domainName

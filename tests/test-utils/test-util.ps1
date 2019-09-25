@@ -22,7 +22,7 @@ function set-testProject {
 
     $proj = $proj[0]
     $clonedProjResult = clone-testProject -sourceProj $proj
-    $startAppResult = StartApp
+    $_startAppResult = _startApp
 
     $clonedProj = proj_getCurrent
     $Global:sf_tests_test_project = $clonedProj

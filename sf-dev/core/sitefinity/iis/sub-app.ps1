@@ -44,6 +44,6 @@ function srv_subApp_remove {
         return
     }
 
-    iis-srv_subApp_remove $project.websiteName $subAppName
+    iis-remove-subApp $project.websiteName $subAppName
     iis-set-sitePath $project.websiteName $project.webAppPath
 }

@@ -23,7 +23,7 @@ function app_addPrecompiledTemplates {
     
     $context = proj_getCurrent
     $webAppPath = $context.webAppPath
-    $appUrl = GetAppUrl
+    $appUrl = _getAppUrl
     if ($revert) {
         $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
         try {

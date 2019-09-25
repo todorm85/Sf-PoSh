@@ -1,4 +1,4 @@
-function GetAppUrl {
+function _getAppUrl {
     Param(
         [switch]$useDevUrl,
         [SfProject]$context
@@ -9,7 +9,7 @@ function GetAppUrl {
     }
     
     if ($useDevUrl) {
-        return GetDevAppUrl
+        return _getDevAppUrl
     }
 
     if (-not $context) {
@@ -36,7 +36,7 @@ function GetAppUrl {
     return $result
 }
 
-function GenerateDomainName ([SfProject]$context) {
+function _generateDomainName ([SfProject]$context) {
     if (-not $context) {        
         $context = proj_getCurrent
     }
@@ -44,7 +44,7 @@ function GenerateDomainName ([SfProject]$context) {
     return "$($context.displayName)_$($context.id).com"
 }
 
-function GetDevAppUrl {
+function _getDevAppUrl {
     $context = proj_getCurrent
     
     $port = @(iis-get-websitePort $context.websiteName)[0]

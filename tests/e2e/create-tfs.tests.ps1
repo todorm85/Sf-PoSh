@@ -39,8 +39,8 @@ InModuleScope sf-dev {
         It "start the app correctly" {
             Set-TestProject
             app_reset -start
-            $url = GetAppUrl
-            $result = InvokeNonTerminatingRequest $url
+            $url = _getAppUrl
+            $result = _invokeNonTerminatingRequest $url
             $result | Should -Be 200
 
             # update the test project only if the newly created was successful

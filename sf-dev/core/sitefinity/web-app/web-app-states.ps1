@@ -30,8 +30,8 @@ function app_states_save {
     $Acl.SetAccessRule($Ar)
     Set-Acl $statePath $Acl
 
-    $backupName = GetSqlBackupStateName -stateName $stateName
-    Backup-SqlDatabase -ServerInstance $GLOBAL:Sf.Config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(GetSqlCredentials) -Initialize
+    $backupName = _getSqlBackupStateName -stateName $stateName
+    Backup-SqlDatabase -ServerInstance $GLOBAL:Sf.Config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials) -Initialize
     
     $stateDataPath = "$statePath/data.xml"
     New-Item $stateDataPath > $null
@@ -41,7 +41,7 @@ function app_states_save {
     $root.SetAttribute("dbName", $dbName)
     $stateData.Save($stateDataPath) > $null
 
-    CopySfRuntimeFiles -dest $appDataStatePath
+    _copySfRuntimeFiles -dest $appDataStatePath
 }
 
 function app_states_restore {
@@ -55,7 +55,7 @@ function app_states_restore {
     }
 
     if ([string]::IsNullOrEmpty($stateName)) {
-        $stateName = SelectAppState -context $context
+        $stateName = _selectAppState -context $context
     }
 
     srv_pool_resetPool
@@ -63,13 +63,13 @@ function app_states_restore {
         sol_unlockAllFiles
     }
     
-    $statesPath = GetStatesPath
+    $statesPath = _getStatesPath
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
     
     $tokoAdmin.sql.Delete($dbName)
-    $backupName = GetSqlBackupStateName -stateName $stateName
-    Restore-SqlDatabase -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(GetSqlCredentials)
+    $backupName = _getSqlBackupStateName -stateName $stateName
+    Restore-SqlDatabase -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials)
 
     $appDataStatePath = "$statePath/App_Data"
     $appDataPath = "$($project.webAppPath)/App_Data"
@@ -77,19 +77,19 @@ function app_states_restore {
         New-Item $appDataPath -ItemType Directory > $null
     }
     
-    RestoreSfRuntimeFiles "$appDataStatePath/*"
+    _restoreSfRuntimeFiles "$appDataStatePath/*"
 }
 
 function app_states_remove ($stateName, [SfProject]$context) {
     if ([string]::IsNullOrEmpty($stateName)) {
-        $stateName = SelectAppState -context $context
+        $stateName = _selectAppState -context $context
     }
 
     if (-not $stateName) {
         return
     }
 
-    $statesPath = GetStatesPath -context $context
+    $statesPath = _getStatesPath -context $context
     if ($statesPath) {
         $statePath = "${statesPath}/$stateName"
         Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse
@@ -97,7 +97,7 @@ function app_states_remove ($stateName, [SfProject]$context) {
 }
 
 function app_states_removeAll ([SfProject]$context) {
-    $statesPath = GetStatesPath -context $context
+    $statesPath = _getStatesPath -context $context
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
@@ -106,8 +106,8 @@ function app_states_removeAll ([SfProject]$context) {
     }
 }
 
-function SelectAppState ([SfProject]$context) {
-    $statesPath = GetStatesPath -context $context
+function _selectAppState ([SfProject]$context) {
+    $statesPath = _getStatesPath -context $context
     $states = Get-Item "${statesPath}/*"
     if (-not $states) {
         Write-Warning "No states."
@@ -131,7 +131,7 @@ function SelectAppState ([SfProject]$context) {
     return $stateName
 }
 
-function GetSqlBackupStateName {
+function _getSqlBackupStateName {
     param (
         [Parameter(Mandatory=$true)]$stateName
     )
@@ -140,13 +140,13 @@ function GetSqlBackupStateName {
     return "$($context.id)_$stateName.bak"
 }
 
-function GetSqlCredentials {
+function _getSqlCredentials {
     $password = ConvertTo-SecureString $GLOBAL:Sf.Config.sqlPass -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential ($GLOBAL:Sf.Config.sqlUser, $password)
     $credential
 }
 
-function GetStatesPath ([SfProject]$context) {
+function _getStatesPath ([SfProject]$context) {
     if (!$context) {
         $context = proj_getCurrent
     }

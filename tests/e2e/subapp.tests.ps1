@@ -18,7 +18,7 @@ InModuleScope sf-dev {
             (Get-Item -Path "IIS:\Sites\$site").physicalPath | Should -Not -Be $project.webAppPath
         }
         It "return the correct url for subapp" {
-            $res = GetAppUrl
+            $res = _getAppUrl
             $res.EndsWith($subApp) | Should -Be $true
         }
         It "remove sub app by deleting the application and setting the site path" {
@@ -27,7 +27,7 @@ InModuleScope sf-dev {
             (Get-Item -Path "IIS:\Sites\$site").physicalPath | Should -Be $project.webAppPath
         }
         It "build the correct url after subapp removal" {
-            $res = GetAppUrl
+            $res = _getAppUrl
             $res.EndsWith($subApp) | Should -Not -Be $true
         }
     }

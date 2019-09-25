@@ -23,7 +23,7 @@ function proj_select {
         return
     }
 
-    $selectedSitefinity = PromptProjectSelect -sitefinities $sitefinities
+    $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
     proj_setCurrent $selectedSitefinity
     proj_show
 }
@@ -55,7 +55,7 @@ function proj_show {
     }
 
     if (-not $detail) {
-        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(GetDaysSinceLastGetLatest $context)"
+        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(_getDaysSinceLastGetLatest $context)"
         return    
     }
 
@@ -97,7 +97,7 @@ function proj_show {
 
         [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
         [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $branch; }
-        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = GetDaysSinceLastGetLatest $context; }
+        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = _getDaysSinceLastGetLatest $context; }
         [pscustomobject]@{id = 10; Parameter = "Tags"; Value = $context.tags }
     )
 
@@ -127,7 +127,7 @@ function proj_showAll {
                 Branch  = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0];
                 Ports   = "$ports";
                 ID      = "$($sitefinity.id)";
-                LastGet = GetDaysSinceLastGetLatest $sitefinity;
+                LastGet = _getDaysSinceLastGetLatest $sitefinity;
                 Tags = $sitefinity.tags
             }) > $null
     }
@@ -135,7 +135,7 @@ function proj_showAll {
     $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id, LastGet, Tags | Out-String | ForEach-Object { Write-Host $_ }
 }
 
-function GetDaysSinceLastGetLatest ([SfProject]$context) {
+function _getDaysSinceLastGetLatest ([SfProject]$context) {
     if (-not $context) {
         [SfProject]$context = proj_getCurrent
     }
@@ -150,7 +150,7 @@ function GetDaysSinceLastGetLatest ([SfProject]$context) {
     }
 }
 
-function PromptPredefinedBranchSelect {
+function _promptPredefinedBranchSelect {
     $branches = @($GLOBAL:Sf.Config.predefinedBranches)
 
     if ($branches.Count -eq 0) {
@@ -177,7 +177,7 @@ function PromptPredefinedBranchSelect {
     return $selectedBranch
 }
 
-function PromptPredefinedBuildPathSelect {
+function _promptPredefinedBuildPathSelect {
     $paths = @($GLOBAL:Sf.Config.predefinedBuildPaths)
 
     if ($paths.Count -eq 0) {
@@ -204,7 +204,7 @@ function PromptPredefinedBuildPathSelect {
     return $selectedPath
 }
 
-function PromptProjectSelect {
+function _promptProjectSelect {
     param (
         [SfProject[]]$sitefinities
     )

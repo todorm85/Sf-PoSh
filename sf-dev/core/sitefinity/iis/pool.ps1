@@ -21,7 +21,7 @@ function srv_pool_resetThread {
 
     if ($start) {
         Start-Sleep -s 1
-        StartApp
+        _startApp
     }
 }
 
@@ -51,7 +51,7 @@ function srv_pool_resetPool {
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
     if ($start) {
         Start-Sleep -s 1
-        StartApp
+        _startApp
     }
 }
 

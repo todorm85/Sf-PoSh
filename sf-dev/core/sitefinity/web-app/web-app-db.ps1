@@ -3,7 +3,7 @@ function app_db_getName ([SfProject]$context) {
         [SfProject]$context = proj_getCurrent
     }
 
-    $dbName = GetCurrentAppDbName -project $context
+    $dbName = _getCurrentAppDbName -project $context
     if ($dbName) {
         return $dbName
     }
@@ -36,12 +36,12 @@ function app_db_setName ($newName, [SfProject]$context) {
     }
 }
 
-function GetCurrentAppDbName ([SfProject]$project) {
+function _getCurrentAppDbName ([SfProject]$project) {
     if (-not $project) {
         [SfProject]$project = proj_getCurrent
     }
     
-    [XML]$data = GetDataConfig $project
+    [XML]$data = _getDataConfig $project
     if ($data) {
         $conStrs = $data.dataConfig.connectionStrings.add
         $sfConStrEl = $conStrs | where { $_.name -eq 'Sitefinity' }
@@ -58,7 +58,7 @@ function GetCurrentAppDbName ([SfProject]$project) {
     return $null
 }
 
-function GetDataConfig ([SfProject]$project) {
+function _getDataConfig ([SfProject]$project) {
     $data = New-Object XML
     $dataConfigPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
     if (Test-Path -Path $dataConfigPath) {

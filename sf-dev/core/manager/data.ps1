@@ -28,7 +28,7 @@ function data_getAllProjects {
             $clone.lastGetLatest = $lastGetLatest;
 
             if (!$skipInit) {
-                InitializeProject -project $clone -suppressWarnings
+                _initializeProject -project $clone -suppressWarnings
             }
 
             $sitefinities.Add($clone)
@@ -36,13 +36,13 @@ function data_getAllProjects {
     }
 
     if ($tagsFilter) {
-        $sitefinities = FilterProjectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
+        $sitefinities = _filterProjectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
     }
 
     return $sitefinities
 }
 
-function RemoveProjectData {
+function _removeProjectData {
     Param($context)
     Write-Information "Updating script databse..."
     $id = $context.id
@@ -64,7 +64,7 @@ function RemoveProjectData {
     }
 }
 
-function SetProjectData {
+function _setProjectData {
     Param([SfProject]$context)
 
     $context = [SfProject]$context
@@ -97,7 +97,7 @@ function SetProjectData {
     $data.Save($GLOBAL:Sf.Config.dataPath) > $null
 }
 
-function SetDefaultTagsFilter {
+function _setDefaultTagsFilter {
     param (
         [string]$defaultTagsFilter
     )
@@ -109,7 +109,7 @@ function SetDefaultTagsFilter {
     $data.Save($GLOBAL:Sf.Config.dataPath) > $null
 }
 
-function GetDefaultTagsFilter {
+function _getDefaultTagsFilter {
     $data = New-Object XML
     $data.Load($GLOBAL:Sf.Config.dataPath) > $null
     $data.data.GetAttribute("defaultTagsFilter", $defaultTagsFilter)

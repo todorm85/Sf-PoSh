@@ -24,7 +24,7 @@ InModuleScope sf-dev {
         It "start successfully after reset" {
             app_reset -start
             Test-Path $configsPath | Should -Be $true
-            $dbName = GetCurrentAppDbName            
+            $dbName = _getCurrentAppDbName            
             $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
         }
     }

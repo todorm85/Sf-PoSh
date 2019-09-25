@@ -22,7 +22,7 @@ InModuleScope sf-dev {
             existsInHostsFile -searchParam $oldName | Should -Be $false
             Test-Path "$($testProject.solutionPath)\$newName($id).sln" | Should -Be $true
             Test-Path "$($testProject.solutionPath)\$oldName($id).sln" | Should -Be $false
-            ([string](GetAppUrl)).IndexOf($newName) | Should -BeGreaterThan -1
+            ([string](_getAppUrl)).IndexOf($newName) | Should -BeGreaterThan -1
         }
     }
 }

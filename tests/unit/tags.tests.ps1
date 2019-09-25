@@ -4,9 +4,9 @@ InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
 
     Describe "Tags should" -Tags ("fluent") {
-        Mock InitializeProject { }
-        Mock ValidateProject { }
-        Mock SetConsoleTitle { }
+        Mock _initializeProject { }
+        Mock _validateProject { }
+        Mock _setConsoleTitle { }
         $testTag1 = 'test-tag-1'
         $testTag2 = 'test-tag-2'
         $testTag3 = 'test-tag-3'

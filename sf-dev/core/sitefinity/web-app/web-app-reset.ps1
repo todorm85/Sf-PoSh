@@ -24,7 +24,7 @@ function app_reset {
         [switch]$start,
         [switch]$rebuild,
         [switch]$precompile,
-        [switch]$createStartupConfig,
+        [switch]$_createStartupConfig,
         [switch]$build,
         [string]$user,
         [switch]$configRestrictionSafe,
@@ -68,7 +68,7 @@ function app_reset {
 
         Write-Information "Resetting App_Data files..."
         try {
-            ResetAppDataFiles
+            _resetAppDataFiles
         }
         catch {
             Write-Warning "Errors ocurred while resetting App_Data files.`n $_"
@@ -85,27 +85,27 @@ function app_reset {
             }
         }
 
-        if ($createStartupConfig) {
-            CreateStartupConfig $user $dbName
+        if ($_createStartupConfig) {
+            _createStartupConfig $user $dbName
         }
 
         if ($start) {
             Start-Sleep -s 2
 
             try {
-                CreateStartupConfig $user $dbName
+                _createStartupConfig $user $dbName
             }
             catch {
                 throw "Erros while creating startupConfig: $_"
             }
 
             try {
-                $appUrl = GetAppUrl
-                StartApp -url $appUrl
+                $appUrl = _getAppUrl
+                _startApp -url $appUrl
             }
             catch {
                 throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
-                DeleteStartupConfig
+                _deleteStartupConfig
             }
         }
 
@@ -120,7 +120,7 @@ function app_reset {
     }
 }
 
-function StartApp {
+function _startApp {
     param(
         [Int32]$totalWaitSeconds = 5 * 60
     )
@@ -133,14 +133,14 @@ function StartApp {
     #     $url = "http://localhost:$($port)"
     # }
 
-    $url = GetAppUrl
+    $url = _getAppUrl
     $statusUrl = "$url/appstatus"
 
     Write-Information "Starting Sitefinity..."
     $ErrorActionPreference = "Continue"
 
     # Send initial request to begin bootstrapping sitefinity
-    $response = InvokeNonTerminatingRequest $url
+    $response = _invokeNonTerminatingRequest $url
     if ($response -and $response -ne 200 -and $response -ne 503) {
         throw "Could not make initial connection to Sitefinity. - StatusCode: $response"
     }
@@ -151,7 +151,7 @@ function StartApp {
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     while ($true) {
         Write-Information "..."
-        $response = InvokeNonTerminatingRequest $statusUrl
+        $response = _invokeNonTerminatingRequest $statusUrl
         if ($elapsed.Elapsed.TotalSeconds -gt $totalWaitSeconds) {
             throw "Sitefinity did NOT start in the specified maximum time"
         }
@@ -163,7 +163,7 @@ function StartApp {
 
         # if request to appstatus returned 404, sitefinity has initialized
         if ($response -eq 404 -or $response -eq "NotFound") {
-            $response = InvokeNonTerminatingRequest $url
+            $response = _invokeNonTerminatingRequest $url
             # if request to base url is 200 ok sitefinity has started
             if ($response -eq 200) {
                 Write-Information "Sitefinity has started after $($elapsed.Elapsed.TotalSeconds) second(s)"
@@ -179,7 +179,7 @@ function StartApp {
     }
 }
 
-function InvokeNonTerminatingRequest ($url) {
+function _invokeNonTerminatingRequest ($url) {
     $result = $null
     try {
         $response = Invoke-WebRequest $url -TimeoutSec 120
@@ -195,7 +195,7 @@ function InvokeNonTerminatingRequest ($url) {
     return $result
 }
 
-function DeleteStartupConfig {
+function _deleteStartupConfig {
     $context = proj_getCurrent
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
@@ -204,7 +204,7 @@ function DeleteStartupConfig {
     }
 }
 
-function CreateStartupConfig {
+function _createStartupConfig {
     param(
         [string]$user = $GLOBAL:Sf.Config.defaultUser,
         [string]$dbName = $null,
@@ -267,7 +267,7 @@ function CreateStartupConfig {
     }
 }
 
-function ResetAppDataFiles {
+function _resetAppDataFiles {
     [SfProject]$context = proj_getCurrent
     $webAppPath = $context.webAppPath
     $errorMessage = ''
@@ -275,7 +275,7 @@ function ResetAppDataFiles {
     Set-Location $context.webAppPath
     if (Test-Path $originalAppDataFilesPath) {
         Write-Information "Restoring Sitefinity web app App_Data files to original state."
-        RestoreSfRuntimeFiles "$originalAppDataFilesPath/*"
+        _restoreSfRuntimeFiles "$originalAppDataFilesPath/*"
     }
     elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
         Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
@@ -295,7 +295,7 @@ function ResetAppDataFiles {
     }
 }
 
-function CleanSfRuntimeFiles {
+function _cleanSfRuntimeFiles {
     [SfProject]$context = proj_getCurrent
     $webAppPath = $context.webAppPath
 
@@ -310,7 +310,7 @@ function CleanSfRuntimeFiles {
     } while ($dirs.count -gt 0)
 }
 
-function CopySfRuntimeFiles ([SfProject]$project, $dest) {
+function _copySfRuntimeFiles ([SfProject]$project, $dest) {
     if (-not $project) {
         [SfProject]$project = proj_getCurrent
     }
@@ -320,10 +320,10 @@ function CopySfRuntimeFiles ([SfProject]$project, $dest) {
     Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude @("*.pfx", "*.lic")
 }
 
-function RestoreSfRuntimeFiles ($src) {
+function _restoreSfRuntimeFiles ($src) {
     [SfProject]$context = proj_getCurrent
     $webAppPath = $context.webAppPath
 
-    CleanSfRuntimeFiles
+    _cleanSfRuntimeFiles
     Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude @("*.pfx", "*.lic") # exclude is here for backward comaptibility
 }

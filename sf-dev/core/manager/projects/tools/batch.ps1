@@ -13,7 +13,7 @@ function proj_tools_startAllProjectsBatch ($scriptBlock) {
         [SfProject]$sitefinity = $sitefinity
         proj_setCurrent $sitefinity
         try {
-            ExecuteBatchBlock $scriptBlock
+            _executeBatchBlock $scriptBlock
         }
         catch {
             $sfStamp = "ID: $($sitefinity.id), Name: $($sitefinity.displayName)"
@@ -28,7 +28,7 @@ function proj_tools_startAllProjectsBatch ($scriptBlock) {
     }
 }
 
-function ExecuteBatchBlock ($scriptBlock) {
+function _executeBatchBlock ($scriptBlock) {
     $sitefinity = proj_getCurrent
     & $scriptBlock $sitefinity
 }
