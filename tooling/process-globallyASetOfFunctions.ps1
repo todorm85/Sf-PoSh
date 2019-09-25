@@ -1,9 +1,9 @@
 # $path = "$PSScriptRoot\..\sf-dev\core"
-$path = "$PSScriptRoot\..\tests"
+$path = "$PSScriptRoot\..\sf-dev\core"
 
-$oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
-$oldNames
-return
+# $oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
+$oldNames = @('RemoveProjectData','SetProjectData','SetDefaultTagsFilter','GetDefaultTagsFilter','InitManagerData','NewSfProjectObject','GetAzureDevOpsTitleAndLink','GetValidTitle','CreateUserFriendlySlnName','SaveSelectedProject','ValidateProject','GetIsIdDuplicate','IsDuplicate','GenerateId','SetConsoleTitle','GenerateSolutionFriendlyName','ValidateNameSyntax','CreateWorkspace','InitializeProject','aliuty','CreateProjectFilesFromSource','ValidateTag','FilterProjectsByTags','CheckIfTagged','GetDaysSinceLastGetLatest','PromptPredefinedBranchSelect','PromptPredefinedBuildPathSelect','PromptProjectSelect','ExecuteBatchBlock','ShouldClean','AddError','UpdateLastGetLatest','GetLastWorkspaceChangesetDate','BuildProj','SwitchStyleCop','WriteFile','GetAppUrl','GenerateDomainName','GetDevAppUrl','DeleteWebsite','ChangeDomain','GetCurrentAppDbName','GetDataConfig','StartApp','InvokeNonTerminatingRequest','DeleteStartupConfig','CreateStartupConfig','ResetAppDataFiles','CleanSfRuntimeFiles','CopySfRuntimeFiles','RestoreSfRuntimeFiles','SelectAppState','GetSqlBackupStateName','GetSqlCredentials','GetStatesPath')
+
 function Rename-Function {
     param (
         [string]$text
@@ -37,10 +37,9 @@ $scripts | % {
     $content = Get-Content $_.FullName
     $oldNames | % {
         # $newTitle = Rename-Function($_)
-        $newTitle = $_
-        $newTitle = $newTitle + "_"
-        $newTitle = $newTitle.Remove(0,1)
-        $content = $content -replace $_, $newTitle
+        $oldName = [string]$_
+        $newTitle = "_" + ($oldName[0]).ToString().ToLowerInvariant() + $oldName.Remove(0, 1)
+        $content = $content -replace $oldName, $newTitle
     }
 
     $content | Set-Content -Path $_.FullName
