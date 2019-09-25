@@ -7,5 +7,5 @@ function Set-Description {
 
     $context.description = $(Read-Host -Prompt "Enter description: ").ToString()
 
-    save-selectedProject_ $context
+    SaveSelectedProject $context
 }

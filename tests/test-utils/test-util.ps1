@@ -4,7 +4,7 @@ $Global:testProjectDisplayName = 'e2e_tests'
 function set-testProject {
     if ($Global:sf_tests_test_project) {
         try {
-            _set-currentProject -newContext $Global:sf_tests_test_project
+            SetCurrentProject -newContext $Global:sf_tests_test_project
             return $Global:sf_tests_test_project
         }
         catch {
@@ -22,7 +22,7 @@ function set-testProject {
 
     $proj = $proj[0]
     $clonedProjResult = clone-testProject -sourceProj $proj
-    $startAppResult = _start-app
+    $startAppResult = StartApp
 
     $clonedProj = get-currentProject
     $Global:sf_tests_test_project = $clonedProj

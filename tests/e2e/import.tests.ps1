@@ -14,8 +14,8 @@ InModuleScope sf-dev {
             $importedProject.id | Should -Not -Be $project.id
         }
         It "use same db" {
-            $importedProjectDbName = _get-currentAppDbName -project $importedProject
-            $sourceProjectDbName = _get-currentAppDbName -project $project
+            $importedProjectDbName = GetCurrentAppDbName -project $importedProject
+            $sourceProjectDbName = GetCurrentAppDbName -project $project
             $importedProjectDbName | Should -Be $sourceProjectDbName
             $importedProjectDbName | Should -Not -BeNullOrEmpty
         }

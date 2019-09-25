@@ -4,20 +4,20 @@ InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
 
     Describe "Tags should" -Tags ("fluent") {
-        Mock _initialize-project { }
-        Mock _validate-project { }
-        Mock _set-consoleTitle { }
+        Mock InitializeProject { }
+        Mock ValidateProject { }
+        Mock SetConsoleTitle { }
         $testTag1 = 'test-tag-1'
         $testTag2 = 'test-tag-2'
         $testTag3 = 'test-tag-3'
         $testTag4 = 'test-tag-4'
-        _set-currentProject -newContext $([SfProject]::new())
+        SetCurrentProject -newContext $([SfProject]::new())
 
         It "Add single tag to project" {
             add-tagToProject -tagName $testTag1
             [SfProject]$proj = (get-allProjects)[0]
             $proj.tags | Should -Be $testTag1
-            _set-currentProject $proj
+            SetCurrentProject $proj
             get-allTagsForProject | Should -Be $testTag1
         }
         It "Add multiple tags to project" {
@@ -26,18 +26,18 @@ InModuleScope sf-dev {
             add-tagToProject $testTag3
             [SfProject]$proj = (get-allProjects)[0]
             $proj.tags | Should -Be $expectedTags
-            _set-currentProject $proj
+            SetCurrentProject $proj
             get-allTagsForProject | Should -Be $expectedTags
         }
         It "Remove tag from project" {
             $expectedTags = "$testTag1 $testTag3"
 
             [SfProject]$proj = (get-allProjects)[0]
-            _set-currentProject $proj
+            SetCurrentProject $proj
             remove-tagFromProject $testTag2
             
             [SfProject]$proj = (get-allProjects)[0]
-            _set-currentProject $proj
+            SetCurrentProject $proj
             $proj.tags | Should -Be $expectedTags
             get-allTagsForProject | Should -Be $expectedTags
         }
@@ -47,12 +47,12 @@ InModuleScope sf-dev {
             add-tagToProject $testTag4
 
             [SfProject]$proj = (get-allProjects)[0]
-            _set-currentProject $proj
+            SetCurrentProject $proj
             remove-tagFromProject $testTag2
             remove-tagFromProject $testTag3
             
             [SfProject]$proj = (get-allProjects)[0]
-            _set-currentProject $proj
+            SetCurrentProject $proj
             $proj.tags | Should -Be $expectedTags
             get-allTagsForProject | Should -Be $expectedTags
         }
@@ -60,11 +60,11 @@ InModuleScope sf-dev {
             $expectedTags = "$testTag4"
 
             [SfProject]$proj = (get-allProjects)[0]
-            _set-currentProject $proj
+            SetCurrentProject $proj
             remove-tagFromProject $testTag1
             
             [SfProject]$proj = (get-allProjects)[0]
-            _set-currentProject $proj
+            SetCurrentProject $proj
             $proj.tags | Should -Be $expectedTags
             get-allTagsForProject | Should -Be $expectedTags
         }
@@ -73,11 +73,11 @@ InModuleScope sf-dev {
             add-tagToProject $testTag2
 
             [SfProject]$proj = (get-allProjects)[0]
-            _set-currentProject $proj
+            SetCurrentProject $proj
             remove-tagFromProject $testTag2
             
             [SfProject]$proj = (get-allProjects)[0]
-            _set-currentProject $proj
+            SetCurrentProject $proj
             $proj.tags | Should -Be $expectedTags
             get-allTagsForProject | Should -Be $expectedTags
         }

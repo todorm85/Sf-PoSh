@@ -7,12 +7,12 @@ InModuleScope sf-dev {
             [string]$tags
         )
 
-        $proj = _new-objectSfProject -id "$([System.Guid]::NewGuid().ToString())"
+        $proj = NewObjectSfProject -id "$([System.Guid]::NewGuid().ToString())"
         $proj.tags = $tags
         $proj
     }
 
-    Describe "_filter-projectsByTags should" {
+    Describe "FilterProjectsByTags should" {
         It "show only untagged when passing '+'" {
             $projects = @(
                 get-project -tags 'test'
@@ -21,7 +21,7 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filter-projectsByTags -sitefinities $projects -tagsFilter "+"
+            $result = FilterProjectsByTags -sitefinities $projects -tagsFilter "+"
             $result | Should -HaveCount 2
         }
         It "filter included tags correctly" {
@@ -33,7 +33,7 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filter-projectsByTags -sitefinities $projects -tagsFilter "another"
+            $result = FilterProjectsByTags -sitefinities $projects -tagsFilter "another"
             $result | Should -HaveCount 2
         }
         It "filter excluded tags correctly" {
@@ -45,7 +45,7 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filter-projectsByTags -sitefinities $projects -tagsFilter "-another"
+            $result = FilterProjectsByTags -sitefinities $projects -tagsFilter "-another"
             $result | Should -HaveCount 3
         }
         It "filter excluded multi tags correctly" {
@@ -58,7 +58,7 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filter-projectsByTags -sitefinities $projects -tagsFilter "-another -test"
+            $result = FilterProjectsByTags -sitefinities $projects -tagsFilter "-another -test"
             $result | Should -HaveCount 3
         }
         It "filter multi tags correctly" {
@@ -72,7 +72,7 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filter-projectsByTags -sitefinities $projects -tagsFilter "another -test"
+            $result = FilterProjectsByTags -sitefinities $projects -tagsFilter "another -test"
             $result | Should -HaveCount 2
         }
     }

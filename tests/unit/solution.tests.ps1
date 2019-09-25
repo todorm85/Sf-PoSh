@@ -26,7 +26,7 @@ InModuleScope sf-dev {
         )
 
         $Script:result = ''
-        Mock _write-File {
+        Mock WriteFile {
             $Script:result = $content
         }
 

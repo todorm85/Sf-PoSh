@@ -3,7 +3,7 @@ function Add-TagToProject {
         [string]$tagName
     )
 
-    validate-tag_ $tagName
+    ValidateTag $tagName
     
     [SfProject]$project = Get-CurrentProject
     if (!$project.tags) {
@@ -13,7 +13,7 @@ function Add-TagToProject {
         $project.tags += " $tagName"
     }
 
-    save-selectedProject_ -context $project
+    SaveSelectedProject -context $project
 }
 
 function Remove-TagFromProject {
@@ -21,7 +21,7 @@ function Remove-TagFromProject {
         [string]$tagName
     )
     
-    validate-tag_ $tagName
+    ValidateTag $tagName
     if (!$tagName) {
         throw "Invalid tag name to remove."
     }
@@ -31,13 +31,13 @@ function Remove-TagFromProject {
         $project.tags = $project.tags.Replace($tagName, '').Replace('  ', ' ').Trim()
     }
 
-    save-selectedProject_ -context $project
+    SaveSelectedProject -context $project
 }
 
 function Remove-AllTagsFromProject {
     [SfProject]$project = Get-CurrentProject
     $project.tags = ''
-    save-selectedProject_ -context $project
+    SaveSelectedProject -context $project
 }
 
 function Get-AllTagsForProject {
@@ -50,14 +50,14 @@ function Set-DefaultTagFilter {
         $filter
     )
 
-    set-defaultTagsFilter_ -defaultTagsFilter $filter
+    SetDefaultTagsFilter -defaultTagsFilter $filter
 }
 
 function Get-DefaultTagFilter {
-    return get-defaultTagsFilter_
+    return GetDefaultTagsFilter
 }
 
-function validate-tag_ {
+function ValidateTag {
     param (
         $tagName
     )
@@ -72,7 +72,7 @@ function validate-tag_ {
     exclude tags take precedence
     exclude tags are prefixed with '-'
  #>
- function filter-projectsByTags_ {
+ function FilterProjectsByTags {
     param (
         [SfProject[]]$sitefinities,
         [string]$tagsFilter
@@ -84,19 +84,19 @@ function validate-tag_ {
     elseif ($tagsFilter) {
         $includeTags = $tagsFilter.Split(' ') | where { !$_.StartsWith('-') }
         if ($includeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | where { check-ifTagged_ -sitefinity $_ -tags $includeTags }
+            $sitefinities = $sitefinities | where { CheckIfTagged -sitefinity $_ -tags $includeTags }
         }
 
         $excludeTags = $tagsFilter.Split(' ') | where { $_.StartsWith('-') } | %  { $_.Remove(0,1)}
         if ($excludeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | where { !(check-ifTagged_ -sitefinity $_ -tags $excludeTags) }
+            $sitefinities = $sitefinities | where { !(CheckIfTagged -sitefinity $_ -tags $excludeTags) }
         }
     }
 
     $sitefinities
 }
 
-function check-ifTagged_ {
+function CheckIfTagged {
     param (
         [SfProject]$sitefinity,
         [string[]]$tagsToCheck

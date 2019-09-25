@@ -1,4 +1,4 @@
-function init-managerData_ {
+function InitManagerData {
     if (!(Test-Path $GLOBAL:Sf.Config.dataPath)) {
         Write-Information "Initializing script data..."
         New-Item -ItemType file -Path $GLOBAL:Sf.Config.dataPath
@@ -25,4 +25,4 @@ function init-managerData_ {
 }
 
 . "$PSScriptRoot\SfProject.ps1"
-init-managerData_
+InitManagerData

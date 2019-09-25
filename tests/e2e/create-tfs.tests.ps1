@@ -7,10 +7,10 @@ InModuleScope sf-dev {
 
     Describe "Creating project from TFS branch should" -Tags ("create-tfs") {
         $projName = generateRandomName
-        function _Set-TestProject {
+        function Set-TestProject {
             $sitefinities = @(get-allProjects)
             $context = $sitefinities[$sitefinities.Count - 1]
-            _set-currentProject -newContext $context
+            SetCurrentProject -newContext $context
         }
 
         It "when creating the project from branch get latest, make workspace, site, domain, app pool permissions" {
@@ -33,14 +33,14 @@ InModuleScope sf-dev {
             existsInHostsFile -searchParam $projName | Should -Be $true
         }
         It "when building succeed after at least 3 retries" {
-            _Set-TestProject
+            Set-TestProject
             Start-SolutionBuild -retryCount 3
         }
         It "start the app correctly" {
-            _Set-TestProject
+            Set-TestProject
             reset-app -start
-            $url = _get-appUrl
-            $result = _invoke-NonTerminatingRequest $url
+            $url = GetAppUrl
+            $result = InvokeNonTerminatingRequest $url
             $result | Should -Be 200
 
             # update the test project only if the newly created was successful

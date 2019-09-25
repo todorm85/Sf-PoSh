@@ -32,14 +32,14 @@ function New-Project {
 
         $sourcePath = $null
         if ($selectFrom -eq 1) {
-            $sourcePath = prompt-predefinedBranchSelect_
+            $sourcePath = PromptPredefinedBranchSelect
         }
         else {
-            $sourcePath = prompt-predefinedBuildPathSelect_
+            $sourcePath = PromptPredefinedBuildPathSelect
         }
     }
 
-    [SfProject]$newContext = new-objectSfProject_
+    [SfProject]$newContext = NewObjectSfProject
     if (!$displayName) {
         $displayName = 'Untitled'
     }
@@ -49,18 +49,18 @@ function New-Project {
     $oldContext = Get-CurrentProject
 
     try {
-        create-projectFilesFromSource_ -sourcePath $sourcePath -project $newContext 
+        CreateProjectFilesFromSource -sourcePath $sourcePath -project $newContext 
 
         Write-Information "Backing up original App_Data folder..."
         $webAppPath = $newContext.webAppPath
         $originalAppDataSaveLocation = "$webAppPath/sf-dev-tool/original-app-data"
         New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
-        copy-sfRuntimeFiles_ -project $newContext -dest $originalAppDataSaveLocation
+        CopySfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
 
         Write-Information "Creating website..."
         New-Website -context $newContext
 
-        save-selectedProject_ $newContext
+        SaveSelectedProject $newContext
     }
     catch {
         Write-Warning "############ CLEANING UP ############"
@@ -89,14 +89,14 @@ function New-Project {
 
         try {
             Write-Information "Removing website..."
-            delete-website_ -context $newContext
+            DeleteWebsite -context $newContext
         }
         catch {
             Write-Warning "Could not remove website or it was not created"
         }
 
         if ($oldContext) {
-            set-currentProject_ $oldContext
+            SetCurrentProject $oldContext
         }
         $ii = $_.InvocationInfo
         $msg = $_
@@ -108,7 +108,7 @@ function New-Project {
     }
 
     try {
-        set-currentProject_ $newContext
+        SetCurrentProject $newContext
 
         if ($buildSolution) {
             Write-Information "Building solution..."
@@ -118,21 +118,21 @@ function New-Project {
         if ($startWebApp) {
             try {
                 Write-Information "Initializing Sitefinity"
-                create-startupConfig_
-                start-app_
+                CreateStartupConfig
+                StartApp
                 if ($precompile) {
                     Add-PrecompiledTemplates
                 }
             }
             catch {
                 Write-Warning "APP WAS NOT INITIALIZED. $_"
-                delete-startupConfig_
+                DeleteStartupConfig
             }
         }        
     }
     finally {
         if ($noAutoSelect) {
-            set-currentProject_ $oldContext
+            SetCurrentProject $oldContext
         }
     }
 
@@ -176,7 +176,7 @@ function Copy-Project {
 
     [SfProject]$newProject = $null
     try {
-        [SfProject]$newProject = new-objectSfProject_
+        [SfProject]$newProject = NewObjectSfProject
         $newProject.displayName = "$($context.displayName)-clone"
         $newProject.webAppPath = "$targetPath\SitefinityWebApp"
     }
@@ -188,7 +188,7 @@ function Copy-Project {
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
-            create-workspace_ -context $newProject -branch $context.branch
+            CreateWorkspace -context $newProject -branch $context.branch
         }
     }
     catch {
@@ -205,7 +205,7 @@ function Copy-Project {
     }
 
     $oldProject = $context
-    $sourceDbName = get-currentAppDbName_ -project $oldProject
+    $sourceDbName = GetCurrentAppDbName -project $oldProject
     
     if ($sourceDbName -and $tokoAdmin.sql.isDuplicate($sourceDbName)) {
         $newDbName = $newProject.id
@@ -231,7 +231,7 @@ function Copy-Project {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
     }
 
-    set-currentProject_ -newContext $newProject
+    SetCurrentProject -newContext $newProject
 }
 
 <#
@@ -258,12 +258,12 @@ function Import-Project {
         throw "No asp.net web app found."
     }
 
-    [SfProject]$newContext = new-objectSfProject_
+    [SfProject]$newContext = NewObjectSfProject
     $newContext.displayName = $displayName
     $newContext.webAppPath = $path
     
-    set-currentProject_ $newContext
-    save-selectedProject_ $newContext
+    SetCurrentProject $newContext
+    SaveSelectedProject $newContext
     return $newContext
 }
 
@@ -376,7 +376,7 @@ function Remove-Project {
     Write-Information "Deleting website..."
     if ($websiteName) {
         try {
-            delete-website_ $context
+            DeleteWebsite $context
         }
         catch {
             Write-Warning "Errors deleting website ${websiteName}. $_"
@@ -409,13 +409,13 @@ function Remove-Project {
 
     Write-Information "Deleting data entry..."
     try {
-        remove-projectData_ $context
+        RemoveProjectData $context
     }
     catch {
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:Sf.Config.dataPath)"
     }
     
-    set-currentProject_ $null
+    SetCurrentProject $null
 
     if (-not ($noPrompt)) {
         Select-Project
@@ -454,18 +454,18 @@ function Rename-Project {
     $newName = $azureDevOpsResult.name
     $context.description = $azureDevOpsResult.link
 
-    if ($newName -and (-not (validate-nameSyntax_ $newName))) {
+    if ($newName -and (-not (ValidateNameSyntax $newName))) {
         Write-Error "Name syntax is not valid. Use only alphanumerics and underscores"
     }
 
-    $oldSolutionName = generate-solutionFriendlyName_ -context $context
+    $oldSolutionName = GenerateSolutionFriendlyName -context $context
     if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
-        create-userFriendlySlnName_ -context $context
+        CreateUserFriendlySlnName -context $context
     }
 
     $context.displayName = $newName
 
-    $newSolutionName = generate-solutionFriendlyName_ -context $context
+    $newSolutionName = GenerateSolutionFriendlyName -context $context
     $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
     if (Test-Path $oldSolutionPath) {
         Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
@@ -483,11 +483,11 @@ function Rename-Project {
         Remove-Item -Path $oldSolutionPath -Force
     }
     
-    $domain = generate-domainName_ -context $context
-    change-domain_ -context $context -domainName $domain
+    $domain = GenerateDomainName -context $context
+    ChangeDomain -context $context -domainName $domain
     
-    save-selectedProject_ $context
-    set-currentProject_ -newContext $context 
+    SaveSelectedProject $context
+    SetCurrentProject -newContext $context 
 }
 
 <#
@@ -548,27 +548,27 @@ function Open-Description {
     }
 }
 
-function create-userFriendlySlnName_ ($context) {
+function CreateUserFriendlySlnName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     if (!(Test-Path $solutionFilePath)) {
         Write-Warning "Solution file not available."    
     }
 
-    $targetFilePath = "$($context.solutionPath)\$(generate-solutionFriendlyName_ $context)"
+    $targetFilePath = "$($context.solutionPath)\$(GenerateSolutionFriendlyName $context)"
     if (!(Test-Path $targetFilePath)) {
         Copy-Item -Path $solutionFilePath -Destination $targetFilePath
     }
 }
 
-function save-selectedProject_ {
+function SaveSelectedProject {
     Param($context)
 
-    validate-project_ $context
+    ValidateProject $context
 
-    set-projectData_ $context
+    SetProjectData $context
 }
 
-function validate-project_ {
+function ValidateProject {
     Param($context)
 
     if ($null -ne $context) {
@@ -588,8 +588,8 @@ function validate-project_ {
     }
 }
 
-function get-isIdDuplicate_ ($id) {
-    function isDuplicate_ ($name) {
+function GetIsIdDuplicate ($id) {
+    function IsDuplicate ($name) {
         if ($name -and $name.Contains($id)) {
             return $true
         }
@@ -606,62 +606,62 @@ function get-isIdDuplicate_ ($id) {
 
     if (Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\$id") { return $true }
 
-    $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName | Where-Object { isDuplicate_ $_ }
+    $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName | Where-Object { IsDuplicate $_ }
     if ($wss) { return $true }
 
     Import-Module WebAdministration
     $sites = Get-Item "IIS:\Sites"
     if ($sites -and $sites.Children) {
-        $names = $sites.Children.Keys | Where-Object { isDuplicate_ $_ }
+        $names = $sites.Children.Keys | Where-Object { IsDuplicate $_ }
         if ($names) { return $true }
     }
     $pools = Get-Item "IIS:\AppPools"
     if ($pools -and $pools.Children) {
-        $names = $pools.Children.Keys | Where-Object { isDuplicate_ $_ }
+        $names = $pools.Children.Keys | Where-Object { IsDuplicate $_ }
         if ($names) { return $true }
     }
     
-    $dbs = $tokoAdmin.sql.GetDbs() | Where-Object { isDuplicate_ $_.name }
+    $dbs = $tokoAdmin.sql.GetDbs() | Where-Object { IsDuplicate $_.name }
     if ($dbs) { return $true }
 
     return $false;
 }
 
-function generateId_ {
+function GenerateId {
     $i = 0;
     while ($true) {
         $name = "$($GLOBAL:Sf.Config.idPrefix)$i"
-        $isDuplicate_ = (get-isIdDuplicate_ $name)
-        if (-not $isDuplicate_) {
+        $IsDuplicate = (GetIsIdDuplicate $name)
+        if (-not $IsDuplicate) {
             break;
         }
         
         $i++
     }
 
-    if ([string]::IsNullOrEmpty($name) -or (-not (validate-nameSyntax_ $name))) {
+    if ([string]::IsNullOrEmpty($name) -or (-not (ValidateNameSyntax $name))) {
         throw "Invalid id $name"
     }
     
     return $name
 }
 
-function set-currentProject_ {
+function SetCurrentProject {
     Param(
         [SfProject]$newContext
     )
         
     if ($null -ne $newContext) {
-        initialize-project_ $newContext
-        validate-project_ $newContext        
+        InitializeProject $newContext
+        ValidateProject $newContext        
     } 
 
     $Script:globalContext = $newContext
-    set-consoleTitle_ -newContext $newContext
+    SetConsoleTitle -newContext $newContext
     Set-Prompt -project $newContext
 }
 
-function set-consoleTitle_ {
+function SetConsoleTitle {
     param (
         [SfProject]$newContext
     )
@@ -683,7 +683,7 @@ function set-consoleTitle_ {
     }
 }
 
-function generate-solutionFriendlyName_ {
+function GenerateSolutionFriendlyName {
     Param(
         [SfProject]$context
     )
@@ -697,11 +697,11 @@ function generate-solutionFriendlyName_ {
     return $solutionName
 }
 
-function validate-nameSyntax_ ($name) {
+function ValidateNameSyntax ($name) {
     return $name -match "^[A-Za-z]\w+$" -and $name.Length -lt 75
 }
 
-function create-workspace_ ($context, $branch) {
+function CreateWorkspace ($context, $branch) {
     try {
         # create and map workspace
         Write-Information "Creating workspace..."
@@ -725,14 +725,14 @@ function create-workspace_ ($context, $branch) {
         tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite > $null
         $context.branch = $branch
         $context.lastGetLatest = [DateTime]::Today
-        save-selectedProject_ $context
+        SaveSelectedProject $context
     }
     catch {
         throw "Could not get latest workapce changes. $_"
     }
 }
 
-function initialize-project_ {
+function InitializeProject {
     param (
         [Parameter(Mandatory = $true)][SfProject]$project,
         [switch]$suppressWarnings
@@ -761,13 +761,13 @@ function initialize-project_ {
     $isSolution = Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.sln"
     if ($isSolution) {
         $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
-        create-userFriendlySlnName_ $project
+        CreateUserFriendlySlnName $project
     }
     
     $branch = tfs-get-branchPath -path $project.webAppPath
     if ($branch) {
         $project.branch = $branch
-        update-lastGetLatest_ -context $project
+        UpdateLastGetLatest -context $project
     }
     else {
         Write-Warning "$errorMessgePrefix Could not detect source control branch, TFS related functionaliuty for the project will not work."
@@ -781,13 +781,13 @@ function initialize-project_ {
         Write-Warning "$errorMessgePrefix Could not detect website for the current project."
     }
 
-    save-selectedProject_ -context $project
+    SaveSelectedProject -context $project
     $project.isInitialized = $true
 
     $WarningPreference = $oldWarningPreference
 }
 
-function create-projectFilesFromSource_ {
+function CreateProjectFilesFromSource {
     param (
         [Parameter(Mandatory = $true)][Sfproject]$project,
         [Parameter(Mandatory = $true)][string]$sourcePath
@@ -804,7 +804,7 @@ function create-projectFilesFromSource_ {
         Write-Information "Creating project files..."
         $project.solutionPath = $projectDirectory
         $newContext.webAppPath = "$projectDirectory\SitefinityWebApp";
-        create-workspace_ $project $sourcePath
+        CreateWorkspace $project $sourcePath
     }
     else {
         if (!(Test-Path -Path $sourcePath) -or !(Test-Path -path "$sourcePath\SitefinityWebApp.zip")) {

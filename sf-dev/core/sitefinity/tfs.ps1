@@ -97,7 +97,7 @@ function Get-LatestChanges {
     }
     
     $context.lastGetLatest = [System.DateTime]::Today
-    save-selectedProject_ $context
+    SaveSelectedProject $context
 
     Write-Information "Getting latest changes complete."
 }

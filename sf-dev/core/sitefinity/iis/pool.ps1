@@ -21,7 +21,7 @@ function Reset-Thread {
 
     if ($start) {
         Start-Sleep -s 1
-        start-app_
+        StartApp
     }
 }
 
@@ -51,7 +51,7 @@ function Reset-Pool {
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
     if ($start) {
         Start-Sleep -s 1
-        start-app_
+        StartApp
     }
 }
 

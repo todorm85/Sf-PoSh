@@ -3,4 +3,4 @@ if (Test-Path $GLOBAL:Sf.Config.dataPath) {
     Remove-Item $GLOBAL:Sf.Config.dataPath -Force
 }
 
-_init-managerData
+InitManagerData

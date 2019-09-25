@@ -1,8 +1,9 @@
-$path = "$PSScriptRoot\..\sf-dev\core"
-# $path = "$PSScriptRoot\..\tests"
+# $path = "$PSScriptRoot\..\sf-dev\core"
+$path = "$PSScriptRoot\..\tests"
 
 $oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
-
+$oldNames
+return
 function Rename-Function {
     param (
         [string]$text
@@ -35,7 +36,10 @@ $scripts = Get-ChildItem $path -Recurse | Where-Object { $_.Extension -eq '.ps1'
 $scripts | % { 
     $content = Get-Content $_.FullName
     $oldNames | % {
-        $newTitle = Rename-Function($_)
+        # $newTitle = Rename-Function($_)
+        $newTitle = $_
+        $newTitle = $newTitle + "_"
+        $newTitle = $newTitle.Remove(0,1)
         $content = $content -replace $_, $newTitle
     }
 
