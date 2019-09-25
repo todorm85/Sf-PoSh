@@ -748,13 +748,19 @@ function InitializeProject {
     }
 
     if (!$project.displayName -or !$project.id) {
-        throw "Cannot initialize a project with no display name or id."    
+        if (!$suppressWarnings) {
+            throw "Cannot initialize a project with no display name or id. Check tool database at $($GLOBAL:Sf.config.dataPath)"    
+        }
     }
 
     $errorMessgePrefix = "ERROR Working with project $($project.displayName) in $($project.webAppPath) and id $($project.id)."
 
     if (!(Test-Path $project.webAppPath)) {
-        throw "$errorMessgePrefix $($project.webAppPath) does not exist."
+        if (!$suppressWarnings) {
+            throw "$errorMessgePrefix $($project.webAppPath) does not exist."
+        } else {
+            return
+        }
     }
 
 
