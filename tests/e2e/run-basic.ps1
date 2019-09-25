@@ -1,1 +1,0 @@
-Invoke-Pester $PSScriptRoot -ExcludeTag ('create-tfs', 'delete')
