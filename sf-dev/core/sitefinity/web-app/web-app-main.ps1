@@ -340,13 +340,13 @@ function clean-sfRuntimeFiles_ {
     $webAppPath = $context.webAppPath
 
     $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude @("*.pfx", "*.lic") -File
-    $toDelete | % { unlock-allFiles -path $_.FullName }
+    $toDelete | ForEach-Object { unlock-allFiles -path $_.FullName }
     $toDelete | Remove-Item -Force
 
     # clean empty dirs
     do {
         $dirs = Get-ChildItem "${webAppPath}\App_Data" -directory -recurse | Where-Object { (Get-ChildItem $_.fullName).Length -eq 0 } | Select-Object -expandproperty FullName
-        $dirs | % { Remove-Item $_ -Force }
+        $dirs | ForEach-Object { Remove-Item $_ -Force }
     } while ($dirs.count -gt 0)
 }
 

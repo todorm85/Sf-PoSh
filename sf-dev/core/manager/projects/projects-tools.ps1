@@ -81,7 +81,7 @@ function Clear-AllProjectsLeftovers {
         sleep.exe 5
         Write-Information "Projects directory cleanup"
         unlock-allFiles $projectsDir
-        Get-ChildItem $projectsDir | Where-Object { shouldClean_ $_.Name } | % { Remove-Item $_.FullName -Force -Recurse }
+        Get-ChildItem $projectsDir | Where-Object { shouldClean_ $_.Name } | ForEach-Object { Remove-Item $_.FullName -Force -Recurse }
     }
     catch {
         add-error_ "Test sitefinities were not cleaned up: $_"
@@ -113,16 +113,16 @@ function Goto {
     $webAppPath = $context.webAppPath
 
     if ($configs) {
-        cd "${webAppPath}\App_Data\Sitefinity\Configuration"
-        ls
+        Set-Location "${webAppPath}\App_Data\Sitefinity\Configuration"
+        Get-ChildItem
     }
     elseif ($logs) {
-        cd "${webAppPath}\App_Data\Sitefinity\Logs"
-        ls
+        Set-Location "${webAppPath}\App_Data\Sitefinity\Logs"
+        Get-ChildItem
     }
     elseif ($root) {
-        cd "${webAppPath}"
-        ls
+        Set-Location "${webAppPath}"
+        Get-ChildItem
     }
     elseif ($webConfig) {
         & "${webAppPath}\Web.config"

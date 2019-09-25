@@ -52,7 +52,7 @@ function Set-StorageMode {
     $webConfig.Load($webConfigPath) > $null
 
     $telerikHandlerGroup = $webConfig.SelectSingleNode('//configuration/configSections/sectionGroup[@name="telerik"]')
-    if ($telerikHandlerGroup -eq $null -or $telerikHandlerGroup -eq '') {
+    if ($null -eq $telerikHandlerGroup -or $telerikHandlerGroup -eq '') {
 
         $telerikHandlerGroup = $webConfig.CreateElement("sectionGroup")
         $telerikHandlerGroup.SetAttribute('name', 'telerik')
@@ -67,15 +67,15 @@ function Set-StorageMode {
     }
 
     $sitefinityConfig = $webConfig.SelectSingleNode('/configuration/telerik/sitefinity/sitefinityConfig')
-    if ($sitefinityConfig -eq $null) {
+    if ($null -eq $sitefinityConfig) {
         $telerik = $webConfig.SelectSingleNode('/configuration/telerik')
-        if ($telerik -eq $null) {
+        if ($null -eq $telerik) {
             $telerik = $webConfig.CreateElement("telerik")
             $webConfig.configuration.AppendChild($telerik)
         }
 
         $sitefinity = $webConfig.SelectSingleNode('/configuration/telerik/sitefinity')
-        if ($sitefinity -eq $null) {
+        if ($null -eq $sitefinity) {
             $sitefinity = $webConfig.CreateElement("sitefinity")
             $telerik.AppendChild($sitefinity)
         }
@@ -121,7 +121,7 @@ function Get-StorageMode {
     }
 
     $sitefinityConfig = $webConfig.SelectSingleNode('/configuration/telerik/sitefinity/sitefinityConfig')
-    if ($sitefinityConfig -eq $null) {
+    if ($null -eq $sitefinityConfig) {
         $storageMode = "FileSystem"
         $restrictionLevel = "Default"
     }
@@ -129,7 +129,7 @@ function Get-StorageMode {
         $storageMode = $sitefinityConfig.storageMode
         $restrictionLevel = $sitefinityConfig.restrictionLevel
 
-        if ($restrictionLevel -eq $null) {
+        if ($null -eq $restrictionLevel) {
             $restrictionLevel = "Default"
         }
     }
