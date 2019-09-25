@@ -2,7 +2,8 @@ Param(
     [Parameter(Mandatory = $true)][string]$version
 )
 
-# Set-Location "$PSScriptRoot"
+Set-Location "$PSScriptRoot"
+
 # . "./docs-generator.ps1"
 # git commit --quiet -a -m "Update docs"
 
