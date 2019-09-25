@@ -5,11 +5,11 @@
     .OUTPUTS
     None
 #>
-function Undo-PendingChanges {
+function tfs_undoPendingChanges {
     
     Param()
 
-    $context = Get-CurrentProject
+    $context = proj_getCurrent
     if (!$context.branch) {
         return
     }
@@ -18,7 +18,7 @@ function Undo-PendingChanges {
         throw "invalid or no solution path"
     }
 
-    tfs-undo-pendingChanges $context.solutionPath
+    tfs-tfs_undoPendingChanges $context.solutionPath
 }
 
 <#
@@ -28,7 +28,7 @@ function Undo-PendingChanges {
     .OUTPUTS
     None
 #>
-function Show-PendingChanges {
+function tfs_showPendingChanges {
     
     Param(
         [switch]$detailed
@@ -40,7 +40,7 @@ function Show-PendingChanges {
         $format = "Brief"
     }
 
-    $context = Get-CurrentProject
+    $context = proj_getCurrent
     if (!$context.branch) {
         return
     }
@@ -50,11 +50,11 @@ function Show-PendingChanges {
     }
     
     $workspaceName = tfs-get-workspaceName $context.solutionPath
-    tfs-show-pendingChanges $workspaceName $format
+    tfs-tfs_showPendingChanges $workspaceName $format
 }
 
-function Get-HasPendingChanges {
-    $pendingResult = Show-PendingChanges
+function tfs_hasPendingChanges {
+    $pendingResult = tfs_showPendingChanges
     if ($pendingResult -eq 'There are no pending changes.') {
         return $false
     } else {
@@ -69,13 +69,13 @@ function Get-HasPendingChanges {
     .OUTPUTS
     None
 #>
-function Get-LatestChanges {
+function tfs_getLatestChanges {
     
     Param(
         [switch]$overwrite
     )
     
-    [SfProject]$context = Get-CurrentProject
+    [SfProject]$context = proj_getCurrent
     if (!$context.branch) {
         return
     }
@@ -91,9 +91,9 @@ function Get-LatestChanges {
 
     Write-Information "Getting latest changes for path ${solutionPath}."
     if ($overwrite) {
-        tfs-get-latestChanges -branchMapPath $solutionPath -overwrite
+        tfs-tfs_getLatestChanges -branchMapPath $solutionPath -overwrite
     } else {
-        tfs-get-latestChanges -branchMapPath $solutionPath
+        tfs-tfs_getLatestChanges -branchMapPath $solutionPath
     }
     
     $context.lastGetLatest = [System.DateTime]::Today

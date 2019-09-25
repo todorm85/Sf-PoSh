@@ -1,4 +1,4 @@
-function Save-AppState {
+function app_states_save {
     Param(
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
@@ -7,10 +7,10 @@ function Save-AppState {
     )
     
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
     
-    $dbName = Get-AppDbName
+    $dbName = app_db_getName
     $db = $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
@@ -44,23 +44,23 @@ function Save-AppState {
     CopySfRuntimeFiles -dest $appDataStatePath
 }
 
-function Restore-AppState {
+function app_states_restore {
     Param(
         [string]$stateName,
         [bool]$force = $false,
         [SfProject]$project)
 
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = SelectAppState -context $context
     }
 
-    Reset-Pool
+    srv_pool_resetPool
     if ($force) {
-         Unlock-AllProjectFiles
+        sol_unlockAllFiles
     }
     
     $statesPath = GetStatesPath
@@ -80,7 +80,7 @@ function Restore-AppState {
     RestoreSfRuntimeFiles "$appDataStatePath/*"
 }
 
-function Remove-AppState ($stateName, [SfProject]$context) {
+function app_states_remove ($stateName, [SfProject]$context) {
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = SelectAppState -context $context
     }
@@ -96,12 +96,12 @@ function Remove-AppState ($stateName, [SfProject]$context) {
     }
 }
 
-function Remove-AllAppStates ([SfProject]$context) {
+function app_states_removeAll ([SfProject]$context) {
     $statesPath = GetStatesPath -context $context
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
-            Remove-AppState $state.Name -context $context
+            app_states_remove $state.Name -context $context
         }
     }
 }
@@ -136,7 +136,7 @@ function GetSqlBackupStateName {
         [Parameter(Mandatory=$true)]$stateName
     )
     
-    [SfProject]$context = Get-CurrentProject
+    [SfProject]$context = proj_getCurrent
     return "$($context.id)_$stateName.bak"
 }
 
@@ -148,7 +148,7 @@ function GetSqlCredentials {
 
 function GetStatesPath ([SfProject]$context) {
     if (!$context) {
-        $context = Get-CurrentProject
+        $context = proj_getCurrent
     }
 
     $path = "$($context.webAppPath)/sf-dev-tool/states"

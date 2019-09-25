@@ -3,11 +3,11 @@
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
 
-    Describe "get-allProjects" {
+    Describe "data_getAllProjects" {
         Mock InitializeProject { }
 
         It "return empty collection when no projects" {
-            $projects = get-allProjects
+            $projects = data_getAllProjects
             $projects | Should -HaveCount 0
         }
 
@@ -18,7 +18,7 @@ InModuleScope sf-dev {
             }
 
             SetProjectData -context $proj1
-            [SfProject[]]$projects = get-allProjects
+            [SfProject[]]$projects = data_getAllProjects
             $projects | Should -HaveCount 1
             $projects[0].id | Should -Be "id1"
             $projects[0].branch | Should -Be "test-branch"
@@ -34,7 +34,7 @@ InModuleScope sf-dev {
             $proj1.id = 'id2'
             SetProjectData -context $proj1
 
-            [SfProject[]]$projects = get-allProjects
+            [SfProject[]]$projects = data_getAllProjects
             $projects | Should -HaveCount 2
             $projects[0].id | Should -Be "id1"
             $projects[1].id | Should -Be "id2"

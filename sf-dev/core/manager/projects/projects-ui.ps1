@@ -7,16 +7,16 @@
     tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
     If tagsFilter is equal to '+' only untagged projects are shown. 
 #>
-function Select-Project {
+function proj_select {
     Param(
         [string]$tagsFilter
     )
     
     if (!$tagsFilter) {
-        $tagsFilter = Get-DefaultTagFilter
+        $tagsFilter = proj_tags_getDefaultFilter
     }
 
-    [SfProject[]]$sitefinities = @(Get-AllProjects -skipInit -tagsFilter $tagsFilter)
+    [SfProject[]]$sitefinities = @(data_getAllProjects -skipInit -tagsFilter $tagsFilter)
 
     if (!$sitefinities[0]) {
         Write-Warning "No projects found. Check if not using default tag filter."
@@ -24,22 +24,22 @@ function Select-Project {
     }
 
     $selectedSitefinity = PromptProjectSelect -sitefinities $sitefinities
-    SetCurrentProject $selectedSitefinity
-    Show-CurrentProject
+    proj_setCurrent $selectedSitefinity
+    proj_show
 }
 
 <#
     .SYNOPSIS 
     Shows info for selected sitefinity.
 #>
-function Show-CurrentProject {
+function proj_show {
     Param(
         [switch]$detail,
         [SfProject]$context
     )
 
     if (!$context) {
-        $context = Get-CurrentProject
+        $context = proj_getCurrent
     }
     
     if ($null -eq ($context)) {
@@ -85,7 +85,7 @@ function Show-CurrentProject {
 
         [pscustomobject]@{id = 2.5; Parameter = " "; Value = " "; },
         
-        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = Get-AppDbName; },
+        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = app_db_getName; },
         
         [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
 
@@ -110,7 +110,7 @@ function Show-CurrentProject {
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
-function Show-Projects {
+function proj_showAll {
     Param(
         [SfProject[]]$sitefinities
     )
@@ -137,7 +137,7 @@ function Show-Projects {
 
 function GetDaysSinceLastGetLatest ([SfProject]$context) {
     if (-not $context) {
-        [SfProject]$context = Get-CurrentProject
+        [SfProject]$context = proj_getCurrent
     }
 
     if ($context.lastGetLatest) {
@@ -216,7 +216,7 @@ function PromptProjectSelect {
     
     $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
 
-    Show-Projects $sortedSitefinities
+    proj_showAll $sortedSitefinities
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'

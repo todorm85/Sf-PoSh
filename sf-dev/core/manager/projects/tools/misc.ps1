@@ -3,9 +3,9 @@
     Cleans all project artefacts in case a project was not deleted successfuly - deletes websites, databases, host file mappings based on a search
     using the id prefix and checking whether a project in the tools database still exist or has been removed from the tool.
 #>
-function Clear-AllProjectsLeftovers {
+function proj_tools_clearAllProjectsLeftovers {
     $projectsDir = $GLOBAL:Sf.Config.projectsDirectory
-    $idsInUse = Get-AllProjects | ForEach-Object { $_.id }
+    $idsInUse = data_getAllProjects | ForEach-Object { $_.id }
     
     function ShouldClean {
         param (
@@ -100,7 +100,7 @@ function Clear-AllProjectsLeftovers {
     .OUTPUTS
     None
 #>
-function Goto {
+function proj_tools_goto {
     
     Param(
         [switch]$configs,
@@ -109,7 +109,7 @@ function Goto {
         [switch]$webConfig
     )
 
-    $context = Get-CurrentProject
+    $context = proj_getCurrent
     $webAppPath = $context.webAppPath
 
     if ($configs) {

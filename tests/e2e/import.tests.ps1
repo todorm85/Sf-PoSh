@@ -7,8 +7,8 @@ InModuleScope sf-dev {
     
     Describe "Import" -Tags ("import") {
         [SfProject]$project = set-testProject
-        import-project -displayName "test-import" -path $project.webAppPath
-        [SfProject]$importedProject = get-currentProject
+        proj_import -displayName "test-import" -path $project.webAppPath
+        [SfProject]$importedProject = proj_getCurrent
         
         It "generate new id" {
             $importedProject.id | Should -Not -Be $project.id

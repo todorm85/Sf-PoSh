@@ -4,7 +4,7 @@
     .OUTPUTS
     None
 #>
-function Start-SolutionBuild {
+function sol_build {
     
     Param(
         $retryCount = 0,
@@ -12,7 +12,7 @@ function Start-SolutionBuild {
     )
     
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
@@ -22,15 +22,15 @@ function Start-SolutionBuild {
     while ($tries -le $retryCount -and (-not $isBuilt)) {
         try {
             if (!(Test-Path $solutionPath)) {
-                Start-WebAppProjBuild
+                sol_buildWebAppProj
             }
             else {
                 try {
-                    Switch-StyleCop -context $project -enable:$false
+                    SwitchStyleCop -context $project -enable:$false
                     BuildProj $solutionPath
                 }
                 finally {
-                    Switch-StyleCop -context $project -enable:$true
+                    SwitchStyleCop -context $project -enable:$true
                 }
             }
             
@@ -55,7 +55,7 @@ function Start-SolutionBuild {
     .OUTPUTS
     None
 #>
-function Start-SolutionReBuild {
+function sol_rebuild {
     
     Param(
         [bool]$cleanPackages = $false,
@@ -63,28 +63,28 @@ function Start-SolutionReBuild {
         [SfProject]$project)
     
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     Write-Information "Rebuilding solution..."
     try {
-        Start-SolutionClean -cleanPackages $cleanPackages -project $project
+        sol_clean -cleanPackages $cleanPackages -project $project
     }
     catch {
         Write-Warning "Errors while cleaning solution: $_"
     }
 
-    Start-SolutionBuild -retryCount $retryCount -project $project
+    sol_build -retryCount $retryCount -project $project
 }
 
-function Start-SolutionClean {
+function sol_clean {
     Param(
         [bool]$cleanPackages = $false,
         [SfProject]$project)
 
     Write-Information "Cleaning solution..."
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     $solutionPath = $project.solutionPath
@@ -92,7 +92,7 @@ function Start-SolutionClean {
         throw "invalid or no solution path"
     }
 
-     Unlock-AllProjectFiles -project $project
+    sol_unlockAllFiles -project $project
 
     $errorMessage = ''
     #delete all bin, obj and packages
@@ -113,7 +113,7 @@ function Start-SolutionClean {
 
     if ($cleanPackages) {
         try {
-            Clear-Packages -project $project
+            sol_clearPackages -project $project
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
@@ -125,13 +125,13 @@ function Start-SolutionClean {
     }
 }
 
-function Clear-Packages {
+function sol_clearPackages {
     Param(
         [SfProject]$project
     )
 
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     if (!(Test-Path "${solutionPath}\packages")) {
@@ -154,14 +154,14 @@ function Clear-Packages {
     .OUTPUTS
     None
 #>
-function Open-Solution {
+function sol_open {
     
     Param(
         [switch]$useDefault,
         [SfProject]$project
     )
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
     
     if (!$project.solutionPath -and !$project.webAppPath) {
@@ -197,10 +197,10 @@ function Open-Solution {
     .OUTPUTS
     None
 #>
-function Start-WebAppProjBuild () {
+function sol_buildWebAppProj () {
     
 
-    $context = Get-CurrentProject
+    $context = proj_getCurrent
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"
@@ -209,13 +209,13 @@ function Start-WebAppProjBuild () {
     BuildProj $path
 }
 
-function  Unlock-AllProjectFiles {
+function sol_unlockAllFiles {
     Param(
         [SfProject]$project
     )
 
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     if ($project.solutionPath -ne "") {
@@ -259,14 +259,14 @@ function BuildProj {
     }
 }
 
-function Switch-StyleCop {
+function SwitchStyleCop {
     param (
         [SfProject]$context,
         [switch]$enable
     )
     
     if (-not $context) {
-        $context = Get-CurrentProject
+        $context = proj_getCurrent
     }
 
     $styleCopTaskPath = "$($context.solutionPath)\Builds\StyleCop\StyleCop.Targets"

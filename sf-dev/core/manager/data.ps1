@@ -1,4 +1,4 @@
-function Get-AllProjects {
+function data_getAllProjects {
     param(
         [switch]$skipInit,
         [string]$tagsFilter

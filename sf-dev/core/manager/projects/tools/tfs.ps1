@@ -1,6 +1,6 @@
 # IMPORTANT: this is called in daily cleanup
-function Update-AllProjectsTfsInfo {
-    $sfs = Get-AllProjects
+function proj_tools_updateAllProjectsTfsInfo {
+    $sfs = data_getAllProjects
     $sfs | ForEach-Object {
         
         [SfProject]$context = $_
@@ -40,7 +40,7 @@ function UpdateLastGetLatest {
 
 function GetLastWorkspaceChangesetDate ([SfProject]$context) {
     if (-not $context) {
-        [SfProject]$context = Get-CurrentProject
+        [SfProject]$context = proj_getCurrent
     }
 
     if (-not $context.solutionPath) {

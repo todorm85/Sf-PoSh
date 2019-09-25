@@ -6,13 +6,13 @@
     .OUTPUTS
     None
 #>
-function Reset-Thread {
+function srv_pool_resetThread {
     
     Param([switch]$start,
     [SfProject]$project)
 
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     $binPath = "$($project.webAppPath)\bin\dummy.sf"
@@ -32,7 +32,7 @@ function Reset-Thread {
     .OUTPUTS
     None
 #>
-function Reset-Pool {
+function srv_pool_resetPool {
     
     Param(
         [switch]$start,
@@ -40,7 +40,7 @@ function Reset-Pool {
     )
 
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     $appPool = @(iis-get-siteAppPool $project.websiteName)
@@ -55,9 +55,9 @@ function Reset-Pool {
     }
 }
 
-function Stop-Pool ([SfProject]$context) {
+function srv_pool_stopPool ([SfProject]$context) {
     if (-not $context) {
-        $context = Get-CurrentProject
+        $context = proj_getCurrent
     }
 
     try {
@@ -77,11 +77,11 @@ function Stop-Pool ([SfProject]$context) {
     .OUTPUTS
     None
 #>
-function Switch-AppPool {
+function srv_pool_changePool {
     
     Param()
 
-    $context = Get-CurrentProject
+    $context = proj_getCurrent
     $websiteName = $context.websiteName
 
     if ($websiteName -eq '') {
@@ -120,11 +120,11 @@ function Switch-AppPool {
     .OUTPUTS
     None
 #>
-function Get-PoolId {
+function srv_pool_getPoolId {
     
     Param()
     
-    $context = Get-CurrentProject
+    $context = proj_getCurrent
 
     $appPools = iis-show-appPoolPid
     $currentAppPool = @(iis-get-siteAppPool $context.websiteName)

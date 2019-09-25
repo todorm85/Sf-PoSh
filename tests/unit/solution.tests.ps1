@@ -3,7 +3,7 @@
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
     
-    Describe "sf-switch-styleCop" {
+    Describe "sf-SwitchStyleCop" {
         
         $expectedOn = @(
             "  <!-- Define StyleCopEnabled property. -->",
@@ -35,7 +35,7 @@ InModuleScope sf-dev {
                 $expectedOn
             }
 
-            switch-styleCop -enable:$false
+            SwitchStyleCop -enable:$false
 
             $Script:result.Count | Should -BeExactly $expectedOff.Count
 
@@ -49,7 +49,7 @@ InModuleScope sf-dev {
                 $expectedOff
             }
 
-            switch-styleCop -enable:$true
+            SwitchStyleCop -enable:$true
 
             $Script:result.Count | Should -BeExactly $expectedOn.Count
 

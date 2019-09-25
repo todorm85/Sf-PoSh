@@ -10,14 +10,14 @@
     .OUTPUTS
     None
 #>
-function Set-StorageMode {
+function app_configs_setStorageMode {
     
     Param (
         [string]$storageMode,
         [string]$restrictionLevel
     )
 
-    $context = Get-CurrentProject
+    $context = proj_getCurrent
 
     if ($storageMode -eq '') {
         do {
@@ -102,11 +102,11 @@ function Set-StorageMode {
     .OUTPUTS
     psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
 #>
-function Get-StorageMode {
+function app_configs_getStorageMode {
     
     Param()
 
-    $context = Get-CurrentProject
+    $context = proj_getCurrent
 
     # set web.config readonly off
     $webConfigPath = $context.webAppPath + '\web.config'
@@ -147,14 +147,14 @@ function Get-StorageMode {
     .OUTPUTS
     None
 #>
-function Get-ConfigContentFromDb {
+function app_configs_getFromDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbExport.xml"
     )
 
-    $dbName = Get-AppDbName
+    $dbName = app_db_getName
     
     $config = $tokoAdmin.sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
 
@@ -177,13 +177,13 @@ function Get-ConfigContentFromDb {
     .PARAMETER configName
     The sitefinity config name withouth extension
 #>
-function Clear-ConfigContentInDb {
+function app_configs_clearInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName
     )
 
-    $dbName = Get-AppDbName
+    $dbName = app_db_getName
     $table = 'sf_xml_config_items'
     $value = "dta = '<${configName}/>'"
     $where = "path='${configName}.config'"
@@ -203,14 +203,14 @@ function Clear-ConfigContentInDb {
     .OUTPUTS
     None
 #>
-function Set-ConfigContentInDb {
+function app_configs_setInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbImport.xml"
     )
 
-    $dbName = Get-AppDbName
+    $dbName = app_db_getName
     $table = 'sf_xml_config_items'
     $xmlString = Get-Content $filePath -Raw
     $value = "dta='$xmlString'"

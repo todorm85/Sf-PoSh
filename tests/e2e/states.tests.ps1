@@ -8,7 +8,7 @@ InModuleScope sf-dev {
     Describe "States should" -Tags ("states") {
         It "save and then restore app_data folder and database" {
             set-testProject
-            [SfProject]$project = get-currentProject
+            [SfProject]$project = proj_getCurrent
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             [string]$stateName = generateRandomName
             $stateName = $stateName.Replace('-', '_')
@@ -17,13 +17,13 @@ InModuleScope sf-dev {
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
             
-            save-appState -stateName $stateName
+            app_states_save -stateName $stateName
             
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
             New-Item $afterSaveFilePath
             Remove-Item -Path $beforeSaveFilePath
-            $dbName = get-appDbName
+            $dbName = app_db_getName
             $dbName | Should -Not -BeNullOrEmpty
             
             $table = 'sf_xml_config_items'
@@ -36,7 +36,7 @@ InModuleScope sf-dev {
             $config = $tokoAdmin.sql.GetItems($dbName, $table, $where, $select)
             $config | Should -Not -BeNullOrEmpty
 
-            restore-appState -stateName $stateName
+            app_states_restore -stateName $stateName
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse

@@ -1,2 +1,2 @@
 Import-Module sf-dev -Force
-sf-Clear-AllProjectsLeftovers
+sf-proj_tools_clearAllProjectsLeftovers

@@ -14,7 +14,7 @@
     .OUTPUTS
     None
 #>
-function New-Project {
+function proj_new {
     
     Param(
         [string]$displayName,
@@ -39,14 +39,14 @@ function New-Project {
         }
     }
 
-    [SfProject]$newContext = NewObjectSfProject
+    [SfProject]$newContext = NewSfProjectObject
     if (!$displayName) {
         $displayName = 'Untitled'
     }
 
     $newContext.displayName = $displayName
 
-    $oldContext = Get-CurrentProject
+    $oldContext = proj_getCurrent
 
     try {
         CreateProjectFilesFromSource -sourcePath $sourcePath -project $newContext 
@@ -58,7 +58,7 @@ function New-Project {
         CopySfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
 
         Write-Information "Creating website..."
-        New-Website -context $newContext
+        srv_site_new -context $newContext
 
         SaveSelectedProject $newContext
     }
@@ -96,7 +96,7 @@ function New-Project {
         }
 
         if ($oldContext) {
-            SetCurrentProject $oldContext
+            proj_setCurrent $oldContext
         }
         $ii = $_.InvocationInfo
         $msg = $_
@@ -108,11 +108,11 @@ function New-Project {
     }
 
     try {
-        SetCurrentProject $newContext
+        proj_setCurrent $newContext
 
         if ($buildSolution) {
             Write-Information "Building solution..."
-            Start-SolutionBuild -retryCount 3
+            sol_build -retryCount 3
         }
 
         if ($startWebApp) {
@@ -121,7 +121,7 @@ function New-Project {
                 CreateStartupConfig
                 StartApp
                 if ($precompile) {
-                    Add-PrecompiledTemplates
+                    app_addPrecompiledTemplates
                 }
             }
             catch {
@@ -132,14 +132,14 @@ function New-Project {
     }
     finally {
         if ($noAutoSelect) {
-            SetCurrentProject $oldContext
+            proj_setCurrent $oldContext
         }
     }
 
     return $newContext
 }
 
-function Copy-Project {
+function proj_clone {
     Param(
         [SfProject]$context,
         [switch]$noAutoSelect,
@@ -147,7 +147,7 @@ function Copy-Project {
     )
 
     if (!$context) {
-        $context = Get-CurrentProject
+        $context = proj_getCurrent
     }
 
     $sourcePath = $context.solutionPath;
@@ -176,7 +176,7 @@ function Copy-Project {
 
     [SfProject]$newProject = $null
     try {
-        [SfProject]$newProject = NewObjectSfProject
+        [SfProject]$newProject = NewSfProjectObject
         $newProject.displayName = "$($context.displayName)-clone"
         $newProject.webAppPath = "$targetPath\SitefinityWebApp"
     }
@@ -197,7 +197,7 @@ function Copy-Project {
 
     try {
         Write-Information "Creating website..."
-        New-Website -context $newProject > $null
+        srv_site_new -context $newProject > $null
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -210,7 +210,7 @@ function Copy-Project {
     if ($sourceDbName -and $tokoAdmin.sql.isDuplicate($sourceDbName)) {
         $newDbName = $newProject.id
         try {
-            Set-AppDbName $newDbName -context $newProject
+            app_db_setName $newDbName -context $newProject
         }
         catch {
             Write-Error "Error setting new database name in config $newDbName).`n $_"                    
@@ -225,13 +225,13 @@ function Copy-Project {
     }
 
     try {
-        Remove-AllAppStates -context $newProject
+        app_states_removeAll -context $newProject
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
     }
 
-    SetCurrentProject -newContext $newProject
+    proj_setCurrent -newContext $newProject
 }
 
 <#
@@ -246,7 +246,7 @@ function Copy-Project {
     .OUTPUTS
     None
 #>
-function Import-Project {
+function proj_import {
     
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
@@ -258,23 +258,23 @@ function Import-Project {
         throw "No asp.net web app found."
     }
 
-    [SfProject]$newContext = NewObjectSfProject
+    [SfProject]$newContext = NewSfProjectObject
     $newContext.displayName = $displayName
     $newContext.webAppPath = $path
     
-    SetCurrentProject $newContext
+    proj_setCurrent $newContext
     SaveSelectedProject $newContext
     return $newContext
 }
 
-function Remove-ManyProjects {
-    $sitefinities = @(Get-AllProjects)
+function proj_removeBulk {
+    $sitefinities = @(data_getAllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
     }
 
-    Show-Projects $sitefinities
+    proj_showAll $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')
@@ -290,7 +290,7 @@ function Remove-ManyProjects {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            Remove-Project -context $selectedSitefinity -noPrompt
+            proj_remove -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"       
@@ -312,7 +312,7 @@ function Remove-ManyProjects {
     .OUTPUTS
     None
 #>
-function Remove-Project {
+function proj_remove {
     
     Param(
         [switch]$keepDb,
@@ -323,7 +323,7 @@ function Remove-Project {
     )
     
     if ($null -eq $context) {
-        $context = Get-CurrentProject
+        $context = proj_getCurrent
     }
 
     $solutionPath = $context.solutionPath
@@ -335,12 +335,12 @@ function Remove-Project {
         Write-Warning "No workspace to delete, no TFS mapping found."        
     }
 
-    $dbName = Get-AppDbName $context
+    $dbName = app_db_getName $context
     $websiteName = $context.websiteName
     
     if ($websiteName) {
         try {
-            Stop-Pool -context $context
+            srv_pool_stopPool -context $context
         }
         catch {
             Write-Warning "Could not stop app pool: $_"            
@@ -387,7 +387,7 @@ function Remove-Project {
     if (!($keepProjectFiles)) {
         try {
             Write-Information "Unlocking all locked files in solution directory..."
-             Unlock-AllProjectFiles
+            sol_unlockAllFiles
 
             Write-Information "Deleting solution directory..."
             if ($solutionPath -ne "") {
@@ -415,14 +415,14 @@ function Remove-Project {
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:Sf.Config.dataPath)"
     }
     
-    SetCurrentProject $null
+    proj_setCurrent $null
 
     if (-not ($noPrompt)) {
-        Select-Project
+        proj_select
     }
 }
 
-function Rename-Project {
+function proj_rename {
     
     Param(
         [string]$newName,
@@ -431,7 +431,7 @@ function Rename-Project {
     )
 
     if (!$project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     [SfProject]$context = $project
@@ -450,7 +450,7 @@ function Rename-Project {
         }
     }
 
-    $azureDevOpsResult = Get-AzureDevOpsTitleAndLink $newName
+    $azureDevOpsResult = GetAzureDevOpsTitleAndLink $newName
     $newName = $azureDevOpsResult.name
     $context.description = $azureDevOpsResult.link
 
@@ -487,44 +487,44 @@ function Rename-Project {
     ChangeDomain -context $context -domainName $domain
     
     SaveSelectedProject $context
-    SetCurrentProject -newContext $context 
+    proj_setCurrent -newContext $context 
 }
 
 <#
 .SYNOPSIS
 Undos all pending changes, gets latest, builds and initializes.
 #>
-function Reset-Project {
+function proj_reset {
     param(
         [SfProject]
         $project
     )
 
     if (-not $project) {
-        $project = Get-CurrentProject
+        $project = proj_getCurrent
     }
 
     if ($project.lastGetLatest -and [System.DateTime]::Parse($project.lastGetLatest) -lt [System.DateTime]::Today) {
         $shouldReset = $false
-        if (Get-HasPendingChanges) {
-            Undo-PendingChanges
+        if (tfs_hasPendingChanges) {
+            tfs_undoPendingChanges
             $shouldReset = $true
         }
 
-        $getLatestOutput = Get-LatestChanges -overwrite
+        $getLatestOutput = tfs_getLatestChanges -overwrite
         if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
             $shouldReset = $true
         }
 
         if ($shouldReset) {
-            Start-SolutionClean -cleanPackages $true
-            Reset-App -start -build -precompile
-            Save-AppState -stateName initial
+            sol_clean -cleanPackages $true
+            app_reset -start -build -precompile
+            app_states_save -stateName initial
         }
     }
 }
 
-function Get-CurrentProject {
+function proj_getCurrent {
     [OutputType([SfProject])]
     $currentContext = $Script:globalContext
     if ($currentContext -eq '') {
@@ -538,14 +538,75 @@ function Get-CurrentProject {
     return [SfProject]$context
 }
 
-function Open-Description {
-    $context = Get-CurrentProject
-    if ($context.description -and $context.description.StartsWith("https://")) {
-        $browserPath = $GLOBAL:Sf.Config.browserPath;
-        execute-native "& `"$browserPath`" `"$($context.description)`" -noframemerging" -successCodes @(100)
-    } else {
-        $context.description
+function proj_setCurrent {
+    Param(
+        [SfProject]$newContext
+    )
+        
+    if ($null -ne $newContext) {
+        InitializeProject $newContext
+        ValidateProject $newContext        
+    } 
+
+    $Script:globalContext = $newContext
+    SetConsoleTitle -newContext $newContext
+    Set-Prompt -project $newContext
+}
+
+function GetAzureDevOpsTitleAndLink {
+    Param([string]$name)
+    $description = ''
+    $titleKeys = @("Product Backlog Item ", "Bug ", "Task ");
+    foreach ($key in $titleKeys) {
+        if ($name.StartsWith($key)) {
+            $name = $name.Replace($key, '');
+            $nameParts = $name.Split(':');
+            $itemId = $nameParts[0].Trim();
+            $title = $nameParts[1].Trim();
+            $resultTitle = ''
+            for ($i = 0; $i -lt $name.Length; $i++) {
+                $resultTitle = "${resultTitle}:$($title[$i])";
+            }
+            
+            $name = $name.Trim();
+            $name = GetValidTitle $name
+
+            $description = "https://prgs-sitefinity.visualstudio.com/sitefinity/_workitems/edit/$itemId"
+        }
     }
+
+    return @{ name = $name; link = $description }
+}
+
+function GetValidTitle {
+    param (
+        [string]$title
+    )
+
+    $validStartEnd = "^[A-Za-z]$";
+    $validMiddle = "^\w$";
+    while (!($title[0] -match $validStartEnd)) {
+        $title = $title.Substring(1)
+    }
+
+    while (!($title[$title.Length - 1] -match $validStartEnd)) {
+        $title = $title.Substring($title.Length - 2)
+    }
+
+    $resultTitle = '';
+    for ($i = 0; $i -lt $title.Length; $i++) {
+        if ($title[$i] -match $validMiddle) {
+            $resultTitle = "$resultTitle$($title[$i])"
+        } elseif ($title[$i] -eq ' ') {
+            $resultTitle = "${resultTitle}_"
+        }
+    }
+
+    if ($resultTitle.Length -ge 51) {
+        $resultTitle = $resultTitle.Remove(50);
+    }
+    
+    return $resultTitle;
 }
 
 function CreateUserFriendlySlnName ($context) {
@@ -596,7 +657,7 @@ function GetIsIdDuplicate ($id) {
         return $false
     }
 
-    $sitefinities = [SfProject[]](Get-AllProjects -skipInit)
+    $sitefinities = [SfProject[]](data_getAllProjects -skipInit)
     $sitefinities | % {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {
@@ -646,21 +707,6 @@ function GenerateId {
     return $name
 }
 
-function SetCurrentProject {
-    Param(
-        [SfProject]$newContext
-    )
-        
-    if ($null -ne $newContext) {
-        InitializeProject $newContext
-        ValidateProject $newContext        
-    } 
-
-    $Script:globalContext = $newContext
-    SetConsoleTitle -newContext $newContext
-    Set-Prompt -project $newContext
-}
-
 function SetConsoleTitle {
     param (
         [SfProject]$newContext
@@ -689,7 +735,7 @@ function GenerateSolutionFriendlyName {
     )
     
     if (-not ($context)) {
-        $context = Get-CurrentProject
+        $context = proj_getCurrent
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"
@@ -722,7 +768,7 @@ function CreateWorkspace ($context, $branch) {
 
     try {
         Write-Information "Getting latest workspace changes..."
-        tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite > $null
+        tfs-tfs_getLatestChanges -branchMapPath $context.solutionPath -overwrite > $null
         $context.branch = $branch
         $context.lastGetLatest = [DateTime]::Today
         SaveSelectedProject $context
@@ -820,60 +866,4 @@ function CreateProjectFilesFromSource {
         $project.webAppPath = $projectDirectory
         expand-archive -path "$sourcePath\SitefinityWebApp.zip" -destinationpath $project.webAppPath
     }
-}
-
-function Get-AzureDevOpsTitleAndLink {
-    Param([string]$name)
-    $description = ''
-    $titleKeys = @("Product Backlog Item ", "Bug ", "Task ");
-    foreach ($key in $titleKeys) {
-        if ($name.StartsWith($key)) {
-            $name = $name.Replace($key, '');
-            $nameParts = $name.Split(':');
-            $itemId = $nameParts[0].Trim();
-            $title = $nameParts[1].Trim();
-            $resultTitle = ''
-            for ($i = 0; $i -lt $name.Length; $i++) {
-                $resultTitle = "${resultTitle}:$($title[$i])";
-            }
-            
-            $name = $name.Trim();
-            $name = Get-ValidTitle $name
-
-            $description = "https://prgs-sitefinity.visualstudio.com/sitefinity/_workitems/edit/$itemId"
-        }
-    }
-
-    return @{ name = $name; link = $description }
-}
-
-function Get-ValidTitle {
-    param (
-        [string]$title
-    )
-
-    $validStartEnd = "^[A-Za-z]$";
-    $validMiddle = "^\w$";
-    while (!($title[0] -match $validStartEnd)) {
-        $title = $title.Substring(1)
-    }
-
-    while (!($title[$title.Length - 1] -match $validStartEnd)) {
-        $title = $title.Substring($title.Length - 2)
-    }
-
-    $resultTitle = '';
-    for ($i = 0; $i -lt $title.Length; $i++) {
-        if ($title[$i] -match $validMiddle) {
-            $resultTitle = "$resultTitle$($title[$i])"
-        } elseif ($title[$i] -eq ' ') {
-            $resultTitle = "${resultTitle}_"
-        }
-    }
-
-    if ($resultTitle.Length -ge 51) {
-        $resultTitle = $resultTitle.Remove(50);
-    }
-    
-    return $resultTitle;
 }

@@ -1,6 +1,6 @@
-function Get-AppDbName ([SfProject]$context) {
+function app_db_getName ([SfProject]$context) {
     if (-not $context) {
-        [SfProject]$context = Get-CurrentProject
+        [SfProject]$context = proj_getCurrent
     }
 
     $dbName = GetCurrentAppDbName -project $context
@@ -12,9 +12,33 @@ function Get-AppDbName ([SfProject]$context) {
     }
 }
 
+function app_db_setName ($newName, [SfProject]$context) {
+    if (!$context) {
+        $context = proj_getCurrent
+    }
+    
+    $dbName = app_db_getName -context $context
+    if (-not $dbName) {
+        throw "No database configured for sitefinity."
+    }
+
+    try {
+        $data = New-Object XML
+        $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
+        $data.Load($dataConfigPath) > $null
+        $conStrElement = $data.dataConfig.connectionStrings.add
+        $newString = $conStrElement.connectionString -replace $dbName, $newName
+        $conStrElement.SetAttribute("connectionString", $newString)
+        $data.Save($dataConfigPath) > $null
+    }
+    catch {
+        throw "Error setting database name in config file ${dataConfigPath}.`n $_"
+    }
+}
+
 function GetCurrentAppDbName ([SfProject]$project) {
     if (-not $project) {
-        [SfProject]$project = Get-CurrentProject
+        [SfProject]$project = proj_getCurrent
     }
     
     [XML]$data = GetDataConfig $project
@@ -43,28 +67,4 @@ function GetDataConfig ([SfProject]$project) {
     }
 
     return $null
-}
-
-function Set-AppDbName ($newName, [SfProject]$context) {
-    if (!$context) {
-        $context = Get-CurrentProject
-    }
-    
-    $dbName = Get-AppDbName -context $context
-    if (-not $dbName) {
-        throw "No database configured for sitefinity."
-    }
-
-    try {
-        $data = New-Object XML
-        $dataConfigPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\DataConfig.config"
-        $data.Load($dataConfigPath) > $null
-        $conStrElement = $data.dataConfig.connectionStrings.add
-        $newString = $conStrElement.connectionString -replace $dbName, $newName
-        $conStrElement.SetAttribute("connectionString", $newString)
-        $data.Save($dataConfigPath) > $null
-    }
-    catch {
-        throw "Error setting database name in config file ${dataConfigPath}.`n $_"
-    }
 }

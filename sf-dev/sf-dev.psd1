@@ -6,7 +6,7 @@
     Description       = 'Manage Sitefinity instances on local machine. Docs: https://github.com/todorm85/sitefinity-dev-orchestration/blob/master/README.md'
     PowerShellVersion = '5.1'
     CLRVersion        = '4.0'
-    FunctionsToExport = 'Get-AllProjects', 'Start-AllProjectsBatch', 'Set-Description', 'New-Project', 'Copy-Project', 'Import-Project', 'Remove-ManyProjects', 'Remove-Project', 'Rename-Project', 'Reset-Project', 'Get-CurrentProject', 'Open-Description', 'Get-AzureDevOpsTitleAndLink', 'Get-ValidTitle', 'Add-TagToProject', 'Remove-TagFromProject', 'Remove-AllTagsFromProject', 'Get-AllTagsForProject', 'Set-DefaultTagFilter', 'Get-DefaultTagFilter', 'Update-AllProjectsTfsInfo', 'Clear-AllProjectsLeftovers', 'Goto', 'Select-Project', 'Show-CurrentProject', 'Show-Projects', 'Start-SolutionBuild', 'Start-SolutionReBuild', 'Start-SolutionClean', 'Clear-Packages', 'Open-Solution', 'Start-WebAppProjBuild', ' Unlock-AllProjectFiles', 'Switch-StyleCop', 'Undo-PendingChanges', 'Show-PendingChanges', 'Get-HasPendingChanges', 'Get-LatestChanges', 'Reset-Thread', 'Reset-Pool', 'Stop-Pool', 'Switch-AppPool', 'Get-PoolId', 'Set-SubApp', 'Remove-SubApp', 'Rename-Website', 'Open-WebSite', 'New-Website', 'Set-StorageMode', 'Get-StorageMode', 'Get-ConfigContentFromDb', 'Clear-ConfigContentInDb', 'Set-ConfigContentInDb', 'Get-AppDbName', 'Set-AppDbName', 'Reset-App', 'Add-PrecompiledTemplates', 'Save-AppState', 'Restore-AppState', 'Remove-AppState', 'Remove-AllAppStates'
+    FunctionsToExport = 'data_getAllProjects', 'proj_tools_StartAllProjectsBatch', 'proj_setDescription', 'proj_new', 'proj_clone', 'proj_import', 'proj_removeBulk', 'proj_remove', 'proj_rename', 'proj_reset', 'proj_setCurrent', 'proj_getCurrent', 'proj_getDescription', 'proj_tags_add', 'proj_tags_remove', 'proj_tags_removeAll', 'proj_tags_getAll', 'proj_tags_setDefaultFilter', 'proj_tags_getDefaultFilter', 'proj_tools_updateAllProjectsTfsInfo', 'proj_tools_clearAllProjectsLeftovers', 'proj_tools_goto', 'proj_select', 'proj_show', 'proj_showAll', 'sol_build', 'sol_rebuild', 'sol_clean', 'sol_clearPackages', 'sol_open', 'sol_buildWebAppProj', 'sol_unlockAllFiles', 'tfs_undoPendingChanges', 'tfs_showPendingChanges', 'tfs_hasPendingChanges', 'tfs_getLatestChanges', 'srv_pool_resetThread', 'srv_pool_resetPool', 'srv_pool_stopPool', 'srv_pool_changePool', 'srv_pool_getPoolId', 'srv_subApp_set', 'srv_subApp_remove', 'srv_site_rename', 'srv_site_open', 'srv_site_new', 'app_configs_setStorageMode', 'app_configs_getStorageMode', 'app_configs_getFromDb', 'app_configs_clearInDb', 'app_configs_setInDb', 'app_db_getName', 'app_db_setName', 'app_reset', 'app_addPrecompiledTemplates', 'app_states_save', 'app_states_restore', 'app_states_remove', 'app_states_removeAll'
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
@@ -15,7 +15,7 @@
         @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.0'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
     )
-    DefaultCommandPrefix = "Sf_"
+    DefaultCommandPrefix = "sf_"
     PrivateData       = @{
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
