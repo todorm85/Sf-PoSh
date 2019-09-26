@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '4.0.0'
+    ModuleVersion     = '5.0.0'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.0'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -22,6 +22,7 @@
             ReleaseNotes = @'
             5.0.0
                 Remove default command prefix
+                Change public api functions to use dashes not underscores
             4.0.0
                 New function naming convention
                 Added default prefix for module
