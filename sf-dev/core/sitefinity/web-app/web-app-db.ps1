@@ -1,6 +1,6 @@
-function app-db-getName ([SfProject]$context) {
+function sf-app-db-getName ([SfProject]$context) {
     if (-not $context) {
-        [SfProject]$context = proj-getCurrent
+        [SfProject]$context = sf-proj-getCurrent
     }
 
     $dbName = _getCurrentAppDbName -project $context
@@ -12,12 +12,12 @@ function app-db-getName ([SfProject]$context) {
     }
 }
 
-function app-db-setName ($newName, [SfProject]$context) {
+function sf-app-db-setName ($newName, [SfProject]$context) {
     if (!$context) {
-        $context = proj-getCurrent
+        $context = sf-proj-getCurrent
     }
     
-    $dbName = app-db-getName -context $context
+    $dbName = sf-app-db-getName -context $context
     if (-not $dbName) {
         throw "No database configured for sitefinity."
     }
@@ -38,7 +38,7 @@ function app-db-setName ($newName, [SfProject]$context) {
 
 function _getCurrentAppDbName ([SfProject]$project) {
     if (-not $project) {
-        [SfProject]$project = proj-getCurrent
+        [SfProject]$project = sf-proj-getCurrent
     }
     
     [XML]$data = _getDataConfig $project

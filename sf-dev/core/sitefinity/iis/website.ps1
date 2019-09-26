@@ -1,12 +1,12 @@
 
-function srv-site-rename {
+function sf-srv-site-rename {
     Param(
         [string]$newName
     )
 
-    $context = proj-getCurrent
+    $context = sf-proj-getCurrent
     try {
-        iis-srv-site-rename $context.websiteName $newName
+        iis-sf-srv-site-rename $context.websiteName $newName
     }
     catch {
         throw "Error renaming site in IIS. Message: $_.Message"
@@ -27,7 +27,7 @@ function srv-site-rename {
     .OUTPUTS
     None
 #>
-function srv-site-open {
+function sf-srv-site-open {
     
     Param(
         [switch]$useExistingBrowser,
@@ -35,7 +35,7 @@ function srv-site-open {
     )
 
     if (!$project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
 
     $browserPath = $GLOBAL:Sf.Config.browserPath;
@@ -61,13 +61,13 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function srv-site-new {
+function sf-srv-site-new {
     Param(
         [SfProject]$context
     )
 
     if (-not $context) {
-        $context = proj-getCurrent
+        $context = sf-proj-getCurrent
     }
 
     $port = 2111
@@ -107,7 +107,7 @@ function srv-site-new {
 
 function _deleteWebsite ([SfProject]$context) {
     if (-not $context) {
-        $context = proj-getCurrent
+        $context = sf-proj-getCurrent
     }
 
     $websiteName = $context.websiteName
@@ -152,7 +152,7 @@ function _changeDomain {
     )
 
     if (-not $context) {
-        $context = proj-getCurrent
+        $context = sf-proj-getCurrent
     }
 
     $websiteName = $context.websiteName

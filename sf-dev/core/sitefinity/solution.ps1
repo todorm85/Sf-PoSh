@@ -4,7 +4,7 @@
     .OUTPUTS
     None
 #>
-function sol-build {
+function sf-sol-build {
     
     Param(
         $retryCount = 0,
@@ -12,7 +12,7 @@ function sol-build {
     )
     
     if (!$project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
 
     $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
@@ -22,7 +22,7 @@ function sol-build {
     while ($tries -le $retryCount -and (-not $isBuilt)) {
         try {
             if (!(Test-Path $solutionPath)) {
-                sol-buildWebAppProj
+                sf-sf-sol-buildWebAppProj
             }
             else {
                 try {
@@ -55,7 +55,7 @@ function sol-build {
     .OUTPUTS
     None
 #>
-function sol-rebuild {
+function sf-sol-rebuild {
     
     Param(
         [bool]$cleanPackages = $false,
@@ -63,28 +63,28 @@ function sol-rebuild {
         [SfProject]$project)
     
     if (!$project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
 
     Write-Information "Rebuilding solution..."
     try {
-        sol-clean -cleanPackages $cleanPackages -project $project
+        sf-sol-clean -cleanPackages $cleanPackages -project $project
     }
     catch {
         Write-Warning "Errors while cleaning solution: $_"
     }
 
-    sol-build -retryCount $retryCount -project $project
+    sf-sol-build -retryCount $retryCount -project $project
 }
 
-function sol-clean {
+function sf-sol-clean {
     Param(
         [bool]$cleanPackages = $false,
         [SfProject]$project)
 
     Write-Information "Cleaning solution..."
     if (!$project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
 
     $solutionPath = $project.solutionPath
@@ -92,7 +92,7 @@ function sol-clean {
         throw "invalid or no solution path"
     }
 
-    sol-unlockAllFiles -project $project
+    sf-sol-unlockAllFiles -project $project
 
     $errorMessage = ''
     #delete all bin, obj and packages
@@ -113,7 +113,7 @@ function sol-clean {
 
     if ($cleanPackages) {
         try {
-            sol-clearPackages -project $project
+            sf-sol-clearPackages -project $project
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
@@ -125,13 +125,13 @@ function sol-clean {
     }
 }
 
-function sol-clearPackages {
+function sf-sol-clearPackages {
     Param(
         [SfProject]$project
     )
 
     if (!$project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
 
     if (!(Test-Path "${solutionPath}\packages")) {
@@ -154,14 +154,14 @@ function sol-clearPackages {
     .OUTPUTS
     None
 #>
-function sol-open {
+function sf-sol-open {
     
     Param(
         [switch]$useDefault,
         [SfProject]$project
     )
     if (!$project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
     
     if (!$project.solutionPath -and !$project.webAppPath) {
@@ -197,10 +197,10 @@ function sol-open {
     .OUTPUTS
     None
 #>
-function sol-buildWebAppProj () {
+function sf-sf-sol-buildWebAppProj () {
     
 
-    $context = proj-getCurrent
+    $context = sf-proj-getCurrent
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"
@@ -209,13 +209,13 @@ function sol-buildWebAppProj () {
     _buildProj $path
 }
 
-function sol-unlockAllFiles {
+function sf-sol-unlockAllFiles {
     Param(
         [SfProject]$project
     )
 
     if (!$project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
 
     if ($project.solutionPath -ne "") {
@@ -266,7 +266,7 @@ function _switchStyleCop {
     )
     
     if (-not $context) {
-        $context = proj-getCurrent
+        $context = sf-proj-getCurrent
     }
 
     $styleCopTaskPath = "$($context.solutionPath)\Builds\StyleCop\StyleCop.Targets"

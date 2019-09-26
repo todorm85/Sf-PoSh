@@ -8,7 +8,7 @@
     .OUTPUTS
     None
 #>
-function app-addPrecompiledTemplates {
+function sf-app-addPrecompiledTemplates {
     
     param(
         [switch]$revert
@@ -21,7 +21,7 @@ function app-addPrecompiledTemplates {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
     
-    $context = proj-getCurrent
+    $context = sf-proj-getCurrent
     $webAppPath = $context.webAppPath
     $appUrl = _getAppUrl
     if ($revert) {

@@ -2,7 +2,7 @@
 $path = "$PSScriptRoot\..\"
 
 # $oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
-$oldNames = @('data-getAllProjects', 'proj-setDescription', 'proj-getDescription', 'proj-new', 'proj-clone', 'proj-import', 'proj-removeBulk', 'proj-remove', 'proj-rename', 'proj-reset', 'proj-getCurrent', 'proj-setCurrent', 'proj-tags-add', 'proj-tags-remove', 'proj-tags-removeAll', 'proj-tags-getAll', 'proj-tags-setDefaultFilter', 'proj-tags-getDefaultFilter', 'proj-select', 'proj-show', 'proj-showAll', 'proj-tools-startAllProjectsBatch', 'proj-tools-clearAllProjectsLeftovers', 'proj-tools-goto', 'proj-tools-updateAllProjectsTfsInfo', 'sol-build', 'sol-rebuild', 'sol-clean', 'sol-clearPackages', 'sol-open', 'sol-buildWebAppProj', 'sol-unlockAllFiles', 'tfs-undoPendingChanges', 'tfs-showPendingChanges', 'tfs-hasPendingChanges', 'tfs-getLatestChanges', 'srv-pool-resetThread', 'srv-pool-resetPool', 'srv-pool-stopPool', 'srv-pool-changePool', 'srv-pool-getPoolId', 'srv-subApp-set', 'srv-subApp-remove', 'srv-site-rename', 'srv-site-open', 'srv-site-new', 'app-configs-setStorageMode', 'app-configs-getStorageMode', 'app-configs-getFromDb', 'app-configs-clearInDb', 'app-configs-setInDb', 'app-db-getName', 'app-db-setName', 'app-addPrecompiledTemplates', 'app-reset', 'app-states-save', 'app-states-restore', 'app-states-remove', 'app-states-removeAll')
+$oldNames = @('sf-data-getAllProjects', 'sf-proj-tools-StartAllProjectsBatch', 'sf-proj-setDescription', 'sf-proj-new', 'sf-proj-clone', 'sf-proj-import', 'sf-sf-proj-removeBulk', 'sf-proj-remove', 'sf-proj-rename', 'sf-proj-reset', 'sf-proj-setCurrent', 'sf-proj-getCurrent', 'sf-proj-getDescription', 'sf-proj-tags-add', 'sf-proj-tags-remove', 'sf-sf-proj-tags-removeAll', 'sf-proj-tags-getAll', 'sf-proj-tags-setDefaultFilter', 'sf-proj-tags-getDefaultFilter', 'sf-proj-tools-updateAllProjectsTfsInfo', 'sf-proj-tools-clearAllProjectsLeftovers', 'sf-proj-tools-goto', 'sf-proj-select', 'sf-proj-show', 'sf-sf-proj-showAll', 'sf-sol-build', 'sf-sol-rebuild', 'sf-sol-clean', 'sf-sol-clearPackages', 'sf-sol-open', 'sf-sf-sol-buildWebAppProj', 'sf-sol-unlockAllFiles', 'sf-tfs-undoPendingChanges', 'sf-tfs-showPendingChanges', 'sf-tfs-hasPendingChanges', 'sf-tfs-getLatestChanges', 'sf-srv-pool-resetThread', 'sf-srv-pool-resetPool', 'sf-srv-pool-stopPool', 'sf-srv-pool-changePool', 'sf-srv-pool-getPoolId', 'sf-srv-subApp-set', 'sf-srv-subApp-remove', 'sf-srv-site-rename', 'sf-srv-site-open', 'sf-srv-site-new', 'sf-app-configs-setStorageMode', 'sf-app-configs-getStorageMode', 'sf-app-configs-getFromDb', 'sf-app-configs-clearInDb', 'sf-app-configs-setInDb', 'sf-app-db-getName', 'sf-app-db-setName', 'sf-app-reset', 'sf-app-addPrecompiledTemplates', 'sf-app-states-save', 'sf-app-states-restore', 'sf-app-states-remove', 'sf-sf-app-states-removeAll')
 
 function Rename-Function {
     param (
@@ -38,7 +38,7 @@ $scripts | % {
     $oldNames | % {
         # $newTitle = Rename-Function($_)
         [string]$oldName = [string]$_
-        $newTitle = $oldName.Replace('_', '-')
+        $newTitle = "sf-" + $oldName
         $content = $content -replace $oldName, $newTitle
     }
 

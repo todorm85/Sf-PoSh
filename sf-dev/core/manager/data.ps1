@@ -1,4 +1,4 @@
-function data-getAllProjects {
+function sf-data-getAllProjects {
     param(
         [switch]$skipInit,
         [string]$tagsFilter

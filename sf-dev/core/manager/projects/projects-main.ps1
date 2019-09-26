@@ -14,7 +14,7 @@
     .OUTPUTS
     None
 #>
-function proj-new {
+function sf-proj-new {
     
     Param(
         [string]$displayName,
@@ -46,7 +46,7 @@ function proj-new {
 
     $newContext.displayName = $displayName
 
-    $oldContext = proj-getCurrent
+    $oldContext = sf-proj-getCurrent
 
     try {
         _createProjectFilesFromSource -sourcePath $sourcePath -project $newContext 
@@ -58,7 +58,7 @@ function proj-new {
         _copySfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
 
         Write-Information "Creating website..."
-        srv-site-new -context $newContext
+        sf-srv-site-new -context $newContext
 
         _saveSelectedProject $newContext
     }
@@ -96,7 +96,7 @@ function proj-new {
         }
 
         if ($oldContext) {
-            proj-setCurrent $oldContext
+            sf-proj-setCurrent $oldContext
         }
         $ii = $_.InvocationInfo
         $msg = $_
@@ -108,11 +108,11 @@ function proj-new {
     }
 
     try {
-        proj-setCurrent $newContext
+        sf-proj-setCurrent $newContext
 
         if ($buildSolution) {
             Write-Information "Building solution..."
-            sol-build -retryCount 3
+            sf-sol-build -retryCount 3
         }
 
         if ($startWebApp) {
@@ -121,7 +121,7 @@ function proj-new {
                 _createStartupConfig
                 _startApp
                 if ($precompile) {
-                    app-addPrecompiledTemplates
+                    sf-app-addPrecompiledTemplates
                 }
             }
             catch {
@@ -132,14 +132,14 @@ function proj-new {
     }
     finally {
         if ($noAutoSelect) {
-            proj-setCurrent $oldContext
+            sf-proj-setCurrent $oldContext
         }
     }
 
     return $newContext
 }
 
-function proj-clone {
+function sf-proj-clone {
     Param(
         [SfProject]$context,
         [switch]$noAutoSelect,
@@ -147,7 +147,7 @@ function proj-clone {
     )
 
     if (!$context) {
-        $context = proj-getCurrent
+        $context = sf-proj-getCurrent
     }
 
     $sourcePath = $context.solutionPath;
@@ -197,7 +197,7 @@ function proj-clone {
 
     try {
         Write-Information "Creating website..."
-        srv-site-new -context $newProject > $null
+        sf-srv-site-new -context $newProject > $null
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -210,7 +210,7 @@ function proj-clone {
     if ($sourceDbName -and $tokoAdmin.sql.isDuplicate($sourceDbName)) {
         $newDbName = $newProject.id
         try {
-            app-db-setName $newDbName -context $newProject
+            sf-app-db-setName $newDbName -context $newProject
         }
         catch {
             Write-Error "Error setting new database name in config $newDbName).`n $_"                    
@@ -225,13 +225,13 @@ function proj-clone {
     }
 
     try {
-        app-states-removeAll -context $newProject
+        sf-sf-app-states-removeAll -context $newProject
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
     }
 
-    proj-setCurrent -newContext $newProject
+    sf-proj-setCurrent -newContext $newProject
 }
 
 <#
@@ -246,7 +246,7 @@ function proj-clone {
     .OUTPUTS
     None
 #>
-function proj-import {
+function sf-proj-import {
     
     Param(
         [Parameter(Mandatory = $true)][string]$displayName,
@@ -262,19 +262,19 @@ function proj-import {
     $newContext.displayName = $displayName
     $newContext.webAppPath = $path
     
-    proj-setCurrent $newContext
+    sf-proj-setCurrent $newContext
     _saveSelectedProject $newContext
     return $newContext
 }
 
-function proj-removeBulk {
-    $sitefinities = @(data-getAllProjects)
+function sf-sf-proj-removeBulk {
+    $sitefinities = @(sf-data-getAllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
     }
 
-    proj-showAll $sitefinities
+    sf-sf-proj-showAll $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')
@@ -290,7 +290,7 @@ function proj-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            proj-remove -context $selectedSitefinity -noPrompt
+            sf-proj-remove -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"       
@@ -312,7 +312,7 @@ function proj-removeBulk {
     .OUTPUTS
     None
 #>
-function proj-remove {
+function sf-proj-remove {
     
     Param(
         [switch]$keepDb,
@@ -323,7 +323,7 @@ function proj-remove {
     )
     
     if ($null -eq $context) {
-        $context = proj-getCurrent
+        $context = sf-proj-getCurrent
     }
 
     $solutionPath = $context.solutionPath
@@ -335,12 +335,12 @@ function proj-remove {
         Write-Warning "No workspace to delete, no TFS mapping found."        
     }
 
-    $dbName = app-db-getName $context
+    $dbName = sf-app-db-getName $context
     $websiteName = $context.websiteName
     
     if ($websiteName) {
         try {
-            srv-pool-stopPool -context $context
+            sf-srv-pool-stopPool -context $context
         }
         catch {
             Write-Warning "Could not stop app pool: $_"            
@@ -387,7 +387,7 @@ function proj-remove {
     if (!($keepProjectFiles)) {
         try {
             Write-Information "Unlocking all locked files in solution directory..."
-            sol-unlockAllFiles
+            sf-sol-unlockAllFiles
 
             Write-Information "Deleting solution directory..."
             if ($solutionPath -ne "") {
@@ -415,14 +415,14 @@ function proj-remove {
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:Sf.Config.dataPath)"
     }
     
-    proj-setCurrent $null
+    sf-proj-setCurrent $null
 
     if (-not ($noPrompt)) {
-        proj-select
+        sf-proj-select
     }
 }
 
-function proj-rename {
+function sf-proj-rename {
     
     Param(
         [string]$newName,
@@ -431,7 +431,7 @@ function proj-rename {
     )
 
     if (!$project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
 
     [SfProject]$context = $project
@@ -487,44 +487,44 @@ function proj-rename {
     _changeDomain -context $context -domainName $domain
     
     _saveSelectedProject $context
-    proj-setCurrent -newContext $context 
+    sf-proj-setCurrent -newContext $context 
 }
 
 <#
 .SYNOPSIS
 Undos all pending changes, gets latest, builds and initializes.
 #>
-function proj-reset {
+function sf-proj-reset {
     param(
         [SfProject]
         $project
     )
 
     if (-not $project) {
-        $project = proj-getCurrent
+        $project = sf-proj-getCurrent
     }
 
     if ($project.lastGetLatest -and [System.DateTime]::Parse($project.lastGetLatest) -lt [System.DateTime]::Today) {
         $shouldReset = $false
-        if (tfs-hasPendingChanges) {
-            tfs-undoPendingChanges
+        if (sf-tfs-hasPendingChanges) {
+            sf-tfs-undoPendingChanges
             $shouldReset = $true
         }
 
-        $getLatestOutput = tfs-getLatestChanges -overwrite
+        $getLatestOutput = sf-tfs-getLatestChanges -overwrite
         if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
             $shouldReset = $true
         }
 
         if ($shouldReset) {
-            sol-clean -cleanPackages $true
-            app-reset -start -build -precompile
-            app-states-save -stateName initial
+            sf-sol-clean -cleanPackages $true
+            sf-app-reset -start -build -precompile
+            sf-app-states-save -stateName initial
         }
     }
 }
 
-function proj-getCurrent {
+function sf-proj-getCurrent {
     [OutputType([SfProject])]
     $currentContext = $Script:globalContext
     if ($currentContext -eq '') {
@@ -538,7 +538,7 @@ function proj-getCurrent {
     return [SfProject]$context
 }
 
-function proj-setCurrent {
+function sf-proj-setCurrent {
     Param(
         [SfProject]$newContext
     )
@@ -657,7 +657,7 @@ function _getIsIdDuplicate ($id) {
         return $false
     }
 
-    $sitefinities = [SfProject[]](data-getAllProjects -skipInit)
+    $sitefinities = [SfProject[]](sf-data-getAllProjects -skipInit)
     $sitefinities | % {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {
@@ -735,7 +735,7 @@ function _generateSolutionFriendlyName {
     )
     
     if (-not ($context)) {
-        $context = proj-getCurrent
+        $context = sf-proj-getCurrent
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"

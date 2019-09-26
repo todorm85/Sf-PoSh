@@ -10,14 +10,14 @@
     .OUTPUTS
     None
 #>
-function app-configs-setStorageMode {
+function sf-app-configs-setStorageMode {
     
     Param (
         [string]$storageMode,
         [string]$restrictionLevel
     )
 
-    $context = proj-getCurrent
+    $context = sf-proj-getCurrent
 
     if ($storageMode -eq '') {
         do {
@@ -102,11 +102,11 @@ function app-configs-setStorageMode {
     .OUTPUTS
     psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
 #>
-function app-configs-getStorageMode {
+function sf-app-configs-getStorageMode {
     
     Param()
 
-    $context = proj-getCurrent
+    $context = sf-proj-getCurrent
 
     # set web.config readonly off
     $webConfigPath = $context.webAppPath + '\web.config'
@@ -147,14 +147,14 @@ function app-configs-getStorageMode {
     .OUTPUTS
     None
 #>
-function app-configs-getFromDb {
+function sf-app-configs-getFromDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbExport.xml"
     )
 
-    $dbName = app-db-getName
+    $dbName = sf-app-db-getName
     
     $config = $tokoAdmin.sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
 
@@ -177,13 +177,13 @@ function app-configs-getFromDb {
     .PARAMETER configName
     The sitefinity config name withouth extension
 #>
-function app-configs-clearInDb {
+function sf-app-configs-clearInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName
     )
 
-    $dbName = app-db-getName
+    $dbName = sf-app-db-getName
     $table = 'sf_xml_config_items'
     $value = "dta = '<${configName}/>'"
     $where = "path='${configName}.config'"
@@ -203,14 +203,14 @@ function app-configs-clearInDb {
     .OUTPUTS
     None
 #>
-function app-configs-setInDb {
+function sf-app-configs-setInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbImport.xml"
     )
 
-    $dbName = app-db-getName
+    $dbName = sf-app-db-getName
     $table = 'sf_xml_config_items'
     $xmlString = Get-Content $filePath -Raw
     $value = "dta='$xmlString'"

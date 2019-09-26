@@ -6,7 +6,7 @@
     Description       = 'Manage Sitefinity instances on local machine. Docs: https://github.com/todorm85/sitefinity-dev-orchestration/blob/master/README.md'
     PowerShellVersion = '5.1'
     CLRVersion        = '4.0'
-    FunctionsToExport = 'data_getAllProjects', 'proj_tools_StartAllProjectsBatch', 'proj_setDescription', 'proj_new', 'proj_clone', 'proj_import', 'proj_removeBulk', 'proj_remove', 'proj_rename', 'proj_reset', 'proj_setCurrent', 'proj_getCurrent', 'proj_getDescription', 'proj_tags_add', 'proj_tags_remove', 'proj_tags_removeAll', 'proj_tags_getAll', 'proj_tags_setDefaultFilter', 'proj_tags_getDefaultFilter', 'proj_tools_updateAllProjectsTfsInfo', 'proj_tools_clearAllProjectsLeftovers', 'proj_tools_goto', 'proj_select', 'proj_show', 'proj_showAll', 'sol_build', 'sol_rebuild', 'sol_clean', 'sol_clearPackages', 'sol_open', 'sol_buildWebAppProj', 'sol_unlockAllFiles', 'tfs_undoPendingChanges', 'tfs_showPendingChanges', 'tfs_hasPendingChanges', 'tfs_getLatestChanges', 'srv_pool_resetThread', 'srv_pool_resetPool', 'srv_pool_stopPool', 'srv_pool_changePool', 'srv_pool_getPoolId', 'srv_subApp_set', 'srv_subApp_remove', 'srv_site_rename', 'srv_site_open', 'srv_site_new', 'app_configs_setStorageMode', 'app_configs_getStorageMode', 'app_configs_getFromDb', 'app_configs_clearInDb', 'app_configs_setInDb', 'app_db_getName', 'app_db_setName', 'app_reset', 'app_addPrecompiledTemplates', 'app_states_save', 'app_states_restore', 'app_states_remove', 'app_states_removeAll'
+    FunctionsToExport = 'data-getAllProjects', 'proj-tools-StartAllProjectsBatch', 'proj-setDescription', 'proj-new', 'proj-clone', 'proj-import', 'proj-removeBulk', 'proj-remove', 'proj-rename', 'proj-reset', 'proj-setCurrent', 'proj-getCurrent', 'proj-getDescription', 'proj-tags-add', 'proj-tags-remove', 'proj-tags-removeAll', 'proj-tags-getAll', 'proj-tags-setDefaultFilter', 'proj-tags-getDefaultFilter', 'proj-tools-updateAllProjectsTfsInfo', 'proj-tools-clearAllProjectsLeftovers', 'proj-tools-goto', 'proj-select', 'proj-show', 'proj-showAll', 'sol-build', 'sol-rebuild', 'sol-clean', 'sol-clearPackages', 'sol-open', 'sol-buildWebAppProj', 'sol-unlockAllFiles', 'tfs-undoPendingChanges', 'tfs-showPendingChanges', 'tfs-hasPendingChanges', 'tfs-getLatestChanges', 'srv-pool-resetThread', 'srv-pool-resetPool', 'srv-pool-stopPool', 'srv-pool-changePool', 'srv-pool-getPoolId', 'srv-subApp-set', 'srv-subApp-remove', 'srv-site-rename', 'srv-site-open', 'srv-site-new', 'app-configs-setStorageMode', 'app-configs-getStorageMode', 'app-configs-getFromDb', 'app-configs-clearInDb', 'app-configs-setInDb', 'app-db-getName', 'app-db-setName', 'app-reset', 'app-addPrecompiledTemplates', 'app-states-save', 'app-states-restore', 'app-states-remove', 'app-states-removeAll'
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
@@ -20,6 +20,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            6.0.0
+                Fix exported command names
+                Add sf- prefix
             5.0.0
                 Remove default command prefix
                 Change public api functions to use dashes not underscores

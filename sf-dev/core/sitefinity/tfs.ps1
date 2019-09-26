@@ -5,11 +5,11 @@
     .OUTPUTS
     None
 #>
-function tfs-undoPendingChanges {
+function sf-tfs-undoPendingChanges {
     
     Param()
 
-    $context = proj-getCurrent
+    $context = sf-proj-getCurrent
     if (!$context.branch) {
         return
     }
@@ -18,7 +18,7 @@ function tfs-undoPendingChanges {
         throw "invalid or no solution path"
     }
 
-    tfs-tfs-undoPendingChanges $context.solutionPath
+    tfs-sf-tfs-undoPendingChanges $context.solutionPath
 }
 
 <#
@@ -28,7 +28,7 @@ function tfs-undoPendingChanges {
     .OUTPUTS
     None
 #>
-function tfs-showPendingChanges {
+function sf-tfs-showPendingChanges {
     
     Param(
         [switch]$detailed
@@ -40,7 +40,7 @@ function tfs-showPendingChanges {
         $format = "Brief"
     }
 
-    $context = proj-getCurrent
+    $context = sf-proj-getCurrent
     if (!$context.branch) {
         return
     }
@@ -50,11 +50,11 @@ function tfs-showPendingChanges {
     }
     
     $workspaceName = tfs-get-workspaceName $context.solutionPath
-    tfs-tfs-showPendingChanges $workspaceName $format
+    tfs-sf-tfs-showPendingChanges $workspaceName $format
 }
 
-function tfs-hasPendingChanges {
-    $pendingResult = tfs-showPendingChanges
+function sf-tfs-hasPendingChanges {
+    $pendingResult = sf-tfs-showPendingChanges
     if ($pendingResult -eq 'There are no pending changes.') {
         return $false
     } else {
@@ -69,13 +69,13 @@ function tfs-hasPendingChanges {
     .OUTPUTS
     None
 #>
-function tfs-getLatestChanges {
+function sf-tfs-getLatestChanges {
     
     Param(
         [switch]$overwrite
     )
     
-    [SfProject]$context = proj-getCurrent
+    [SfProject]$context = sf-proj-getCurrent
     if (!$context.branch) {
         return
     }
