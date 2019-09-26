@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '5.0.0'
+    ModuleVersion     = '6.0.0'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.0'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -21,8 +21,7 @@
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
             6.0.0
-                Fix exported command names
-                Add sf- prefix
+                Public api with prefix sf- and dashes
             5.0.0
                 Remove default command prefix
                 Change public api functions to use dashes not underscores
