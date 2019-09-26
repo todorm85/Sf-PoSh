@@ -18,7 +18,7 @@
     .OUTPUTS
     None
 #>
-function app_reset {
+function app-reset {
     
     Param(
         [switch]$start,
@@ -38,9 +38,9 @@ function app_reset {
 
     $oldProject = $null
     if ($project) {
-        [SfProject]$oldProject = proj_getCurrent
+        [SfProject]$oldProject = proj-getCurrent
         if ($oldProject -and ($oldProject.id -ne $project.id)) {
-            proj_setCurrent -newContext $project
+            proj-setCurrent -newContext $project
         }
         else {
             $oldProject = $null
@@ -48,22 +48,22 @@ function app_reset {
     }
 
     try {
-        $dbName = app_db_getName # this needs to be here before DataConfig.config gets deleted!!!
+        $dbName = app-db-getName # this needs to be here before DataConfig.config gets deleted!!!
     
         Write-Information "Restarting app pool..."
-        srv_pool_resetPool
+        srv-pool-resetPool
 
         if ($force) {
             Write-Information "Unlocking files..."
-            sol_unlockAllFiles
+            sol-unlockAllFiles
         }
     
         if ($rebuild) {
-            sol_rebuild -retryCount 3
+            sol-rebuild -retryCount 3
         }
 
         if ($build) {
-            sol_build -retryCount 3
+            sol-build -retryCount 3
         }
 
         Write-Information "Resetting App_Data files..."
@@ -110,12 +110,12 @@ function app_reset {
         }
 
         if ($precompile) {
-            app_addPrecompiledTemplates
+            app-addPrecompiledTemplates
         }
     }
     finally {
         if ($oldProject) {
-            proj_setCurrent -newContext $oldProject
+            proj-setCurrent -newContext $oldProject
         }
     }
 }
@@ -196,7 +196,7 @@ function _invokeNonTerminatingRequest ($url) {
 }
 
 function _deleteStartupConfig {
-    $context = proj_getCurrent
+    $context = proj-getCurrent
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
     if ($ProcessError) {
@@ -213,7 +213,7 @@ function _createStartupConfig {
         [string]$sqlPass = $GLOBAL:Sf.Config.sqlPass
     )
 
-    $context = proj_getCurrent
+    $context = proj-getCurrent
     $webAppPath = $context.webAppPath
     
     Write-Information "Creating StartupConfig..."
@@ -234,7 +234,7 @@ function _createStartupConfig {
         
         $username = $user.split('@')[0]
         if ([string]::IsNullOrEmpty($dbName)) {
-            $dbName = app_db_getName
+            $dbName = app-db-getName
         }
         
         
@@ -268,7 +268,7 @@ function _createStartupConfig {
 }
 
 function _resetAppDataFiles {
-    [SfProject]$context = proj_getCurrent
+    [SfProject]$context = proj-getCurrent
     $webAppPath = $context.webAppPath
     $errorMessage = ''
     $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
@@ -296,7 +296,7 @@ function _resetAppDataFiles {
 }
 
 function _cleanSfRuntimeFiles {
-    [SfProject]$context = proj_getCurrent
+    [SfProject]$context = proj-getCurrent
     $webAppPath = $context.webAppPath
 
     $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude @("*.pfx", "*.lic") -File
@@ -312,7 +312,7 @@ function _cleanSfRuntimeFiles {
 
 function _copySfRuntimeFiles ([SfProject]$project, $dest) {
     if (-not $project) {
-        [SfProject]$project = proj_getCurrent
+        [SfProject]$project = proj-getCurrent
     }
 
     $src = "$($project.webAppPath)\App_Data\*"
@@ -321,7 +321,7 @@ function _copySfRuntimeFiles ([SfProject]$project, $dest) {
 }
 
 function _restoreSfRuntimeFiles ($src) {
-    [SfProject]$context = proj_getCurrent
+    [SfProject]$context = proj-getCurrent
     $webAppPath = $context.webAppPath
 
     _cleanSfRuntimeFiles

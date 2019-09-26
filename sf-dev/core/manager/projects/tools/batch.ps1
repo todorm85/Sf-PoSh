@@ -5,13 +5,13 @@ Iterates through all projects and passes each project as a parameter to the scri
 .INPUTS
 scriptBlock - The script to execute against each project.
 #>
-function proj_tools_startAllProjectsBatch ($scriptBlock) {
-    $initialProject = proj_getCurrent
-    $sitefinities = data_getAllProjects
+function proj-tools-startAllProjectsBatch ($scriptBlock) {
+    $initialProject = proj-getCurrent
+    $sitefinities = data-getAllProjects
     $errors = ''
     foreach ($sitefinity in $sitefinities) {
         [SfProject]$sitefinity = $sitefinity
-        proj_setCurrent $sitefinity
+        proj-setCurrent $sitefinity
         try {
             _executeBatchBlock $scriptBlock
         }
@@ -21,7 +21,7 @@ function proj_tools_startAllProjectsBatch ($scriptBlock) {
         }
     }
 
-    proj_setCurrent $initialProject
+    proj-setCurrent $initialProject
 
     if ($errors) {
         throw $errors
@@ -29,6 +29,6 @@ function proj_tools_startAllProjectsBatch ($scriptBlock) {
 }
 
 function _executeBatchBlock ($scriptBlock) {
-    $sitefinity = proj_getCurrent
+    $sitefinity = proj-getCurrent
     & $scriptBlock $sitefinity
 }

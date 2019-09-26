@@ -1,11 +1,11 @@
-function proj_tags_add {
+function proj-tags-add {
     param (
         [string]$tagName
     )
 
     _validateTag $tagName
     
-    [SfProject]$project = proj_getCurrent
+    [SfProject]$project = proj-getCurrent
     if (!$project.tags) {
         $project.tags = $tagName
     }
@@ -16,7 +16,7 @@ function proj_tags_add {
     _saveSelectedProject -context $project
 }
 
-function proj_tags_remove {
+function proj-tags-remove {
     param (
         [string]$tagName
     )
@@ -26,7 +26,7 @@ function proj_tags_remove {
         throw "Invalid tag name to remove."
     }
 
-    [SfProject]$project = proj_getCurrent
+    [SfProject]$project = proj-getCurrent
     if ($project.tags -and $project.tags.Contains($tagName)) {
         $project.tags = $project.tags.Replace($tagName, '').Replace('  ', ' ').Trim()
     }
@@ -34,18 +34,18 @@ function proj_tags_remove {
     _saveSelectedProject -context $project
 }
 
-function proj_tags_removeAll {
-    [SfProject]$project = proj_getCurrent
+function proj-tags-removeAll {
+    [SfProject]$project = proj-getCurrent
     $project.tags = ''
     _saveSelectedProject -context $project
 }
 
-function proj_tags_getAll {
-    [SfProject]$project = proj_getCurrent
+function proj-tags-getAll {
+    [SfProject]$project = proj-getCurrent
     return $project.tags
 }
 
-function proj_tags_setDefaultFilter {
+function proj-tags-setDefaultFilter {
     param (
         $filter
     )
@@ -53,7 +53,7 @@ function proj_tags_setDefaultFilter {
     _setDefaultTagsFilter -defaultTagsFilter $filter
 }
 
-function proj_tags_getDefaultFilter {
+function proj-tags-getDefaultFilter {
     return _getDefaultTagsFilter
 }
 

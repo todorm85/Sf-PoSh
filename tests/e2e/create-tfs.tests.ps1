@@ -8,15 +8,15 @@ InModuleScope sf-dev {
     Describe "Creating project from TFS branch should" -Tags ("create-tfs") {
         $projName = generateRandomName
         function Set-TestProject {
-            $sitefinities = @(data_getAllProjects)
+            $sitefinities = @(data-getAllProjects)
             $context = $sitefinities[$sitefinities.Count - 1]
-            proj_setCurrent -newContext $context
+            proj-setCurrent -newContext $context
         }
 
         It "when creating the project from branch get latest, make workspace, site, domain, app pool permissions" {
-            proj_new -displayName $projName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
+            proj-new -displayName $projName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
 
-            $sitefinities = @(data_getAllProjects) | Where-Object { $_.displayName -eq $projName }
+            $sitefinities = @(data-getAllProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id
@@ -34,17 +34,17 @@ InModuleScope sf-dev {
         }
         It "when building succeed after at least 3 retries" {
             Set-TestProject
-            sol_build -retryCount 3
+            sol-build -retryCount 3
         }
         It "start the app correctly" {
             Set-TestProject
-            app_reset -start
+            app-reset -start
             $url = _getAppUrl
             $result = _invokeNonTerminatingRequest $url
             $result | Should -Be 200
 
             # update the test project only if the newly created was successful
-            [SfProject[]]$projects = data_getAllProjects
+            [SfProject[]]$projects = data-getAllProjects
             if (!$Global:testProjectDisplayName) {
                 Write-Warning "e2e test project name not set, skipping clean."
                 return
@@ -52,13 +52,13 @@ InModuleScope sf-dev {
 
             foreach ($proj in $projects) {
                 if ($proj.displayName -ne $projName) {
-                    proj_remove -context $proj -noPrompt
+                    proj-remove -context $proj -noPrompt
                 }
             }
 
             foreach ($proj in $projects) {
                 if ($proj.displayName -eq $projName) {
-                    proj_rename -project $proj -newName $Global:testProjectDisplayName
+                    proj-rename -project $proj -newName $Global:testProjectDisplayName
                 }
             }
         }

@@ -4,7 +4,7 @@ $Global:testProjectDisplayName = 'e2e_tests'
 function set-testProject {
     if ($Global:sf_tests_test_project) {
         try {
-            proj_setCurrent -newContext $Global:sf_tests_test_project
+            proj-setCurrent -newContext $Global:sf_tests_test_project
             return $Global:sf_tests_test_project
         }
         catch {
@@ -14,7 +14,7 @@ function set-testProject {
 
     $intializeTestsEnvResult = initialize-testEnvironment
     
-    [SfProject[]]$allProjects = @(data_getAllProjects)
+    [SfProject[]]$allProjects = @(data-getAllProjects)
     $proj = $allProjects | where { $_.displayName -eq $Global:testProjectDisplayName }
     if ($proj.Count -eq 0) {
         throw 'Project named e2e_tests not found. Create and initialize one first.'
@@ -24,7 +24,7 @@ function set-testProject {
     $clonedProjResult = clone-testProject -sourceProj $proj
     $_startAppResult = _startApp
 
-    $clonedProj = proj_getCurrent
+    $clonedProj = proj-getCurrent
     $Global:sf_tests_test_project = $clonedProj
     return $clonedProj
 }
@@ -45,10 +45,10 @@ function clone-testProject ([SfProject]$sourceProj) {
     $appSettings.AppendChild($newElement)
     $xmlData.Save($webConfigPath) > $null
 
-    proj_clone -skipSourceControlMapping -context $sourceProj
+    proj-clone -skipSourceControlMapping -context $sourceProj
 
     # verify project configuration
-    [SfProject]$project = proj_getCurrent
+    [SfProject]$project = proj-getCurrent
     $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
     $project.displayName | Should -Be $cloneTestName
     $cloneTestId = $project.id
@@ -94,7 +94,7 @@ function generateRandomName {
     
 function initialize-testEnvironment {
     Write-Warning "Cleanup started."
-    [SfProject[]]$projects = data_getAllProjects
+    [SfProject[]]$projects = data-getAllProjects
     if (!$Global:testProjectDisplayName) {
         Write-Warning "e2e test project name not set, skipping clean."
         return
@@ -102,7 +102,7 @@ function initialize-testEnvironment {
 
     foreach ($proj in $projects) {
         if ($proj.displayName -ne $Global:testProjectDisplayName) {
-            proj_remove -context $proj -noPrompt
+            proj-remove -context $proj -noPrompt
         }
     }
 }

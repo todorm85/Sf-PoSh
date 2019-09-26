@@ -8,7 +8,7 @@
     .OUTPUTS
     None
 #>
-function app_addPrecompiledTemplates {
+function app-addPrecompiledTemplates {
     
     param(
         [switch]$revert
@@ -21,7 +21,7 @@ function app_addPrecompiledTemplates {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
     
-    $context = proj_getCurrent
+    $context = proj-getCurrent
     $webAppPath = $context.webAppPath
     $appUrl = _getAppUrl
     if ($revert) {

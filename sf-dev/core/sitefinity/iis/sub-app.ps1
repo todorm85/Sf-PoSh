@@ -5,7 +5,7 @@
     .OUTPUTS
     None
 #>
-function srv_subApp_set {
+function srv-subApp-set {
     
     Param(
         [Parameter(Mandatory = $true)][string]$subAppName,
@@ -13,7 +13,7 @@ function srv_subApp_set {
     )
 
     if (!$project) {
-        $project = proj_getCurrent
+        $project = proj-getCurrent
     }
 
     $subApp = iis-get-subAppName -websiteName $project.websiteName
@@ -30,13 +30,13 @@ function srv_subApp_set {
     iis-new-subApp $project.websiteName $subAppName $project.webAppPath
 }
 
-function srv_subApp_remove {
+function srv-subApp-remove {
     Param(
         [SfProject]$project
     )
     
     if (!$project) {
-        $project = proj_getCurrent
+        $project = proj-getCurrent
     }
 
     $subAppName = iis-get-subAppName $project.websiteName
