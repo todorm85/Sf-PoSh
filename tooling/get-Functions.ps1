@@ -1,14 +1,14 @@
 Param([string]$path)
 
 if (!$path) {
-    $path = "$PSScriptRoot\..\sf-dev\core"
+    $path = "$PSScriptRoot\..\"
 }
 
 $scripts = Get-ChildItem $path -Recurse | Where-Object { $_.Extension -eq '.ps1'}
 $modulesLines = $scripts | Get-Content
 $functionsLines = $modulesLines | Where-Object { $_.contains("function") }
 
-$functionNamePattern = "^.*?function\s*?(?<name>[A-Za-z]+?)\s.*$"
+$functionNamePattern = "^\s*function\s+?(?<name>([A-Za-z]+?_)+[A-Za-z]+?)\s.*$"
 $functionsLines | Where-Object { $_ -match $functionNamePattern } | % { $Matches["name"] }
 
 # $res = ''

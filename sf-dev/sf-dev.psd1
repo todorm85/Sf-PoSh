@@ -15,11 +15,13 @@
         @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.0'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
     )
-    DefaultCommandPrefix = "sf_"
+    # DefaultCommandPrefix = "sf_" # this slows down
     PrivateData       = @{
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            5.0.0
+                Remove default command prefix
             4.0.0
                 New function naming convention
                 Added default prefix for module

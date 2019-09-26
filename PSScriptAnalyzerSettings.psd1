@@ -29,6 +29,7 @@
         'PSAvoidUsingPlainTextForPassword',
         'PSAvoidUsingEmptyCatchBlock',
         'PSAvoidGlobalVars',
-        'PSUseShouldProcessForStateChangingFunctions'
+        'PSUseShouldProcessForStateChangingFunctions',
+        'PSUseApprovedVerbs'
         )
 }

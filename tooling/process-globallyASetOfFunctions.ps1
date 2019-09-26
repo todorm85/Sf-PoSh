@@ -1,8 +1,8 @@
 # $path = "$PSScriptRoot\..\sf-dev\core"
-$path = "$PSScriptRoot\..\tests"
+$path = "$PSScriptRoot\..\"
 
 # $oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
-$oldNames = @('RemoveProjectData','SetProjectData','SetDefaultTagsFilter','GetDefaultTagsFilter','InitManagerData','NewSfProjectObject','GetAzureDevOpsTitleAndLink','GetValidTitle','CreateUserFriendlySlnName','SaveSelectedProject','ValidateProject','GetIsIdDuplicate','IsDuplicate','GenerateId','SetConsoleTitle','GenerateSolutionFriendlyName','ValidateNameSyntax','CreateWorkspace','InitializeProject','aliuty','CreateProjectFilesFromSource','ValidateTag','FilterProjectsByTags','CheckIfTagged','GetDaysSinceLastGetLatest','PromptPredefinedBranchSelect','PromptPredefinedBuildPathSelect','PromptProjectSelect','ExecuteBatchBlock','ShouldClean','AddError','UpdateLastGetLatest','GetLastWorkspaceChangesetDate','BuildProj','SwitchStyleCop','WriteFile','GetAppUrl','GenerateDomainName','GetDevAppUrl','DeleteWebsite','ChangeDomain','GetCurrentAppDbName','GetDataConfig','StartApp','InvokeNonTerminatingRequest','DeleteStartupConfig','CreateStartupConfig','ResetAppDataFiles','CleanSfRuntimeFiles','CopySfRuntimeFiles','RestoreSfRuntimeFiles','SelectAppState','GetSqlBackupStateName','GetSqlCredentials','GetStatesPath')
+$oldNames = @('data_getAllProjects', 'proj_setDescription', 'proj_getDescription', 'proj_new', 'proj_clone', 'proj_import', 'proj_removeBulk', 'proj_remove', 'proj_rename', 'proj_reset', 'proj_getCurrent', 'proj_setCurrent', 'proj_tags_add', 'proj_tags_remove', 'proj_tags_removeAll', 'proj_tags_getAll', 'proj_tags_setDefaultFilter', 'proj_tags_getDefaultFilter', 'proj_select', 'proj_show', 'proj_showAll', 'proj_tools_startAllProjectsBatch', 'proj_tools_clearAllProjectsLeftovers', 'proj_tools_goto', 'proj_tools_updateAllProjectsTfsInfo', 'sol_build', 'sol_rebuild', 'sol_clean', 'sol_clearPackages', 'sol_open', 'sol_buildWebAppProj', 'sol_unlockAllFiles', 'tfs_undoPendingChanges', 'tfs_showPendingChanges', 'tfs_hasPendingChanges', 'tfs_getLatestChanges', 'srv_pool_resetThread', 'srv_pool_resetPool', 'srv_pool_stopPool', 'srv_pool_changePool', 'srv_pool_getPoolId', 'srv_subApp_set', 'srv_subApp_remove', 'srv_site_rename', 'srv_site_open', 'srv_site_new', 'app_configs_setStorageMode', 'app_configs_getStorageMode', 'app_configs_getFromDb', 'app_configs_clearInDb', 'app_configs_setInDb', 'app_db_getName', 'app_db_setName', 'app_addPrecompiledTemplates', 'app_reset', 'app_states_save', 'app_states_restore', 'app_states_remove', 'app_states_removeAll')
 
 function Rename-Function {
     param (
@@ -37,8 +37,8 @@ $scripts | % {
     $content = Get-Content $_.FullName
     $oldNames | % {
         # $newTitle = Rename-Function($_)
-        $oldName = [string]$_
-        $newTitle = "_" + ($oldName[0]).ToString().ToLowerInvariant() + $oldName.Remove(0, 1)
+        [string]$oldName = [string]$_
+        $newTitle = $oldName.Replace('_', '-')
         $content = $content -replace $oldName, $newTitle
     }
 
