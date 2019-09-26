@@ -6,7 +6,7 @@
     .OUTPUTS
     None
 #>
-function sf-srv-pool-resetThread {
+function sf-iis-pool-resetThread {
     
     Param([switch]$start,
     [SfProject]$project)
@@ -32,7 +32,7 @@ function sf-srv-pool-resetThread {
     .OUTPUTS
     None
 #>
-function sf-srv-pool-resetPool {
+function sf-iis-pool-resetPool {
     
     Param(
         [switch]$start,
@@ -55,7 +55,7 @@ function sf-srv-pool-resetPool {
     }
 }
 
-function sf-srv-pool-stopPool ([SfProject]$context) {
+function sf-iis-pool-stopPool ([SfProject]$context) {
     if (-not $context) {
         $context = sf-proj-getCurrent
     }
@@ -77,7 +77,7 @@ function sf-srv-pool-stopPool ([SfProject]$context) {
     .OUTPUTS
     None
 #>
-function sf-srv-pool-changePool {
+function sf-iis-pool-changePool {
     
     Param()
 
@@ -120,7 +120,7 @@ function sf-srv-pool-changePool {
     .OUTPUTS
     None
 #>
-function sf-srv-pool-getPoolId {
+function sf-iis-pool-getPoolId {
     
     Param()
     

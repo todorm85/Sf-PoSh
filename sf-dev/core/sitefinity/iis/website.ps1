@@ -1,12 +1,12 @@
 
-function sf-srv-site-rename {
+function sf-iis-site-rename {
     Param(
         [string]$newName
     )
 
     $context = sf-proj-getCurrent
     try {
-        iis-sf-srv-site-rename $context.websiteName $newName
+        iis-sf-iis-site-rename $context.websiteName $newName
     }
     catch {
         throw "Error renaming site in IIS. Message: $_.Message"
@@ -27,7 +27,7 @@ function sf-srv-site-rename {
     .OUTPUTS
     None
 #>
-function sf-srv-site-open {
+function sf-iis-site-open {
     
     Param(
         [switch]$useExistingBrowser,
@@ -61,7 +61,7 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function sf-srv-site-new {
+function sf-iis-site-new {
     Param(
         [SfProject]$context
     )

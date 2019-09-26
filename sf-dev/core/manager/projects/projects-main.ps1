@@ -58,7 +58,7 @@ function sf-proj-new {
         _copySfRuntimeFiles -project $newContext -dest $originalAppDataSaveLocation
 
         Write-Information "Creating website..."
-        sf-srv-site-new -context $newContext
+        sf-iis-site-new -context $newContext
 
         _saveSelectedProject $newContext
     }
@@ -197,7 +197,7 @@ function sf-proj-clone {
 
     try {
         Write-Information "Creating website..."
-        sf-srv-site-new -context $newProject > $null
+        sf-iis-site-new -context $newProject > $null
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -340,7 +340,7 @@ function sf-proj-remove {
     
     if ($websiteName) {
         try {
-            sf-srv-pool-stopPool -context $context
+            sf-iis-pool-stopPool -context $context
         }
         catch {
             Write-Warning "Could not stop app pool: $_"            

@@ -58,7 +58,7 @@ function sf-app-states-restore {
         $stateName = _selectAppState -context $context
     }
 
-    sf-srv-pool-resetPool
+    sf-iis-pool-resetPool
     if ($force) {
         sf-sol-unlockAllFiles
     }
