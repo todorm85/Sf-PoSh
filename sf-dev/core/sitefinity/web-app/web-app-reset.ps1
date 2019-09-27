@@ -301,8 +301,12 @@ function _cleanSfRuntimeFiles {
 
     $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude @("*.pfx", "*.lic") -File
     $toDelete | ForEach-Object { unlock-allFiles -path $_.FullName }
-    $toDelete | Remove-Item -Force
-
+    $errors
+    $toDelete | Remove-Item -Force -ErrorAction SilentlyContinue -ErrorVariable +errors
+    if ($errors) {
+        Write-Warning "Some files in AppData folder could not be cleaned up, perhaps in use?"
+    }
+    
     # clean empty dirs
     do {
         $dirs = Get-ChildItem "${webAppPath}\App_Data" -directory -recurse | Where-Object { (Get-ChildItem $_.fullName).Length -eq 0 } | Select-Object -expandproperty FullName
@@ -325,5 +329,8 @@ function _restoreSfRuntimeFiles ($src) {
     $webAppPath = $context.webAppPath
 
     _cleanSfRuntimeFiles
-    Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude @("*.pfx", "*.lic") # exclude is here for backward comaptibility
+    Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude @("*.pfx", "*.lic") -ErrorVariable $errors -ErrorAction SilentlyContinue  # exclude is here for backward comaptibility
+    if ($errors) {
+        Write-Warning "Some files could not be cleaned in AppData, because they might be in use."
+    }
 }
