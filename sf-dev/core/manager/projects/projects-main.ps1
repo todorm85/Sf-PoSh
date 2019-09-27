@@ -151,7 +151,8 @@ function sf-proj-clone {
     }
 
     $sourcePath = $context.solutionPath;
-    if ([string]::IsNullOrEmpty($sourcePath)) {
+    $hasSolution = !([string]::IsNullOrEmpty($sourcePath));
+    if (!$hasSolution) {
         $sourcePath = $context.webAppPath
     }
 
@@ -178,7 +179,12 @@ function sf-proj-clone {
     try {
         [SfProject]$newProject = _newSfProjectObject
         $newProject.displayName = "$($context.displayName)-clone"
-        $newProject.webAppPath = "$targetPath\SitefinityWebApp"
+        if ($hasSolution) {
+            $newProject.webAppPath = "$targetPath\SitefinityWebApp"
+        }
+        else {
+            $newProject.webAppPath = $targetPath
+        }
     }
     catch {
         Write-Warning "Cleaning up copied files"

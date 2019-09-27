@@ -1,11 +1,9 @@
 . "$PSScriptRoot\init.ps1"
 
-. "$testUtilsDir\load-module.ps1"
-
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
 
-    Describe "Delete should" -Tags ("delete") {
+    Describe "Remove should" -Tags ("delete") {
         It "remove all" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id

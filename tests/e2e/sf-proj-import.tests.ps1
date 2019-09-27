@@ -1,7 +1,5 @@
 . "$PSScriptRoot\init.ps1"
 
-. "$testUtilsDir\load-module.ps1"
-
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
     

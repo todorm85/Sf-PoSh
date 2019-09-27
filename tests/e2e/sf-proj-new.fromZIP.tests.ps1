@@ -1,13 +1,11 @@
 . "$PSScriptRoot\init.ps1"
 
-. "$testUtilsDir\load-module.ps1"
-
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
 
     Describe "Creating project from build location should" -Tags ("create-build") {
         It "create site, add domain and set project properties correctly" {
-            $projName = generateRandomName
+            $projName = $Global:fromZipProjectName
             sf-proj-new -displayName $projName -sourcePath "$PSScriptRoot\files\Build"
 
             $sitefinities = @(sf-data-getAllProjects) | Where-Object { $_.displayName -eq $projName }
