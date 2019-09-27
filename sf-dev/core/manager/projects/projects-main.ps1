@@ -340,7 +340,7 @@ function sf-proj-remove {
     
     if ($websiteName) {
         try {
-            sf-iis-pool-stopPool -context $context
+            sf-iis-pool-stop -context $context
         }
         catch {
             Write-Warning "Could not stop app pool: $_"            

@@ -51,7 +51,7 @@ function sf-app-reset {
         $dbName = sf-app-db-getName # this needs to be here before DataConfig.config gets deleted!!!
     
         Write-Information "Restarting app pool..."
-        sf-iis-pool-resetPool
+        sf-iis-pool-reset
 
         if ($force) {
             Write-Information "Unlocking files..."
