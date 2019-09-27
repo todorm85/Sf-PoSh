@@ -23,6 +23,7 @@
             6.0.0
                 Public api with prefix sf- and dashes
             5.0.0
+                !!! This version is broken, public api was not exposed in definition file
                 Remove default command prefix
                 Change public api functions to use dashes not underscores
             4.0.0
