@@ -180,6 +180,7 @@ function sf-proj-clone {
         [SfProject]$newProject = _newSfProjectObject
         $newProject.displayName = "$($context.displayName)-clone"
         if ($hasSolution) {
+            $newProject.solutionPath = $targetPath
             $newProject.webAppPath = "$targetPath\SitefinityWebApp"
         }
         else {
@@ -820,17 +821,17 @@ function _initializeProject {
     if ($isSolution) {
         $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
         _createUserFriendlySlnName $project
+        
+        $branch = tfs-get-branchPath -path $project.solutionPath
+        if ($branch) {
+            $project.branch = $branch
+            _updateLastGetLatest -context $project
+        }
+        else {
+            Write-Warning "$errorMessgePrefix Could not detect source control branch, TFS related function_aliuty for the project will not work."
+        }
     }
-    
-    $branch = tfs-get-branchPath -path $project.webAppPath
-    if ($branch) {
-        $project.branch = $branch
-        _updateLastGetLatest -context $project
-    }
-    else {
-        Write-Warning "$errorMessgePrefix Could not detect source control branch, TFS related function_aliuty for the project will not work."
-    }
-    
+        
     $siteName = iis-find-site -physicalPath $project.webAppPath
     if ($siteName) {
         $project.websiteName = $siteName

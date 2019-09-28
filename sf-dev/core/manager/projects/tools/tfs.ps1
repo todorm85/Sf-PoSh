@@ -7,7 +7,7 @@ function sf-proj-tools-updateAllProjectsTfsInfo {
 
         _updateLastGetLatest $context
 
-        $branch = tfs-get-branchPath $context.webAppPath
+        $branch = tfs-get-branchPath $context.solutionPath
         if ($branch) {
             $context.branch = $branch
             _setProjectData $context

@@ -3,9 +3,10 @@
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
 
-    Describe "Creating project from build location should" -Tags ("create-build") {
+    Describe "Creating project from ZIP should" {
         It "create site, add domain and set project properties correctly" {
-            $projName = $Global:fromZipProjectName
+            $suffix = generateRandomName
+            $projName = $Global:fromZipProjectName + $suffix
             sf-proj-new -displayName $projName -sourcePath "$PSScriptRoot\files\Build"
 
             $sitefinities = @(sf-data-getAllProjects) | Where-Object { $_.displayName -eq $projName }

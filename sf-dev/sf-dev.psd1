@@ -10,9 +10,9 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '6.0.0'
+    ModuleVersion     = '7.0.0'
     RequiredModules   = @(
-        @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.0'; MaximumVersion = '1.*' },
+        @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.1'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
     )
     # DefaultCommandPrefix = "sf_" # this slows down
@@ -20,6 +20,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            7.0.0
+                renamed iis public api
             6.0.0
                 Public api with prefix sf- and dashes
             5.0.0
