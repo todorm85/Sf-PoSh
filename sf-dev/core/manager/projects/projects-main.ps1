@@ -274,7 +274,7 @@ function sf-proj-import {
     return $newContext
 }
 
-function sf-sf-proj-removeBulk {
+function sf-proj-removeBulk {
     $sitefinities = @(sf-data-getAllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
