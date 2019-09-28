@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '7.0.0'
+    ModuleVersion     = '7.1.0'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.1'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -20,6 +20,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            7.1.0
+                Expose remove bulk function
             7.0.0
                 renamed iis public api
             6.0.0
