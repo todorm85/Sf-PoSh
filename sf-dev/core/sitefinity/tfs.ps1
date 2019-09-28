@@ -50,7 +50,7 @@ function sf-tfs-showPendingChanges {
     }
     
     $workspaceName = tfs-get-workspaceName $context.solutionPath
-    tfs-sf-tfs-showPendingChanges $workspaceName $format
+    tfs-show-PendingChanges $workspaceName $format
 }
 
 function sf-tfs-hasPendingChanges {
