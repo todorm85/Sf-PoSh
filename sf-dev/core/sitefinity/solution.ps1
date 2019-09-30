@@ -22,7 +22,7 @@ function sf-sol-build {
     while ($tries -le $retryCount -and (-not $isBuilt)) {
         try {
             if (!(Test-Path $solutionPath)) {
-                sf-sf-sol-buildWebAppProj
+                sf-sol-buildWebAppProj
             }
             else {
                 try {
@@ -197,7 +197,7 @@ function sf-sol-open {
     .OUTPUTS
     None
 #>
-function sf-sf-sol-buildWebAppProj () {
+function sf-sol-buildWebAppProj () {
     
 
     $context = sf-proj-getCurrent
