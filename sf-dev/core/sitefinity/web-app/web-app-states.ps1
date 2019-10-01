@@ -41,7 +41,7 @@ function sf-app-states-save {
     $root.SetAttribute("dbName", $dbName)
     $stateData.Save($stateDataPath) > $null
 
-    _copySfRuntimeFiles -dest $appDataStatePath
+    _sf-app-copyAppDataFiles -dest $appDataStatePath
 }
 
 function sf-app-states-restore {
@@ -77,7 +77,7 @@ function sf-app-states-restore {
         New-Item $appDataPath -ItemType Directory > $null
     }
     
-    _restoreSfRuntimeFiles "$appDataStatePath/*"
+    _sf-app-restoreAppDataFiles "$appDataStatePath/*"
 }
 
 function sf-app-states-remove ($stateName, [SfProject]$context) {

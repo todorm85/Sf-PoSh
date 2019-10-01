@@ -68,7 +68,7 @@ function sf-app-reset {
 
         Write-Information "Resetting App_Data files..."
         try {
-            _resetAppDataFiles
+            _sf-app-resetAppDataFiles
         }
         catch {
             Write-Warning "Errors ocurred while resetting App_Data files.`n $_"
@@ -267,18 +267,18 @@ function _createStartupConfig {
     }
 }
 
-function _resetAppDataFiles {
+function _sf-app-resetAppDataFiles {
     [SfProject]$context = sf-proj-getCurrent
     $webAppPath = $context.webAppPath
     $errorMessage = ''
-    $originalAppDataFilesPath = "${webAppPath}\sf-dev-tool\original-app-data"
     Set-Location $context.webAppPath
-    if (Test-Path $originalAppDataFilesPath) {
+    $originalAppDataSaveLocation = _sf-app-getInitialAppDataFilesBackupPath -project $context
+    if (Test-Path $originalAppDataSaveLocation) {
         Write-Information "Restoring Sitefinity web app App_Data files to original state."
-        _restoreSfRuntimeFiles "$originalAppDataFilesPath/*"
+        _sf-app-restoreAppDataFiles "$originalAppDataSaveLocation/*"
     }
     elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
-        Write-Warning "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
+        Write-Information "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
         $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs")) }
         try {
             if ($dirs) {
@@ -295,7 +295,7 @@ function _resetAppDataFiles {
     }
 }
 
-function _cleanSfRuntimeFiles {
+function _sf-app-cleanAppDataFiles {
     [SfProject]$context = sf-proj-getCurrent
     $webAppPath = $context.webAppPath
 
@@ -314,7 +314,7 @@ function _cleanSfRuntimeFiles {
     } while ($dirs.count -gt 0)
 }
 
-function _copySfRuntimeFiles ([SfProject]$project, $dest) {
+function _sf-app-copyAppDataFiles ([SfProject]$project, $dest) {
     if (-not $project) {
         [SfProject]$project = sf-proj-getCurrent
     }
@@ -324,13 +324,39 @@ function _copySfRuntimeFiles ([SfProject]$project, $dest) {
     Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude @("*.pfx", "*.lic")
 }
 
-function _restoreSfRuntimeFiles ($src) {
+function _sf-app-restoreAppDataFiles ($src) {
     [SfProject]$context = sf-proj-getCurrent
     $webAppPath = $context.webAppPath
 
-    _cleanSfRuntimeFiles
+    _sf-app-cleanAppDataFiles
     Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude @("*.pfx", "*.lic") -ErrorVariable $errors -ErrorAction SilentlyContinue  # exclude is here for backward comaptibility
     if ($errors) {
         Write-Warning "Some files could not be cleaned in AppData, because they might be in use."
     }
+}
+
+function _sf-app-saveInitialAppDataFiles {
+    param (
+        [SfProject]$project
+    )
+    
+    Write-Information "Backing up original App_Data folder..."
+    $originalAppDataSaveLocation = _sf-app-getInitialAppDataFilesBackupPath -project $project
+    if (!(Test-Path -Path $originalAppDataSaveLocation)) {
+        New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
+    }
+        
+    _sf-app-copyAppDataFiles -project $project -dest $originalAppDataSaveLocation
+}
+
+function _sf-app-getInitialAppDataFilesBackupPath {
+    param (
+        [SfProject]$project
+    )
+    
+    if (!$project) {
+        $project = sf-proj-getCurrent
+    }
+
+    "$($project.webAppPath)/sf-dev-tool/original-app-data"
 }

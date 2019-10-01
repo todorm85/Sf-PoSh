@@ -21,10 +21,10 @@ $removeTests = @('proj-remove.tests.ps1')
 
 $allTests = [System.Collections.Generic.List``1[string]]::new()
 
-# $create | ForEach-Object { $allTests.Add($_) }
-# $initCreated | ForEach-Object { $allTests.Add($_) }
+$create | ForEach-Object { $allTests.Add($_) }
+$initCreated | ForEach-Object { $allTests.Add($_) }
 $mainTests | ForEach-Object { $allTests.Add($_) }
-# $removeTests | ForEach-Object { $allTests.Add($_) }
+$removeTests | ForEach-Object { $allTests.Add($_) }
 
 $allTests | ForEach-Object {
     Invoke-Pester "$PSScriptRoot/e2e/sf-$_"
