@@ -7,7 +7,7 @@ InModuleScope sf-dev {
         It "create site, add domain and set project properties correctly" {
             $suffix = generateRandomName
             $projName = $Global:fromZipProjectName + $suffix
-            sf-proj-new -displayName $projName -sourcePath "$PSScriptRoot\files\Build"
+            sf-proj-new -displayName $projName -sourcePath "$PSScriptRoot\..\test-utils\files\Build"
 
             $sitefinities = @(sf-data-getAllProjects) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1

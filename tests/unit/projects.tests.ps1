@@ -1,0 +1,68 @@
+. "${PSScriptRoot}\..\test-utils\load-module.ps1"
+
+InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
+    . "${PSScriptRoot}\..\test-utils\test-util.ps1"
+    
+    Describe "_createProjectFilesFromSource should" {
+        $GLOBAL:Sf.Config.projectsDirectory = "$TestDrive"
+        Copy-Item -Path "$PSScriptRoot\..\test-utils\files\Build\SitefinityWebApp.zip" -Destination "$TestDrive"
+        $appNoSolutionZipPath = "$TestDrive\SitefinityWebApp.zip"
+        $appNoSolutionFolderPath = "$TestDrive"
+        Copy-Item -Path "$PSScriptRoot\..\test-utils\files\Build\SitefinitySource.zip" -Destination "$TestDrive"
+        $appWithSolutionZipPath = "$TestDrive\SitefinitySource.zip"
+
+        It "Create files from archive when path to zip with no solution" {
+            $id = generateRandomName
+            [SfProject]$project = _newSfProjectObject -id $id
+
+            _createProjectFilesFromSource -project $project -sourcePath $appNoSolutionZipPath
+
+            $project.webAppPath | Should -Be "$TestDrive\$id"
+            $project.solutionPath | Should -BeNullOrEmpty
+        }
+        It "Create files from archive when path to folder with zip with no solution" {
+            $id = generateRandomName
+            [SfProject]$project = _newSfProjectObject -id $id
+
+            _createProjectFilesFromSource -project $project -sourcePath $appNoSolutionFolderPath
+
+            $project.webAppPath | Should -Be "$TestDrive\$id"
+            $project.solutionPath | Should -BeNullOrEmpty
+        }
+        It "Create files from archive when path to zip with solution" {
+            $id = generateRandomName
+            [SfProject]$project = _newSfProjectObject -id $id
+
+            _createProjectFilesFromSource -project $project -sourcePath $appWithSolutionZipPath
+
+            $project.webAppPath | Should -Be "$TestDrive\$id/SitefinityWebApp"
+            $project.solutionPath | Should -Be "$TestDrive\$id"
+        }
+        It "throw when no zip found" {
+            $id = generateRandomName
+            [SfProject]$project = _newSfProjectObject -id $id
+
+            { _createProjectFilesFromSource -project $project -sourcePath "$TestDrive/nonexisting.zip" } | Should -Throw -ExpectedMessage "Source path does not exist"
+        }
+        It "throw when no folder found" {
+            $id = generateRandomName
+            [SfProject]$project = _newSfProjectObject -id $id
+
+            { _createProjectFilesFromSource -project $project -sourcePath "$TestDrive/nonexisting" } | Should -Throw -ExpectedMessage "Source path does not exist"
+        }
+        It "create from source when branch supplied" {
+            $id = generateRandomName
+            [SfProject]$project = _newSfProjectObject -id "$id"
+            $branchPath = "$/CMS/dummy"
+            Mock _createWorkspace {
+                $branch | Should -Be $branchPath
+            }
+
+            _createProjectFilesFromSource -project $project -sourcePath $branchPath
+
+            $project.solutionPath | Should -Be "$($TestDrive)\$id"
+            $project.webAppPath | Should -Be "$($TestDrive)\$id\SitefinityWebApp"
+        }
+    }
+}

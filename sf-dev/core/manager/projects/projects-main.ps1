@@ -27,7 +27,7 @@ function sf-proj-new {
 
     if (!$sourcePath) {
         while ($selectFrom -ne 1 -and $selectFrom -ne 2) {
-            $selectFrom = Read-Host -Prompt "Create from?`n1.Branch`n2.Build"
+            $selectFrom = Read-Host -Prompt "Create from?`n[1] Branch`n[2] Build`n"
         }
 
         $sourcePath = $null
@@ -49,7 +49,7 @@ function sf-proj-new {
     $oldContext = sf-proj-getCurrent
 
     try {
-        _createProjectFilesFromSource -sourcePath $sourcePath -project $newContext 
+        _createProjectFilesFromSource -sourcePath $sourcePath -project $newContext
 
         Write-Information "Backing up original App_Data folder..."
         $webAppPath = $newContext.webAppPath
@@ -606,7 +606,8 @@ function _getValidTitle {
     for ($i = 0; $i -lt $title.Length; $i++) {
         if ($title[$i] -match $validMiddle) {
             $resultTitle = "$resultTitle$($title[$i])"
-        } elseif ($title[$i] -eq ' ') {
+        }
+        elseif ($title[$i] -eq ' ') {
             $resultTitle = "${resultTitle}_"
         }
     }
@@ -813,11 +814,11 @@ function _initializeProject {
     if (!(Test-Path $project.webAppPath)) {
         if (!$suppressWarnings) {
             throw "$errorMessgePrefix $($project.webAppPath) does not exist."
-        } else {
+        }
+        else {
             return
         }
     }
-
 
     $isSolution = Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.sln"
     if ($isSolution) {
@@ -863,16 +864,27 @@ function _createProjectFilesFromSource {
 
     if ($sourcePath.StartsWith("$/CMS/")) {
         Write-Information "Creating project files..."
-        $project.solutionPath = $projectDirectory
-        $newContext.webAppPath = "$projectDirectory\SitefinityWebApp";
-        _createWorkspace $project $sourcePath
+        $project.solutionPath = $projectDirectory;
+        $project.webAppPath = "$projectDirectory\SitefinityWebApp";
+        _createWorkspace -context $project -branch $sourcePath
     }
     else {
-        if (!(Test-Path -Path $sourcePath) -or !(Test-Path -path "$sourcePath\SitefinityWebApp.zip")) {
-            throw "Source path does not exist $sourcePath, unreachable or no SitefinityWebApp.zip archive found in it."
+        if (!($sourcePath.EndsWith('.zip'))) {
+            $sourcePath = "$sourcePath\SitefinityWebApp.zip"
         }
 
-        $project.webAppPath = $projectDirectory
-        expand-archive -path "$sourcePath\SitefinityWebApp.zip" -destinationpath $project.webAppPath
+        if (!(Test-Path -Path $sourcePath)) {
+            throw "Source path does not exist $sourcePath or is unreachable."
+        }
+
+        expand-archive -path $sourcePath -destinationpath $projectDirectory
+        $isSolution = (Test-Path -Path "$projectDirectory/Telerik.Sitefinity.sln") -and (Test-Path "$projectDirectory/SitefinityWebApp")
+        if ($isSolution) {
+            $project.webAppPath = "$projectDirectory/SitefinityWebApp"
+            $project.solutionPath = "$projectDirectory"
+        }
+        else {
+            $project.webAppPath = "$projectDirectory"
+        }
     }
 }
