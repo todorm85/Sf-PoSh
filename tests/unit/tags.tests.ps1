@@ -95,4 +95,57 @@ InModuleScope sf-dev {
 
         sf-proj-remove -context $testProj -noPrompt
     }
+
+    Describe "_sf-proj-tags-setNewProjectDefaultTags should" {
+        $Script:filter = $null
+        Mock sf-proj-tags-getDefaultFilter {
+            $Script:filter
+        }
+        
+        $test = {
+            [SfProject]$p = _newSfProjectObject -id 'testId'
+            _sf-proj-tags-setNewProjectDefaultTags -project $p
+            $p.tags
+        }
+
+        It "set none tags when default tags filter has not been set" {
+            $result = Invoke-Command -ScriptBlock $test
+            $result | Should -BeNullOrEmpty
+        }
+        It "set none tags when default tags filter is empty" {
+            $Script:filter = ""
+            $result = Invoke-Command -ScriptBlock $test
+            $result | Should -BeNullOrEmpty
+        }
+        It "set none tags when default tags filter has only exclude tags" {
+            $Script:filter = '-e1 -e2'
+            $result = Invoke-Command -ScriptBlock $test
+            $result | Should -BeNullOrEmpty
+        }
+        It "set none tags when default tags filter has one exclude tags" {
+            $Script:filter = '-e1'
+            $result = Invoke-Command -ScriptBlock $test
+            $result | Should -BeNullOrEmpty
+        }
+        It "set only include tags when default tags filter has both include and exclude tags" {
+            $Script:filter = '-e1 i1 -e3 i2'
+            $result = Invoke-Command -ScriptBlock $test
+            $result.Split(' ') | Should -Contain 'i1'
+            $result.Split(' ') | Should -Contain 'i2'
+            $result.Split(' ') | Should -Not -Contain 'e1'
+            $result.Split(' ') | Should -Not -Contain 'e3'
+        }
+        It "set only include tags when default tags filter has one include tag" {
+            $Script:filter = 'i1'
+            $result = Invoke-Command -ScriptBlock $test
+            $result.Split(' ') | Should -Contain 'i1'
+        }
+        It "set only include tags when default tags filter has only include tags" {
+            $Script:filter = 'i1 i2 i3'
+            $result = Invoke-Command -ScriptBlock $test
+            $result.Split(' ') | Should -Contain 'i1'
+            $result.Split(' ') | Should -Contain 'i2'
+            $result.Split(' ') | Should -Contain 'i3'
+        }
+    }
 }

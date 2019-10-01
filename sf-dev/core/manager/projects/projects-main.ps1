@@ -60,6 +60,8 @@ function sf-proj-new {
         Write-Information "Creating website..."
         sf-iis-site-new -context $newContext
 
+        _sf-proj-tags-setNewProjectDefaultTags -project $newContext
+
         _saveSelectedProject $newContext
     }
     catch {

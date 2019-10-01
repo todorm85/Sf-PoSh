@@ -72,24 +72,24 @@ function _validateTag {
     exclude tags take precedence
     exclude tags are prefixed with '-'
  #>
- function _filterProjectsByTags {
+function _filterProjectsByTags {
     param (
         [SfProject[]]$sitefinities,
         [string]$tagsFilter
     )
     
     if ($tagsFilter -eq '+') {
-        $sitefinities = $sitefinities | where {!$_.tags}
+        $sitefinities = $sitefinities | Where-Object { !$_.tags }
     }
     elseif ($tagsFilter) {
-        $includeTags = $tagsFilter.Split(' ') | where { !$_.StartsWith('-') }
+        $includeTags = $tagsFilter.Split(' ') | Where-Object { !$_.StartsWith('-') }
         if ($includeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | where { _checkIfTagged -sitefinity $_ -tags $includeTags }
+            $sitefinities = $sitefinities | Where-Object { _checkIfTagged -sitefinity $_ -tags $includeTags }
         }
 
-        $excludeTags = $tagsFilter.Split(' ') | where { $_.StartsWith('-') } | %  { $_.Remove(0,1)}
+        $excludeTags = $tagsFilter.Split(' ') | Where-Object { $_.StartsWith('-') } | ForEach-Object { $_.Remove(0, 1) }
         if ($excludeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | where { !(_checkIfTagged -sitefinity $_ -tags $excludeTags) }
+            $sitefinities = $sitefinities | Where-Object { !(_checkIfTagged -sitefinity $_ -tags $excludeTags) }
         }
     }
 
@@ -114,4 +114,24 @@ function _checkIfTagged {
     }
 
     return $false
+}
+
+function _sf-proj-tags-setNewProjectDefaultTags {
+    param (
+        [SfProject]$project
+    )
+    
+    $tagsFilter = sf-proj-tags-getDefaultFilter
+    if (!$tagsFilter) {
+        return    
+    }
+
+    $includeTags = $tagsFilter.Split(' ') | Where-Object { !$_.StartsWith('-') }
+    $includeTags | ForEach-Object { 
+        $project.tags += " $_"
+    }
+
+    if ($project.tags) {
+        $project.tags = $project.tags.Trim();
+    }
 }

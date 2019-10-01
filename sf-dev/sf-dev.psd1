@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '7.1.3'
+    ModuleVersion     = '7.2.0'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.1'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
@@ -20,6 +20,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            7.2.0
+                Default tags filter is applied to new projects
             7.1.3
                 Fix corrupted definition file.
             7.1.2
