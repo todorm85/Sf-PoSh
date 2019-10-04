@@ -78,10 +78,10 @@ function _filterProjectsByTags {
         [string]$tagsFilter
     )
     
-    if ($tagsFilter -eq '+') {
+    if ($tagsFilter -eq '+u') {
         $sitefinities = $sitefinities | Where-Object { !$_.tags }
     }
-    elseif ($tagsFilter) {
+    elseif ($tagsFilter -and $tagsFilter -ne '+a') {
         $includeTags = $tagsFilter.Split(' ') | Where-Object { !$_.StartsWith('-') }
         if ($includeTags.Count -gt 0) {
             $sitefinities = $sitefinities | Where-Object { _checkIfTagged -sitefinity $_ -tags $includeTags }
