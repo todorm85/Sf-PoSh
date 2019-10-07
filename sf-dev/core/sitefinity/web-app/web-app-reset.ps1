@@ -24,7 +24,7 @@ function sf-app-reset {
         [switch]$start,
         [switch]$rebuild,
         [switch]$precompile,
-        [switch]$_createStartupConfig,
+        [switch]$createStartupConfig,
         [switch]$build,
         [string]$user,
         [switch]$configRestrictionSafe,
@@ -85,7 +85,7 @@ function sf-app-reset {
             }
         }
 
-        if ($_createStartupConfig) {
+        if ($createStartupConfig) {
             _createStartupConfig $user $dbName
         }
 
