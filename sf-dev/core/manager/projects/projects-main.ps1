@@ -51,8 +51,6 @@ function sf-proj-new {
     try {
         _createProjectFilesFromSource -sourcePath $sourcePath -project $newContext
 
-        _sf-app-saveInitialAppDataFiles -project $newContext
-
         Write-Information "Creating website..."
         sf-iis-site-new -context $newContext
 
@@ -267,8 +265,6 @@ function sf-proj-import {
     $newContext.displayName = $displayName
     $newContext.webAppPath = $path
     
-    _sf-app-saveInitialAppDataFiles -project $newContext
-
     sf-proj-setCurrent $newContext
     _saveSelectedProject $newContext
     return $newContext

@@ -269,14 +269,8 @@ function _sf-app-resetAppDataFiles {
     $webAppPath = $context.webAppPath
     $errorMessage = ''
     Set-Location $context.webAppPath
-    $originalAppDataSaveLocation = _sf-app-getInitialAppDataFilesBackupPath -project $context
-    if (Test-Path $originalAppDataSaveLocation) {
-        Write-Information "Restoring Sitefinity web app App_Data files to original state."
-        _sf-app-restoreAppDataFiles "$originalAppDataSaveLocation/*"
-    }
-    elseif (Test-Path "${webAppPath}\App_Data\Sitefinity") {
-        Write-Information "Original App_Data copy not found. Restore will fallback to simply deleting the following directories in .\App_Data\Sitefinity: Configuration, Temp, Logs"
-        $dirs = Get-ChildItem "${webAppPath}\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs")) }
+    if (Test-Path "$webAppPath\App_Data\Sitefinity") {
+        $dirs = Get-ChildItem "$webAppPath\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs")) }
         try {
             if ($dirs) {
                 $dirs | Remove-Item -Force -Recurse
@@ -285,18 +279,39 @@ function _sf-app-resetAppDataFiles {
         catch {
             $errorMessage = "${errorMessage}`n" + $_
         }
-    } 
+    }
 
     if ($errorMessage -ne '') {
         throw $errorMessage
     }
 }
 
-function _sf-app-cleanAppDataFiles {
+function _sf-app-copyAppDataFiles ([SfProject]$project, $dest) {
+    if (-not $project) {
+        [SfProject]$project = sf-proj-getCurrent
+    }
+
+    $src = "$($project.webAppPath)\App_Data\*"
+
+    Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude $(_sf-app-getAppDataFilesFilter)
+}
+
+function _sf-app-restoreAppDataFiles ($src) {
     [SfProject]$context = sf-proj-getCurrent
     $webAppPath = $context.webAppPath
 
-    $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude @("*.pfx", "*.lic") -File
+    _sf-app-removeAppDataFiles
+    Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude $(_sf-app-getAppDataFilesFilter) -ErrorVariable $errors -ErrorAction SilentlyContinue  # exclude is here for backward comaptibility
+    if ($errors) {
+        Write-Warning "Some files could not be cleaned in AppData, because they might be in use."
+    }
+}
+
+function _sf-app-removeAppDataFiles {
+    [SfProject]$context = sf-proj-getCurrent
+    $webAppPath = $context.webAppPath
+
+    $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude $(_sf-app-getAppDataFilesFilter) -File
     $toDelete | ForEach-Object { unlock-allFiles -path $_.FullName }
     $errors
     $toDelete | Remove-Item -Force -ErrorAction SilentlyContinue -ErrorVariable +errors
@@ -311,49 +326,7 @@ function _sf-app-cleanAppDataFiles {
     } while ($dirs.count -gt 0)
 }
 
-function _sf-app-copyAppDataFiles ([SfProject]$project, $dest) {
-    if (-not $project) {
-        [SfProject]$project = sf-proj-getCurrent
-    }
-
-    $src = "$($project.webAppPath)\App_Data\*"
-
-    Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude @("*.pfx", "*.lic")
-}
-
-function _sf-app-restoreAppDataFiles ($src) {
-    [SfProject]$context = sf-proj-getCurrent
-    $webAppPath = $context.webAppPath
-
-    _sf-app-cleanAppDataFiles
-    Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude @("*.pfx", "*.lic") -ErrorVariable $errors -ErrorAction SilentlyContinue  # exclude is here for backward comaptibility
-    if ($errors) {
-        Write-Warning "Some files could not be cleaned in AppData, because they might be in use."
-    }
-}
-
-function _sf-app-saveInitialAppDataFiles {
-    param (
-        [SfProject]$project
-    )
-    
-    Write-Information "Backing up original App_Data folder..."
-    $originalAppDataSaveLocation = _sf-app-getInitialAppDataFilesBackupPath -project $project
-    if (!(Test-Path -Path $originalAppDataSaveLocation)) {
-        New-Item -Path $originalAppDataSaveLocation -ItemType Directory > $null
-    }
-        
-    _sf-app-copyAppDataFiles -project $project -dest $originalAppDataSaveLocation
-}
-
-function _sf-app-getInitialAppDataFilesBackupPath {
-    param (
-        [SfProject]$project
-    )
-    
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
-
-    "$($project.webAppPath)/sf-dev-tool/original-app-data"
+function _sf-app-getAppDataFilesFilter {
+    "*.pfx"
+    "*.lic"
 }
