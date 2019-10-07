@@ -275,7 +275,7 @@ function sf-proj-import {
 }
 
 function sf-proj-removeBulk {
-    $sitefinities = @(sf-data-getAllProjects -skipInit)
+    $sitefinities = @(sf-data-getAllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
@@ -667,7 +667,7 @@ function _getIsIdDuplicate ($id) {
         return $false
     }
 
-    $sitefinities = [SfProject[]](sf-data-getAllProjects -skipInit)
+    $sitefinities = [SfProject[]](sf-data-getAllProjects)
     $sitefinities | % {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {

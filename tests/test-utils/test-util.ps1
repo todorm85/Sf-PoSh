@@ -11,7 +11,7 @@ function set-testProject {
     #     }
     # }
     
-    [SfProject[]]$allProjects = @(sf-data-getAllProjects -skipInit)
+    [SfProject[]]$allProjects = @(sf-data-getAllProjects)
     $proj = $allProjects | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
     if ($proj.Count -eq 0) {
         throw 'Project named e2e_tests not found. Create and initialize one first from TFS.'

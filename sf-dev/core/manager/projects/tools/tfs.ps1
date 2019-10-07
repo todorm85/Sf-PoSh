@@ -2,9 +2,8 @@
 function sf-proj-tools-updateAllProjectsTfsInfo {
     $sfs = sf-data-getAllProjects
     $sfs | ForEach-Object {
-        
         [SfProject]$context = $_
-
+        _initializeProject -project $context
         _updateLastGetLatest $context
 
         $branch = tfs-get-branchPath $context.solutionPath

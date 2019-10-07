@@ -1,6 +1,5 @@
 function sf-data-getAllProjects {
     param(
-        [switch]$skipInit,
         [string]$tagsFilter
     )
     $data = New-Object XML
@@ -26,10 +25,6 @@ function sf-data-getAllProjects {
             $clone.websiteName = $_.websiteName;
             $clone.tags = $_.tags;
             $clone.lastGetLatest = $lastGetLatest;
-
-            if (!$skipInit) {
-                _initializeProject -project $clone -suppressWarnings
-            }
 
             $sitefinities.Add($clone)
         }
