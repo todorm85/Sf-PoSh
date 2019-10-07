@@ -275,7 +275,7 @@ function sf-proj-import {
 }
 
 function sf-proj-removeBulk {
-    $sitefinities = @(sf-data-getAllProjects)
+    $sitefinities = @(sf-data-getAllProjects -skipInit)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
@@ -332,6 +332,8 @@ function sf-proj-remove {
     if ($null -eq $context) {
         $context = sf-proj-getCurrent
     }
+
+    _initializeProject -suppressWarnings -project $context
 
     $solutionPath = $context.solutionPath
     $workspaceName = $null
