@@ -27,7 +27,6 @@ function sf-app-reset {
         [switch]$createStartupConfig,
         [switch]$build,
         [string]$user,
-        [switch]$configRestrictionSafe,
         [switch]$force,
         [SfProject]$project
     )
