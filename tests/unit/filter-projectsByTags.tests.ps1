@@ -13,7 +13,7 @@ InModuleScope sf-dev {
     }
 
     Describe "_filterProjectsByTags should" {
-        It "show only untagged when passing '+'" {
+        It "show only untagged when passing '+u'" {
             $projects = @(
                 get-project -tags 'test'
                 get-project -tags ''
@@ -21,8 +21,20 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter "+"
+            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter "+u"
             $result | Should -HaveCount 2
+        }
+        It "show all when passing '+a'" {
+            $projects = @(
+                get-project -tags 'test'
+                get-project -tags ''
+                get-project -tags $null
+                get-project -tags 'another'
+                get-project -tags 'another another'
+            )
+
+            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter "+a"
+            $result | Should -HaveCount 5
         }
         It "filter included tags correctly" {
             $projects = @(
