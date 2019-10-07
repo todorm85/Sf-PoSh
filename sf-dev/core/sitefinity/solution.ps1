@@ -5,7 +5,6 @@
     None
 #>
 function sf-sol-build {
-    
     Param(
         $retryCount = 0,
         [SfProject]$project
@@ -198,8 +197,6 @@ function sf-sol-open {
     None
 #>
 function sf-sol-buildWebAppProj () {
-    
-
     $context = sf-proj-getCurrent
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
