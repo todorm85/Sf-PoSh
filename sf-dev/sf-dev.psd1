@@ -21,6 +21,7 @@
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
             8.1.1
+                Tags autocomplete #81
                 Ability to list all projects when passing special switch #89
                 Performance: Slow listing when removing bulk
                 Fixed function names
