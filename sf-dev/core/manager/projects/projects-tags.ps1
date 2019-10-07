@@ -1,3 +1,28 @@
+$tagCompleter = {
+    param ( $commandName,
+        $parameterName,
+        $wordToComplete,
+        $commandAst,
+        $fakeBoundParameters )
+
+    $possibleValues = @('dummy')
+    [SfProject[]]$sfs = sf-data-getAllProjects -tagsFilter '+a'
+    $sfs | ForEach-Object {
+        $allTags = $_.tags.Split(' ')
+        $allTags = $allTags | Where-Object { !$possibleValues.Contains($_) -and $_ }
+        $possibleValues += $allTags
+    }
+
+    if ($wordToComplete) {
+        $possibleValues | Where-Object {
+            $_ -like "$wordToComplete*" -and $_ -ne 'dummy'
+        }
+    }
+    else {
+        $possibleValues | Where-Object { $_ -ne 'dummy' }
+    }
+}
+
 function sf-proj-tags-add {
     param (
         [string]$tagName
@@ -15,6 +40,8 @@ function sf-proj-tags-add {
 
     _saveSelectedProject -context $project
 }
+
+Register-ArgumentCompleter -CommandName sf-proj-tags-add -ParameterName tagName -ScriptBlock $tagCompleter
 
 function sf-proj-tags-remove {
     param (
@@ -34,6 +61,8 @@ function sf-proj-tags-remove {
     _saveSelectedProject -context $project
 }
 
+Register-ArgumentCompleter -CommandName sf-proj-tags-remove -ParameterName tagName -ScriptBlock $tagCompleter
+
 function sf-proj-tags-removeAll {
     [SfProject]$project = sf-proj-getCurrent
     $project.tags = ''
@@ -41,7 +70,14 @@ function sf-proj-tags-removeAll {
 }
 
 function sf-proj-tags-getAll {
-    [SfProject]$project = sf-proj-getCurrent
+    Param(
+        [SfProject]$project
+    )
+
+    if (!$project) {
+        $project = sf-proj-getCurrent
+    }
+
     return $project.tags
 }
 
