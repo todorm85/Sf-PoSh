@@ -25,5 +25,10 @@ InModuleScope sf-dev {
             $importedProject.websiteName | Should -Be $project.websiteName
             iis-test-isSiteNameDuplicate -name $importedProject.websiteName | Should -Be $true
         }
+        It "save original app data folder" {
+            $path = _sf-app-getInitialAppDataFilesBackupPath -project $project
+            Test-Path $path | Should -BeTrue
+            (Get-ChildItem -Path $path).Length | Should -BeGreaterThan 0
+        }
     }
 }
