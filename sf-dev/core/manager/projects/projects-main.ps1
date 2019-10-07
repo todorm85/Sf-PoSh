@@ -230,7 +230,7 @@ function sf-proj-clone {
     }
 
     try {
-        sf-sf-app-states-removeAll -context $newProject
+        sf-app-states-removeAll -context $newProject
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
@@ -281,7 +281,7 @@ function sf-proj-removeBulk {
         return
     }
 
-    sf-sf-proj-showAll $sitefinities
+    sf-proj-showAll $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')

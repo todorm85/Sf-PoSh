@@ -110,7 +110,7 @@ function sf-proj-show {
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
-function sf-sf-proj-showAll {
+function sf-proj-showAll {
     Param(
         [SfProject[]]$sitefinities
     )
@@ -216,7 +216,7 @@ function _promptProjectSelect {
     
     $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
 
-    sf-sf-proj-showAll $sortedSitefinities
+    sf-proj-showAll $sortedSitefinities
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'

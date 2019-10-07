@@ -34,7 +34,7 @@ function sf-proj-tags-remove {
     _saveSelectedProject -context $project
 }
 
-function sf-sf-proj-tags-removeAll {
+function sf-proj-tags-removeAll {
     [SfProject]$project = sf-proj-getCurrent
     $project.tags = ''
     _saveSelectedProject -context $project

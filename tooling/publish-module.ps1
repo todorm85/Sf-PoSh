@@ -1,11 +1,10 @@
-Get-Item -Path "$PSScriptRoot/../sf-dev/sf-dev.psd1" |
-    Get-Content |
+Get-Content -Path "$PSScriptRoot/../sf-dev/sf-dev.psd1" |
     ForEach-Object {
         if ($_ -match "ModuleVersion     = '(?<vrsn>.+?)'") {
             $Script:version = $matches["vrsn"]
         }
     }
-
+    
 if (!$Script:version) {
     throw 'No module version found.'
 }

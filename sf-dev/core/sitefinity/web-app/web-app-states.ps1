@@ -96,7 +96,7 @@ function sf-app-states-remove ($stateName, [SfProject]$context) {
     }
 }
 
-function sf-sf-app-states-removeAll ([SfProject]$context) {
+function sf-app-states-removeAll ([SfProject]$context) {
     $statesPath = _getStatesPath -context $context
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
