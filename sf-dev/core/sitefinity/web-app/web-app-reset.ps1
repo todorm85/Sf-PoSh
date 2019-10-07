@@ -13,8 +13,6 @@
     Builds the solution.
     .PARAMETER user
     The username that will be used to initialize sitefinity if -start switch is passed as well.
-    .PARAMETER silentFinish
-    Does not display a toaster notification when done.
     .OUTPUTS
     None
 #>
