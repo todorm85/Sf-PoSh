@@ -1,14 +1,11 @@
 function sf-app-states-save {
     Param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        $stateName,
-        [SfProject]$project
+        $stateName
     )
     
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
+    $project = sf-proj-getCurrent
     
     $dbName = sf-app-db-getName
     $db = $tokoAdmin.sql.GetDbs() | Where-Object { $_.Name -eq $dbName }
@@ -47,12 +44,10 @@ function sf-app-states-save {
 function sf-app-states-restore {
     Param(
         [string]$stateName,
-        [bool]$force = $false,
-        [SfProject]$project)
+        [bool]$force = $false
+    )
 
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
+    $project = sf-proj-getCurrent
 
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = _selectAppState -context $context
@@ -80,34 +75,34 @@ function sf-app-states-restore {
     _sf-app-restoreAppDataFiles "$appDataStatePath/*"
 }
 
-function sf-app-states-remove ($stateName, [SfProject]$context) {
+function sf-app-states-remove ($stateName) {
     if ([string]::IsNullOrEmpty($stateName)) {
-        $stateName = _selectAppState -context $context
+        $stateName = _selectAppState
     }
 
     if (-not $stateName) {
         return
     }
 
-    $statesPath = _getStatesPath -context $context
+    $statesPath = _getStatesPath
     if ($statesPath) {
         $statePath = "${statesPath}/$stateName"
         Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse
     }
 }
 
-function sf-app-states-removeAll ([SfProject]$context) {
-    $statesPath = _getStatesPath -context $context
+function sf-app-states-removeAll {
+    $statesPath = _getStatesPath
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
-            sf-app-states-remove $state.Name -context $context
+            sf-app-states-remove $state.Name
         }
     }
 }
 
-function _selectAppState ([SfProject]$context) {
-    $statesPath = _getStatesPath -context $context
+function _selectAppState {
+    $statesPath = _getStatesPath
     $states = Get-Item "${statesPath}/*"
     if (-not $states) {
         Write-Warning "No states."
@@ -133,7 +128,7 @@ function _selectAppState ([SfProject]$context) {
 
 function _getSqlBackupStateName {
     param (
-        [Parameter(Mandatory=$true)]$stateName
+        [Parameter(Mandatory = $true)]$stateName
     )
     
     [SfProject]$context = sf-proj-getCurrent
@@ -146,11 +141,8 @@ function _getSqlCredentials {
     $credential
 }
 
-function _getStatesPath ([SfProject]$context) {
-    if (!$context) {
-        $context = sf-proj-getCurrent
-    }
-
+function _getStatesPath {
+    $context = sf-proj-getCurrent
     $path = "$($context.webAppPath)/sf-dev-tool/states"
     if (-not (Test-Path $path)) {
         New-Item $path -ItemType Directory

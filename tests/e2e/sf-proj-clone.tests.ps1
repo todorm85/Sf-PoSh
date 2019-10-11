@@ -3,7 +3,7 @@
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
 
-    It "Test cloning project" {
+    Describe "Test cloning project should" {
         $sourceProj = Set-TestProject
 
         $sourceName = $sourceProj.displayName
@@ -27,24 +27,53 @@ InModuleScope sf-dev {
         $appSettings.AppendChild($newElement)
         $xmlData.Save($webConfigPath) > $null
 
-        sf-proj-clone -context $sourceProj
+        sf-proj-clone
 
-        # verify project configuration
         [SfProject]$project = sf-proj-getCurrent
-        $project.displayName | Should -Be $cloneTestName
         $cloneTestId = $project.id
-        $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
-        # tfs-get-branchPath -path $project.solutionPath | Should -Not -Be $null
-        $project.solutionPath.Contains($GLOBAL:Sf.Config.projectsDirectory) | Should -Be $true
-        $project.websiteName | Should -Be $cloneTestId
+
+        It "set project displayName" {
+            $project.displayName | Should -Be $cloneTestName
+        }
+        
+        It "set project branch" {
+            $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
+        }
+
+        It "set project solution path" {
+            $project.solutionPath.Contains($GLOBAL:Sf.Config.projectsDirectory) | Should -Be $true
+        }
+
+        It "set project site" {
+            $project.websiteName | Should -Be $cloneTestId
+        }
     
-        # verify project artifacts
-        Test-Path $project.solutionPath | Should -Be $true
-        existsInHostsFile -searchParam $project.displayName | Should -Be $true
-        Test-Path "$($project.solutionPath)\$($project.displayName)($($project.id)).sln" | Should -Be $true
-        Test-Path "$($project.solutionPath)\Telerik.Sitefinity.sln" | Should -Be $true
-        Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
-        Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
-        $tokoAdmin.sql.GetDbs() | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
+        It "create project solution directory" {
+            Test-Path $project.solutionPath | Should -Be $true
+        }
+
+        It "create a hosts file entry" {
+            existsInHostsFile -searchParam $project.displayName | Should -Be $true
+        }
+
+        It "create a user friendly solution name" {
+            Test-Path "$($project.solutionPath)\$($project.displayName)($($project.id)).sln" | Should -Be $true
+        }
+
+        It "copy the original solution file" {
+            Test-Path "$($project.solutionPath)\Telerik.Sitefinity.sln" | Should -Be $true
+        }
+
+        It "create website pool" {
+            Test-Path "IIS:\AppPools\${cloneTestId}" | Should -Be $true
+        }
+
+        It "create website" {
+            Test-Path "IIS:\Sites\${cloneTestId}" | Should -Be $true
+        }
+
+        It "create a copy of db" {
+            $tokoAdmin.sql.GetDbs() | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
+        }
     }
 }

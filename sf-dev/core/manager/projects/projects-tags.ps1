@@ -70,14 +70,7 @@ function sf-proj-tags-removeAll {
 }
 
 function sf-proj-tags-getAll {
-    Param(
-        [SfProject]$project
-    )
-
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
-
+    $project = sf-proj-getCurrent
     return $project.tags
 }
 

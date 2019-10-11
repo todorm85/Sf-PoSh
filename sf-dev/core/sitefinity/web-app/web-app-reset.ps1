@@ -39,9 +39,15 @@ function sf-app-reset {
             $oldProject = $null
         }
     }
+    else {
+        $project = sf-proj-getCurrent
+    }
 
     try {
         $dbName = sf-app-db-getName # this needs to be here before DataConfig.config gets deleted!!!
+        if (!$dbName) {
+            $dbName = $project.id
+        }
     
         Write-Information "Restarting app pool..."
         sf-iis-pool-reset
@@ -67,10 +73,9 @@ function sf-app-reset {
             Write-Information "Errors ocurred while resetting App_Data files.`n $_"
         }
 
-        if (-not [string]::IsNullOrEmpty($dbName)) {
+        if ($dbName) {
             Write-Information "Deleting database..."
             try {
-                
                 $tokoAdmin.sql.Delete($dbName)
             }
             catch {
@@ -193,7 +198,7 @@ function _deleteStartupConfig {
 function _createStartupConfig {
     param(
         [string]$user = $GLOBAL:Sf.Config.sitefinityUser,
-        [string]$dbName = $null,
+        [Parameter(Mandatory = $true)][string]$dbName,
         [string]$password = $GLOBAL:Sf.Config.sitefinityPassword,
         [string]$sqlUser = $GLOBAL:Sf.Config.sqlUser,
         [string]$sqlPass = $GLOBAL:Sf.Config.sqlPass
@@ -218,15 +223,11 @@ function _createStartupConfig {
             }
         }
         
-        $username = $user.split('@')[0]
-        if ([string]::IsNullOrEmpty($dbName)) {
-            $dbName = sf-app-db-getName
-        }
-        
-        
         if (($tokoAdmin.sql.isDuplicate($dbName)) -or [string]::IsNullOrEmpty($dbName)) {
             throw "Error creating startup.config. Database with name $dbName already exists."
         }
+
+        $username = $user.split('@')[0]
 
         $XmlWriter = New-Object System.XMl.XmlTextWriter($configPath, $Null)
         $xmlWriter.WriteStartDocument()
@@ -262,7 +263,7 @@ function _sf-app-resetAppDataFiles {
         $dirs = Get-ChildItem "$webAppPath\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs")) }
         try {
             if ($dirs) {
-                $dirs | Remove-Item -Force -Recurse -ErrorVariable +errorMessage
+                $dirs | Remove-Item -Force -Recurse -ErrorVariable +errorMessage -ErrorAction SilentlyContinue
             }
         }
         catch {
@@ -275,13 +276,10 @@ function _sf-app-resetAppDataFiles {
     }
 }
 
-function _sf-app-copyAppDataFiles ([SfProject]$project, $dest) {
-    if (-not $project) {
-        [SfProject]$project = sf-proj-getCurrent
-    }
+function _sf-app-copyAppDataFiles ($dest) {
+    [SfProject]$project = sf-proj-getCurrent
 
     $src = "$($project.webAppPath)\App_Data\*"
-
     Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude $(_sf-app-getAppDataFilesFilter)
 }
 

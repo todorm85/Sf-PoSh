@@ -28,18 +28,12 @@ function sf-iis-site-rename {
     None
 #>
 function sf-iis-site-open {
-    
     Param(
-        [switch]$useExistingBrowser,
-        [SfProject]$project
+        [switch]$useExistingBrowser
     )
 
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
-
     $browserPath = $GLOBAL:Sf.Config.browserPath;
-    $appUrl = _getAppUrl -context $project
+    $appUrl = _getAppUrl
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:userConfigPath -> browserPath"
     }
@@ -62,13 +56,9 @@ The project for which to create a website.
 General notes
 #>
 function sf-iis-site-new {
-    Param(
-        [SfProject]$context
-    )
+    Write-Information "Creating website..."
 
-    if (-not $context) {
-        $context = sf-proj-getCurrent
-    }
+    $context = sf-proj-getCurrent
 
     $port = 2111
     while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
@@ -105,26 +95,17 @@ function sf-iis-site-new {
     }
 }
 
-function _deleteWebsite ([SfProject]$context) {
-    if (-not $context) {
-        $context = sf-proj-getCurrent
-    }
-
-    $websiteName = $context.websiteName
-    if ($websiteName -eq '') {
+function _sf-iis-site-delete ($websiteName) {
+    if (!$websiteName) {
         throw "Website name not set."
     }
     
     $appPool = @(iis-get-siteAppPool $websiteName)
     $domain = (iis-get-binding $websiteName).domain
-    $context.websiteName = ''
     try {
-        _saveSelectedProject $context
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
     }
     catch {
-        $context.websiteName = $websiteName
-        _saveSelectedProject $context
         throw "Error deleting website ${websiteName}: $_"
     }
 
@@ -147,14 +128,10 @@ function _deleteWebsite ([SfProject]$context) {
 
 function _changeDomain {
     param (
-        $context,
         $domainName
     )
 
-    if (-not $context) {
-        $context = sf-proj-getCurrent
-    }
-
+    $context = sf-proj-getCurrent
     $websiteName = $context.websiteName
 
     $oldDomain = (iis-get-binding $websiteName).domain

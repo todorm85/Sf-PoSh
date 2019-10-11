@@ -24,6 +24,7 @@ function sf-proj-select {
     }
 
     $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
+    _sf-proj-refreshData $selectedSitefinity
     sf-proj-setCurrent $selectedSitefinity
     sf-proj-show
 }
@@ -34,13 +35,10 @@ function sf-proj-select {
 #>
 function sf-proj-show {
     Param(
-        [switch]$detail,
-        [SfProject]$context
+        [switch]$detail
     )
 
-    if (!$context) {
-        $context = sf-proj-getCurrent
-    }
+    [SfProject]$context = sf-proj-getCurrent
     
     if ($null -eq ($context)) {
         Write-Warning "No project selected"
@@ -55,7 +53,7 @@ function sf-proj-show {
     }
 
     if (-not $detail) {
-        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(_getDaysSinceLastGetLatest $context)"
+        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(_getDaysSinceDate $context.lastGetLatest)"
         return    
     }
 
@@ -97,7 +95,7 @@ function sf-proj-show {
 
         [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
         [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $branch; }
-        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = _getDaysSinceLastGetLatest $context; }
+        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = _getDaysSinceDate $context.lastGetLatest; }
         [pscustomobject]@{id = 10; Parameter = "Tags"; Value = $context.tags }
     )
 
@@ -127,26 +125,26 @@ function sf-proj-showAll {
                 Branch  = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0];
                 Ports   = "$ports";
                 ID      = "$($sitefinity.id)";
-                LastGet = _getDaysSinceLastGetLatest $sitefinity;
-                Tags = $sitefinity.tags
+                LastGet = _getDaysSinceDate $sitefinity.lastGetLatest;
+                Tags    = $sitefinity.tags
             }) > $null
     }
 
     $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id, LastGet, Tags | Out-String | ForEach-Object { Write-Host $_ }
 }
 
-function _getDaysSinceLastGetLatest ([SfProject]$context) {
-    if (-not $context) {
-        [SfProject]$context = sf-proj-getCurrent
+function _getDaysSinceDate {
+    Param(
+        $dateFromAsText
+    )
+
+    if ($dateFromAsText) {
+        [datetime]$dateFrom = [datetime]::Parse($dateFromAsText)
     }
 
-    if ($context.lastGetLatest) {
-        [datetime]$lastGetLatest = [datetime]::Parse($context.lastGetLatest)
-    }
-
-    if ($lastGetLatest) {
-        [System.TimeSpan]$daysSinceLastGetLatest = [System.TimeSpan]([System.DateTime]::Today - $lastGetLatest.Date)
-        return [math]::Round($daysSinceLastGetLatest.TotalDays, 0)
+    if ($dateFrom) {
+        [System.TimeSpan]$days = [System.TimeSpan]([System.DateTime]::Today - $dateFrom.Date)
+        return [math]::Round($days.TotalDays, 0)
     }
 }
 
@@ -227,4 +225,35 @@ function _promptProjectSelect {
     }
 
     $selectedSitefinity
+}
+
+function _sf-proj-promptSourcePathSelect {
+    while ($selectFrom -ne 1 -and $selectFrom -ne 2) {
+        $selectFrom = Read-Host -Prompt "Create from?`n[1] Branch`n[2] Build`n"
+    }
+
+    if ($selectFrom -eq 1) {
+        _promptPredefinedBranchSelect
+    }
+    else {
+        _promptPredefinedBuildPathSelect
+    }
+}
+
+function _sf-proj-promptSfsSelection ([SfProject[]]$sitefinities) {
+    sf-proj-showAll $sitefinities
+
+    $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
+    $choices = $choices.Split(' ')
+    [System.Collections.Generic.List``1[object]]$sfsToDelete = New-Object System.Collections.Generic.List``1[object]
+    foreach ($choice in $choices) {
+        [SfProject]$selectedSitefinity = $sitefinities[$choice]
+        if ($null -eq $selectedSitefinity) {
+            Write-Error "Invalid selection $choice"
+        }
+
+        $sfsToDelete.Add($selectedSitefinity)
+    }    
+
+    return $sfsToDelete
 }

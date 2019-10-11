@@ -4,7 +4,7 @@ InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
 
     Describe "sf-data-getAllProjects" {
-        Mock _initializeProject { }
+        Mock _sf-proj-refreshData { }
 
         It "return empty collection when no projects" {
             $projects = sf-data-getAllProjects

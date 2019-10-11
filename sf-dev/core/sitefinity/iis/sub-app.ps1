@@ -8,14 +8,10 @@
 function sf-iis-subApp-set {
     
     Param(
-        [Parameter(Mandatory = $true)][string]$subAppName,
-        [SfProject]$project
+        [Parameter(Mandatory = $true)][string]$subAppName
     )
 
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
-
+    $project = sf-proj-getCurrent
     $subApp = iis-get-subAppName -websiteName $project.websiteName
     if ($subApp) {
         return
@@ -31,13 +27,7 @@ function sf-iis-subApp-set {
 }
 
 function sf-iis-subApp-remove {
-    Param(
-        [SfProject]$project
-    )
-    
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
+    $project = sf-proj-getCurrent
 
     $subAppName = iis-get-subAppName $project.websiteName
     if ($null -eq $subAppName) {

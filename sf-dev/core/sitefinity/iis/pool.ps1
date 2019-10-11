@@ -7,13 +7,9 @@
     None
 #>
 function sf-iis-pool-resetThread {
-    
-    Param([switch]$start,
-    [SfProject]$project)
+    Param([switch]$start)
 
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
+    $project = sf-proj-getCurrent
 
     $binPath = "$($project.webAppPath)\bin\dummy.sf"
     New-Item -ItemType file -Path $binPath > $null
@@ -35,13 +31,10 @@ function sf-iis-pool-resetThread {
 function sf-iis-pool-reset {
     
     Param(
-        [switch]$start,
-        [SfProject]$project
+        [switch]$start
     )
 
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
+    $project = sf-proj-getCurrent
 
     $appPool = @(iis-get-siteAppPool $project.websiteName)
     if ($appPool -eq '') {
@@ -55,13 +48,13 @@ function sf-iis-pool-reset {
     }
 }
 
-function sf-iis-pool-stop ([SfProject]$context) {
-    if (-not $context) {
-        $context = sf-proj-getCurrent
-    }
+function sf-iis-pool-stop {
+    param(
+        $websiteName
+    )
 
     try {
-        $appPool = @(iis-get-siteAppPool $context.websiteName)
+        $appPool = @(iis-get-siteAppPool $websiteName)
     }
     catch {
         throw "Error getting app pool $_"
@@ -69,7 +62,8 @@ function sf-iis-pool-stop ([SfProject]$context) {
 
     if ($appPool) {
         Stop-WebItem ("IIS:\AppPools\" + $appPool)
-    } else {
+    }
+    else {
         throw "App pool was not found."
     }
 }

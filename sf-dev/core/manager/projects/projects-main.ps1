@@ -15,136 +15,53 @@
     None
 #>
 function sf-proj-new {
-    
     Param(
-        [string]$displayName,
+        [Parameter(Mandatory = $true)][string]$sourcePath,
+        [string]$displayName = 'Untitled',
         [switch]$buildSolution,
         [switch]$startWebApp,
-        [switch]$precompile,
-        [string]$sourcePath,
-        [switch]$noAutoSelect
+        [switch]$precompile
     )
 
     if (!$sourcePath) {
-        while ($selectFrom -ne 1 -and $selectFrom -ne 2) {
-            $selectFrom = Read-Host -Prompt "Create from?`n[1] Branch`n[2] Build`n"
-        }
-
-        $sourcePath = $null
-        if ($selectFrom -eq 1) {
-            $sourcePath = _promptPredefinedBranchSelect
-        }
-        else {
-            $sourcePath = _promptPredefinedBuildPathSelect
-        }
+        $sourcePath = _sf-proj-promptSourcePathSelect
     }
 
     [SfProject]$newContext = _newSfProjectObject
-    if (!$displayName) {
-        $displayName = 'Untitled'
-    }
-
     $newContext.displayName = $displayName
 
     $oldContext = sf-proj-getCurrent
-
     try {
         _createProjectFilesFromSource -sourcePath $sourcePath -project $newContext
-
-        Write-Information "Creating website..."
-        sf-iis-site-new -context $newContext
-
         _sf-proj-tags-setNewProjectDefaultTags -project $newContext
-
         _saveSelectedProject $newContext
+        sf-proj-setCurrent $newContext        
     }
     catch {
-        Write-Warning "############ CLEANING UP ############"
-        Set-Location $PSScriptRoot
-        
-        try {
-            Write-Information "Deleting workspace..."
-            tfs-delete-workspace $newContext.id $GLOBAL:Sf.Config.tfsServerName
-        }
-        catch {
-            Write-Warning "Error cleaning workspace or it was not created."
-        }
+        sf-proj-remove -noPrompt -context $newContext
+        sf-proj-setCurrent $oldContext
 
-        try {
-            Write-Information "Deleting project files..."
-            $path = $newContext.solutionPath
-            if (!$path) {
-                $path = $newContext.webAppPath
-            }
-
-            Remove-Item -Path $path -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError -Recurse
-        }
-        catch {
-            Write-Warning "Error cleaning project directory or it was not created."
-        }
-
-        try {
-            Write-Information "Removing website..."
-            _deleteWebsite -context $newContext
-        }
-        catch {
-            Write-Warning "Could not remove website or it was not created"
-        }
-
-        if ($oldContext) {
-            sf-proj-setCurrent $oldContext
-        }
-        $ii = $_.InvocationInfo
         $msg = $_
-        if ($ii) {
-            $msg = "$msg`n$($ii.PositionMessage)"
+        if ($_.InvocationInfo) {
+            $msg = "$_`n$($_.InvocationInfo.PositionMessage)"
         }
 
         throw $msg
     }
 
-    try {
-        sf-proj-setCurrent $newContext
+    sf-iis-site-new
+    sf-app-reset -start:$startWebApp -build:$buildSolution -precompile:$precompile
 
-        if ($buildSolution) {
-            Write-Information "Building solution..."
-            sf-sol-build -retryCount 3
-        }
-
-        if ($startWebApp) {
-            try {
-                Write-Information "Initializing Sitefinity"
-                _createStartupConfig
-                _startApp
-                if ($precompile) {
-                    sf-app-addPrecompiledTemplates
-                }
-            }
-            catch {
-                Write-Warning "APP WAS NOT INITIALIZED. $_"
-                _deleteStartupConfig
-            }
-        }        
-    }
-    finally {
-        if ($noAutoSelect) {
-            sf-proj-setCurrent $oldContext
-        }
-    }
-
+    _createUserFriendlySlnName $newContext
     return $newContext
 }
 
 function sf-proj-clone {
     Param(
-        [SfProject]$context,
-        [switch]$noAutoSelect,
         [switch]$skipSourceControlMapping
     )
 
-    if (!$context) {
-        $context = sf-proj-getCurrent
-    }
+    $context = sf-proj-getCurrent
 
     $sourcePath = $context.solutionPath;
     $hasSolution = !([string]::IsNullOrEmpty($sourcePath));
@@ -152,7 +69,7 @@ function sf-proj-clone {
         $sourcePath = $context.webAppPath
     }
 
-    if ([string]::IsNullOrEmpty($sourcePath) -or -not (Test-Path $sourcePath)) {
+    if (!$sourcePath -or !(Test-Path $sourcePath)) {
         throw "Invalid app path";
     }
 
@@ -168,26 +85,28 @@ function sf-proj-clone {
         Copy-Item "${sourcePath}\*" $targetPath -Recurse
     }
     catch {
-        throw "Error copying source files.`n $_"        
+        $errors = "Error copying source files.`n $_";
+        try {
+            Remove-Item $targetPath -Force -Recurse -ErrorVariable +errors -ErrorAction SilentlyContinue
+        }
+        finally {
+            throw $errors
+        }
     }
 
     [SfProject]$newProject = $null
-    try {
-        [SfProject]$newProject = _newSfProjectObject
-        $newProject.displayName = "$($context.displayName)-clone"
-        if ($hasSolution) {
-            $newProject.solutionPath = $targetPath
-            $newProject.webAppPath = "$targetPath\SitefinityWebApp"
-        }
-        else {
-            $newProject.webAppPath = $targetPath
-        }
+    [SfProject]$newProject = _newSfProjectObject
+    $newProject.displayName = "$($context.displayName)-clone"
+    if ($hasSolution) {
+        $newProject.solutionPath = $targetPath
+        $newProject.webAppPath = "$targetPath\SitefinityWebApp"
+        _createUserFriendlySlnName -context $newProject
     }
-    catch {
-        Write-Warning "Cleaning up copied files"
-        Remove-Item -Path $targetPath -Force -Recurse 
-        throw "Error importing project.`n $_"
+    else {
+        $newProject.webAppPath = $targetPath
     }
+
+    sf-proj-setCurrent -newContext $newProject
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
@@ -200,7 +119,7 @@ function sf-proj-clone {
 
     try {
         Write-Information "Creating website..."
-        sf-iis-site-new -context $newProject > $null
+        sf-iis-site-new
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -208,7 +127,7 @@ function sf-proj-clone {
     }
 
     $oldProject = $context
-    $sourceDbName = _getCurrentAppDbName -project $oldProject
+    $sourceDbName = _sf-app-db-getName $oldProject.webAppPath
     
     if ($sourceDbName -and $tokoAdmin.sql.isDuplicate($sourceDbName)) {
         $newDbName = $newProject.id
@@ -228,13 +147,11 @@ function sf-proj-clone {
     }
 
     try {
-        sf-app-states-removeAll -context $newProject
+        sf-app-states-removeAll
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
     }
-
-    sf-proj-setCurrent -newContext $newProject
 }
 
 <#
@@ -266,6 +183,7 @@ function sf-proj-import {
     $newContext.webAppPath = $path
     
     sf-proj-setCurrent $newContext
+    _sf-proj-refreshData -project $newContext
     _saveSelectedProject $newContext
     return $newContext
 }
@@ -277,19 +195,7 @@ function sf-proj-removeBulk {
         return
     }
 
-    sf-proj-showAll $sitefinities
-
-    $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
-    $choices = $choices.Split(' ')
-    [System.Collections.Generic.List``1[object]]$sfsToDelete = New-Object System.Collections.Generic.List``1[object]
-    foreach ($choice in $choices) {
-        [SfProject]$selectedSitefinity = $sitefinities[$choice]
-        if ($null -eq $selectedSitefinity) {
-            Write-Error "Invalid selection $choice"
-        }
-
-        $sfsToDelete.Add($selectedSitefinity)
-    }
+    $sfsToDelete = _sf-proj-promptSfsSelection $sitefinities
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
@@ -324,36 +230,42 @@ function sf-proj-remove {
         [SfProject]$context = $null
     )
     
-    if ($null -eq $context) {
-        $context = sf-proj-getCurrent
+    [SfProject]$currentProject = sf-proj-getCurrent
+    $clearCurrentSelectedProject = $false
+    if ($null -eq $context -or $currentProject.id -eq $context.id) {
+        $context = $currentProject
+        $clearCurrentSelectedProject = $true
+    }
+    
+    # Del Website
+    Write-Information "Deleting website..."
+    $websiteName = $context.websiteName
+    if ($websiteName) {
+        try {
+            sf-iis-pool-stop $websiteName
+        }
+        catch {
+            Write-Warning "Could not stop app pool: $_"            
+        }
+
+        try {
+            _sf-iis-site-delete $context.websiteName
+        }
+        catch {
+            Write-Warning "Errors deleting website ${websiteName}. $_"
+        }
     }
 
-    _initializeProject -suppressWarnings -project $context
-
-    $solutionPath = $context.solutionPath
+    # TFS
     $workspaceName = $null
     try {
+        Set-Location -Path $PSScriptRoot
         $workspaceName = tfs-get-workspaceName $context.webAppPath
     }
     catch {
         Write-Warning "No workspace to delete, no TFS mapping found."        
     }
-
-    $dbName = sf-app-db-getName $context
-    $websiteName = $context.websiteName
     
-    if ($websiteName) {
-        try {
-            sf-iis-pool-stop -context $context
-        }
-        catch {
-            Write-Warning "Could not stop app pool: $_"            
-        }
-    }
-
-    Set-Location -Path $PSScriptRoot
-
-    # Del workspace
     if ($workspaceName -and !($keepWorkspace)) {
         Write-Information "Deleting workspace..."
         try {
@@ -363,6 +275,8 @@ function sf-proj-remove {
             Write-Warning "Could not delete workspace $_"
         }
     }
+
+    $dbName = _sf-app-db-getName -appPath $context.webAppPath
 
     # Del db
     if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
@@ -376,31 +290,21 @@ function sf-proj-remove {
         }
     }
 
-    # Del Website
-    Write-Information "Deleting website..."
-    if ($websiteName) {
-        try {
-            _deleteWebsite $context
-        }
-        catch {
-            Write-Warning "Errors deleting website ${websiteName}. $_"
-        }
-    }
-
     # Del dir
     if (!($keepProjectFiles)) {
         try {
-            Write-Information "Unlocking all locked files in solution directory..."
-            sf-sol-unlockAllFiles
-
-            Write-Information "Deleting solution directory..."
-            if ($solutionPath -ne "") {
+            $solutionPath = $context.solutionPath
+            if ($solutionPath) {
                 $path = $solutionPath
             }
             else {
                 $path = $context.webAppPath
             }
+            
+            Write-Information "Unlocking all locked files in solution directory..."
+            unlock-allFiles -path $path
 
+            Write-Information "Deleting solution directory..."
             Remove-Item $path -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
             if ($ProcessError) {
                 throw $ProcessError
@@ -419,7 +323,9 @@ function sf-proj-remove {
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:Sf.Config.dataPath)"
     }
     
-    sf-proj-setCurrent $null
+    if ($clearCurrentSelectedProject) {
+        sf-proj-setCurrent $null
+    }
 
     if (-not ($noPrompt)) {
         sf-proj-select
@@ -427,17 +333,12 @@ function sf-proj-remove {
 }
 
 function sf-proj-rename {
-    
     Param(
         [string]$newName,
-        [switch]$setDescription,
-        [SfProject]$project
+        [switch]$setDescription
     )
 
-    if (!$project) {
-        $project = sf-proj-getCurrent
-    }
-
+    $project = sf-proj-getCurrent
     [SfProject]$context = $project
 
     if (-not $newName) {
@@ -488,10 +389,9 @@ function sf-proj-rename {
     }
     
     $domain = _generateDomainName -context $context
-    _changeDomain -context $context -domainName $domain
+    _changeDomain -domainName $domain
     
     _saveSelectedProject $context
-    sf-proj-setCurrent -newContext $context 
 }
 
 <#
@@ -499,15 +399,7 @@ function sf-proj-rename {
 Undos all pending changes, gets latest, builds and initializes.
 #>
 function sf-proj-reset {
-    param(
-        [SfProject]
-        $project
-    )
-
-    if (-not $project) {
-        $project = sf-proj-getCurrent
-    }
-
+    $project = sf-proj-getCurrent
     if ($project.lastGetLatest -and [System.DateTime]::Parse($project.lastGetLatest) -lt [System.DateTime]::Today) {
         $shouldReset = $false
         if (sf-tfs-hasPendingChanges) {
@@ -529,12 +421,9 @@ function sf-proj-reset {
 }
 
 function sf-proj-getCurrent {
-    [OutputType([SfProject])]
     $currentContext = $Script:globalContext
-    if ($currentContext -eq '') {
-        return $null
-    }
-    elseif ($null -eq $currentContext) {
+
+    if ($null -eq $currentContext) {
         return $null
     }
 
@@ -548,7 +437,6 @@ function sf-proj-setCurrent {
     )
         
     if ($null -ne $newContext) {
-        _initializeProject $newContext
         _validateProject $newContext        
     } 
 
@@ -617,7 +505,8 @@ function _getValidTitle {
 function _createUserFriendlySlnName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     if (!(Test-Path $solutionFilePath)) {
-        Write-Warning "Solution file not available."    
+        Write-Warning "Solution file not available."
+        return
     }
 
     $targetFilePath = "$($context.solutionPath)\$(_generateSolutionFriendlyName $context)"
@@ -637,20 +526,18 @@ function _saveSelectedProject {
 function _validateProject {
     Param($context)
 
-    if ($null -ne $context) {
-        if ($context.id -eq '') {
-            throw "Invalid sitefinity context. No sitefinity id."
-        }
+    if (!$context.id) {
+        throw "Invalid sitefinity context. No sitefinity id."
+    }
 
-        if ($context.solutionPaths) {
-            if (-not (Test-Path $context.solutionPath)) {
-                throw "Invalid sitefinity context. Solution path does not exist."
-            }
+    if ($context.solutionPaths) {
+        if (-not (Test-Path $context.solutionPath)) {
+            throw "Invalid sitefinity context. Solution path does not exist."
         }
+    }
         
-        if (-not ($context.webAppPath -and (Test-Path $context.webAppPath))) {
-            throw "Invalid sitefinity context. No web app path or it does not exist."
-        }
+    if (-not ($context.webAppPath -and (Test-Path $context.webAppPath))) {
+        throw "Invalid sitefinity context. No web app path or it does not exist."
     }
 }
 
@@ -783,25 +670,13 @@ function _createWorkspace ($context, $branch) {
     }
 }
 
-function _initializeProject {
+function _sf-proj-refreshData {
     param (
-        [Parameter(Mandatory = $true)][SfProject]$project,
-        [switch]$suppressWarnings
+        [Parameter(Mandatory = $true)][SfProject]$project
     )
     
     if ($project.isInitialized) {
         return
-    }
-
-    $oldWarningPreference = $WarningPreference
-    if ($suppressWarnings) {
-        $WarningPreference = 'SilentlyContinue'
-    }
-
-    if (!$project.displayName -or !$project.id) {
-        if (!$suppressWarnings) {
-            throw "Cannot initialize a project with no display name or id. Check tool database at $($GLOBAL:Sf.config.dataPath)"    
-        }
     }
 
     $errorMessgePrefix = "ERROR Working with project $($project.displayName) in $($project.webAppPath) and id $($project.id)."
@@ -815,33 +690,12 @@ function _initializeProject {
         }
     }
 
-    $isSolution = Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.sln"
-    if ($isSolution) {
-        $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
-        _createUserFriendlySlnName $project
-        
-        $branch = tfs-get-branchPath -path $project.solutionPath
-        if ($branch) {
-            $project.branch = $branch
-            _updateLastGetLatest -context $project
-        }
-        else {
-            Write-Warning "$errorMessgePrefix Could not detect source control branch, TFS related function_aliuty for the project will not work."
-        }
-    }
-        
-    $siteName = iis-find-site -physicalPath $project.webAppPath
-    if ($siteName) {
-        $project.websiteName = $siteName
-    }
-    else {
-        Write-Warning "$errorMessgePrefix Could not detect website for the current project."
-    }
+    _sf-proj-detectSolution -project $project
+    _sf-proj-detectTfs -project $project
+    _sf-proj-detectSite -project $project
 
     _saveSelectedProject -context $project
     $project.isInitialized = $true
-
-    $WarningPreference = $oldWarningPreference
 }
 
 function _createProjectFilesFromSource {
@@ -850,6 +704,7 @@ function _createProjectFilesFromSource {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
     
+    Write-Information "Creating project files..."
     $projectDirectory = "$($GLOBAL:Sf.Config.projectsDirectory)\$($project.id)"
     if (Test-Path $projectDirectory) {
         throw "Path already exists:" + $projectDirectory
@@ -881,5 +736,43 @@ function _createProjectFilesFromSource {
         else {
             $project.webAppPath = "$projectDirectory"
         }
+    }
+}
+
+function _sf-proj-detectSolution ([SfProject]$project) {
+    if (_sf-proj-isSolution -project $project) {
+        $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
+        _createUserFriendlySlnName $project
+        _saveSelectedProject -context $project
+    }
+}
+
+function _sf-proj-detectTfs ([SfProject]$project) {
+    if (!(_sf-proj-isSolution -project $project)) {
+        return        
+    }
+
+    $branch = tfs-get-branchPath -path $project.solutionPath
+    if ($branch) {
+        $project.branch = $branch
+        _updateLastGetLatest -context $project
+        _saveSelectedProject -context $project
+    }
+    else {
+        Write-Warning "Could not detect source control branch"
+    }
+}
+
+function _sf-proj-isSolution ([SfProject]$project) {
+    Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.sln"
+}
+
+function _sf-proj-detectSite ([Sfproject]$project) {
+    $siteName = iis-find-site -physicalPath $project.webAppPath
+    if ($siteName) {
+        $project.websiteName = $siteName
+    }
+    else {
+        Write-Warning "$errorMessgePrefix Could not detect website for the current project."
     }
 }

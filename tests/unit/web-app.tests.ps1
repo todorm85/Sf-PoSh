@@ -3,7 +3,7 @@
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
 
-    Describe "_getCurrentAppDbName" {
+    Describe "_sf-app-db-getName" {
         $Script:xmlContent
         Mock _getDataConfig {
             $data = New-Object XML
@@ -20,7 +20,7 @@ InModuleScope sf-dev {
                 </connectionStrings>
             </dataConfig>'
 
-            $result = _getCurrentAppDbName
+            $result = _sf-app-db-getName
             $result | Should -Be "sf_0"
         }
         
@@ -32,7 +32,7 @@ InModuleScope sf-dev {
                 </connectionStrings>
             </dataConfig>'
 
-            $result = _getCurrentAppDbName
+            $result = _sf-app-db-getName
             $result | Should -Be "sf_0"
         }
         
@@ -44,7 +44,7 @@ InModuleScope sf-dev {
                 </connectionStrings>
             </dataConfig>'
 
-            $result = _getCurrentAppDbName
+            $result = _sf-app-db-getName
             $result | Should -BeNullOrEmpty
         }
     }
