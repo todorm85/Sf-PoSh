@@ -316,7 +316,6 @@ function sf-proj-removeBulk {
     None
 #>
 function sf-proj-remove {
-    
     Param(
         [switch]$keepDb,
         [switch]$keepWorkspace,

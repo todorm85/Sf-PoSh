@@ -24,14 +24,10 @@ function sf-app-reset {
         [switch]$precompile,
         [switch]$createStartupConfig,
         [switch]$build,
-        [string]$user,
+        [string]$user = $Global:Sf.config.sitefinityUser,
         [switch]$force,
         [SfProject]$project
     )
-
-    if (!$user) {
-        $user = $Global:Sf.config.defaultUser
-    }
 
     $oldProject = $null
     if ($project) {
@@ -68,7 +64,7 @@ function sf-app-reset {
             _sf-app-resetAppDataFiles
         }
         catch {
-            Write-Warning "Errors ocurred while resetting App_Data files.`n $_"
+            Write-Information "Errors ocurred while resetting App_Data files.`n $_"
         }
 
         if (-not [string]::IsNullOrEmpty($dbName)) {
@@ -119,16 +115,8 @@ function sf-app-reset {
 
 function _startApp {
     param(
-        [Int32]$totalWaitSeconds = 5 * 60
+        [Int32]$totalWaitSeconds = $Global:Sf.config.app.startupMaxWait
     )
-
-    # $port = @(iis-get-websitePort $context.websiteName)[0]
-    # if ($port -eq '' -or $null -eq $port) {
-    #     throw "No port defined for selected sitefinity."
-    # }
-    # else {
-    #     $url = "http://localhost:$($port)"
-    # }
 
     $url = _getAppUrl
     $statusUrl = "$url/appstatus"
@@ -154,6 +142,7 @@ function _startApp {
         }
 
         if ($response -eq 200) {
+            Write-Progress -Activity "Waiting for sitefinity to start" -PercentComplete (($elapsed.Elapsed.TotalSeconds / $totalWaitSeconds) * 100)
             Start-Sleep -s 5
             continue
         }
@@ -203,9 +192,9 @@ function _deleteStartupConfig {
 
 function _createStartupConfig {
     param(
-        [string]$user = $GLOBAL:Sf.Config.defaultUser,
+        [string]$user = $GLOBAL:Sf.Config.sitefinityUser,
         [string]$dbName = $null,
-        [string]$password = $GLOBAL:Sf.Config.defaultPassword,
+        [string]$password = $GLOBAL:Sf.Config.sitefinityPassword,
         [string]$sqlUser = $GLOBAL:Sf.Config.sqlUser,
         [string]$sqlPass = $GLOBAL:Sf.Config.sqlPass
     )
@@ -273,7 +262,7 @@ function _sf-app-resetAppDataFiles {
         $dirs = Get-ChildItem "$webAppPath\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs")) }
         try {
             if ($dirs) {
-                $dirs | Remove-Item -Force -Recurse
+                $dirs | Remove-Item -Force -Recurse -ErrorVariable +errorMessage
             }
         }
         catch {
@@ -303,7 +292,7 @@ function _sf-app-restoreAppDataFiles ($src) {
     _sf-app-removeAppDataFiles
     Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude $(_sf-app-getAppDataFilesFilter) -ErrorVariable $errors -ErrorAction SilentlyContinue  # exclude is here for backward comaptibility
     if ($errors) {
-        Write-Warning "Some files could not be cleaned in AppData, because they might be in use."
+        Write-Information "Some files could not be cleaned in AppData, because they might be in use."
     }
 }
 
@@ -316,7 +305,7 @@ function _sf-app-removeAppDataFiles {
     $errors
     $toDelete | Remove-Item -Force -ErrorAction SilentlyContinue -ErrorVariable +errors
     if ($errors) {
-        Write-Warning "Some files in AppData folder could not be cleaned up, perhaps in use?"
+        Write-Information "Some files in AppData folder could not be cleaned up, perhaps in use?"
     }
     
     # clean empty dirs

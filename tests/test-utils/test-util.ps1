@@ -1,16 +1,6 @@
 $Global:testProjectDisplayName = 'created_from_TFS'
 $Global:fromZipProjectName = 'created_from_zip'
 function set-testProject {
-    # if ($Global:sf_tests_test_project) {
-    #     try {
-    #         sf-proj-setCurrent -newContext $Global:sf_tests_test_project
-    #         return $Global:sf_tests_test_project
-    #     }
-    #     catch {
-    #         Write-Warning "cloned test project corrupted, recreating..."            
-    #     }
-    # }
-    
     [SfProject[]]$allProjects = @(sf-data-getAllProjects)
     $proj = $allProjects | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
     if ($proj.Count -eq 0) {
@@ -20,7 +10,6 @@ function set-testProject {
     $proj = $proj[0]
     sf-proj-setCurrent -newContext $proj
 
-    # $Global:sf_tests_test_project = $proj
     return $proj
 }
 
@@ -50,7 +39,7 @@ function generateRandomName {
 }
     
 function initialize-testEnvironment {
-    Write-Warning "Cleanup started."
+    Write-Information "Cleanup started."
     [SfProject[]]$projects = sf-data-getAllProjects
 
     foreach ($proj in $projects) {

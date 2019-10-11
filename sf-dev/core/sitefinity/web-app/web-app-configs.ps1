@@ -167,7 +167,7 @@ function sf-app-configs-getFromDb {
         $doc.Save($filePath) > $null
     }
     else {
-        Write-Warning 'Config not found in db'
+        Write-Information 'Config not found in db'
     }
 }
 

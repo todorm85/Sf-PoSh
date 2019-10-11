@@ -38,11 +38,10 @@ function sf-sol-build {
         catch {
             $tries++
             if ($tries -le $retryCount) {
-                Write-Warning "Build failed. Retrying..." 
+                Write-Information "Build failed. Retrying..." 
             }
             else {
-                Write-Warning "Solution could not build after $retryCount retries."
-                throw
+                throw "Solution could not build after $retryCount retries."
             }
         }
     }
@@ -70,7 +69,7 @@ function sf-sol-rebuild {
         sf-sol-clean -cleanPackages $cleanPackages -project $project
     }
     catch {
-        Write-Warning "Errors while cleaning solution: $_"
+        Write-Information "Errors while cleaning solution: $_"
     }
 
     sf-sol-build -retryCount $retryCount -project $project
@@ -134,7 +133,7 @@ function sf-sol-clearPackages {
     }
 
     if (!(Test-Path "${solutionPath}\packages")) {
-        Write-Warning "No packages to delete"
+        Write-Information "No packages to delete"
         return
     }
 

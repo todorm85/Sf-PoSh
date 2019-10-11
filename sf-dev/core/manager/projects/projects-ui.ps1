@@ -64,14 +64,14 @@ function sf-proj-show {
         $branch = tfs-get-branchPath $context.solutionPath
     }
     catch {
-        Write-Warning "Error getting some details from TFS: $_"    
+        Write-Information "Error getting some details from TFS: $_"    
     }
 
     try {
         $appPool = @(iis-get-siteAppPool $context.websiteName)
     }
     catch {
-        Write-Warning "Error getting some details from IIS: $_"    
+        Write-Information "Error getting some details from IIS: $_"    
     }
 
     $otherDetails = @(

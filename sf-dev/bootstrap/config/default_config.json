@@ -16,5 +16,8 @@
     ],
     "predefinedBuildPaths": [
         "K:\\OfficialReleases\\Sitefinity\\12.x\\12.0\\Sitefinity_12.0"
-    ]
+    ],
+    "app": {
+        "startupMaxWait": 180
+    }
 }

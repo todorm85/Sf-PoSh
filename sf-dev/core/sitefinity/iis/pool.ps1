@@ -67,7 +67,11 @@ function sf-iis-pool-stop ([SfProject]$context) {
         throw "Error getting app pool $_"
     }
 
-    Stop-WebItem ("IIS:\AppPools\" + $appPool)
+    if ($appPool) {
+        Stop-WebItem ("IIS:\AppPools\" + $appPool)
+    } else {
+        throw "App pool was not found."
+    }
 }
 
 <#
