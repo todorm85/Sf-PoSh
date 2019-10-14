@@ -3,11 +3,11 @@
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
     
-    Describe "Import" -Tags ("import") {
+    Describe "Use existing" {
         [SfProject]$project = set-testProject
         $sourceProjectDbName = _sf-app-db-getName -appPath $project.webAppPath
 
-        sf-proj-import -displayName "test-import" -path $project.webAppPath
+        sf-proj-new -displayName "test-use-existing" -sourcePath $project.webAppPath
         
         [SfProject]$importedProject = sf-proj-getCurrent
         

@@ -53,18 +53,23 @@ function sf-iis-pool-stop {
         $websiteName
     )
 
+    $errors = ''
     try {
         $appPool = @(iis-get-siteAppPool $websiteName)
     }
     catch {
-        throw "Error getting app pool $_"
+        $errors += "Error getting app pool $_"
     }
 
     if ($appPool) {
-        Stop-WebItem ("IIS:\AppPools\" + $appPool)
+        Stop-WebItem ("IIS:\AppPools\" + $appPool) -ErrorVariable +errors -ErrorAction SilentlyContinue
     }
     else {
-        throw "App pool was not found."
+        $errors += "App pool was not found."
+    }
+
+    if ($errors) {
+        throw $errors
     }
 }
 

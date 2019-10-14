@@ -12,7 +12,7 @@ $mainTests = @(
     'app-states.tests.ps1',
     'iis-subapp.tests.ps1',
     'proj-clone.tests.ps1',
-    'proj-import.tests.ps1',
+    'proj-use-existing.tests.ps1',
     'proj-rename.tests.ps1',
     'proj-new.fromZIP.tests.ps1'
 )

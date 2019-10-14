@@ -17,10 +17,7 @@
 function sf-proj-new {
     Param(
         [Parameter(Mandatory = $true)][string]$sourcePath,
-        [string]$displayName = 'Untitled',
-        [switch]$buildSolution,
-        [switch]$startWebApp,
-        [switch]$precompile
+        [string]$displayName = 'Untitled'
     )
 
     if (!$sourcePath) {
@@ -30,27 +27,18 @@ function sf-proj-new {
     [SfProject]$newContext = _newSfProjectObject
     $newContext.displayName = $displayName
 
-    $oldContext = sf-proj-getCurrent
-    try {
-        _createProjectFilesFromSource -sourcePath $sourcePath -project $newContext
-        _sf-proj-tags-setNewProjectDefaultTags -project $newContext
-        _saveSelectedProject $newContext
-        sf-proj-setCurrent $newContext        
-    }
-    catch {
-        sf-proj-remove -noPrompt -context $newContext
-        sf-proj-setCurrent $oldContext
-
-        $msg = $_
-        if ($_.InvocationInfo) {
-            $msg = "$_`n$($_.InvocationInfo.PositionMessage)"
-        }
-
-        throw $msg
+    _createProjectFilesFromSource -sourcePath $sourcePath -project $newContext
+    if (!$newContext.webAppPath) {
+        throw "Error creating the project. The project failed to initialize with web app path."
     }
 
-    sf-iis-site-new
-    sf-app-reset -start:$startWebApp -build:$buildSolution -precompile:$precompile
+    _sf-proj-tags-setNewProjectDefaultTags -project $newContext
+    _saveSelectedProject $newContext
+    sf-proj-setCurrent $newContext        
+
+    if (!$newContext.websiteName) {
+        sf-iis-site-new
+    }
 
     _createUserFriendlySlnName $newContext
     return $newContext
@@ -166,26 +154,27 @@ function sf-proj-clone {
     .OUTPUTS
     None
 #>
-function sf-proj-import {
+function _sf-proj-tryUseExisting {
     
     Param(
-        [Parameter(Mandatory = $true)][string]$displayName,
+        [Parameter(Mandatory = $true)][SfProject]$project,
         [Parameter(Mandatory = $true)][string]$path
     )
 
-    $isWebApp = Test-Path "$path\web.config"
-    if (!$isWebApp) {
-        throw "No asp.net web app found."
+    
+    if (Test-Path -Path "$path\SitefinityWebApp") {
+        $path = "$path\SitefinityWebApp"
     }
 
-    [SfProject]$newContext = _newSfProjectObject
-    $newContext.displayName = $displayName
-    $newContext.webAppPath = $path
-    
-    sf-proj-setCurrent $newContext
-    _sf-proj-refreshData -project $newContext
-    _saveSelectedProject $newContext
-    return $newContext
+    $isWebApp = Test-Path "$path\web.config"
+    if (!$isWebApp) {
+        return
+    }
+
+    $project.webAppPath = $path
+    sf-proj-setCurrent $project
+    _sf-proj-refreshData -project $project
+    _saveSelectedProject $project
 }
 
 function sf-proj-removeBulk {
@@ -240,19 +229,19 @@ function sf-proj-remove {
     # Del Website
     Write-Information "Deleting website..."
     $websiteName = $context.websiteName
-    if ($websiteName) {
+    if ($websiteName -and (iis-test-isSiteNameDuplicate $websiteName)) {
         try {
             sf-iis-pool-stop $websiteName
         }
         catch {
-            Write-Warning "Could not stop app pool: $_"            
+            Write-Warning "Could not stop app pool: $_`n"            
         }
 
         try {
             _sf-iis-site-delete $context.websiteName
         }
         catch {
-            Write-Warning "Errors deleting website ${websiteName}. $_"
+            Write-Warning "Errors deleting website ${websiteName}. $_`n"
         }
     }
 
@@ -550,7 +539,7 @@ function _getIsIdDuplicate ($id) {
     }
 
     $sitefinities = [SfProject[]](sf-data-getAllProjects)
-    $sitefinities | % {
+    $sitefinities | ForEach-Object {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {
             return $true;
@@ -599,28 +588,6 @@ function _generateId {
     return $name
 }
 
-function _setConsoleTitle {
-    param (
-        [SfProject]$newContext
-    )
-
-    if ($newContext) {
-        $ports = @(iis-get-websitePort $newContext.websiteName)
-        if ($newContext.branch) {
-            $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
-        }
-        else {
-            $branch = '/no branch'
-        }
-
-        [System.Console]::Title = "$($newContext.displayName) ($($newContext.id)) $branch $ports "
-        Set-Location $newContext.webAppPath
-    }
-    else {
-        [System.Console]::Title = ""
-    }
-}
-
 function _generateSolutionFriendlyName {
     Param(
         [SfProject]$context
@@ -637,37 +604,6 @@ function _generateSolutionFriendlyName {
 
 function _validateNameSyntax ($name) {
     return $name -match "^[A-Za-z]\w+$" -and $name.Length -lt 75
-}
-
-function _createWorkspace ($context, $branch) {
-    try {
-        # create and map workspace
-        Write-Information "Creating workspace..."
-        $workspaceName = $context.id
-        tfs-create-workspace $workspaceName $context.solutionPath $GLOBAL:Sf.Config.tfsServerName
-    }
-    catch {
-        throw "Could not create workspace $workspaceName in $($context.solutionPath).`n $_"
-    }
-
-    try {
-        Write-Information "Creating workspace mappings..."
-        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $GLOBAL:Sf.Config.tfsServerName
-    }
-    catch {
-        throw "Could not create mapping $($branch) in $($context.solutionPath) for workspace ${workspaceName}.`n $_"
-    }
-
-    try {
-        Write-Information "Getting latest workspace changes..."
-        tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite > $null
-        $context.branch = $branch
-        $context.lastGetLatest = [DateTime]::Today
-        _saveSelectedProject $context
-    }
-    catch {
-        throw "Could not get latest workapce changes. $_"
-    }
 }
 
 function _sf-proj-refreshData {
@@ -704,6 +640,19 @@ function _createProjectFilesFromSource {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
     
+    _sf-proj-tryCreateFromBranch -project $project -sourcePath $sourcePath
+    
+    _sf-proj-tryCreateFromZip -project $project -sourcePath $sourcePath
+
+    _sf-proj-tryUseExisting -project $project -path $sourcePath
+    
+}
+
+function _sf-proj-createProjectDirectory {
+    param (
+        [Parameter(Mandatory = $true)][Sfproject]$project
+    )
+    
     Write-Information "Creating project files..."
     $projectDirectory = "$($GLOBAL:Sf.Config.projectsDirectory)\$($project.id)"
     if (Test-Path $projectDirectory) {
@@ -711,22 +660,40 @@ function _createProjectFilesFromSource {
     }
 
     New-Item $projectDirectory -type directory > $null
+    $projectDirectory
+}
+
+function _sf-proj-detectSolution ([SfProject]$project) {
+    if (_sf-proj-isSolution -project $project) {
+        $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
+        _createUserFriendlySlnName $project
+        _saveSelectedProject -context $project
+    }
+}
+
+function _sf-proj-tryCreateFromBranch {
+    param (
+        [Parameter(Mandatory = $true)][Sfproject]$project,
+        [Parameter(Mandatory = $true)][string]$sourcePath
+    )
 
     if ($sourcePath.StartsWith("$/CMS/")) {
+        $projectDirectory = _sf-proj-createProjectDirectory -project $project
         Write-Information "Creating project files..."
         $project.solutionPath = $projectDirectory;
         $project.webAppPath = "$projectDirectory\SitefinityWebApp";
         _createWorkspace -context $project -branch $sourcePath
     }
-    else {
-        if (!($sourcePath.EndsWith('.zip'))) {
-            $sourcePath = "$sourcePath\SitefinityWebApp.zip"
-        }
+}
 
-        if (!(Test-Path -Path $sourcePath)) {
-            throw "Source path does not exist $sourcePath or is unreachable."
-        }
+function _sf-proj-tryCreateFromZip {
+    param (
+        [Parameter(Mandatory = $true)][Sfproject]$project,
+        [Parameter(Mandatory = $true)][string]$sourcePath
+    )
 
+    if ($sourcePath.EndsWith('.zip')) {
+        $projectDirectory = _sf-proj-createProjectDirectory -project $project
         expand-archive -path $sourcePath -destinationpath $projectDirectory
         $isSolution = (Test-Path -Path "$projectDirectory/Telerik.Sitefinity.sln") -and (Test-Path "$projectDirectory/SitefinityWebApp")
         if ($isSolution) {
@@ -736,14 +703,6 @@ function _createProjectFilesFromSource {
         else {
             $project.webAppPath = "$projectDirectory"
         }
-    }
-}
-
-function _sf-proj-detectSolution ([SfProject]$project) {
-    if (_sf-proj-isSolution -project $project) {
-        $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
-        _createUserFriendlySlnName $project
-        _saveSelectedProject -context $project
     }
 }
 

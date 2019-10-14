@@ -257,3 +257,25 @@ function _sf-proj-promptSfsSelection ([SfProject[]]$sitefinities) {
 
     return $sfsToDelete
 }
+
+function _setConsoleTitle {
+    param (
+        [SfProject]$newContext
+    )
+
+    if ($newContext) {
+        $ports = @(iis-get-websitePort $newContext.websiteName)
+        if ($newContext.branch) {
+            $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
+        }
+        else {
+            $branch = '/no branch'
+        }
+
+        [System.Console]::Title = "$($newContext.displayName) ($($newContext.id)) $branch $ports "
+        Set-Location $newContext.webAppPath
+    }
+    else {
+        [System.Console]::Title = ""
+    }
+}

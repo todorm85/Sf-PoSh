@@ -102,18 +102,19 @@ function _sf-iis-site-delete ($websiteName) {
     
     $appPool = @(iis-get-siteAppPool $websiteName)
     $domain = (iis-get-binding $websiteName).domain
+    $errors = ''
     try {
-        Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse
+        Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse -ErrorAction SilentlyContinue -ErrorVariable +errors
     }
     catch {
-        throw "Error deleting website ${websiteName}: $_"
+        $errors += "Error deleting website ${websiteName}: $_"
     }
 
     try {
-        Remove-Item ("iis:\AppPools\$appPool") -Force -Recurse
+        Remove-Item ("iis:\AppPools\$appPool") -Force -Recurse -ErrorAction SilentlyContinue -ErrorVariable +errors
     }
     catch {
-        Write-Error "Error removing app pool $appPool Error: $_"
+        $errors += "Error removing app pool $appPool Error: $_"
     }
 
     try {
@@ -122,7 +123,11 @@ function _sf-iis-site-delete ($websiteName) {
         }
     }
     catch {
-        Write-Error "Error removing domain from hosts file. Error $_"        
+        $errors += "Error removing domain from hosts file. Error $_"        
+    }
+
+    if ($errors) {
+        throw $errors
     }
 }
 
