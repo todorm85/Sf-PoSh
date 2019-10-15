@@ -388,24 +388,21 @@ function sf-proj-rename {
 Undos all pending changes, gets latest, builds and initializes.
 #>
 function sf-proj-reset {
-    $project = sf-proj-getCurrent
-    if ($project.lastGetLatest -and [System.DateTime]::Parse($project.lastGetLatest) -lt [System.DateTime]::Today) {
-        $shouldReset = $false
-        if (sf-tfs-hasPendingChanges) {
-            sf-tfs-undoPendingChanges
-            $shouldReset = $true
-        }
+    $shouldReset = $false
+    if (sf-tfs-hasPendingChanges) {
+        sf-tfs-undoPendingChanges
+        $shouldReset = $true
+    }
 
-        $getLatestOutput = sf-tfs-getLatestChanges -overwrite
-        if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
-            $shouldReset = $true
-        }
+    $getLatestOutput = sf-tfs-getLatestChanges -overwrite
+    if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
+        $shouldReset = $true
+    }
 
-        if ($shouldReset) {
-            sf-sol-clean -cleanPackages $true
-            sf-app-reset -start -build -precompile
-            sf-app-states-save -stateName initial
-        }
+    if ($shouldReset) {
+        sf-sol-clean -cleanPackages $true
+        sf-app-reset -start -rebuild -precompile
+        sf-app-states-save -stateName initial
     }
 }
 
