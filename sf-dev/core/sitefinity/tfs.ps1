@@ -18,7 +18,7 @@ function sf-tfs-undoPendingChanges {
         throw "invalid or no solution path"
     }
     
-    tfs-undoPendingChanges $context.solutionPath
+    tfs-undo-PendingChanges $context.solutionPath
 }
 
 <#
