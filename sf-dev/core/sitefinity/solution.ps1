@@ -38,7 +38,7 @@ function sf-sol-build {
                 Write-Information "Build failed. Retrying..." 
             }
             else {
-                throw "Solution could not build after $retryCount retries."
+                throw "Solution could not build after $retryCount retries. $_"
             }
         }
     }

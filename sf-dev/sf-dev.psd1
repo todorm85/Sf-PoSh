@@ -20,6 +20,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            9.1.5
+                Bugfix: Error log not displayed when build fails
             9.1.4
                 Bugfix: Undoing pending changes
             9.1.3
