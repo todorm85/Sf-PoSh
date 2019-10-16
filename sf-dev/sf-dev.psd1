@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '9.1.4'
+    ModuleVersion     = '9.1.5'
     RequiredModules   = @(
         @{ModuleName = 'toko-admin'; ModuleVersion = '1.1.2'; MaximumVersion = '1.*' },
         @{ModuleName = 'toko-posh-dev-tools'; ModuleVersion = '0.1.0'; MaximumVersion = '0.*' }
