@@ -99,7 +99,7 @@ function sf-app-reset {
 
             try {
                 $appUrl = _getAppUrl
-                _startApp -url $appUrl
+                sf-app-start -url $appUrl
             }
             catch {
                 throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
@@ -118,7 +118,7 @@ function sf-app-reset {
     }
 }
 
-function _startApp {
+function sf-app-start {
     param(
         [Int32]$totalWaitSeconds = $Global:Sf.config.app.startupMaxWait
     )
