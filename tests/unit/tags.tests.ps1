@@ -14,83 +14,83 @@ InModuleScope sf-dev {
         sf-proj-setCurrent -newContext $([SfProject]::new())
 
         It "Add single tag to project" {
-            sf-proj-tags-add -tagName $testTag1
+            sf-proj-tags-addToCurrent -tagName $testTag1
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             $proj.tags | Should -Be $testTag1
             sf-proj-setCurrent $proj
-            sf-proj-tags-getAll | Should -Be $testTag1
+            sf-proj-tags-getAllFromCurrent | Should -Be $testTag1
         }
         It "Add multiple tags to project" {
             $expectedTags = "$testTag1 $testTag2 $testTag3"
-            sf-proj-tags-add $testTag2
-            sf-proj-tags-add $testTag3
+            sf-proj-tags-addToCurrent $testTag2
+            sf-proj-tags-addToCurrent $testTag3
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             $proj.tags | Should -Be $expectedTags
             sf-proj-setCurrent $proj
-            sf-proj-tags-getAll | Should -Be $expectedTags
+            sf-proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove tag from project" {
             $expectedTags = "$testTag1 $testTag3"
 
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             sf-proj-setCurrent $proj
-            sf-proj-tags-remove $testTag2
+            sf-proj-tags-removeFromCurrent $testTag2
             
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             sf-proj-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
-            sf-proj-tags-getAll | Should -Be $expectedTags
+            sf-proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove multiple tags from project" {
             $expectedTags = "$testTag1 $testTag4"
-            sf-proj-tags-add $testTag2
-            sf-proj-tags-add $testTag4
+            sf-proj-tags-addToCurrent $testTag2
+            sf-proj-tags-addToCurrent $testTag4
 
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             sf-proj-setCurrent $proj
-            sf-proj-tags-remove $testTag2
-            sf-proj-tags-remove $testTag3
+            sf-proj-tags-removeFromCurrent $testTag2
+            sf-proj-tags-removeFromCurrent $testTag3
             
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             sf-proj-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
-            sf-proj-tags-getAll | Should -Be $expectedTags
+            sf-proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove first tag" {
             $expectedTags = "$testTag4"
 
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             sf-proj-setCurrent $proj
-            sf-proj-tags-remove $testTag1
+            sf-proj-tags-removeFromCurrent $testTag1
             
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             sf-proj-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
-            sf-proj-tags-getAll | Should -Be $expectedTags
+            sf-proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove last tag" {
             $expectedTags = "$testTag4"
-            sf-proj-tags-add $testTag2
+            sf-proj-tags-addToCurrent $testTag2
 
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             sf-proj-setCurrent $proj
-            sf-proj-tags-remove $testTag2
+            sf-proj-tags-removeFromCurrent $testTag2
             
             [SfProject]$proj = (sf-data-getAllProjects)[0]
             sf-proj-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
-            sf-proj-tags-getAll | Should -Be $expectedTags
+            sf-proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Not accept tags starting with '-'" {
-            { sf-proj-tags-add "-ffd" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-proj-tags-addToCurrent "-ffd" } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
         It "Not accept tags with spaces" {
-            { sf-proj-tags-add "dffd dfds" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-proj-tags-addToCurrent "dffd dfds" } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
         It "Not accept Null or empty tags" {
-            { sf-proj-tags-add "   "} | Should -Throw -ExpectedMessage "Invalid tag name."
-            { sf-proj-tags-add "" } | Should -Throw -ExpectedMessage "Invalid tag name."
-            { sf-proj-tags-add $null } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-proj-tags-addToCurrent "   "} | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-proj-tags-addToCurrent "" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-proj-tags-addToCurrent $null } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
 
         sf-proj-remove -context $testProj -noPrompt

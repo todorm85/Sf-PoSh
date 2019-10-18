@@ -23,7 +23,7 @@ $tagCompleter = {
     }
 }
 
-function sf-proj-tags-add {
+function sf-proj-tags-addToCurrent {
     param (
         [string]$tagName
     )
@@ -41,9 +41,9 @@ function sf-proj-tags-add {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName sf-proj-tags-add -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName sf-proj-tags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sf-proj-tags-remove {
+function sf-proj-tags-removeFromCurrent {
     param (
         [string]$tagName
     )
@@ -61,15 +61,15 @@ function sf-proj-tags-remove {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName sf-proj-tags-remove -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName sf-proj-tags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sf-proj-tags-removeAll {
+function sf-proj-tags-removeAllFromCurrent {
     [SfProject]$project = sf-proj-getCurrent
     $project.tags = ''
     _saveSelectedProject -context $project
 }
 
-function sf-proj-tags-getAll {
+function sf-proj-tags-getAllFromCurrent {
     $project = sf-proj-getCurrent
     return $project.tags
 }
