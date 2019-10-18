@@ -21,7 +21,8 @@
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
             9.2.1
-                add sf-app-start
+                api sf-app-start
+                bug fixes
             9.1.5
                 Bugfix: Error log not displayed when build fails
             9.1.4
