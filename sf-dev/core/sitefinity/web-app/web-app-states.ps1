@@ -49,8 +49,12 @@ function sf-app-states-restore {
 
     $project = sf-proj-getCurrent
 
-    if ([string]::IsNullOrEmpty($stateName)) {
+    if (!$stateName) {
         $stateName = _selectAppState -context $context
+    }
+
+    if (!$stateName) {
+        return
     }
 
     sf-iis-pool-reset
@@ -143,9 +147,15 @@ function _getSqlCredentials {
 
 function _getStatesPath {
     $context = sf-proj-getCurrent
-    $path = "$($context.webAppPath)/sf-dev-tool/states"
+    $path = "$($context.webAppPath)/sf-dev-tool"
+    
+    if (!(Test-Path $path)) {
+        New-Item $path -ItemType Directory -ErrorAction Stop
+    }
+
+    $path = "$path/states"
     if (-not (Test-Path $path)) {
-        New-Item $path -ItemType Directory
+        New-Item $path -ItemType Directory -ErrorAction Stop
     }
     
     return $path
