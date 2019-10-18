@@ -729,6 +729,7 @@ function _sf-proj-detectSite ([Sfproject]$project) {
         $project.websiteName = $siteName
     }
     else {
+        $project.websiteName = ''
         Write-Warning "$errorMessgePrefix Could not detect website for the current project."
     }
 }
