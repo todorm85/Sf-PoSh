@@ -664,8 +664,12 @@ function _sf-proj-detectSolution ([SfProject]$project) {
     if (_sf-proj-isSolution -project $project) {
         $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
         _createUserFriendlySlnName $project
-        _saveSelectedProject -context $project
     }
+    else {
+        $project.solutionPath = ''
+    }
+
+    _saveSelectedProject -context $project
 }
 
 function _sf-proj-tryCreateFromBranch {
@@ -705,18 +709,22 @@ function _sf-proj-tryCreateFromZip {
 
 function _sf-proj-detectTfs ([SfProject]$project) {
     if (!(_sf-proj-isSolution -project $project)) {
-        return        
+        $project.branch = '';
+        _saveSelectedProject -context $project
+        return
     }
 
     $branch = tfs-get-branchPath -path $project.solutionPath
     if ($branch) {
         $project.branch = $branch
         _updateLastGetLatest -context $project
-        _saveSelectedProject -context $project
     }
     else {
+        $project.branch = '';
         Write-Warning "Could not detect source control branch"
     }
+
+    _saveSelectedProject -context $project
 }
 
 function _sf-proj-isSolution ([SfProject]$project) {
