@@ -175,6 +175,7 @@ function _sf-proj-tryUseExisting {
     sf-proj-setCurrent $project
     _sf-proj-refreshData -project $project
     _saveSelectedProject $project
+    return $true
 }
 
 function sf-proj-removeBulk {
@@ -639,12 +640,19 @@ function _createProjectFilesFromSource {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
     
-    _sf-proj-tryCreateFromBranch -project $project -sourcePath $sourcePath
+    $handled = _sf-proj-tryCreateFromBranch -project $project -sourcePath $sourcePath
     
-    _sf-proj-tryCreateFromZip -project $project -sourcePath $sourcePath
+    if (!$handled) {
+        $handled = _sf-proj-tryCreateFromZip -project $project -sourcePath $sourcePath
+    }
 
-    _sf-proj-tryUseExisting -project $project -path $sourcePath
-    
+    if (!$handled) {
+        $handled = _sf-proj-tryUseExisting -project $project -path $sourcePath
+    }
+
+    if (!$handled) {
+        throw "Source path does not exist"
+    }
 }
 
 function _sf-proj-createProjectDirectory {
@@ -686,6 +694,7 @@ function _sf-proj-tryCreateFromBranch {
         $project.solutionPath = $projectDirectory;
         $project.webAppPath = "$projectDirectory\SitefinityWebApp";
         _createWorkspace -context $project -branch $sourcePath
+        return $true
     }
 }
 
@@ -695,7 +704,7 @@ function _sf-proj-tryCreateFromZip {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
 
-    if ($sourcePath.EndsWith('.zip')) {
+    if ($sourcePath.EndsWith('.zip') -and (Test-Path $sourcePath)) {
         $projectDirectory = _sf-proj-createProjectDirectory -project $project
         expand-archive -path $sourcePath -destinationpath $projectDirectory
         $isSolution = (Test-Path -Path "$projectDirectory/Telerik.Sitefinity.sln") -and (Test-Path "$projectDirectory/SitefinityWebApp")
@@ -706,6 +715,8 @@ function _sf-proj-tryCreateFromZip {
         else {
             $project.webAppPath = "$projectDirectory"
         }
+
+        return $true
     }
 }
 

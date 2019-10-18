@@ -8,7 +8,6 @@ InModuleScope sf-dev {
         $GLOBAL:Sf.Config.projectsDirectory = "$TestDrive"
         Copy-Item -Path "$PSScriptRoot\..\test-utils\files\Build\SitefinityWebApp.zip" -Destination "$TestDrive"
         $appNoSolutionZipPath = "$TestDrive\SitefinityWebApp.zip"
-        $appNoSolutionFolderPath = "$TestDrive"
         Copy-Item -Path "$PSScriptRoot\..\test-utils\files\Build\SitefinitySource.zip" -Destination "$TestDrive"
         $appWithSolutionZipPath = "$TestDrive\SitefinitySource.zip"
 
@@ -17,15 +16,6 @@ InModuleScope sf-dev {
             [SfProject]$project = _newSfProjectObject -id $id
 
             _createProjectFilesFromSource -project $project -sourcePath $appNoSolutionZipPath
-
-            $project.webAppPath | Should -Be "$TestDrive\$id"
-            $project.solutionPath | Should -BeNullOrEmpty
-        }
-        It "Create files from archive when path to folder with zip with no solution" {
-            $id = generateRandomName
-            [SfProject]$project = _newSfProjectObject -id $id
-
-            _createProjectFilesFromSource -project $project -sourcePath $appNoSolutionFolderPath
 
             $project.webAppPath | Should -Be "$TestDrive\$id"
             $project.solutionPath | Should -BeNullOrEmpty
