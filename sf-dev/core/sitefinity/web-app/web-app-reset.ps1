@@ -140,7 +140,6 @@ function sf-app-start {
     Write-Information "Sitefinity is initializing"
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     while ($true) {
-        Write-Information "..."
         $response = _invokeNonTerminatingRequest $statusUrl
         if ($elapsed.Elapsed.TotalSeconds -gt $totalWaitSeconds) {
             throw "Sitefinity did NOT start in the specified maximum time"
