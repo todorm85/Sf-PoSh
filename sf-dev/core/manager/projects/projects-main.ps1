@@ -353,32 +353,35 @@ function sf-proj-rename {
     }
 
     $oldSolutionName = _generateSolutionFriendlyName -context $context
-    if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
-        _createUserFriendlySlnName -context $context
-    }
-
     $context.displayName = $newName
 
-    $newSolutionName = _generateSolutionFriendlyName -context $context
-    $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
-    if (Test-Path $oldSolutionPath) {
-        Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
-        
-        $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
-        $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
-        $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
-        if (Test-Path $oldSolutionCachePath) {
-            Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
-            unlock-allFiles -path $oldSolutionCachePath
-            Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+    if ($context.solutionPath) {
+        if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
+            _createUserFriendlySlnName -context $context
         }
-
-        unlock-allFiles -path $oldSolutionPath
-        Remove-Item -Path $oldSolutionPath -Force
+    
+        $newSolutionName = _generateSolutionFriendlyName -context $context
+        $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
+        if (Test-Path $oldSolutionPath) {
+            Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
+        
+            $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
+            $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
+            $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
+            if (Test-Path $oldSolutionCachePath) {
+                Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
+                unlock-allFiles -path $oldSolutionCachePath
+                Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+            }
+        
+            unlock-allFiles -path $oldSolutionPath
+            Remove-Item -Path $oldSolutionPath -Force
+        }
     }
     
     $domain = _generateDomainName -context $context
     _changeDomain -domainName $domain
+    Set-Prompt -project $context
     
     _saveSelectedProject $context
 }
@@ -427,7 +430,6 @@ function sf-proj-setCurrent {
     } 
 
     $Script:globalContext = $newContext
-    _setConsoleTitle -newContext $newContext
     Set-Prompt -project $newContext
 }
 

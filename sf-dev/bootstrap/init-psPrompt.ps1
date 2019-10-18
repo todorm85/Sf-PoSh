@@ -11,6 +11,8 @@ function Set-Prompt {
         [SfProject]$project
     )
 
+    _setConsoleTitle -newContext $project
+
     $projectName = $project.displayName
     if ($projectName) {
         $prompt = " [$projectName]"

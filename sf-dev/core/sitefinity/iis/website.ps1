@@ -138,6 +138,9 @@ function _changeDomain {
 
     $context = sf-proj-getCurrent
     $websiteName = $context.websiteName
+    if (!$websiteName) {
+        return
+    }
 
     $oldDomain = (iis-get-binding $websiteName).domain
     if ($oldDomain) {
