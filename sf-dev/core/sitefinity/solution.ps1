@@ -163,7 +163,7 @@ function sf-sol-open {
 
     $vsPath = $Global:Sf.config.vsPath
     if (!(Test-Path $vsPath)) {
-        throw "Invalid visual studio path configured ($vsPath). Configure it in $Script:userConfigPath -> vsPath"
+        throw "Invalid visual studio path configured ($vsPath). Configure it in $Script:moduleUserDir -> vsPath"
     }
 
     execute-native "& `"$vsPath`" `"$path\$projectName`"" -successCodes @(1)
@@ -212,7 +212,7 @@ function _buildProj {
     Write-Information "Building ${path}"
 
     if (!(Test-Path $Global:Sf.config.msBuildPath)) {
-        throw "Invalid ms build tools path configured $($Global:Sf.config.msBuildPath). Configure it in $Script:userConfigPath -> msBuildPath"
+        throw "Invalid ms build tools path configured $($Global:Sf.config.msBuildPath). Configure it in $Script:moduleUserDir -> msBuildPath"
     }
 
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()

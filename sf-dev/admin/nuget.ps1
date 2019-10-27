@@ -1,6 +1,6 @@
 # Get Nuget.exe
 $nugetDownloadLink = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
-$toolDir = "$Script:externalToolsPath\nuget"
+$toolDir = "$Script:moduleUserDir\external-tools\nuget"
 if (!(Test-Path $toolDir)) {
     New-Item -Path $toolDir -ItemType Directory
 }

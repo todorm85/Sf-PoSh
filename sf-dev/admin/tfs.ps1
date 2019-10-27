@@ -9,7 +9,7 @@ function tfs-get-workspaces ($server) {
 function _get-tfPath {
     $path = $GLOBAL:sf.config.tfPath
     if (!(Test-Path -Path $path)) {
-        throw "Wrong configuration path for tf.exe tool. Not found in $path. Configure it in $($Script:userConfigPath) -> tfPath. It should be preinstalled with Visual Studio."
+        throw "Wrong configuration path for tf.exe tool. Not found in $path. Configure it in $($Script:moduleUserDir) -> tfPath. It should be preinstalled with Visual Studio."
     }
 
     $path
@@ -60,25 +60,6 @@ function tfs-create-workspace {
         }
 
         throw "WORKSPACE NOT CREATED! Error removing default workspace mapping $/. Message: $_"
-    }
-}
-
-function tfs-rename-workspace {
-    Param(
-        [Parameter(Mandatory = $true)][string]$path,
-        [Parameter(Mandatory = $true)][string]$newWorkspaceName,
-        [Parameter(Mandatory = $true)][string]$server
-    )
-    
-    try {
-        $oldLocation = Get-Location
-        Set-Location $path
-        execute-native "& `"$(_get-tfPath)`" workspace /newname:$newWorkspaceName /noprompt /server:$server"
-        Set-Location $oldLocation
-    }
-    catch {
-        Write-Error "Failed to rename workspace. Error: $($_.Exception)"
-        return
     }
 }
 

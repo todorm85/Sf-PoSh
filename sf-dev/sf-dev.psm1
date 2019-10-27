@@ -2,8 +2,13 @@ Import-Module WebAdministration
 
 $GLOBAL:Sf = [PSCustomObject]@{}
 
-. "$PSScriptRoot/bootstrap/bootstrap.ps1"
+$Script:moduleUserDir = "$Global:HOME\documents\sf-dev"
+if (-not (Test-Path $Script:moduleUserDir)) {
+    New-Item -Path $Script:moduleUserDir -ItemType Directory
+}
 
-$GLOBAL:Sf.sql.Configure($GLOBAL:Sf.Config.sqlUser, $GLOBAL:Sf.Config.sqlPass, $GLOBAL:Sf.Config.sqlServerInstance)
+. "${PSScriptRoot}/bootstrap/config/init-config.ps1"
+. "${PSScriptRoot}/bootstrap/init-psPrompt.ps1"
+. "${PSScriptRoot}/bootstrap/load-scripts.ps1"
 
 Export-ModuleMember -Function * -Alias *

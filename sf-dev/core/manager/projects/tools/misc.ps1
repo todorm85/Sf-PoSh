@@ -67,9 +67,9 @@ function sf-proj-tools-clearAllProjectsLeftovers {
     try {
         Write-Information "DBs cleanup"
         
-        $dbs = $GLOBAL:Sf.sql.GetDbs()
+        $dbs = sql-get-dbs
         $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:Sf.Config.idPrefix)") -and (_shouldClean $_.name) } | ForEach-Object {
-            $GLOBAL:Sf.sql.Delete($_.name)
+            sql-delete-database -dbName $_.name
         }
     }
     catch {

@@ -35,7 +35,7 @@ function sf-iis-site-open {
     $browserPath = $GLOBAL:Sf.Config.browserPath;
     $appUrl = _getAppUrl
     if (!(Test-Path $browserPath)) {
-        throw "Invalid browser path configured ($browserPath). Configure it in $Script:userConfigPath -> browserPath"
+        throw "Invalid browser path configured ($browserPath). Configure it in $Script:moduleUserDir -> browserPath"
     }
 
     if (-not $useExistingBrowser) {

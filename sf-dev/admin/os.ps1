@@ -2,7 +2,7 @@ $Script:hostsPath = "$($env:windir)\system32\Drivers\etc\hosts"
 
 # Get the Handle.exe tool by Sysinternals
 $handleLink = "https://download.sysinternals.com/files/Handle.zip"
-$handleExternalToolsDir = "$Script:externalToolsPath\handle"
+$handleExternalToolsDir = "$Script:moduleUserDir\external-tools\handle"
 if (!(Test-Path $handleExternalToolsDir)) {
     New-Item -Path $handleExternalToolsDir -ItemType Directory
 }
@@ -30,7 +30,7 @@ function os-popup-notification {
 
     $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon 
 
-    $objNotifyIcon.Icon = "${PSScriptRoot}\..\resources\icon.ico"
+    $objNotifyIcon.Icon = "${PSScriptRoot}\resources\icon.ico"
     $objNotifyIcon.BalloonTipIcon = "Info"
     $objNotifyIcon.BalloonTipText = $msg
     $objNotifyIcon.BalloonTipTitle = "Powershell operation done."

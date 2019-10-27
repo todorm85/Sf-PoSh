@@ -116,8 +116,8 @@ function sf-proj-clone {
 
     $oldProject = $context
     $sourceDbName = _sf-app-db-getName $oldProject.webAppPath
-    
-    if ($sourceDbName -and $GLOBAL:Sf.sql.isDuplicate($sourceDbName)) {
+    $isDuplicate = sql-test-isDbNameDuplicate -dbName $sourceDbName
+    if ($sourceDbName -and $isDuplicate) {
         $newDbName = $newProject.id
         try {
             sf-app-db-setName $newDbName -context $newProject
@@ -127,7 +127,7 @@ function sf-proj-clone {
         }
                 
         try {
-            $GLOBAL:Sf.sql.CopyDb($sourceDbName, $newDbName)
+            sql-copy-db -SourceDBName $sourceDbName -targetDbName $newDbName
         }
         catch {
             Write-Error "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
@@ -273,7 +273,7 @@ function sf-proj-remove {
         Write-Information "Deleting sitefinity database..."
         
         try {
-            $GLOBAL:Sf.sql.Delete($dbName)
+            sql-delete-database -dbName $dbName
         }
         catch {
             Write-Warning "Could not delete database: ${dbName}. $_"
@@ -563,7 +563,7 @@ function _getIsIdDuplicate ($id) {
         if ($names) { return $true }
     }
     
-    $dbs = $GLOBAL:Sf.sql.GetDbs() | Where-Object { _isDuplicate $_.name }
+    $dbs = sql-get-dbs | Where-Object { _isDuplicate $_.name }
     if ($dbs) { return $true }
 
     return $false;

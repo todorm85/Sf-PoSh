@@ -27,18 +27,18 @@ InModuleScope sf-dev {
             $table = 'sf_xml_config_items'
             $columns = "path, dta, last_modified, id"
             $values = "'test', '<testConfigs/>', '$([System.DateTime]::Now.ToString())', '$([System.Guid]::NewGuid())'"
-            $GLOBAL:Sf.sql.InsertItems($dbName, $table, $columns, $values)
+            sql-insert-items -dbName $dbName -tableName $table -columns $columns -values $values
 
             $select = 'dta'
             $where = "dta = '<testConfigs/>'"
-            $config = $GLOBAL:Sf.sql.GetItems($dbName, $table, $where, $select)
+            $config = sql-get-items -dbName $dbName -tableName $table -whereFilter $where -selectFilter $select
             $config | Should -Not -BeNullOrEmpty
 
             sf-app-states-restore -stateName $stateName
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse
-            $config = $GLOBAL:Sf.sql.GetItems($dbName, $table, $where, $select)
+            $config = sql-get-items -dbName $dbName -selectFilter $select -whereFilter $where -tableName $table 
             $config | Should -BeNullOrEmpty
         }
     }

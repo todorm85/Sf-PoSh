@@ -8,7 +8,7 @@ function sf-app-states-save {
     $project = sf-proj-getCurrent
     
     $dbName = sf-app-db-getName
-    $db = $GLOBAL:Sf.sql.GetDbs() | Where-Object { $_.Name -eq $dbName }
+    $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
     }
@@ -66,7 +66,7 @@ function sf-app-states-restore {
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
     
-    $GLOBAL:Sf.sql.Delete($dbName)
+    sql-delete-database -dbName $dbName
     $backupName = _getSqlBackupStateName -stateName $stateName
     Restore-SqlDatabase -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials)
 

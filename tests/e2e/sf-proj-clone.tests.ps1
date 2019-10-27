@@ -13,7 +13,7 @@ InModuleScope sf-dev {
             sf-proj-remove -noPrompt -context $_
         }
         
-        $GLOBAL:Sf.sql.GetDbs() | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
+        sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
 
         # edit a file in source project and mark as changed in TFS
         $webConfigPath = "$($sourceProj.webAppPath)\web.config"
@@ -73,7 +73,7 @@ InModuleScope sf-dev {
         }
 
         It "create a copy of db" {
-            $GLOBAL:Sf.sql.GetDbs() | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
+            sql-get-dbs | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
         }
     }
 }

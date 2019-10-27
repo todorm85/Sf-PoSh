@@ -10,12 +10,12 @@ InModuleScope sf-dev {
         Test-Path $configsPath | Should -Be $true
         $dbName = sf-app-db-getName
         $dbName | Should -Not -BeNullOrEmpty
-        $GLOBAL:Sf.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+        sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
 
         sf-app-reset
 
         It "remove app data and database" {            
-            $GLOBAL:Sf.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
+            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
             Test-Path $configsPath | Should -Be $false            
         }
 
@@ -23,7 +23,7 @@ InModuleScope sf-dev {
             sf-app-reset -start
             Test-Path $configsPath | Should -Be $true
             $dbName = _sf-app-db-getName  $project.webAppPath
-            $GLOBAL:Sf.sql.GetDbs() | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
         }
     }
 }

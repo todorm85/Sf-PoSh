@@ -156,7 +156,7 @@ function sf-app-configs-getFromDb {
 
     $dbName = sf-app-db-getName
     
-    $config = $GLOBAL:Sf.sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
+    $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
 
     if ($null -ne $config -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -188,7 +188,7 @@ function sf-app-configs-clearInDb {
     $value = "dta = '<${configName}/>'"
     $where = "path='${configName}.config'"
     
-    $GLOBAL:Sf.sql.UpdateItems($dbName, $table, $where, $value)
+    sql-update-items -dbName $dbName -whereFilter $where -tableName $table -value $value
 }
 
 <#
@@ -215,7 +215,6 @@ function sf-app-configs-setInDb {
     $xmlString = Get-Content $filePath -Raw
     $value = "dta='$xmlString'"
     $where = "path='${configName}.config'"
-
     
-    $GLOBAL:Sf.sql.UpdateItems($dbName, $table, $where, $value)
+    sql-update-items -dbName $dbName -tableName $table -whereFilter $where -value $value
 }

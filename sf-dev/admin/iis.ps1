@@ -26,62 +26,6 @@ function iis-get-usedPorts {
     Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object {$_.split(':')[-2]}
 }
 
-function iis-get-appPoolApps ($appPoolName) {
-    $sites = get-webconfigurationproperty "/system.applicationHost/sites/site/application[@applicationPool=`'$appPoolName`'and @path='/']/parent::*" machine/webroot/apphost -name name
-    $apps = get-webconfigurationproperty "/system.applicationHost/sites/site/application[@applicationPool=`'$appPoolName`'and @path!='/']" machine/webroot/apphost -name path
-    $arr = @()
-    if ($null -ne $sites) {$arr += $sites}
-    if ($null -ne $apps) {$arr += $apps}
-    return $arr
-}
-
-function iis-create-appPool {
-    Param(
-        [Parameter(Mandatory = $true)][string]$appPool,
-        [Parameter(Mandatory = $true)][string]$windowsUserPassword
-    )
-    # CreateAppPool
-    New-Item ("IIS:\AppPools\${appPool}") | Set-ItemProperty -Name "managedRuntimeVersion" -Value "v4.0"
-    $userName = [Environment]::UserName
-    Set-ItemProperty ("IIS:\AppPools\${appPool}") -Name "processModel" -value @{userName = "progress\${userName}"; password = $windowsUserPassword; identitytype = 3}
-}
-
-function iis-get-appPools {
-    
-    @(Get-ChildItem ("IIS:\AppPools"))
-}
-
-function iis-delete-appPool ($appPoolName) {
-    # display app pools with websites
-    if ($appPoolName -eq '' -or $null -eq $appPoolName) {
-        $appPools = @(Get-ChildItem ("IIS:\AppPools"))
-        $appPools
-
-        foreach ($pool in $appPools) {
-            $index = [array]::IndexOf($appPools, $pool)
-            Write-Host "$index : $($pool.name)"
-        }
-
-        while ($true) {
-            [int]$choice = Read-Host -Prompt 'Choose appPool'
-            $selectedPool = $appPools[$choice]
-            if ($null -ne $selectedPool) {
-                break;
-            }
-        }
-
-        $appPoolName = $selectedPool.name
-    }
-    
-    $apps = iis-get-appPoolApps $appPoolName
-    if ($apps.Length -gt 0) {
-        Write-Warning 'CANNOT DELETE APP POOL! AppPool has websites and apps hosted'
-    }
-    else {
-        Remove-WebAppPool -Name $appPoolName
-    }
-}
-
 function iis-create-website {
     Param(
         [Parameter(Mandatory = $true)][string]$newWebsiteName,
@@ -178,15 +122,6 @@ function iis-get-subAppName {
 
     $appNames = Get-Item "iis:\Sites\$websiteName\*" | Where-Object { $_.GetType().Name -eq "ConfigurationElement" } | ForEach-Object { $_.Name }
     return @($appNames)[0]
-}
-
-function iis-rename-website {
-    Param(
-        [string]$name,
-        [string]$newName
-    )
-    
-    Rename-Item "IIS:\Sites\$name" "$newName"
 }
 
 function iis-new-subApp {
