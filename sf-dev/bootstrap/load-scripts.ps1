@@ -7,5 +7,7 @@ function Load-InitScriptFiles ($path) {
 }
 
 # Do not dot source in function scope it won`t be loaded inside the module
-Load-ScriptFiles "$PSScriptRoot\..\core" | ForEach-Object { . $_.FullName }
 Load-InitScriptFiles "$PSScriptRoot\..\core" | ForEach-Object { . $_.FullName }
+Load-InitScriptFiles "$PSScriptRoot\..\admin" | ForEach-Object { . $_.FullName }
+Load-ScriptFiles "$PSScriptRoot\..\core" | ForEach-Object { . $_.FullName }
+Load-ScriptFiles "$PSScriptRoot\..\admin" | ForEach-Object { . $_.FullName }

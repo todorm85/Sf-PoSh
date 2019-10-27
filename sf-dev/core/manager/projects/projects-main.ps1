@@ -117,7 +117,7 @@ function sf-proj-clone {
     $oldProject = $context
     $sourceDbName = _sf-app-db-getName $oldProject.webAppPath
     
-    if ($sourceDbName -and $tokoAdmin.sql.isDuplicate($sourceDbName)) {
+    if ($sourceDbName -and $GLOBAL:Sf.sql.isDuplicate($sourceDbName)) {
         $newDbName = $newProject.id
         try {
             sf-app-db-setName $newDbName -context $newProject
@@ -127,7 +127,7 @@ function sf-proj-clone {
         }
                 
         try {
-            $tokoAdmin.sql.CopyDb($sourceDbName, $newDbName)
+            $GLOBAL:Sf.sql.CopyDb($sourceDbName, $newDbName)
         }
         catch {
             Write-Error "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
@@ -273,7 +273,7 @@ function sf-proj-remove {
         Write-Information "Deleting sitefinity database..."
         
         try {
-            $tokoAdmin.sql.Delete($dbName)
+            $GLOBAL:Sf.sql.Delete($dbName)
         }
         catch {
             Write-Warning "Could not delete database: ${dbName}. $_"
@@ -563,7 +563,7 @@ function _getIsIdDuplicate ($id) {
         if ($names) { return $true }
     }
     
-    $dbs = $tokoAdmin.sql.GetDbs() | Where-Object { _isDuplicate $_.name }
+    $dbs = $GLOBAL:Sf.sql.GetDbs() | Where-Object { _isDuplicate $_.name }
     if ($dbs) { return $true }
 
     return $false;

@@ -5,6 +5,7 @@
     "vsPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\devenv.exe",
     "msBuildPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\Bin\\MSBuild.exe",
     "tfsServerName": "https://tfsemea.progress.com/defaultcollection",
+    "tfPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\Common7\\IDE\\CommonExtensions\\Microsoft\\TeamFoundation\\Team Explorer\\TF.exe",
     "sitefinityUser": "admin@test.test",
     "sitefinityPassword": "admin@2",
     "sqlServerInstance": ".",

@@ -76,7 +76,7 @@ function sf-app-reset {
         if ($dbName) {
             Write-Information "Deleting database..."
             try {
-                $tokoAdmin.sql.Delete($dbName)
+                $GLOBAL:Sf.sql.Delete($dbName)
             }
             catch {
                 throw "Erros while deleting database: $_"
@@ -222,7 +222,7 @@ function _createStartupConfig {
             }
         }
         
-        if (($tokoAdmin.sql.isDuplicate($dbName)) -or [string]::IsNullOrEmpty($dbName)) {
+        if (($GLOBAL:Sf.sql.isDuplicate($dbName)) -or [string]::IsNullOrEmpty($dbName)) {
             throw "Error creating startup.config. Database with name $dbName already exists."
         }
 

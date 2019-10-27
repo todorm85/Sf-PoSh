@@ -27,18 +27,18 @@ InModuleScope sf-dev {
             $table = 'sf_xml_config_items'
             $columns = "path, dta, last_modified, id"
             $values = "'test', '<testConfigs/>', '$([System.DateTime]::Now.ToString())', '$([System.Guid]::NewGuid())'"
-            $tokoAdmin.sql.InsertItems($dbName, $table, $columns, $values)
+            $GLOBAL:Sf.sql.InsertItems($dbName, $table, $columns, $values)
 
             $select = 'dta'
             $where = "dta = '<testConfigs/>'"
-            $config = $tokoAdmin.sql.GetItems($dbName, $table, $where, $select)
+            $config = $GLOBAL:Sf.sql.GetItems($dbName, $table, $where, $select)
             $config | Should -Not -BeNullOrEmpty
 
             sf-app-states-restore -stateName $stateName
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse
-            $config = $tokoAdmin.sql.GetItems($dbName, $table, $where, $select)
+            $config = $GLOBAL:Sf.sql.GetItems($dbName, $table, $where, $select)
             $config | Should -BeNullOrEmpty
         }
     }

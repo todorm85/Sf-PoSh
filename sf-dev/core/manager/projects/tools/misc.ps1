@@ -67,9 +67,9 @@ function sf-proj-tools-clearAllProjectsLeftovers {
     try {
         Write-Information "DBs cleanup"
         
-        $dbs = $tokoAdmin.sql.GetDbs()
+        $dbs = $GLOBAL:Sf.sql.GetDbs()
         $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:Sf.Config.idPrefix)") -and (_shouldClean $_.name) } | ForEach-Object {
-            $tokoAdmin.sql.Delete($_.name)
+            $GLOBAL:Sf.sql.Delete($_.name)
         }
     }
     catch {

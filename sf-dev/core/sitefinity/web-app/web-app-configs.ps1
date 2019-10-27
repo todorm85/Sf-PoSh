@@ -156,7 +156,7 @@ function sf-app-configs-getFromDb {
 
     $dbName = sf-app-db-getName
     
-    $config = $tokoAdmin.sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
+    $config = $GLOBAL:Sf.sql.GetItems($dbName, 'sf_xml_config_items', "path='${configName}.config'", 'dta')
 
     if ($null -ne $config -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -188,7 +188,7 @@ function sf-app-configs-clearInDb {
     $value = "dta = '<${configName}/>'"
     $where = "path='${configName}.config'"
     
-    $tokoAdmin.sql.UpdateItems($dbName, $table, $where, $value)
+    $GLOBAL:Sf.sql.UpdateItems($dbName, $table, $where, $value)
 }
 
 <#
@@ -217,5 +217,5 @@ function sf-app-configs-setInDb {
     $where = "path='${configName}.config'"
 
     
-    $tokoAdmin.sql.UpdateItems($dbName, $table, $where, $value)
+    $GLOBAL:Sf.sql.UpdateItems($dbName, $table, $where, $value)
 }
