@@ -1,3 +1,5 @@
+Import-Module WebAdministration
+
 $GLOBAL:Sf = [PSCustomObject]@{}
 
 . "$PSScriptRoot/bootstrap/bootstrap.ps1"
