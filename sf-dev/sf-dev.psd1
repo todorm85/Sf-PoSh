@@ -12,7 +12,7 @@
     AliasesToExport   = '*'
     ModuleVersion     = '9.2.2'
     RequiredModules   = @(
-        @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' },
+        @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
     PrivateData       = @{
         PSData = @{
