@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '9.3.1'
+    ModuleVersion     = '10.1.1'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,6 +18,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            10.1.1
+                Remove import web administration
             9.3.1
                 Removed unused functions
                 Refactoring of sql api, no more global state object
