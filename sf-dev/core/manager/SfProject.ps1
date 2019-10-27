@@ -1,7 +1,6 @@
 $definition = @"
 public class SfProject
 {
-    public string[] predefinedBranches { get; set; }
     public string id { get; set; }
     public string displayName { get; set; }
     public string solutionPath { get; set; }
