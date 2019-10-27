@@ -434,6 +434,10 @@ function sf-proj-setCurrent {
     Set-Prompt -project $newContext
 }
 
+function sf-proj-getAll {
+    sf-data-getAllProjects
+}
+
 function _getAzureDevOpsTitleAndLink {
     Param([string]$name)
     $description = ''

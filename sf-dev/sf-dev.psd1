@@ -6,11 +6,11 @@
     Description       = 'Manage Sitefinity instances on local machine. Docs: https://github.com/todorm85/sitefinity-dev-orchestration/blob/master/README.md'
     PowerShellVersion = '5.1'
     CLRVersion        = '4.0'
-    FunctionsToExport = 'sf-data-getAllProjects', 'sf-proj-tools-StartAllProjectsBatch', 'sf-proj-setDescription', 'sf-proj-new', 'sf-proj-clone', 'sf-proj-removeBulk', 'sf-proj-remove', 'sf-proj-rename', 'sf-proj-reset', 'sf-proj-setCurrent', 'sf-proj-getCurrent', 'sf-proj-getDescription', 'sf-proj-tags-addToCurrent', 'sf-proj-tags-removeFromCurrent', 'sf-proj-tags-removeAllFromCurrent', 'sf-proj-tags-getAll', 'sf-proj-tags-setDefaultFilter', 'sf-proj-tags-getDefaultFilter', 'sf-proj-tools-updateAllProjectsTfsInfo', 'sf-proj-tools-clearAllProjectsLeftovers', 'sf-proj-tools-goto', 'sf-proj-select', 'sf-proj-show', 'sf-proj-showAll', 'sf-sol-build', 'sf-sol-rebuild', 'sf-sol-clean', 'sf-sol-clearPackages', 'sf-sol-open', 'sf-sol-buildWebAppProj', 'sf-sol-unlockAllFiles', 'sf-tfs-undoPendingChanges', 'sf-tfs-showPendingChanges', 'sf-tfs-hasPendingChanges', 'sf-tfs-getLatestChanges', 'sf-iis-pool-resetThread', 'sf-iis-pool-reset', 'sf-iis-pool-stop', 'sf-iis-pool-change', 'sf-iis-pool-getId', 'sf-iis-subApp-set', 'sf-iis-subApp-remove', 'sf-iis-site-rename', 'sf-iis-site-open', 'sf-iis-site-new', 'sf-app-configs-setStorageMode', 'sf-app-configs-getStorageMode', 'sf-app-configs-getFromDb', 'sf-app-configs-clearInDb', 'sf-app-configs-setInDb', 'sf-app-db-getName', 'sf-app-db-setName', 'sf-app-reset', 'sf-app-addPrecompiledTemplates', 'sf-app-states-save', 'sf-app-states-restore', 'sf-app-states-remove', 'sf-app-states-removeAll', 'sf-app-start', 'unlock-allFiles', 'Add-ToHostsFile', 'Remove-FromHostsFile', 'os-popup-notification'
+    FunctionsToExport = 'sf-data-getAllProjects', 'sf-proj-tools-StartAllProjectsBatch', 'sf-proj-setDescription', 'sf-proj-new', 'sf-proj-clone', 'sf-proj-removeBulk', 'sf-proj-remove', 'sf-proj-rename', 'sf-proj-reset', 'sf-proj-setCurrent', 'sf-proj-getCurrent', 'sf-proj-getDescription', 'sf-proj-tags-addToCurrent', 'sf-proj-tags-removeFromCurrent', 'sf-proj-tags-removeAllFromCurrent', 'sf-proj-tags-getAll', 'sf-proj-tags-setDefaultFilter', 'sf-proj-tags-getDefaultFilter', 'sf-proj-tools-updateAllProjectsTfsInfo', 'sf-proj-tools-clearAllProjectsLeftovers', 'sf-proj-tools-goto', 'sf-proj-select', 'sf-proj-show', 'sf-proj-showAll', 'sf-sol-build', 'sf-sol-rebuild', 'sf-sol-clean', 'sf-sol-clearPackages', 'sf-sol-open', 'sf-sol-buildWebAppProj', 'sf-sol-unlockAllFiles', 'sf-tfs-undoPendingChanges', 'sf-tfs-showPendingChanges', 'sf-tfs-hasPendingChanges', 'sf-tfs-getLatestChanges', 'sf-iis-pool-resetThread', 'sf-iis-pool-reset', 'sf-iis-pool-stop', 'sf-iis-pool-change', 'sf-iis-pool-getId', 'sf-iis-subApp-set', 'sf-iis-subApp-remove', 'sf-iis-site-rename', 'sf-iis-site-open', 'sf-iis-site-new', 'sf-app-configs-setStorageMode', 'sf-app-configs-getStorageMode', 'sf-app-configs-getFromDb', 'sf-app-configs-clearInDb', 'sf-app-configs-setInDb', 'sf-app-db-getName', 'sf-app-db-setName', 'sf-app-reset', 'sf-app-addPrecompiledTemplates', 'sf-app-states-save', 'sf-app-states-restore', 'sf-app-states-remove', 'sf-app-states-removeAll', 'sf-app-start', 'unlock-allFiles', 'Add-ToHostsFile', 'Remove-FromHostsFile', 'os-popup-notification', 'sf-proj-getAll'
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '10.1.1'
+    ModuleVersion     = '10.2.1'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,6 +18,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            10.2.1
+                add sf-proj-getAll
             10.1.1
                 Remove import web administration
             9.3.1
