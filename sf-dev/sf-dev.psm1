@@ -1,5 +1,3 @@
-Import-Module WebAdministration
-
 $GLOBAL:Sf = [PSCustomObject]@{}
 
 $Script:moduleUserDir = "$Global:HOME\documents\sf-dev"
