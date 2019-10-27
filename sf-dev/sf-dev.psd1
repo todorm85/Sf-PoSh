@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '9.2.2'
+    ModuleVersion     = '9.3.1'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,6 +18,11 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            9.3.1
+                Removed unused functions
+                Refactoring of sql api, no more global state object
+                Remove unused functions
+                Add hosts file functions to API
             9.2.2
                 Removed dependencies to toko-admin and toko-posh-dev-tools
             9.2.1
