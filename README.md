@@ -13,28 +13,19 @@ To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/
 ## Requirements
 
 - Powershell 5.1
-- MSBuild.exe and TF.exe (Come with Visual Studio 2015 or later)
-- SQL Server PowerShell Module (SQLPS) (Comes with SQL Server Management Studio)
+- VS 2017 (or other, but needs configuration)
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
-- WebAdministration module (this should already be installed if IIS is enabled)
+- Enabled IIS server feature, which should add the WebADministration powershell module
 
 ## Links
 
-[Docs](./docs.md)
-
 [Release Notes](./sf-dev/sf-dev.psd1)
 
-## Tips & Tricks
-
-- iterate through all projects and perform operations
-    ```PowerShell
-    # this function comes from the module and can be used to iterate and perform operations on each project managed by the module
-    proj_tools_StartAllProjectsBatch {
-        Param([SfProject]$project)
-        if ($project.displayName -eq 'myProject' -or $project.branch.StartsWith("Fixes_")) {
-            # do stuff with $project
-        }
-    }
-    ```
-
-    
+## Quickstart
+In powershell console window type:
+``` PowerShell
+Import-Module sf-dev
+sf- #then press ctrl + space, which should list all commands
+sf-proj- #then ctrl+space, would list all related to module`s projects etc.
+sf-proj-new -displayName test -sourcePath "any path to sitefinity web app zip or tfs branch" # this creates a new project with which the tool can work. It is automatically selected for the current session. All commands that are executed in the powershell session are modifying the currently selected project - it should be displayed on the prompt and on the console status bar.
+```
