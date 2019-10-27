@@ -101,7 +101,7 @@ function unlock-allFiles ($path) {
     }
 }
 
-function Add-ToHostsFile ($address, $hostname) {
+function Add-ToHostsFile ($hostname, $address = 127.0.0.1) {
     If ((Get-Content $Script:hostsPath) -notcontains "$address $hostname") {
         Add-Content -Encoding utf8 $Script:hostsPath "$address $hostname" -ErrorAction Stop
     }
