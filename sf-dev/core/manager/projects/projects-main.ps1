@@ -475,7 +475,7 @@ function _getValidTitle {
     }
 
     while (!($title[$title.Length - 1] -match $validStartEnd)) {
-        $title = $title.Substring($title.Length - 2)
+        $title = $title.Substring(0, $title.Length - 1)
     }
 
     $resultTitle = '';

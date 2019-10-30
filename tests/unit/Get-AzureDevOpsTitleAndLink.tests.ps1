@@ -30,5 +30,10 @@ InModuleScope sf-dev {
             $res = _getAzureDevOpsTitleAndLink -name $testName
             $res.name | Should -BeLike "All_classifications_screen__4448_55bs"
         }
+        It "return correct title for valid azure dev ops BUG title that ends with invalid character" {
+            $testName = "Bug 343346: Audit should not log the event when a frontend user signs in using frontend login widget."
+            $res = _getAzureDevOpsTitleAndLink -name $testName
+            $res.name | Should -BeLike "Audit_should_not_log_the_event_when_a_frontend_use"
+        }
     }
 }
