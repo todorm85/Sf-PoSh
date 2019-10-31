@@ -9,18 +9,6 @@ function iis-get-websitePort {
     (iis-get-binding $webAppName).port
 }
 
-function iis-show-appPoolPid {
-    try {
-        execute-native '& "C:\Windows\System32\inetsrv\appcmd.exe" list wps'
-        
-    }
-    catch {
-        if ($LASTEXITCODE -ne 1) {
-            throw $_
-        }
-    }
-}
-
 function iis-get-usedPorts {
 
     Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object {$_.split(':')[-2]}
