@@ -16,7 +16,7 @@
 #>
 function sf-proj-new {
     Param(
-        [Parameter(Mandatory = $true)][string]$sourcePath,
+        [string]$sourcePath,
         [string]$displayName = 'Untitled'
     )
 
@@ -644,17 +644,10 @@ function _createProjectFilesFromSource {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
     
-    $handled = _sf-proj-tryCreateFromBranch -project $project -sourcePath $sourcePath
-    
-    if (!$handled) {
-        $handled = _sf-proj-tryCreateFromZip -project $project -sourcePath $sourcePath
-    }
-
-    if (!$handled) {
-        $handled = _sf-proj-tryUseExisting -project $project -path $sourcePath
-    }
-
-    if (!$handled) {
+    if (!(_sf-proj-tryCreateFromBranch -project $project -sourcePath $sourcePath) -and
+        !(_sf-proj-tryCreateFromZip -project $project -sourcePath $sourcePath) -and
+        !(_sf-proj-tryUseExisting -project $project -path $sourcePath)
+    ) {
         throw "Source path does not exist"
     }
 }
