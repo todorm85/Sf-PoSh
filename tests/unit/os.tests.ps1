@@ -71,4 +71,44 @@ InModuleScope sf-dev {
             $ids | Should -HaveCount 0
         }
     }
+
+    Describe "Hosts file operations" {
+        $Script:hostsPath = "TestDrive:\hosts"
+        New-Item -Path $Script:hostsPath -ItemType File
+
+        It "adds entry with 127.0.0.1 address when it is not specified" {
+            os-hosts-add -hostname "test.com"
+            os-hosts-get | Should -Be "127.0.0.1 test.com"
+        }
+
+        It "removes an entry when it exists" {
+            os-hosts-get | Should -Be "127.0.0.1 test.com"
+            os-hosts-remove -hostname "test.com"
+            os-hosts-get | Should -BeNullOrEmpty
+        }
+
+        It "does not duplicate entries" {
+            os-hosts-add -hostname "test.com"
+            os-hosts-add -hostname "test.com"
+            os-hosts-get | Should -Be "127.0.0.1 test.com"
+        }
+
+        It "removes duplicate entries for given domain" {
+            "127.0.0.1 test.com`n127.0.0.1 test.com" | Out-File $Script:hostsPath
+            Get-Content -Path $Script:hostsPath | Should -HaveCount 2
+            os-hosts-remove -hostname "test.com"
+            Get-Content -Path $Script:hostsPath | Should -BeNullOrEmpty
+        }
+
+        It "adds entry with proper address when it is specified" {
+            os-hosts-add -hostname "test.com" -address '192.168.1.1'
+            os-hosts-get | Should -Be "192.168.1.1 test.com"
+        }
+
+        It "removes an entry with custom address when it exists" {
+            os-hosts-get | Should -Be "192.168.1.1 test.com"
+            os-hosts-remove -hostname "test.com"
+            os-hosts-get | Should -BeNullOrEmpty
+        }
+    }
 }

@@ -93,7 +93,7 @@ function unlock-allFiles ($path) {
     }
 
     $pids | ForEach-Object {
-        Get-Process -Id $_ -ErrorAction SilentlyContinue | % {
+        Get-Process -Id $_ -ErrorAction SilentlyContinue | ForEach-Object {
             # $date = [datetime]::Now
             # "$date : Forcing stop of process Name:$($_.Name) File:$($_.FileName) Path:$($_.Path) `nModules:$($_.Modules)" | Out-File "$home\Desktop\unlock-allFiles-log.txt" -Append
             Stop-Process $_ -Force
@@ -101,19 +101,22 @@ function unlock-allFiles ($path) {
     }
 }
 
-function Add-ToHostsFile ($hostname, $address = 127.0.0.1) {
+function os-hosts-add ($hostname, $address = '127.0.0.1') {
     If ((Get-Content $Script:hostsPath) -notcontains "$address $hostname") {
         Add-Content -Encoding utf8 $Script:hostsPath "$address $hostname" -ErrorAction Stop
     }
 }
 
-function Remove-FromHostsFile ($hostname) {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification="False positive")]
+function os-hosts-get {
+    Get-Content $Script:hostsPath    
+}
 
+function os-hosts-remove ($hostname) {
     $address = $null
     (Get-Content $Script:hostsPath) | ForEach-Object {
         $found = $_ -match "^(?<address>.*?) $hostname$"
         if ($found) {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "False positive")]
             $address = $Matches.address
         }
     } | Out-Null
@@ -123,8 +126,8 @@ function Remove-FromHostsFile ($hostname) {
     }
 
     (Get-Content $Script:hostsPath) |
-        Where-Object { $_ -notmatch ".*? $hostname$" } |
-        Out-File $Script:hostsPath -Force -Encoding utf8 -ErrorAction Stop
+    Where-Object { $_ -notmatch ".*? $hostname$" } |
+    Out-File $Script:hostsPath -Force -Encoding utf8 -ErrorAction Stop
 
     return $address
 }

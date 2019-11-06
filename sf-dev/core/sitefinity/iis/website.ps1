@@ -87,7 +87,7 @@ function sf-iis-site-new {
 
     try {
         if ($domain) {
-            Add-ToHostsFile -address "127.0.0.1" -hostname $domain
+            os-hosts-add -address "127.0.0.1" -hostname $domain
         }
     }
     catch {
@@ -119,7 +119,7 @@ function _sf-iis-site-delete ($websiteName) {
 
     try {
         if ($domain) {
-            Remove-FromHostsFile -hostname $domain > $null
+            os-hosts-remove -hostname $domain > $null
         }
     }
     catch {
@@ -145,7 +145,7 @@ function _changeDomain {
     $oldDomain = (iis-get-binding $websiteName).domain
     if ($oldDomain) {
         try {
-            Remove-FromHostsFile -hostname $oldDomain > $null
+            os-hosts-remove -hostname $oldDomain > $null
         }
         catch {
             Write-Error "Error cleaning previous domain not found in hosts file."            
@@ -155,7 +155,7 @@ function _changeDomain {
     $port = (iis-get-binding $websiteName).port
     if ($port) {
         iis-set-binding $websiteName $domainName $port
-        Add-ToHostsFile -address 127.0.0.1 -hostname $domainName
+        os-hosts-add -address 127.0.0.1 -hostname $domainName
     }
     else {
         throw "No binding found for site $websiteName"
