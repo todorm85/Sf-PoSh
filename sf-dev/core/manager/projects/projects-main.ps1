@@ -142,44 +142,6 @@ function sf-proj-clone {
     }
 }
 
-<#
-    .SYNOPSIS 
-    Imports a new sitefinity instance project from given local path. 
-    .DESCRIPTION
-    A sitefinity web app project or Sitefinity solution can be imported. 
-    .PARAMETER displyName
-    The name of the imported sitefinity instance.
-    .PARAMETER path
-    The directory which contains either Telerik.Sitefinity.sln or SitefinityWebApp.csproj files. The app automatically detects whether the full Sitefinity source code or just the webapp that uses Sitefinity CMS is available.
-    .OUTPUTS
-    None
-#>
-function _sf-proj-tryUseExisting {
-    
-    Param(
-        [Parameter(Mandatory = $true)][SfProject]$project,
-        [Parameter(Mandatory = $true)][string]$path
-    )
-
-    
-    if (Test-Path -Path "$path\SitefinityWebApp") {
-        $path = "$path\SitefinityWebApp"
-    }
-
-    $isWebApp = Test-Path "$path\web.config"
-    if (!$isWebApp) {
-        return
-    }
-
-    Write-Information "Detected existing app..."
-
-    $project.webAppPath = $path
-    sf-proj-setCurrent $project
-    _sf-proj-refreshData -project $project
-    _saveSelectedProject $project
-    return $true
-}
-
 function sf-proj-removeBulk {
     $sitefinities = @(sf-data-getAllProjects)
     if ($null -eq $sitefinities[0]) {
@@ -438,6 +400,32 @@ function sf-proj-setCurrent {
 
 function sf-proj-getAll {
     sf-data-getAllProjects
+}
+
+function _sf-proj-tryUseExisting {
+    
+    Param(
+        [Parameter(Mandatory = $true)][SfProject]$project,
+        [Parameter(Mandatory = $true)][string]$path
+    )
+
+    
+    if (Test-Path -Path "$path\SitefinityWebApp") {
+        $path = "$path\SitefinityWebApp"
+    }
+
+    $isWebApp = Test-Path "$path\web.config"
+    if (!$isWebApp) {
+        return
+    }
+
+    Write-Information "Detected existing app..."
+
+    $project.webAppPath = $path
+    sf-proj-setCurrent $project
+    _sf-proj-refreshData -project $project
+    _saveSelectedProject $project
+    return $true
 }
 
 function _getAzureDevOpsTitleAndLink {
