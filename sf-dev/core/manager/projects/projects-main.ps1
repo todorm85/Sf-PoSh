@@ -171,6 +171,8 @@ function _sf-proj-tryUseExisting {
         return
     }
 
+    Write-Information "Detected existing app..."
+
     $project.webAppPath = $path
     sf-proj-setCurrent $project
     _sf-proj-refreshData -project $project
@@ -687,7 +689,6 @@ function _sf-proj-tryCreateFromBranch {
 
     if ($sourcePath.StartsWith("$/CMS/")) {
         $projectDirectory = _sf-proj-createProjectDirectory -project $project
-        Write-Information "Creating project files..."
         $project.solutionPath = $projectDirectory;
         $project.webAppPath = "$projectDirectory\SitefinityWebApp";
         _createWorkspace -context $project -branch $sourcePath

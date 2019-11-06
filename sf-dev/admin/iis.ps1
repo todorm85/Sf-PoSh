@@ -196,7 +196,7 @@ function iis-find-site {
         }
     }
 
-    Get-WebApplication | % {
+    Get-WebApplication | ForEach-Object {
         if ($_.PhysicalPath.ToLower() -eq $physicalPath.ToLower()) {
             $parent = $_.GetParentElement()
             return $parent.GetAttribute('name').Value
