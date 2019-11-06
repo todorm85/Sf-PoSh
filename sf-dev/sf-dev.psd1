@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '10.2.3'
+    ModuleVersion     = '10.2.4'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,6 +18,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            10.2.4 (new)
+                Fixed hosts file operations
+                New names of hosts file functions
             10.2.3
                 Remove unnecessary private functions
                 Fixed predefined source path select
