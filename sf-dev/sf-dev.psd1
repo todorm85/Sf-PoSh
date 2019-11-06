@@ -19,6 +19,7 @@
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
             10.2.4 (new)
+                autocomplete for tags when selecting project
                 Fixed hosts file operations
                 New names of hosts file functions
             10.2.3
