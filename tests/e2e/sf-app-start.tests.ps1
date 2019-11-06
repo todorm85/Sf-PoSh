@@ -6,7 +6,7 @@ InModuleScope sf-dev {
     Describe "App start should" {
         It "start the app correctly" {
             set-testProject
-            sf-app-reset -start
+            sf-app-reset
             $url = _getAppUrl
             $result = _invokeNonTerminatingRequest $url
             $result | Should -Be 200

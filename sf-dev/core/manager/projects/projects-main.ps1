@@ -369,7 +369,9 @@ function sf-proj-reset {
 
     if ($shouldReset) {
         sf-sol-clean -cleanPackages $true
-        sf-app-reset -start -rebuild -precompile
+        sf-app-reset
+        sf-sol-rebuild
+        sf-app-addPrecompiledTemplates
         sf-app-states-save -stateName initial
     }
 }

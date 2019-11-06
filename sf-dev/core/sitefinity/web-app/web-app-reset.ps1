@@ -17,103 +17,63 @@
     None
 #>
 function sf-app-reset {
-    
     Param(
-        [switch]$start,
-        [switch]$rebuild,
-        [switch]$precompile,
-        [switch]$createStartupConfig,
-        [switch]$build,
-        [string]$user = $Global:Sf.config.sitefinityUser,
-        [switch]$force,
-        [SfProject]$project
+        [switch]$noAutoStart,
+        [switch]$force
     )
-
-    $oldProject = $null
-    if ($project) {
-        [SfProject]$oldProject = sf-proj-getCurrent
-        if ($oldProject -and ($oldProject.id -ne $project.id)) {
-            sf-proj-setCurrent -newContext $project
-        }
-        else {
-            $oldProject = $null
-        }
-    }
-    else {
-        $project = sf-proj-getCurrent
+    
+    $project = sf-proj-getCurrent
+    if (!$project) {
+        Write-Error "No project selected"
     }
 
+    $dbName = sf-app-db-getName # this needs to be here before DataConfig.config gets deleted!!!
+    if (!$dbName) {
+        $dbName = $project.id
+    }
+    
+    Write-Information "Restarting app pool..."
+    sf-iis-pool-reset
+
+    if ($force) {
+        Write-Information "Unlocking files..."
+        sf-sol-unlockAllFiles
+    }
+    
+    Write-Information "Resetting App_Data files..."
     try {
-        $dbName = sf-app-db-getName # this needs to be here before DataConfig.config gets deleted!!!
-        if (!$dbName) {
-            $dbName = $project.id
-        }
-    
-        Write-Information "Restarting app pool..."
-        sf-iis-pool-reset
+        _sf-app-resetAppDataFiles
+    }
+    catch {
+        Write-Information "Errors ocurred while resetting App_Data files.`n $_"
+    }
 
-        if ($force) {
-            Write-Information "Unlocking files..."
-            sf-sol-unlockAllFiles
-        }
-    
-        if ($rebuild) {
-            sf-sol-rebuild -retryCount 3
-        }
-
-        if ($build) {
-            sf-sol-build -retryCount 3
-        }
-
-        Write-Information "Resetting App_Data files..."
+    if ($dbName) {
+        Write-Information "Deleting database..."
         try {
-            _sf-app-resetAppDataFiles
+            sql-delete-database -dbName $dbName 
         }
         catch {
-            Write-Information "Errors ocurred while resetting App_Data files.`n $_"
-        }
-
-        if ($dbName) {
-            Write-Information "Deleting database..."
-            try {
-                sql-delete-database -dbName $dbName 
-            }
-            catch {
-                throw "Erros while deleting database: $_"
-            }
-        }
-
-        if ($createStartupConfig) {
-            _createStartupConfig $user $dbName
-        }
-
-        if ($start) {
-            Start-Sleep -s 2
-
-            try {
-                _createStartupConfig $user $dbName
-            }
-            catch {
-                throw "Erros while creating startupConfig: $_"
-            }
-
-            try {
-                $appUrl = _getAppUrl
-                sf-app-start -url $appUrl
-            }
-            catch {
-                throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
-                _deleteStartupConfig
-            }
-        }
-
-        if ($precompile) {
-            sf-app-addPrecompiledTemplates
+            throw "Erros while deleting database: $_"
         }
     }
-    finally {
-        if ($oldProject) {
-            sf-proj-setCurrent -newContext $oldProject
+
+    if (!$noAutoStart) {
+        Start-Sleep -s 2
+        try {
+            _createStartupConfig $Global:Sf.config.sitefinityUser $dbName
+        }
+        catch {
+            throw "Erros while creating startupConfig: $_"
+        }
+
+        try {
+            $appUrl = _getAppUrl
+            sf-app-start -url $appUrl
+        }
+        catch {
+            _deleteStartupConfig
+            throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
         }
     }
 }

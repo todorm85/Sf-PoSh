@@ -12,7 +12,7 @@ InModuleScope sf-dev {
         $dbName | Should -Not -BeNullOrEmpty
         sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
 
-        sf-app-reset
+        sf-app-reset -noAutoStart
 
         It "remove app data and database" {            
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
@@ -20,7 +20,7 @@ InModuleScope sf-dev {
         }
 
         It "start successfully after reset" {
-            sf-app-reset -start
+            sf-app-reset
             Test-Path $configsPath | Should -Be $true
             $dbName = _sf-app-db-getName  $project.webAppPath
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
