@@ -23,6 +23,22 @@ $tagCompleter = {
     }
 }
 
+$selectFunctionTagCompleter = {
+    param ( $commandName,
+        $parameterName,
+        $wordToComplete,
+        $commandAst,
+        $fakeBoundParameters )
+    
+    $values = @(Invoke-Command -ScriptBlock $tagCompleter -ArgumentList $commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+    $values += @("+a")
+    $values += @("+u")
+    $values
+}
+
+Register-ArgumentCompleter -CommandName sf-proj-select -ParameterName tagsFilter -ScriptBlock $selectFunctionTagCompleter
+
 function sf-proj-tags-addToCurrent {
     param (
         [string]$tagName
