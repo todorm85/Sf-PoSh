@@ -25,7 +25,7 @@ function _data-getAllProjects {
             $clone.websiteName = $_.websiteName;
             $clone.tags = $_.tags;
             $clone.lastGetLatest = $lastGetLatest;
-            $clone.daysSinceLastGet = _getDaysSinceDate $context.lastGetLatest;
+            $clone.daysSinceLastGet = _getDaysSinceDate $lastGetLatest;
 
             $sitefinities.Add($clone)
         }

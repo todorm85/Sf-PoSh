@@ -364,6 +364,7 @@ function proj-getCurrent {
 
 function proj-setCurrent {
     [CmdletBinding()]
+    [OutputType([SfProject])]
     Param(
         [Parameter(ValueFromPipeline)][SfProject]$newContext
     )
@@ -380,6 +381,8 @@ function proj-setCurrent {
 }
 
 function proj-getAll {
+    [OutputType([SfProject[]])]
+    Param()
     _data-getAllProjects
 }
 
