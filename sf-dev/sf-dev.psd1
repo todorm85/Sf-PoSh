@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '11.0.1'
+    ModuleVersion     = '12.0.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,8 +18,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
-            11.0.1
-                
+            12.0.0
+                Public api changes
             11.0.0
                 Major public api refactoring
                 autocomplete for tags when selecting project
@@ -162,4 +162,5 @@
         }
     }
 }
+
 
