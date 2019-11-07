@@ -15,9 +15,8 @@ function proj-reset {
     }
 
     if ($shouldReset) {
-        sol-clean -cleanPackages $true
+        sol-rebuild -cleanPackages:$true -retryCount 3
         app-reset
-        sol-rebuild
         app-addPrecompiledTemplates
         states-save -stateName initial
     }
