@@ -16,7 +16,7 @@ function proj-select {
         $tagsFilter = proj-tags-getDefaultFilter
     }
 
-    [SfProject[]]$sitefinities = @(data-getAllProjects -tagsFilter $tagsFilter)
+    [SfProject[]]$sitefinities = @(_data-getAllProjects -tagsFilter $tagsFilter)
 
     if (!$sitefinities[0]) {
         Write-Warning "No projects found. Check if not using default tag filter."

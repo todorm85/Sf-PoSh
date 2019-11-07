@@ -143,7 +143,7 @@ function proj-clone {
 }
 
 function proj-removeBulk {
-    $sitefinities = @(data-getAllProjects)
+    $sitefinities = @(_data-getAllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
@@ -351,31 +351,6 @@ function proj-rename {
     _saveSelectedProject $context
 }
 
-<#
-.SYNOPSIS
-Undos all pending changes, gets latest, builds and initializes.
-#>
-function proj-reset {
-    $shouldReset = $false
-    if (sc-hasPendingChanges) {
-        sc-undoPendingChanges
-        $shouldReset = $true
-    }
-
-    $getLatestOutput = sc-getLatestChanges -overwrite
-    if (-not ($getLatestOutput.Contains('All files are up to date.'))) {
-        $shouldReset = $true
-    }
-
-    if ($shouldReset) {
-        sol-clean -cleanPackages $true
-        app-reset
-        sol-rebuild
-        app-addPrecompiledTemplates
-        states-save -stateName initial
-    }
-}
-
 function proj-getCurrent {
     $currentContext = $Script:globalContext
 
@@ -401,7 +376,7 @@ function proj-setCurrent {
 }
 
 function proj-getAll {
-    data-getAllProjects
+    _data-getAllProjects
 }
 
 function _proj-tryUseExisting {
@@ -534,7 +509,7 @@ function _getIsIdDuplicate ($id) {
         return $false
     }
 
-    $sitefinities = [SfProject[]](data-getAllProjects)
+    $sitefinities = [SfProject[]](_data-getAllProjects)
     $sitefinities | ForEach-Object {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {

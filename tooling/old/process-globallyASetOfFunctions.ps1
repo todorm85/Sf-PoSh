@@ -2,7 +2,7 @@
 $path = "$PSScriptRoot\..\"
 
 # $oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
-$oldNames = @('data-getAllProjects')
+$oldNames = @('_data-getAllProjects')
 
 function Rename-Function {
     param (

@@ -1,4 +1,4 @@
-function data-getAllProjects {
+function _data-getAllProjects {
     param(
         [string]$tagsFilter
     )

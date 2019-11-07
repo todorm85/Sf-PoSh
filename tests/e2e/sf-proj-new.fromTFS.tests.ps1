@@ -7,7 +7,7 @@ InModuleScope sf-dev {
         initialize-testEnvironment
         proj-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
 
-        $sitefinities = @(data-getAllProjects) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
+        $sitefinities = @(_data-getAllProjects) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
         $sitefinities | Should -HaveCount 1
         $createdSf = [SfProject]$sitefinities[0]
         $id = $createdSf.id

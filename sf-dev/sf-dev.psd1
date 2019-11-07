@@ -1,4 +1,4 @@
-@{
+﻿@{
     RootModule        = '.\sf-dev.psm1'
     GUID              = '570fb657-4d88-4883-8b39-2dae4db1280c'
     Author            = 'Todor Mitskovski'
@@ -6,11 +6,11 @@
     Description       = 'Manage Sitefinity instances on local machine. Docs: https://github.com/todorm85/sitefinity-dev-orchestration/blob/master/README.md'
     PowerShellVersion = '5.1'
     CLRVersion        = '4.0'
-    FunctionsToExport = 'data-getAllProjects', 'proj-setDescription', 'proj-new', 'proj-clone', 'proj-removeBulk', 'proj-remove', 'proj-rename', 'proj-reset', 'proj-setCurrent', 'proj-getCurrent', 'proj-getDescription', 'proj-tags-addToCurrent', 'proj-tags-removeFromCurrent', 'proj-tags-removeAllFromCurrent', 'proj-tags-getAll', 'proj-tags-setDefaultFilter', 'proj-tags-getDefaultFilter', 'proj-select', 'proj-show', 'proj-showAll', 'sol-build', 'sol-rebuild', 'sol-clean', 'sol-clearPackages', 'sol-open', 'sol-buildWebAppProj', 'sol-unlockAllFiles', 'sc-undoPendingChanges', 'sc-showPendingChanges', 'sc-hasPendingChanges', 'sc-getLatestChanges', 'pool-resetThread', 'pool-reset', 'pool-stop', 'pool-change', 'subApp-set', 'subApp-remove', 'site-rename', 'site-browse', 'site-new', 'conf-setStorageMode', 'conf-getStorageMode', 'conf-getFromDb', 'conf-clearInDb', 'conf-setInDb', 'db-getNameFromDataConfig', 'db-setNameInDataConfig', 'app-reset', 'app-addPrecompiledTemplates', 'states-save', 'states-restore', 'states-remove', 'states-removeAll', 'app-start', 'unlock-allFiles', 'os-hosts-add', 'os-hosts-remove', 'os-popup-notification', 'proj-getAll', 'os-hosts-get', 'sol-resetSitefinityFolder', 'config-createStartupConfig', 'config-removeStartupConfig', 'url-get', 'site-delete', 'site-changeDomain'
+    FunctionsToExport = 'iis-get-websitePort', 'iis-get-usedPorts', 'iis-create-website', 'iis-get-siteAppPool', 'iis-test-isPortFree', 'iis-test-isSiteNameDuplicate', 'iis-get-subAppName', 'iis-new-subApp', 'iis-remove-subApp', 'iis-set-sitePath', 'iis-set-binding', 'iis-get-binding', 'iis-find-site', 'clear-nugetCache', 'os-popup-notification', 'os-test-isPortFree', 'execute-native', 'unlock-allFiles', 'os-hosts-add', 'os-hosts-get', 'os-hosts-remove', 'sql-delete-database', 'sql-rename-database', 'sql-get-dbs', 'sql-get-items', 'sql-update-items', 'sql-insert-items', 'sql-delete-items', 'sql-test-isDbNameDuplicate', 'sql-copy-db', 'tfs-get-workspaces', 'tf-query-workspaces', 'tfs-delete-workspace', 'tfs-create-workspace', 'tfs-create-mappings', 'tfs-checkout-file', 'tfs-get-latestChanges', 'tfs-undo-pendingChanges', 'tfs-show-pendingChanges', 'tfs-get-workspaceName', 'tfs-get-branchPath', 'tfs-get-lastWorkspaceChangeset', 'proj-setDescription', 'proj-getDescription', 'proj-new', 'proj-clone', 'proj-removeBulk', 'proj-remove', 'proj-rename', 'proj-getCurrent', 'proj-setCurrent', 'proj-getAll', 'proj-tags-addToCurrent', 'proj-tags-removeFromCurrent', 'proj-tags-removeAllFromCurrent', 'proj-tags-getAllFromCurrent', 'proj-tags-setDefaultFilter', 'proj-tags-getDefaultFilter', 'proj-select', 'proj-show', 'proj-showAll', 'app-start', 'app-reset', 'app-addPrecompiledTemplates', 'conf-setStorageMode', 'conf-getStorageMode', 'conf-getFromDb', 'conf-clearInDb', 'conf-setInDb', 'config-removeStartupConfig', 'config-createStartupConfig', 'db-getNameFromDataConfig', 'db-setNameInDataConfig', 'sol-build', 'sol-rebuild', 'sol-clean', 'sol-clearPackages', 'sol-open', 'sol-buildWebAppProj', 'sol-unlockAllFiles', 'sol-resetSitefinityFolder', 'sc-undoPendingChanges', 'sc-showPendingChanges', 'sc-hasPendingChanges', 'sc-getLatestChanges', 'states-save', 'states-restore', 'states-remove', 'states-removeAll', 'pool-resetThread', 'pool-reset', 'pool-stop', 'site-browse', 'site-new', 'site-delete', 'site-changeDomain', 'url-get', 'proj-reset', 'subApp-set', 'subApp-remove'
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '11.0.0'
+    ModuleVersion     = '11.0.1'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,6 +18,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            11.0.1
+                
             11.0.0
                 Major public api refactoring
                 autocomplete for tags when selecting project
@@ -160,3 +162,4 @@
         }
     }
 }
+

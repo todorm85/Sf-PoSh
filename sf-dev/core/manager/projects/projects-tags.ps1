@@ -6,7 +6,7 @@ $tagCompleter = {
         $fakeBoundParameters )
 
     $possibleValues = @('dummy')
-    [SfProject[]]$sfs = data-getAllProjects
+    [SfProject[]]$sfs = _data-getAllProjects
     $sfs | ForEach-Object {
         $allTags = $_.tags.Split(' ')
         $allTags = $allTags | Where-Object { !$possibleValues.Contains($_) -and $_ }

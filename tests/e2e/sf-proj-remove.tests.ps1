@@ -10,7 +10,7 @@ InModuleScope sf-dev {
             
             proj-remove -noPrompt
             
-            $sitefinities = @(data-getAllProjects) | Where-Object { $_.id -eq $testId }
+            $sitefinities = @(_data-getAllProjects) | Where-Object { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0
             Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\${testId}" | Should -Be $false
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $false
