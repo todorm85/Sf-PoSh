@@ -1,22 +1,4 @@
 
-function sf-iis-site-rename {
-    Param(
-        [string]$newName
-    )
-
-    $context = sf-proj-getCurrent
-    try {
-        iis-sf-iis-site-rename $context.websiteName $newName
-    }
-    catch {
-        throw "Error renaming site in IIS. Message: $_.Message"
-    }
-    
-    $context.websiteName = $newName
-    _saveSelectedProject $context
-
-}
-
 <#
     .SYNOPSIS 
     Opens the current sitefinity webapp in the browser.
@@ -27,13 +9,13 @@ function sf-iis-site-rename {
     .OUTPUTS
     None
 #>
-function sf-iis-site-open {
+function site-browse {
     Param(
         [switch]$useExistingBrowser
     )
 
     $browserPath = $GLOBAL:Sf.Config.browserPath;
-    $appUrl = _getAppUrl
+    $appUrl = url-get
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:moduleUserDir -> browserPath"
     }
@@ -55,10 +37,10 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function sf-iis-site-new {
+function site-new {
     Write-Information "Creating website..."
 
-    $context = sf-proj-getCurrent
+    $context = proj-getCurrent
 
     $port = 2111
     while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
@@ -95,7 +77,7 @@ function sf-iis-site-new {
     }
 }
 
-function _sf-iis-site-delete ($websiteName) {
+function site-delete ($websiteName) {
     if (!$websiteName) {
         throw "Website name not set."
     }
@@ -131,12 +113,12 @@ function _sf-iis-site-delete ($websiteName) {
     }
 }
 
-function _changeDomain {
+function site-changeDomain {
     param (
         $domainName
     )
 
-    $context = sf-proj-getCurrent
+    $context = proj-getCurrent
     $websiteName = $context.websiteName
     if (!$websiteName) {
         return

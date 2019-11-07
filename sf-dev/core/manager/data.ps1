@@ -1,4 +1,4 @@
-function sf-data-getAllProjects {
+function data-getAllProjects {
     param(
         [string]$tagsFilter
     )

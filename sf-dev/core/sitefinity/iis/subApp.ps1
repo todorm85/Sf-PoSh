@@ -5,13 +5,13 @@
     .OUTPUTS
     None
 #>
-function sf-iis-subApp-set {
+function subApp-set {
     
     Param(
         [Parameter(Mandatory = $true)][string]$subAppName
     )
 
-    $project = sf-proj-getCurrent
+    $project = proj-getCurrent
     $subApp = iis-get-subAppName -websiteName $project.websiteName
     if ($subApp) {
         return
@@ -26,8 +26,8 @@ function sf-iis-subApp-set {
     iis-new-subApp $project.websiteName $subAppName $project.webAppPath
 }
 
-function sf-iis-subApp-remove {
-    $project = sf-proj-getCurrent
+function subApp-remove {
+    $project = proj-getCurrent
 
     $subAppName = iis-get-subAppName $project.websiteName
     if ($null -eq $subAppName) {

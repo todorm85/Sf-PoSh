@@ -7,16 +7,16 @@
     tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
     If tagsFilter is equal to '+' only untagged projects are shown. 
 #>
-function sf-proj-select {
+function proj-select {
     Param(
         [string]$tagsFilter
     )
     
     if (!$tagsFilter) {
-        $tagsFilter = sf-proj-tags-getDefaultFilter
+        $tagsFilter = proj-tags-getDefaultFilter
     }
 
-    [SfProject[]]$sitefinities = @(sf-data-getAllProjects -tagsFilter $tagsFilter)
+    [SfProject[]]$sitefinities = @(data-getAllProjects -tagsFilter $tagsFilter)
 
     if (!$sitefinities[0]) {
         Write-Warning "No projects found. Check if not using default tag filter."
@@ -24,21 +24,21 @@ function sf-proj-select {
     }
 
     $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
-    _sf-proj-refreshData $selectedSitefinity
-    sf-proj-setCurrent $selectedSitefinity
-    sf-proj-show
+    _proj-refreshData $selectedSitefinity
+    proj-setCurrent $selectedSitefinity
+    proj-show
 }
 
 <#
     .SYNOPSIS 
     Shows info for selected sitefinity.
 #>
-function sf-proj-show {
+function proj-show {
     Param(
         [switch]$detail
     )
 
-    [SfProject]$context = sf-proj-getCurrent
+    [SfProject]$context = proj-getCurrent
     
     if ($null -eq ($context)) {
         Write-Warning "No project selected"
@@ -83,7 +83,7 @@ function sf-proj-show {
 
         [pscustomobject]@{id = 2.5; Parameter = " "; Value = " "; },
         
-        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sf-app-db-getName; },
+        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = db-getNameFromDataConfig; },
         
         [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
 
@@ -108,7 +108,7 @@ function sf-proj-show {
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
-function sf-proj-showAll {
+function proj-showAll {
     Param(
         [SfProject[]]$sitefinities
     )
@@ -214,7 +214,7 @@ function _promptProjectSelect {
     
     $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
 
-    sf-proj-showAll $sortedSitefinities
+    proj-showAll $sortedSitefinities
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
@@ -227,7 +227,7 @@ function _promptProjectSelect {
     $selectedSitefinity
 }
 
-function _sf-proj-promptSourcePathSelect {
+function _proj-promptSourcePathSelect {
     while ($selectFrom -ne 1 -and $selectFrom -ne 2) {
         $selectFrom = Read-Host -Prompt "Create from?`n[1] Branch`n[2] Build`n"
     }
@@ -240,8 +240,8 @@ function _sf-proj-promptSourcePathSelect {
     }
 }
 
-function _sf-proj-promptSfsSelection ([SfProject[]]$sitefinities) {
-    sf-proj-showAll $sitefinities
+function _proj-promptSfsSelection ([SfProject[]]$sitefinities) {
+    proj-showAll $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')

@@ -6,7 +6,7 @@ $tagCompleter = {
         $fakeBoundParameters )
 
     $possibleValues = @('dummy')
-    [SfProject[]]$sfs = sf-data-getAllProjects
+    [SfProject[]]$sfs = data-getAllProjects
     $sfs | ForEach-Object {
         $allTags = $_.tags.Split(' ')
         $allTags = $allTags | Where-Object { !$possibleValues.Contains($_) -and $_ }
@@ -37,16 +37,16 @@ $selectFunctionTagCompleter = {
     $values
 }
 
-Register-ArgumentCompleter -CommandName sf-proj-select -ParameterName tagsFilter -ScriptBlock $selectFunctionTagCompleter
+Register-ArgumentCompleter -CommandName proj-select -ParameterName tagsFilter -ScriptBlock $selectFunctionTagCompleter
 
-function sf-proj-tags-addToCurrent {
+function proj-tags-addToCurrent {
     param (
         [string]$tagName
     )
 
     _validateTag $tagName
     
-    [SfProject]$project = sf-proj-getCurrent
+    [SfProject]$project = proj-getCurrent
     if (!$project.tags) {
         $project.tags = $tagName
     }
@@ -57,9 +57,9 @@ function sf-proj-tags-addToCurrent {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName sf-proj-tags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName proj-tags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sf-proj-tags-removeFromCurrent {
+function proj-tags-removeFromCurrent {
     param (
         [string]$tagName
     )
@@ -69,7 +69,7 @@ function sf-proj-tags-removeFromCurrent {
         throw "Invalid tag name to remove."
     }
 
-    [SfProject]$project = sf-proj-getCurrent
+    [SfProject]$project = proj-getCurrent
     if ($project.tags -and $project.tags.Contains($tagName)) {
         $project.tags = $project.tags.Replace($tagName, '').Replace('  ', ' ').Trim()
     }
@@ -77,20 +77,20 @@ function sf-proj-tags-removeFromCurrent {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName sf-proj-tags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName proj-tags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sf-proj-tags-removeAllFromCurrent {
-    [SfProject]$project = sf-proj-getCurrent
+function proj-tags-removeAllFromCurrent {
+    [SfProject]$project = proj-getCurrent
     $project.tags = ''
     _saveSelectedProject -context $project
 }
 
-function sf-proj-tags-getAllFromCurrent {
-    $project = sf-proj-getCurrent
+function proj-tags-getAllFromCurrent {
+    $project = proj-getCurrent
     return $project.tags
 }
 
-function sf-proj-tags-setDefaultFilter {
+function proj-tags-setDefaultFilter {
     param (
         $filter
     )
@@ -98,7 +98,7 @@ function sf-proj-tags-setDefaultFilter {
     _setDefaultTagsFilter -defaultTagsFilter $filter
 }
 
-function sf-proj-tags-getDefaultFilter {
+function proj-tags-getDefaultFilter {
     return _getDefaultTagsFilter
 }
 
@@ -161,12 +161,12 @@ function _checkIfTagged {
     return $false
 }
 
-function _sf-proj-tags-setNewProjectDefaultTags {
+function _proj-tags-setNewProjectDefaultTags {
     param (
         [SfProject]$project
     )
     
-    $tagsFilter = sf-proj-tags-getDefaultFilter
+    $tagsFilter = proj-tags-getDefaultFilter
     if (!$tagsFilter) {
         return    
     }

@@ -6,22 +6,22 @@ InModuleScope sf-dev {
     Describe "States should" -Tags ("states") {
         It "save and then restore app_data folder and database" {
             set-testProject
-            [SfProject]$project = sf-proj-getCurrent
+            [SfProject]$project = proj-getCurrent
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             [string]$stateName = generateRandomName
             $stateName = $stateName.Replace('-', '_')
-            # $statePath = "$($Script:globalContext.webAppPath)/sf-dev-tool/states/$stateName"
+            # $statePath = "$($Script:globalContext.webAppPath)/dev-tool/states/$stateName"
 
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
             
-            sf-app-states-save -stateName $stateName
+            states-save -stateName $stateName
             
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
             New-Item $afterSaveFilePath
             Remove-Item -Path $beforeSaveFilePath
-            $dbName = sf-app-db-getName
+            $dbName = db-getNameFromDataConfig
             $dbName | Should -Not -BeNullOrEmpty
             
             $table = 'sf_xml_config_items'
@@ -34,7 +34,7 @@ InModuleScope sf-dev {
             $config = sql-get-items -dbName $dbName -tableName $table -whereFilter $where -selectFilter $select
             $config | Should -Not -BeNullOrEmpty
 
-            sf-app-states-restore -stateName $stateName
+            states-restore -stateName $stateName
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse

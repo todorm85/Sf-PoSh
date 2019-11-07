@@ -10,14 +10,14 @@
     .OUTPUTS
     None
 #>
-function sf-app-configs-setStorageMode {
+function conf-setStorageMode {
     
     Param (
         [string]$storageMode,
         [string]$restrictionLevel
     )
 
-    $context = sf-proj-getCurrent
+    $context = proj-getCurrent
 
     if ($storageMode -eq '') {
         do {
@@ -102,11 +102,11 @@ function sf-app-configs-setStorageMode {
     .OUTPUTS
     psobject -property  @{StorageMode = $storageMode; RestrictionLevel = $restrictionLevel}
 #>
-function sf-app-configs-getStorageMode {
+function conf-getStorageMode {
     
     Param()
 
-    $context = sf-proj-getCurrent
+    $context = proj-getCurrent
 
     # set web.config readonly off
     $webConfigPath = $context.webAppPath + '\web.config'
@@ -147,14 +147,14 @@ function sf-app-configs-getStorageMode {
     .OUTPUTS
     None
 #>
-function sf-app-configs-getFromDb {
+function conf-getFromDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbExport.xml"
     )
 
-    $dbName = sf-app-db-getName
+    $dbName = db-getNameFromDataConfig
     
     $config = sql-get-items -dbName $dbName -tableName 'sf_xml_config_items' -selectFilter 'dta' -whereFilter "path='${configName}.config'"
 
@@ -177,13 +177,13 @@ function sf-app-configs-getFromDb {
     .PARAMETER configName
     The sitefinity config name withouth extension
 #>
-function sf-app-configs-clearInDb {
+function conf-clearInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName
     )
 
-    $dbName = sf-app-db-getName
+    $dbName = db-getNameFromDataConfig
     $table = 'sf_xml_config_items'
     $value = "dta = '<${configName}/>'"
     $where = "path='${configName}.config'"
@@ -203,18 +203,86 @@ function sf-app-configs-clearInDb {
     .OUTPUTS
     None
 #>
-function sf-app-configs-setInDb {
+function conf-setInDb {
     
     Param(
         [Parameter(Mandatory = $true)]$configName,
         $filePath = "${Env:userprofile}\Desktop\dbImport.xml"
     )
 
-    $dbName = sf-app-db-getName
+    $dbName = db-getNameFromDataConfig
     $table = 'sf_xml_config_items'
     $xmlString = Get-Content $filePath -Raw
     $value = "dta='$xmlString'"
     $where = "path='${configName}.config'"
     
     sql-update-items -dbName $dbName -tableName $table -whereFilter $where -value $value
+}
+
+function config-removeStartupConfig {
+    $context = proj-getCurrent
+    $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
+    Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+    if ($ProcessError) {
+        throw $ProcessError
+    }
+}
+
+function config-createStartupConfig {
+    param(
+        [string]$user = $GLOBAL:Sf.Config.sitefinityUser,
+        [Parameter(Mandatory = $true)][string]$dbName,
+        [string]$password = $GLOBAL:Sf.Config.sitefinityPassword,
+        [string]$sqlUser = $GLOBAL:Sf.Config.sqlUser,
+        [string]$sqlPass = $GLOBAL:Sf.Config.sqlPass
+    )
+
+    $context = proj-getCurrent
+    $webAppPath = $context.webAppPath
+    
+    Write-Information "Creating StartupConfig..."
+    try {
+        $appConfigPath = "${webAppPath}\App_Data\Sitefinity\Configuration"
+        if (-not (Test-Path $appConfigPath)) {
+            New-Item $appConfigPath -type directory > $null
+        }
+
+        $configPath = "${appConfigPath}\StartupConfig.config"
+
+        if (Test-Path -Path $configPath) {
+            Remove-Item $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+            if ($ProcessError) {
+                throw "Could not remove old StartupConfig $ProcessError"
+            }
+        }
+        
+        if ((sql-test-isDbNameDuplicate -dbName $dbName) -or [string]::IsNullOrEmpty($dbName)) {
+            throw "Error creating startup.config. Database with name $dbName already exists."
+        }
+
+        $username = $user.split('@')[0]
+
+        $XmlWriter = New-Object System.XMl.XmlTextWriter($configPath, $Null)
+        $xmlWriter.WriteStartDocument()
+        $xmlWriter.WriteStartElement("startupConfig")
+        $XmlWriter.WriteAttributeString("username", $user)
+        $XmlWriter.WriteAttributeString("password", $password)
+        $XmlWriter.WriteAttributeString("enabled", "True")
+        $XmlWriter.WriteAttributeString("initialized", "False")
+        $XmlWriter.WriteAttributeString("email", $user)
+        $XmlWriter.WriteAttributeString("firstName", $username)
+        $XmlWriter.WriteAttributeString("lastName", $username)
+        $XmlWriter.WriteAttributeString("dbName", $dbName)
+        $XmlWriter.WriteAttributeString("dbType", "SqlServer")
+        $XmlWriter.WriteAttributeString("sqlInstance", $GLOBAL:Sf.config.sqlServerInstance)
+        $XmlWriter.WriteAttributeString("sqlAuthUserName", $sqlUser)
+        $XmlWriter.WriteAttributeString("sqlAuthUserPassword", $sqlPass)
+        $xmlWriter.WriteEndElement()
+        $xmlWriter.Finalize
+        $xmlWriter.Flush()
+        $xmlWriter.Close() > $null
+    }
+    catch {
+        throw "Error creating startupConfig. Message: $_"
+    }
 }

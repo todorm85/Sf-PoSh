@@ -4,12 +4,12 @@
     .OUTPUTS
     None
 #>
-function sf-sol-build {
+function sol-build {
     Param(
         $retryCount = 0
     )
     
-    $project = sf-proj-getCurrent
+    $project = proj-getCurrent
 
     $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
     
@@ -18,7 +18,7 @@ function sf-sol-build {
     while ($tries -le $retryCount -and (-not $isBuilt)) {
         try {
             if (!(Test-Path $solutionPath)) {
-                sf-sol-buildWebAppProj
+                sol-buildWebAppProj
             }
             else {
                 try {
@@ -50,7 +50,7 @@ function sf-sol-build {
     .OUTPUTS
     None
 #>
-function sf-sol-rebuild {
+function sol-rebuild {
     
     Param(
         [bool]$cleanPackages = $false,
@@ -58,28 +58,28 @@ function sf-sol-rebuild {
     
     Write-Information "Rebuilding solution..."
     try {
-        sf-sol-clean -cleanPackages $cleanPackages
+        sol-clean -cleanPackages $cleanPackages
     }
     catch {
         Write-Information "Errors while cleaning solution: $_"
     }
 
-    sf-sol-build -retryCount $retryCount
+    sol-build -retryCount $retryCount
 }
 
-function sf-sol-clean {
+function sol-clean {
     Param(
         [bool]$cleanPackages = $false)
 
     Write-Information "Cleaning solution..."
-    $project = sf-proj-getCurrent
+    $project = proj-getCurrent
 
     $solutionPath = $project.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
     }
 
-    sf-sol-unlockAllFiles
+    sol-unlockAllFiles
 
     $errorMessage = ''
     #delete all bin, obj and packages
@@ -100,7 +100,7 @@ function sf-sol-clean {
 
     if ($cleanPackages) {
         try {
-            sf-sol-clearPackages
+            sol-clearPackages
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
@@ -112,8 +112,8 @@ function sf-sol-clean {
     }
 }
 
-function sf-sol-clearPackages {
-    [SfProject]$project = sf-proj-getCurrent
+function sol-clearPackages {
+    [SfProject]$project = proj-getCurrent
     $solutionPath = $project.solutionPath
     if (!(Test-Path "${solutionPath}\packages")) {
         Write-Information "No packages to delete"
@@ -135,12 +135,12 @@ function sf-sol-clearPackages {
     .OUTPUTS
     None
 #>
-function sf-sol-open {
+function sol-open {
     Param(
         [switch]$useDefault
     )
 
-    $project = sf-proj-getCurrent
+    $project = proj-getCurrent
     
     if (!$project.solutionPath -and !$project.webAppPath) {
         throw "invalid or no solution path and webApp path"
@@ -175,8 +175,8 @@ function sf-sol-open {
     .OUTPUTS
     None
 #>
-function sf-sol-buildWebAppProj () {
-    $context = sf-proj-getCurrent
+function sol-buildWebAppProj () {
+    $context = proj-getCurrent
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"
@@ -185,8 +185,8 @@ function sf-sol-buildWebAppProj () {
     _buildProj $path
 }
 
-function sf-sol-unlockAllFiles {
-    $project = sf-proj-getCurrent
+function sol-unlockAllFiles {
+    $project = proj-getCurrent
 
     if ($project.solutionPath -ne "") {
         $path = $project.solutionPath
@@ -199,6 +199,29 @@ function sf-sol-unlockAllFiles {
         unlock-allFiles $path
     }
 }
+
+function sol-resetSitefinityFolder {
+    [SfProject]$context = proj-getCurrent
+    $webAppPath = $context.webAppPath
+    $errorMessage = ''
+    Set-Location $context.webAppPath
+    if (Test-Path "$webAppPath\App_Data\Sitefinity") {
+        $dirs = Get-ChildItem "$webAppPath\App_Data\Sitefinity" | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "Configuration") -or ($_.Name -like "Temp") -or ($_.Name -like "Logs")) }
+        try {
+            if ($dirs) {
+                $dirs | Remove-Item -Force -Recurse -ErrorVariable +errorMessage -ErrorAction SilentlyContinue
+            }
+        }
+        catch {
+            $errorMessage = "${errorMessage}`n" + $_
+        }
+    }
+
+    if ($errorMessage -ne '') {
+        throw $errorMessage
+    }
+}
+
 function _buildProj {
     
     Param(
@@ -234,7 +257,7 @@ function _switchStyleCop {
         [switch]$enable
     )
     
-    $context = sf-proj-getCurrent
+    $context = proj-getCurrent
 
     $styleCopTaskPath = "$($context.solutionPath)\Builds\StyleCop\StyleCop.Targets"
     $content = Get-Content -Path $styleCopTaskPath

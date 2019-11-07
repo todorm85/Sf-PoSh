@@ -5,17 +5,17 @@ InModuleScope sf-dev {
     
     Describe "Use existing" {
         [SfProject]$project = set-testProject
-        $sourceProjectDbName = _sf-app-db-getName -appPath $project.webAppPath
+        $sourceProjectDbName = _db-getNameFromDataConfig -appPath $project.webAppPath
 
-        sf-proj-new -displayName "test-use-existing" -sourcePath $project.webAppPath
+        proj-new -displayName "test-use-existing" -sourcePath $project.webAppPath
         
-        [SfProject]$importedProject = sf-proj-getCurrent
+        [SfProject]$importedProject = proj-getCurrent
         
         It "generate new id" {
             $importedProject.id | Should -Not -Be $project.id
         }
         It "use same db" {
-            $importedProjectDbName = _sf-app-db-getName -appPath $importedProject.webAppPath
+            $importedProjectDbName = _db-getNameFromDataConfig -appPath $importedProject.webAppPath
             $importedProjectDbName | Should -Be $sourceProjectDbName
             $importedProjectDbName | Should -Not -BeNullOrEmpty
         }

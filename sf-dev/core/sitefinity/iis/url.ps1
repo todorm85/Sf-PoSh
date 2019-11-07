@@ -1,9 +1,9 @@
-function _getAppUrl {
+function url-get {
     Param(
         [switch]$useDevUrl
     )
 
-    $context = sf-proj-getCurrent
+    $context = proj-getCurrent
     
     if (!$context) {
         throw "No project selected."
@@ -44,7 +44,7 @@ function _generateDomainName {
 }
 
 function _getDevAppUrl {
-    $context = sf-proj-getCurrent
+    $context = proj-getCurrent
     
     $port = @(iis-get-websitePort $context.websiteName)[0]
     if ($port -eq '' -or $null -eq $port) {

@@ -1,8 +1,8 @@
-# $path = "$PSScriptRoot\..\sf-dev\core"
+# $path = "$PSScriptRoot\..\dev\core"
 $path = "$PSScriptRoot\..\"
 
 # $oldNames = Invoke-Expression "& `"$PSScriptRoot/get-Functions.ps1`" -path `"$path`""
-$oldNames = @('sf-data-getAllProjects')
+$oldNames = @('data-getAllProjects')
 
 function Rename-Function {
     param (
@@ -38,7 +38,7 @@ $scripts | % {
     $oldNames | % {
         # $newTitle = Rename-Function($_)
         [string]$oldName = [string]$_
-        $newTitle = "sf-" + $oldName
+        $newTitle = "" + $oldName
         $content = $content -replace $oldName, $newTitle
     }
 

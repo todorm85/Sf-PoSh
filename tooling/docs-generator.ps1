@@ -1,8 +1,8 @@
 $classStartMarker = "# class::"
 $classElementMarker = '# ::'
 
-$psmFileContent = Get-Content "$PSScriptRoot/../sf-dev/sf-dev.psm1"
-$docText = '# Sf-Dev PowerShell Module Auto-Generated Documentation'
+$psmFileContent = Get-Content "$PSScriptRoot/../dev/dev.psm1"
+$docText = '# Dev PowerShell Module Auto-Generated Documentation'
 
 for ($i = 0; $i -lt $psmFileContent.Count; $i++) {
     $line = $psmFileContent[$i].Trim()

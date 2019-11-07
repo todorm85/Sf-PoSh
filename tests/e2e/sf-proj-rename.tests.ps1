@@ -14,14 +14,14 @@ InModuleScope sf-dev {
             Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
             existsInHostsFile -searchParam $oldName | Should -Be $true
 
-            sf-proj-rename $newName
+            proj-rename $newName
             
             existsInHostsFile -searchParam $newName | Should -Be $true
             Test-Path "$($testProject.solutionPath)\$newName($id).sln" | Should -Be $true
             Test-Path "$($testProject.solutionPath)\$oldName($id).sln" | Should -Be $false
-            ([string](_getAppUrl)).IndexOf($newName) | Should -BeGreaterThan -1
+            ([string](url-get)).IndexOf($newName) | Should -BeGreaterThan -1
 
-            sf-proj-rename $oldName
+            proj-rename $oldName
             existsInHostsFile -searchParam $newName | Should -Be $false
         }
     }

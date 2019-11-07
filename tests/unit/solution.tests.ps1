@@ -3,7 +3,7 @@
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
     
-    Describe "sf-_switchStyleCop" {
+    Describe "_switchStyleCop" {
         
         $expectedOn = @(
             "  <!-- Define StyleCopEnabled property. -->",

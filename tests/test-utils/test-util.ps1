@@ -1,14 +1,14 @@
 $Global:testProjectDisplayName = 'created_from_TFS'
 $Global:fromZipProjectName = 'created_from_zip'
 function set-testProject {
-    [SfProject[]]$allProjects = @(sf-data-getAllProjects)
+    [SfProject[]]$allProjects = @(data-getAllProjects)
     $proj = $allProjects | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
     if ($proj.Count -eq 0) {
         throw 'Project named e2e_tests not found. Create and initialize one first from TFS.'
     }
 
     $proj = $proj[0]
-    sf-proj-setCurrent -newContext $proj
+    proj-setCurrent -newContext $proj
 
     return $proj
 }
@@ -40,9 +40,9 @@ function generateRandomName {
     
 function initialize-testEnvironment {
     Write-Information "Cleanup started."
-    [SfProject[]]$projects = sf-data-getAllProjects
+    [SfProject[]]$projects = data-getAllProjects
 
     foreach ($proj in $projects) {
-        sf-proj-remove -context $proj -noPrompt
+        proj-remove -context $proj -noPrompt
     }
 }

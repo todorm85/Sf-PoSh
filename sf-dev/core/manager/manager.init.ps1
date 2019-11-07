@@ -24,5 +24,4 @@ function _initManagerData {
     }
 }
 
-. "$PSScriptRoot\SfProject.ps1"
 _initManagerData
