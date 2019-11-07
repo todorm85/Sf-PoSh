@@ -25,7 +25,7 @@ function proj-select {
 
     $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
     _proj-refreshData $selectedSitefinity
-    proj-setCurrent $selectedSitefinity
+    $result = proj-setCurrent $selectedSitefinity
     proj-show
 }
 

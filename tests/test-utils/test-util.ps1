@@ -8,7 +8,7 @@ function set-testProject {
     }
 
     $proj = $proj[0]
-    proj-setCurrent -newContext $proj
+    $result = proj-setCurrent -newContext $proj
 
     return $proj
 }

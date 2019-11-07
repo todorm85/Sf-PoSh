@@ -34,7 +34,7 @@ function proj-new {
 
     _proj-tags-setNewProjectDefaultTags -project $newContext
     _saveSelectedProject $newContext
-    proj-setCurrent $newContext        
+    $result = proj-setCurrent $newContext        
 
     if (!$newContext.websiteName) {
         site-new
@@ -94,7 +94,7 @@ function proj-clone {
         $newProject.webAppPath = $targetPath
     }
 
-    proj-setCurrent -newContext $newProject
+    $result = proj-setCurrent -newContext $newProject
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
@@ -278,7 +278,7 @@ function proj-remove {
     }
     
     if ($clearCurrentSelectedProject) {
-        proj-setCurrent $null
+        $result = proj-setCurrent $null
     }
 
     if (-not ($noPrompt)) {
@@ -363,16 +363,20 @@ function proj-getCurrent {
 }
 
 function proj-setCurrent {
+    [CmdletBinding()]
     Param(
-        [SfProject]$newContext
+        [Parameter(ValueFromPipeline)][SfProject]$newContext
     )
+    
+    process {
+        if ($null -ne $newContext) {
+            _validateProject $newContext        
+        } 
         
-    if ($null -ne $newContext) {
-        _validateProject $newContext        
-    } 
-
-    $Script:globalContext = $newContext
-    Set-Prompt -project $newContext
+        $Script:globalContext = $newContext
+        Set-Prompt -project $newContext
+        return $newContext
+    }
 }
 
 function proj-getAll {
@@ -399,7 +403,7 @@ function _proj-tryUseExisting {
     Write-Information "Detected existing app..."
 
     $project.webAppPath = $path
-    proj-setCurrent $project
+    $result = proj-setCurrent $project
     _proj-refreshData -project $project
     _saveSelectedProject $project
     return $true

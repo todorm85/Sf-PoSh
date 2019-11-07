@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '12.0.0'
+    ModuleVersion     = '12.1.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,6 +18,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            12.1.0
+                Introduce days since last get
+                project-setCurrent accepts pipeline input and outputs to pipeline
             12.0.0
                 Public api changes
             11.0.0

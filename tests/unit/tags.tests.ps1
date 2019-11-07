@@ -11,13 +11,13 @@ InModuleScope sf-dev {
         $testTag2 = 'test-tag-2'
         $testTag3 = 'test-tag-3'
         $testTag4 = 'test-tag-4'
-        proj-setCurrent -newContext $([SfProject]::new())
+        $result = proj-setCurrent -newContext $([SfProject]::new())
 
         It "Add single tag to project" {
             proj-tags-addToCurrent -tagName $testTag1
             [SfProject]$proj = (_data-getAllProjects)[0]
             $proj.tags | Should -Be $testTag1
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             proj-tags-getAllFromCurrent | Should -Be $testTag1
         }
         It "Add multiple tags to project" {
@@ -26,18 +26,18 @@ InModuleScope sf-dev {
             proj-tags-addToCurrent $testTag3
             [SfProject]$proj = (_data-getAllProjects)[0]
             $proj.tags | Should -Be $expectedTags
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove tag from project" {
             $expectedTags = "$testTag1 $testTag3"
 
             [SfProject]$proj = (_data-getAllProjects)[0]
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             proj-tags-removeFromCurrent $testTag2
             
             [SfProject]$proj = (_data-getAllProjects)[0]
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
@@ -47,12 +47,12 @@ InModuleScope sf-dev {
             proj-tags-addToCurrent $testTag4
 
             [SfProject]$proj = (_data-getAllProjects)[0]
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             proj-tags-removeFromCurrent $testTag2
             proj-tags-removeFromCurrent $testTag3
             
             [SfProject]$proj = (_data-getAllProjects)[0]
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
@@ -60,11 +60,11 @@ InModuleScope sf-dev {
             $expectedTags = "$testTag4"
 
             [SfProject]$proj = (_data-getAllProjects)[0]
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             proj-tags-removeFromCurrent $testTag1
             
             [SfProject]$proj = (_data-getAllProjects)[0]
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
@@ -73,11 +73,11 @@ InModuleScope sf-dev {
             proj-tags-addToCurrent $testTag2
 
             [SfProject]$proj = (_data-getAllProjects)[0]
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             proj-tags-removeFromCurrent $testTag2
             
             [SfProject]$proj = (_data-getAllProjects)[0]
-            proj-setCurrent $proj
+            $result = proj-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             proj-tags-getAllFromCurrent | Should -Be $expectedTags
         }
