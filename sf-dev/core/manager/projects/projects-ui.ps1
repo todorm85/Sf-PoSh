@@ -95,7 +95,7 @@ function proj-show {
 
         [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
         [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $branch; }
-        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = _getDaysSinceDate $context.lastGetLatest; }
+        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = $context.daysSinceLastGet; }
         [pscustomobject]@{id = 10; Parameter = "Tags"; Value = $context.tags }
     )
 

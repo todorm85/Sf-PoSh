@@ -13,6 +13,7 @@ public class SfProject
     public string lastGetLatest { get; set; }
     public bool isInitialized { get; set; }
     public string tags { get; set; }
+    public int daysSinceLastGet { get; set; }
 }
 "@
 
