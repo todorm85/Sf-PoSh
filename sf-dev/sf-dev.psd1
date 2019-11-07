@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '10.2.4'
+    ModuleVersion     = '11.0.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,7 +18,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
-            10.2.4 (new)
+            11.0.0
+                Major public api refactoring
                 autocomplete for tags when selecting project
                 Fixed hosts file operations
                 New names of hosts file functions
