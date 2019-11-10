@@ -39,7 +39,7 @@ $selectFunctionTagCompleter = {
 
 Register-ArgumentCompleter -CommandName proj-select -ParameterName tagsFilter -ScriptBlock $selectFunctionTagCompleter
 
-function proj-tags-addToCurrent {
+function tag-addToCurrent {
     param (
         [string]$tagName
     )
@@ -57,9 +57,9 @@ function proj-tags-addToCurrent {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName proj-tags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName tag-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function proj-tags-removeFromCurrent {
+function tag-removeFromCurrent {
     param (
         [string]$tagName
     )
@@ -77,20 +77,20 @@ function proj-tags-removeFromCurrent {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName proj-tags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName tag-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function proj-tags-removeAllFromCurrent {
+function tag-removeAllFromCurrent {
     [SfProject]$project = proj-getCurrent
     $project.tags = ''
     _saveSelectedProject -context $project
 }
 
-function proj-tags-getAllFromCurrent {
+function tag-getAllFromCurrent {
     $project = proj-getCurrent
     return $project.tags
 }
 
-function proj-tags-setDefaultFilter {
+function tag-setDefaultFilter {
     param (
         $filter
     )
@@ -98,7 +98,7 @@ function proj-tags-setDefaultFilter {
     _setDefaultTagsFilter -defaultTagsFilter $filter
 }
 
-function proj-tags-getDefaultFilter {
+function tag-getDefaultFilter {
     return _getDefaultTagsFilter
 }
 
@@ -161,12 +161,12 @@ function _checkIfTagged {
     return $false
 }
 
-function _proj-tags-setNewProjectDefaultTags {
+function _tag-setNewProjectDefaultTags {
     param (
         [SfProject]$project
     )
     
-    $tagsFilter = proj-tags-getDefaultFilter
+    $tagsFilter = tag-getDefaultFilter
     if (!$tagsFilter) {
         return    
     }

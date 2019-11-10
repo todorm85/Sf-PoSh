@@ -13,7 +13,7 @@ function proj-select {
     )
     
     if (!$tagsFilter) {
-        $tagsFilter = proj-tags-getDefaultFilter
+        $tagsFilter = tag-getDefaultFilter
     }
 
     [SfProject[]]$sitefinities = @(_data-getAllProjects -tagsFilter $tagsFilter)

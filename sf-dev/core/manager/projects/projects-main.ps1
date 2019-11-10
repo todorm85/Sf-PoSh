@@ -32,7 +32,7 @@ function proj-new {
         throw "Error creating the project. The project failed to initialize with web app path."
     }
 
-    _proj-tags-setNewProjectDefaultTags -project $newContext
+    _tag-setNewProjectDefaultTags -project $newContext
     _saveSelectedProject $newContext
     $result = proj-setCurrent $newContext        
 
