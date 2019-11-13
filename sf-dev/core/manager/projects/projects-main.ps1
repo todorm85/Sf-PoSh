@@ -1,3 +1,5 @@
+$Global:Sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Backlog Item ", "Bug ", "Task ", "Feature ") -MemberType NoteProperty
+
 <#
     .SYNOPSIS 
     Provisions a new sitefinity instance project. 
@@ -34,7 +36,7 @@ function proj-new {
 
     _tag-setNewProjectDefaultTags -project $newContext
     _saveSelectedProject $newContext
-    $result = proj-setCurrent $newContext        
+    $result = proj-setCurrent $newContext
 
     if (!$newContext.websiteName) {
         site-new
@@ -309,12 +311,12 @@ function proj-rename {
         }
     }
 
-    $azureDevOpsResult = _getAzureDevOpsTitleAndLink $newName
+    $azureDevOpsResult = _getNameParts $newName
     $newName = $azureDevOpsResult.name
     $context.description = $azureDevOpsResult.link
 
     if ($newName -and (-not (_validateNameSyntax $newName))) {
-        Write-Error "Name syntax is not valid. Use only alphanumerics and underscores"
+        throw "Name syntax is not valid. Use only alphanumerics and underscores"
     }
 
     $oldSolutionName = _generateSolutionFriendlyName -context $context
@@ -412,29 +414,29 @@ function _proj-tryUseExisting {
     return $true
 }
 
-function _getAzureDevOpsTitleAndLink {
+function _getNameParts {
     Param([string]$name)
     $description = ''
-    $titleKeys = @("Product Backlog Item ", "Bug ", "Task ");
+    $titleKeys = $Global:Sf.config.azureDevOpsItemTypes
+    $title = $name
     foreach ($key in $titleKeys) {
         if ($name.StartsWith($key)) {
             $name = $name.Replace($key, '');
             $nameParts = $name.Split(':');
             $itemId = $nameParts[0].Trim();
             $title = $nameParts[1].Trim();
-            $resultTitle = ''
-            for ($i = 0; $i -lt $name.Length; $i++) {
-                $resultTitle = "${resultTitle}:$($title[$i])";
+            for ($i = 2; $i -lt $nameParts.Count; $i++) {
+                $title = "$title$($nameParts[$i])"
             }
             
-            $name = $name.Trim();
-            $name = _getValidTitle $name
+            $title = $title.Trim();
+            $title = _getValidTitle $title
 
             $description = "https://prgs-sitefinity.visualstudio.com/sitefinity/_workitems/edit/$itemId"
         }
     }
 
-    return @{ name = $name; link = $description }
+    return @{ name = $title; link = $description }
 }
 
 function _getValidTitle {
