@@ -57,7 +57,7 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter "-another"
+            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter "_another"
             $result | Should -HaveCount 3
         }
         It "filter excluded multi tags correctly" {
@@ -70,7 +70,7 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter "-another -test"
+            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter @("_another", "_test")
             $result | Should -HaveCount 3
         }
         It "filter multi tags correctly" {
@@ -84,7 +84,7 @@ InModuleScope sf-dev {
                 get-project -tags 'another'
             )
 
-            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter "another -test"
+            $result = _filterProjectsByTags -sitefinities $projects -tagsFilter @("another", "_test")
             $result | Should -HaveCount 2
         }
     }

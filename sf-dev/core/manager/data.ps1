@@ -1,6 +1,6 @@
 function _data-getAllProjects {
     param(
-        [string]$tagsFilter
+        [string[]]$tagsFilter
     )
     $data = New-Object XML
     $data.Load($GLOBAL:Sf.Config.dataPath)
@@ -15,6 +15,11 @@ function _data-getAllProjects {
                 $lastGetLatest = $null
             }
 
+            $tags = @()
+            if ($_.tags) {
+                $tags = $_.tags.Split(' ')
+            }
+
             $clone = [SfProject]::new()
             $clone.id = $_.id;
             $clone.branch = $_.branch;
@@ -23,7 +28,7 @@ function _data-getAllProjects {
             $clone.solutionPath = $_.solutionPath;
             $clone.webAppPath = $_.webAppPath;
             $clone.websiteName = $_.websiteName;
-            $clone.tags = $_.tags;
+            $clone.tags = $tags;
             $clone.lastGetLatest = $lastGetLatest;
             $clone.daysSinceLastGet = _getDaysSinceDate $lastGetLatest;
 
@@ -80,6 +85,13 @@ function _setProjectData {
         $sitefinities.AppendChild($sitefinityEntry) > $null
     }
 
+    $tags = ''
+    if ($context.tags) {
+        $context.tags | % { $tags = "$tags $_" }
+    }
+
+    $tags = $tags.TrimStart(' ')
+
     $sitefinityEntry.SetAttribute("id", $context.id)
     $sitefinityEntry.SetAttribute("displayName", $context.displayName)
     $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
@@ -87,7 +99,7 @@ function _setProjectData {
     $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
     $sitefinityEntry.SetAttribute("branch", $context.branch)
     $sitefinityEntry.SetAttribute("description", $context.description)
-    $sitefinityEntry.SetAttribute("tags", $context.tags)
+    $sitefinityEntry.SetAttribute("tags", $tags)
     $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
 
     $data.Save($GLOBAL:Sf.Config.dataPath) > $null
@@ -95,12 +107,15 @@ function _setProjectData {
 
 function _setDefaultTagsFilter {
     param (
-        [string]$defaultTagsFilter
+        [string[]]$defaultTagsFilter
     )
     
     $data = New-Object XML
     $data.Load($GLOBAL:Sf.Config.dataPath) > $null
-    $data.data.SetAttribute("defaultTagsFilter", $defaultTagsFilter) > $null
+    $serializedFilter = ""
+    $defaultTagsFilter | ForEach-Object { $serializedFilter = "$serializedFilter $_" }
+    $serializedFilter = $serializedFilter.Trim()
+    $data.data.SetAttribute("defaultTagsFilter", $serializedFilter) > $null
     
     $data.Save($GLOBAL:Sf.Config.dataPath) > $null
 }
@@ -108,6 +123,11 @@ function _setDefaultTagsFilter {
 function _getDefaultTagsFilter {
     $data = New-Object XML
     $data.Load($GLOBAL:Sf.Config.dataPath) > $null
-    $data.data.GetAttribute("defaultTagsFilter", $defaultTagsFilter)
+    $result = $data.data.GetAttribute("defaultTagsFilter").Split(" ")
+    if ($result) {
+        return ,$result
+    } else {
+        return @()
+    }
 }
 

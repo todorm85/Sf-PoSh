@@ -1,43 +1,24 @@
-$tagCompleter = {
+$Script:tagCompleter = {
     param ( $commandName,
         $parameterName,
         $wordToComplete,
         $commandAst,
         $fakeBoundParameters )
 
-    $possibleValues = @('dummy')
-    [SfProject[]]$sfs = _data-getAllProjects
-    $sfs | ForEach-Object {
-        $allTags = $_.tags.Split(' ')
-        $allTags = $allTags | Where-Object { !$possibleValues.Contains($_) -and $_ }
-        $possibleValues += $allTags
-    }
-
+    
+    $possibleValues = tag-getAll
     if ($wordToComplete) {
-        $possibleValues | Where-Object {
-            $_ -like "$wordToComplete*" -and $_ -ne 'dummy'
+        $possibleValues = $possibleValues | Where-Object {
+            $_ -like "$($wordToComplete.TrimStart($prefixes))*"
         }
     }
-    else {
-        $possibleValues | Where-Object { $_ -ne 'dummy' }
-    }
-}
-
-$selectFunctionTagCompleter = {
-    param ( $commandName,
-        $parameterName,
-        $wordToComplete,
-        $commandAst,
-        $fakeBoundParameters )
     
-    $values = @(Invoke-Command -ScriptBlock $tagCompleter -ArgumentList $commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-    $values += @("+a")
-    $values += @("+u")
-    $values
+    $possibleValues
 }
 
-Register-ArgumentCompleter -CommandName proj-select -ParameterName tagsFilter -ScriptBlock $selectFunctionTagCompleter
+function tag-getAll {
+    proj-getAll | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
+}
 
 function tag-addToCurrent {
     param (
@@ -48,10 +29,10 @@ function tag-addToCurrent {
     
     [SfProject]$project = proj-getCurrent
     if (!$project.tags) {
-        $project.tags = $tagName
+        $project.tags = @($tagName)
     }
     else {
-        $project.tags += " $tagName"
+        $project.tags += @($tagName)
     }
 
     _saveSelectedProject -context $project
@@ -70,8 +51,10 @@ function tag-removeFromCurrent {
     }
 
     [SfProject]$project = proj-getCurrent
-    if ($project.tags -and $project.tags.Contains($tagName)) {
-        $project.tags = $project.tags.Replace($tagName, '').Replace('  ', ' ').Trim()
+    if ($project.tags) {
+        $newTags = @()
+        $project.tags | ? {$_ -ne $tagName } | ForEach-Object {$newTags += @($_)}
+        $project.tags = $newTags
     }
 
     _saveSelectedProject -context $project
@@ -81,102 +64,11 @@ Register-ArgumentCompleter -CommandName tag-removeFromCurrent -ParameterName tag
 
 function tag-removeAllFromCurrent {
     [SfProject]$project = proj-getCurrent
-    $project.tags = ''
+    $project.tags = @()
     _saveSelectedProject -context $project
 }
 
 function tag-getAllFromCurrent {
     $project = proj-getCurrent
     return $project.tags
-}
-
-function tag-setDefaultFilter {
-    param (
-        $filter
-    )
-
-    _setDefaultTagsFilter -defaultTagsFilter $filter
-}
-
-function tag-getDefaultFilter {
-    return _getDefaultTagsFilter
-}
-
-function _validateTag {
-    param (
-        $tagName
-    )
-    
-    if (!$tagName -or $tagName.StartsWith('-') -or $tagName.Contains(' ')) {
-        throw "Invalid tag name. Must not contain spaces and start with '-'"
-    }
-}
-
-<#
-    passing '+' in include tags will take only untagged
-    exclude tags take precedence
-    exclude tags are prefixed with '-'
- #>
-function _filterProjectsByTags {
-    param (
-        [SfProject[]]$sitefinities,
-        [string]$tagsFilter
-    )
-    
-    if ($tagsFilter -eq '+u') {
-        $sitefinities = $sitefinities | Where-Object { !$_.tags }
-    }
-    elseif ($tagsFilter -and $tagsFilter -ne '+a') {
-        $includeTags = $tagsFilter.Split(' ') | Where-Object { !$_.StartsWith('-') }
-        if ($includeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | Where-Object { _checkIfTagged -sitefinity $_ -tags $includeTags }
-        }
-
-        $excludeTags = $tagsFilter.Split(' ') | Where-Object { $_.StartsWith('-') } | ForEach-Object { $_.Remove(0, 1) }
-        if ($excludeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | Where-Object { !(_checkIfTagged -sitefinity $_ -tags $excludeTags) }
-        }
-    }
-
-    $sitefinities
-}
-
-function _checkIfTagged {
-    param (
-        [SfProject]$sitefinity,
-        [string[]]$tagsToCheck
-    )
-
-    if (!$sitefinity.tags) {
-        return $false
-    }
-
-    $sfTags = $sitefinity.tags.Split(' ')
-    foreach ($tagToCheck in $tagsToCheck) {
-        if ($sfTags.Contains($tagToCheck)) {
-            return $true
-        }
-    }
-
-    return $false
-}
-
-function _tag-setNewProjectDefaultTags {
-    param (
-        [SfProject]$project
-    )
-    
-    $tagsFilter = tag-getDefaultFilter
-    if (!$tagsFilter) {
-        return    
-    }
-
-    $includeTags = $tagsFilter.Split(' ') | Where-Object { !$_.StartsWith('-') }
-    $includeTags | ForEach-Object { 
-        $project.tags += " $_"
-    }
-
-    if ($project.tags) {
-        $project.tags = $project.tags.Trim();
-    }
 }

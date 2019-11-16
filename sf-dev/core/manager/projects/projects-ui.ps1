@@ -9,7 +9,7 @@
 #>
 function proj-select {
     Param(
-        [string]$tagsFilter
+        [string[]]$tagsFilter
     )
     
     if (!$tagsFilter) {
