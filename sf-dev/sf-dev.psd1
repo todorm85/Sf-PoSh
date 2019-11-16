@@ -6,11 +6,11 @@
     Description       = 'Manage Sitefinity instances on local machine. Docs: https://github.com/todorm85/sitefinity-dev-orchestration/blob/master/README.md'
     PowerShellVersion = '5.1'
     CLRVersion        = '4.0'
-    FunctionsToExport = 'iis-get-websitePort', 'iis-get-usedPorts', 'iis-create-website', 'iis-get-siteAppPool', 'iis-test-isPortFree', 'iis-test-isSiteNameDuplicate', 'iis-get-subAppName', 'iis-new-subApp', 'iis-remove-subApp', 'iis-set-sitePath', 'iis-set-binding', 'iis-get-binding', 'iis-find-site', 'clear-nugetCache', 'os-popup-notification', 'os-test-isPortFree', 'execute-native', 'unlock-allFiles', 'os-hosts-add', 'os-hosts-get', 'os-hosts-remove', 'sql-delete-database', 'sql-rename-database', 'sql-get-dbs', 'sql-get-items', 'sql-update-items', 'sql-insert-items', 'sql-delete-items', 'sql-test-isDbNameDuplicate', 'sql-copy-db', 'tfs-get-workspaces', 'tf-query-workspaces', 'tfs-delete-workspace', 'tfs-create-workspace', 'tfs-create-mappings', 'tfs-checkout-file', 'tfs-get-latestChanges', 'tfs-undo-pendingChanges', 'tfs-show-pendingChanges', 'tfs-get-workspaceName', 'tfs-get-branchPath', 'tfs-get-lastWorkspaceChangeset', 'proj-setDescription', 'proj-getDescription', 'proj-new', 'proj-clone', 'proj-removeBulk', 'proj-remove', 'proj-rename', 'proj-getCurrent', 'proj-use', 'proj-getAll', 'tag-addToCurrent', 'tag-removeFromCurrent', 'tag-removeAllFromCurrent', 'tag-getAllFromCurrent', 'tag-setDefaultFilter', 'tag-getDefaultFilter', 'proj-select', 'proj-show', 'proj-showAll', 'app-start', 'app-reset', 'app-addPrecompiledTemplates', 'conf-setStorageMode', 'conf-getStorageMode', 'conf-getFromDb', 'conf-clearInDb', 'conf-setInDb', 'config-removeStartupConfig', 'config-createStartupConfig', 'db-getNameFromDataConfig', 'db-setNameInDataConfig', 'sol-build', 'sol-rebuild', 'sol-clean', 'sol-clearPackages', 'sol-open', 'sol-buildWebAppProj', 'sol-unlockAllFiles', 'sol-resetSitefinityFolder', 'sc-undoPendingChanges', 'sc-showPendingChanges', 'sc-hasPendingChanges', 'sc-getLatestChanges', 'states-save', 'states-restore', 'states-remove', 'states-removeAll', 'pool-resetThread', 'pool-reset', 'pool-stop', 'site-browse', 'site-new', 'site-delete', 'site-changeDomain', 'url-get', 'proj-reset', 'subApp-set', 'subApp-remove', 'tag-addToDefaultFilter', 'tag-removeFromDefaultFilter'
+    FunctionsToExport = 'iis-get-websitePort', 'iis-get-usedPorts', 'iis-create-website', 'iis-get-siteAppPool', 'iis-test-isPortFree', 'iis-test-isSiteNameDuplicate', 'iis-get-subAppName', 'iis-new-subApp', 'iis-remove-subApp', 'iis-set-sitePath', 'iis-set-binding', 'iis-get-binding', 'iis-find-site', 'clear-nugetCache', 'os-popup-notification', 'os-test-isPortFree', 'execute-native', 'unlock-allFiles', 'os-hosts-add', 'os-hosts-get', 'os-hosts-remove', 'sql-delete-database', 'sql-rename-database', 'sql-get-dbs', 'sql-get-items', 'sql-update-items', 'sql-insert-items', 'sql-delete-items', 'sql-test-isDbNameDuplicate', 'sql-copy-db', 'tfs-get-workspaces', 'tf-query-workspaces', 'tfs-delete-workspace', 'tfs-create-workspace', 'tfs-create-mappings', 'tfs-checkout-file', 'tfs-get-latestChanges', 'tfs-undo-pendingChanges', 'tfs-show-pendingChanges', 'tfs-get-workspaceName', 'tfs-get-branchPath', 'tfs-get-lastWorkspaceChangeset', 'proj-setDescription', 'proj-getDescription', 'proj-new', 'proj-clone', 'proj-removeBulk', 'proj-remove', 'proj-rename', 'proj-getCurrent', 'proj-use', 'proj-getAll', 'tag-setDefaultFilter', 'tag-getDefaultFilter', 'tag-addToDefaultFilter', 'tag-removeFromDefaultFilter', 'tag-getAll', 'tag-addToCurrent', 'tag-removeFromCurrent', 'tag-removeAllFromCurrent', 'tag-getAllFromCurrent', 'proj-select', 'proj-show', 'proj-showAll', 'app-start', 'app-reset', 'app-addPrecompiledTemplates', 'conf-setStorageMode', 'conf-getStorageMode', 'conf-getFromDb', 'conf-clearInDb', 'conf-setInDb', 'config-removeStartupConfig', 'config-createStartupConfig', 'db-getNameFromDataConfig', 'db-setNameInDataConfig', 'sol-build', 'sol-rebuild', 'sol-clean', 'sol-clearPackages', 'sol-open', 'sol-buildWebAppProj', 'sol-unlockAllFiles', 'sol-resetSitefinityFolder', 'sc-undoPendingChanges', 'sc-showPendingChanges', 'sc-hasPendingChanges', 'sc-getLatestChanges', 'states-save', 'states-restore', 'states-remove', 'states-removeAll', 'pool-resetThread', 'pool-reset', 'pool-stop', 'site-browse', 'site-new', 'site-delete', 'site-changeDomain', 'url-get', 'proj-reset', 'subApp-set', 'subApp-remove'
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '12.1.2'
+    ModuleVersion     = '13.0.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -18,6 +18,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            13.0.0
+                tags improvements
+                bugfixes
             12.1.2
                 Bugfixes
             12.1.1
@@ -169,6 +172,7 @@
         }
     }
 }
+
 
 
 
