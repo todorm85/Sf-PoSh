@@ -137,6 +137,8 @@ function _clean-emptyDirs ($path) {
     do {
         $dirs | ForEach-Object { Remove-Item $_ -Force }
         $failed = @($dirs | ? { Test-Path $_ })
+        $failed | ForEach-Object { Remove-Item $_ -Force }
+        $failed = @($failed | ? { Test-Path $_ })
         $dirs = Get-ChildItem -Path $path -directory -recurse | `
             Where-Object { (Get-ChildItem $_.fullName).Count -eq 0 -and !$failed.Contains($_.FullName) } | `
             Select-Object -expandproperty FullName
