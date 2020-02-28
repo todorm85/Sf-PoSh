@@ -111,4 +111,29 @@ InModuleScope sf-dev {
             os-hosts-get | Should -BeNullOrEmpty
         }
     }
+
+    Describe "_clean-emptyDirs" {
+        function create-dirs {
+            $Script:testPathRoot = "TestDrive:\root"
+            New-Item -Path $Script:testPathRoot -ItemType Directory
+            New-Item -Path "$Script:testPathRoot\child_1" -ItemType Directory
+            New-Item -Path "$Script:testPathRoot\child_1\child_1_1" -ItemType Directory
+            New-Item -Path "$Script:testPathRoot\child_2" -ItemType Directory
+            New-Item -Path "$Script:testPathRoot\child_2\child_2_1" -ItemType Directory
+            New-Item -Path "$Script:testPathRoot\child_2\child_2_1\child_3_1" -ItemType Directory
+            New-Item -Path "$Script:testPathRoot\child_3" -ItemType Directory
+            New-Item -Path "$Script:testPathRoot\child_3\f1.txt" -ItemType File
+            New-Item -Path "$Script:testPathRoot\child_3\child_3_1" -ItemType File
+            New-Item -Path "$Script:testPathRoot\child_4" -ItemType Directory
+        }
+
+        It "deletes all empty directories" {
+            create-dirs
+            _clean-emptyDirs -path $Script:testPathRoot
+            $dirs = @(Get-ChildItem -Path $Script:testPathRoot)
+            $dirs | Should -HaveCount 1
+            $dirs[0].BaseName | Should -Be "child_3"
+            Test-Path -Path "$Script:testPathRoot\child_3\f1.txt" | Should -BeTrue
+        }
+    }
 }

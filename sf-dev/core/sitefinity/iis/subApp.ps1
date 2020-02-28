@@ -17,7 +17,7 @@ function subApp-set {
         return
     }
     
-    $dummyPath = "c:\dummySubApp"
+    $dummyPath = "c:\sf-dev-temp"
     if (-not (Test-Path $dummyPath)) {
         New-Item $dummyPath -ItemType Directory
     }

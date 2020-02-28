@@ -192,10 +192,7 @@ function _appData-remove {
     }
     
     # clean empty dirs
-    do {
-        $dirs = Get-ChildItem "${webAppPath}\App_Data" -directory -recurse | Where-Object { (Get-ChildItem $_.fullName).Length -eq 0 } | Select-Object -expandproperty FullName
-        $dirs | ForEach-Object { Remove-Item $_ -Force }
-    } while ($dirs.count -gt 0)
+    _clean-emptyDirs -path "${webAppPath}\App_Data"
 }
 
 function _getSitefinityAppDataExcludeFilter {

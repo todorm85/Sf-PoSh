@@ -131,3 +131,14 @@ function os-hosts-remove ($hostname) {
 
     return $address
 }
+
+function _clean-emptyDirs ($path) {
+    $dirs = @()
+    do {
+        $dirs | ForEach-Object { Remove-Item $_ -Force }
+        $failed = @($dirs | ? { Test-Path $_ })
+        $dirs = Get-ChildItem -Path $path -directory -recurse | `
+            Where-Object { (Get-ChildItem $_.fullName).Count -eq 0 -and !$failed.Contains($_.FullName) } | `
+            Select-Object -expandproperty FullName
+    } while ($dirs.count -gt 0)
+}
