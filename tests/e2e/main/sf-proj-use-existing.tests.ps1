@@ -7,9 +7,9 @@ InModuleScope sf-dev {
         [SfProject]$project = set-testProject
         $sourceProjectDbName = _db-getNameFromDataConfig -appPath $project.webAppPath
 
-        proj-new -displayName "test-use-existing" -sourcePath $project.webAppPath
+        sf-project-new -displayName "test-use-existing" -sourcePath $project.webAppPath
         
-        [SfProject]$importedProject = proj-getCurrent
+        [SfProject]$importedProject = sf-project-getCurrent
         
         It "generate new id" {
             $importedProject.id | Should -Not -Be $project.id

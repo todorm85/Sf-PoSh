@@ -9,7 +9,7 @@
 function pool-resetThread {
     Param([switch]$start)
 
-    $project = proj-getCurrent
+    $project = sf-project-getCurrent
 
     $binPath = "$($project.webAppPath)\bin\dummy.sf"
     New-Item -ItemType file -Path $binPath > $null
@@ -17,7 +17,7 @@ function pool-resetThread {
 
     if ($start) {
         Start-Sleep -s 1
-        app-start
+        sf-app-waitForSitefinityToStart
     }
 }
 
@@ -34,7 +34,7 @@ function pool-reset {
         [switch]$start
     )
 
-    $project = proj-getCurrent
+    $project = sf-project-getCurrent
 
     $appPool = @(iis-get-siteAppPool $project.websiteName)
     if ($appPool -eq '') {
@@ -44,7 +44,7 @@ function pool-reset {
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
     if ($start) {
         Start-Sleep -s 1
-        app-start
+        sf-app-waitForSitefinityToStart
     }
 }
 

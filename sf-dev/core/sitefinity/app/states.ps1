@@ -5,7 +5,7 @@ function states-save {
         $stateName
     )
     
-    $project = proj-getCurrent
+    $project = sf-project-getCurrent
     
     $dbName = db-getNameFromDataConfig
     $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
@@ -47,7 +47,7 @@ function states-restore {
         [bool]$force = $false
     )
 
-    $project = proj-getCurrent
+    $project = sf-project-getCurrent
 
     if (!$stateName) {
         $stateName = _selectAppState -context $context
@@ -135,7 +135,7 @@ function _getSqlBackupStateName {
         [Parameter(Mandatory = $true)]$stateName
     )
     
-    [SfProject]$context = proj-getCurrent
+    [SfProject]$context = sf-project-getCurrent
     return "$($context.id)_$stateName.bak"
 }
 
@@ -146,7 +146,7 @@ function _getSqlCredentials {
 }
 
 function _getStatesPath {
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
     $path = "$($context.webAppPath)/dev-tool"
     
     if (!(Test-Path $path)) {
@@ -162,14 +162,14 @@ function _getStatesPath {
 }
 
 function _appData-copy ($dest) {
-    [SfProject]$project = proj-getCurrent
+    [SfProject]$project = sf-project-getCurrent
 
     $src = "$($project.webAppPath)\App_Data\*"
     Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude $(_getSitefinityAppDataExcludeFilter)
 }
 
 function _appData-restore ($src) {
-    [SfProject]$context = proj-getCurrent
+    [SfProject]$context = sf-project-getCurrent
     $webAppPath = $context.webAppPath
 
     _appData-remove
@@ -180,7 +180,7 @@ function _appData-restore ($src) {
 }
 
 function _appData-remove {
-    [SfProject]$context = proj-getCurrent
+    [SfProject]$context = sf-project-getCurrent
     $webAppPath = $context.webAppPath
 
     $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude $(_getSitefinityAppDataExcludeFilter) -File

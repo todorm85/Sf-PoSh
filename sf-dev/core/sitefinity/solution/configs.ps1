@@ -1,5 +1,5 @@
 function config-removeStartupConfig {
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
     if ($ProcessError) {
@@ -16,7 +16,7 @@ function config-createStartupConfig {
         [string]$sqlPass = $GLOBAL:Sf.Config.sqlPass
     )
 
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
     $webAppPath = $context.webAppPath
     
     Write-Information "Creating StartupConfig..."

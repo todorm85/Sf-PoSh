@@ -40,7 +40,7 @@ General notes
 function site-new {
     Write-Information "Creating website..."
 
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
 
     $port = 2111
     while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
@@ -118,7 +118,7 @@ function site-changeDomain {
         $domainName
     )
 
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
     $websiteName = $context.websiteName
     if (!$websiteName) {
         return

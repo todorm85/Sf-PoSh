@@ -7,7 +7,7 @@ InModuleScope sf-dev {
     
     Describe "site-browse"  {
         It "do not open browser when no sitefinity selected" {
-            Mock proj-getCurrent { $null }
+            Mock sf-project-getCurrent { $null }
             { site-browse } | Should -Throw "No project selected."
             Assert-MockCalled execute-native -Times 0 -Scope It
         }

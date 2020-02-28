@@ -7,13 +7,13 @@
     tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
     If tagsFilter is equal to '+' only untagged projects are shown. 
 #>
-function proj-select {
+function sf-project-select {
     Param(
         [string[]]$tagsFilter
     )
     
     if (!$tagsFilter) {
-        $tagsFilter = tag-getDefaultFilter
+        $tagsFilter = sf-project-tags-getDefaultFilter
     }
 
     [SfProject[]]$sitefinities = @(_data-getAllProjects -tagsFilter $tagsFilter)
@@ -25,20 +25,20 @@ function proj-select {
 
     $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
     _proj-refreshData $selectedSitefinity
-    $result = proj-use $selectedSitefinity
-    proj-show
+    $result = sf-project-use $selectedSitefinity
+    sf-project-show
 }
 
 <#
     .SYNOPSIS 
     Shows info for selected sitefinity.
 #>
-function proj-show {
+function sf-project-show {
     Param(
         [switch]$detail
     )
 
-    [SfProject]$context = proj-getCurrent
+    [SfProject]$context = sf-project-getCurrent
     
     if ($null -eq ($context)) {
         Write-Warning "No project selected"
@@ -108,7 +108,7 @@ function proj-show {
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
-function proj-showAll {
+function sf-project-showAll {
     Param(
         [SfProject[]]$sitefinities
     )
@@ -214,7 +214,7 @@ function _promptProjectSelect {
     
     $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
 
-    proj-showAll $sortedSitefinities
+    sf-project-showAll $sortedSitefinities
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
@@ -241,7 +241,7 @@ function _proj-promptSourcePathSelect {
 }
 
 function _proj-promptSfsSelection ([SfProject[]]$sitefinities) {
-    proj-showAll $sitefinities
+    sf-project-showAll $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')

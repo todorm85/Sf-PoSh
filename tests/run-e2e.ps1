@@ -1,31 +1,18 @@
-$create = @(
-    'proj-new.fromTFS.tests.ps1'
+param (
+    [switch]$all,
+    [switch]$create,
+    [switch]$init,
+    [switch]$main,
+    [switch]$remove
 )
 
-$initCreated = @(
-    'sol-build.tests.ps1',
-    'app-start.tests.ps1'
-)
+$Script:allTests = @()
 
-$mainTests = @(
-    'app-reset.tests.ps1',
-    'app-states.tests.ps1',
-    'iis-subapp.tests.ps1',
-    'proj-clone.tests.ps1',
-    'proj-use-existing.tests.ps1',
-    'proj-rename.tests.ps1',
-    'proj-new.fromZIP.tests.ps1'
-)
+if ($all -or $create) { $Script:allTests += "$PSScriptRoot\e2e\creation" }
+if ($all -or $init) { $Script:allTests += "$PSScriptRoot\e2e\initialize" }
+if ($all -or $main) { $Script:allTests += "$PSScriptRoot\e2e\main" }
+if ($all -or $remove) { $Script:allTests += "$PSScriptRoot\e2e\removal" }
 
-$removeTests = @('proj-remove.tests.ps1')
-
-$allTests = [System.Collections.Generic.List``1[string]]::new()
-
-# $create | ForEach-Object { $allTests.Add($_) }
-$initCreated | ForEach-Object { $allTests.Add($_) }
-$mainTests | ForEach-Object { $allTests.Add($_) }
-# $removeTests | ForEach-Object { $allTests.Add($_) }
-
-$allTests | ForEach-Object {
-    Invoke-Pester "$PSScriptRoot/e2e/sf-$_"
+$Script:allTests | ForEach-Object {
+    Invoke-Pester $_
 }

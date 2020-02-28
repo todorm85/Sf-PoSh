@@ -1,4 +1,4 @@
-function app-start {
+function sf-app-waitForSitefinityToStart {
     param(
         [Int32]$totalWaitSeconds = $Global:Sf.config.app.startupMaxWait
     )
@@ -49,20 +49,14 @@ function app-start {
     }
 }
 
-function app-reset {
+function sf-app-uninitialize {
     Param(
-        [switch]$noAutoStart,
         [switch]$force
     )
-    
-    $project = proj-getCurrent
+
+    $project = sf-project-getCurrent
     if (!$project) {
         Write-Error "No project selected"
-    }
-
-    $dbName = db-getNameFromDataConfig # this needs to be here before DataConfig.config gets deleted!!!
-    if (!$dbName) {
-        $dbName = $project.id
     }
     
     Write-Information "Restarting app pool..."
@@ -88,23 +82,43 @@ function app-reset {
     catch {
         throw "Erros while deleting database: $_"
     }
+}
 
-    if (!$noAutoStart) {
-        Start-Sleep -s 2
-        try {
-            config-createStartupConfig $Global:Sf.config.sitefinityUser $dbName
-        }
-        catch {
-            throw "Erros while creating startupConfig: $_"
-        }
+function sf-app-reinitializeAndStart {
+    Param(
+        [switch]$force
+    )
+    
+    $project = sf-project-getCurrent
 
-        try {
-            app-start
-        }
-        catch {
-            config-removeStartupConfig
-            throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
-        }
+    $dbName = db-getNameFromDataConfig # this needs to be here before DataConfig.config gets deleted!!!
+    if (!$dbName) {
+        $dbName = $project.id
+    }
+
+    sf-app-uninitialize -force:$force
+    _app-initialize -dbName $dbName
+}
+
+function _app-initialize {
+    param(
+        [Parameter(Mandatory=$true)]$dbName
+    )
+
+    Start-Sleep -s 2
+    try {
+        config-createStartupConfig $Global:Sf.config.sitefinityUser $dbName
+    }
+    catch {
+        throw "Erros while creating startupConfig: $_"
+    }
+
+    try {
+        sf-app-waitForSitefinityToStart
+    }
+    catch {
+        config-removeStartupConfig
+        throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
     }
 }
 
@@ -118,7 +132,7 @@ function app-reset {
     .OUTPUTS
     None
 #>
-function app-addPrecompiledTemplates {
+function sf-app-addPrecompiledTemplates {
     
     param(
         [switch]$revert
@@ -131,7 +145,7 @@ function app-addPrecompiledTemplates {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
     
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
     $webAppPath = $context.webAppPath
     $appUrl = url-get
     if ($revert) {

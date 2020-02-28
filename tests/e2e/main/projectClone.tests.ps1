@@ -10,7 +10,7 @@ InModuleScope sf-dev {
         $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
         
         _data-getAllProjects | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            proj-remove -noPrompt -context $_
+            sf-project-remove -noPrompt -context $_
         }
         
         sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
@@ -27,9 +27,9 @@ InModuleScope sf-dev {
         $appSettings.AppendChild($newElement)
         $xmlData.Save($webConfigPath) > $null
 
-        proj-clone
+        sf-project-clone
 
-        [SfProject]$project = proj-getCurrent
+        [SfProject]$project = sf-project-getCurrent
         $cloneTestId = $project.id
 
         It "set project displayName" {

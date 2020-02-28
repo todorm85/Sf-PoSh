@@ -11,7 +11,7 @@ function subApp-set {
         [Parameter(Mandatory = $true)][string]$subAppName
     )
 
-    $project = proj-getCurrent
+    $project = sf-project-getCurrent
     $subApp = iis-get-subAppName -websiteName $project.websiteName
     if ($subApp) {
         return
@@ -27,7 +27,7 @@ function subApp-set {
 }
 
 function subApp-remove {
-    $project = proj-getCurrent
+    $project = sf-project-getCurrent
 
     $subAppName = iis-get-subAppName $project.websiteName
     if ($null -eq $subAppName) {

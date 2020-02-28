@@ -16,7 +16,7 @@ $Global:Sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
     .OUTPUTS
     None
 #>
-function proj-new {
+function sf-project-new {
     Param(
         [string]$sourcePath,
         [string]$displayName = 'Untitled'
@@ -36,7 +36,7 @@ function proj-new {
 
     _tag-setNewProjectDefaultTags -project $newContext
     _saveSelectedProject $newContext
-    $result = proj-use $newContext
+    $result = sf-project-use $newContext
 
     if (!$newContext.websiteName) {
         site-new
@@ -46,12 +46,12 @@ function proj-new {
     return $newContext
 }
 
-function proj-clone {
+function sf-project-clone {
     Param(
         [switch]$skipSourceControlMapping
     )
 
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
 
     $sourcePath = $context.solutionPath;
     $hasSolution = !([string]::IsNullOrEmpty($sourcePath));
@@ -96,7 +96,7 @@ function proj-clone {
         $newProject.webAppPath = $targetPath
     }
 
-    $result = proj-use -newContext $newProject
+    $result = sf-project-use -newContext $newProject
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
@@ -144,7 +144,7 @@ function proj-clone {
     }
 }
 
-function proj-removeBulk {
+function sf-project-removeBulk {
     $sitefinities = @(_data-getAllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
@@ -155,7 +155,7 @@ function proj-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            proj-remove -context $selectedSitefinity -noPrompt
+            sf-project-remove -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"       
@@ -177,7 +177,7 @@ function proj-removeBulk {
     .OUTPUTS
     None
 #>
-function proj-remove {
+function sf-project-remove {
     Param(
         [switch]$keepDb,
         [switch]$keepWorkspace,
@@ -186,7 +186,7 @@ function proj-remove {
         [SfProject]$context = $null
     )
     
-    [SfProject]$currentProject = proj-getCurrent
+    [SfProject]$currentProject = sf-project-getCurrent
     $clearCurrentSelectedProject = $false
     if ($null -eq $context -or $currentProject.id -eq $context.id) {
         $context = $currentProject
@@ -280,21 +280,21 @@ function proj-remove {
     }
     
     if ($clearCurrentSelectedProject) {
-        $result = proj-use $null
+        $result = sf-project-use $null
     }
 
     if (-not ($noPrompt)) {
-        proj-select
+        sf-project-select
     }
 }
 
-function proj-rename {
+function sf-project-rename {
     Param(
         [string]$newName,
         [switch]$setDescription
     )
 
-    $project = proj-getCurrent
+    $project = sf-project-getCurrent
     [SfProject]$context = $project
 
     if (-not $newName) {
@@ -353,7 +353,7 @@ function proj-rename {
     _saveSelectedProject $context
 }
 
-function proj-getCurrent {
+function sf-project-getCurrent {
     $currentContext = $Script:globalContext
 
     if ($null -eq $currentContext) {
@@ -364,7 +364,7 @@ function proj-getCurrent {
     return [SfProject]$context
 }
 
-function proj-use {
+function sf-project-use {
     [CmdletBinding()]
     [OutputType([SfProject])]
     Param(
@@ -382,7 +382,7 @@ function proj-use {
     }
 }
 
-function proj-getAll {
+function sf-project-getAll {
     [OutputType([SfProject[]])]
     Param()
     _data-getAllProjects
@@ -408,7 +408,7 @@ function _proj-tryUseExisting {
     Write-Information "Detected existing app..."
 
     $project.webAppPath = $path
-    $result = proj-use $project
+    $result = sf-project-use $project
     _proj-refreshData -project $project
     _saveSelectedProject $project
     return $true
@@ -574,7 +574,7 @@ function _generateSolutionFriendlyName {
     )
     
     if (-not ($context)) {
-        $context = proj-getCurrent
+        $context = sf-project-getCurrent
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"

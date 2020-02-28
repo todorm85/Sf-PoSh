@@ -9,7 +9,7 @@ function sc-undoPendingChanges {
     
     Param()
 
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
     if (!$context.branch) {
         return
     }
@@ -40,7 +40,7 @@ function sc-showPendingChanges {
         $format = "Brief"
     }
 
-    $context = proj-getCurrent
+    $context = sf-project-getCurrent
     if (!$context.branch) {
         return
     }
@@ -75,7 +75,7 @@ function sc-getLatestChanges {
         [switch]$overwrite
     )
     
-    [SfProject]$context = proj-getCurrent
+    [SfProject]$context = sf-project-getCurrent
     if (!$context.branch) {
         return
     }

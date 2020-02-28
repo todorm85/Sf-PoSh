@@ -8,7 +8,7 @@ function set-testProject {
     }
 
     $proj = $proj[0]
-    $result = proj-use -newContext $proj
+    $result = sf-project-use -newContext $proj
 
     return $proj
 }
@@ -43,6 +43,6 @@ function initialize-testEnvironment {
     [SfProject[]]$projects = _data-getAllProjects
 
     foreach ($proj in $projects) {
-        proj-remove -context $proj -noPrompt
+        sf-project-remove -context $proj -noPrompt
     }
 }
