@@ -1,4 +1,4 @@
-function config-removeStartupConfig {
+function sf-sol-removeStartupConfig {
     $context = sf-project-getCurrent
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
@@ -7,7 +7,7 @@ function config-removeStartupConfig {
     }
 }
 
-function config-createStartupConfig {
+function sf-sol-createStartupConfig {
     param(
         [string]$user = $GLOBAL:Sf.Config.sitefinityUser,
         [Parameter(Mandatory = $true)][string]$dbName,

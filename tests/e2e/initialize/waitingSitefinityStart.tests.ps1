@@ -7,7 +7,7 @@ InModuleScope sf-dev {
         It "start the app correctly" {
             set-testProject
             sf-app-reinitializeAndStart
-            $url = url-get
+            $url = sf-iis-site-getUrl
             $result = _invokeNonTerminatingRequest $url
             $result | Should -Be 200
         }

@@ -9,13 +9,13 @@
     .OUTPUTS
     None
 #>
-function site-browse {
+function sf-iis-site-browse {
     Param(
         [switch]$useExistingBrowser
     )
 
     $browserPath = $GLOBAL:Sf.Config.browserPath;
-    $appUrl = url-get
+    $appUrl = sf-iis-site-getUrl
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:moduleUserDir -> browserPath"
     }
@@ -37,7 +37,7 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function site-new {
+function sf-iis-site-new {
     Write-Information "Creating website..."
 
     $context = sf-project-getCurrent
@@ -77,7 +77,7 @@ function site-new {
     }
 }
 
-function site-delete ($websiteName) {
+function sf-iis-site-delete ($websiteName) {
     if (!$websiteName) {
         throw "Website name not set."
     }
@@ -113,7 +113,7 @@ function site-delete ($websiteName) {
     }
 }
 
-function site-changeDomain {
+function sf-iis-site-changeDomain {
     param (
         $domainName
     )

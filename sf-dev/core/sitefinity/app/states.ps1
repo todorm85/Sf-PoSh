@@ -1,4 +1,4 @@
-function states-save {
+function sf-app-states-save {
     Param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -7,7 +7,7 @@ function states-save {
     
     $project = sf-project-getCurrent
     
-    $dbName = db-getNameFromDataConfig
+    $dbName = sf-db-getNameFromDataConfig
     $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
@@ -41,7 +41,7 @@ function states-save {
     _appData-copy -dest $appDataStatePath
 }
 
-function states-restore {
+function sf-app-states-restore {
     Param(
         [string]$stateName,
         [bool]$force = $false
@@ -57,9 +57,9 @@ function states-restore {
         return
     }
 
-    pool-reset
+    sf-iis-poolreset
     if ($force) {
-        sol-unlockAllFiles
+        sf-sol-unlockAllFiles
     }
     
     $statesPath = _getStatesPath
@@ -79,7 +79,7 @@ function states-restore {
     _appData-restore "$appDataStatePath/*"
 }
 
-function states-remove ($stateName) {
+function sf-app-states-remove ($stateName) {
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = _selectAppState
     }
@@ -95,12 +95,12 @@ function states-remove ($stateName) {
     }
 }
 
-function states-removeAll {
+function sf-app-states-removeAll {
     $statesPath = _getStatesPath
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
-            states-remove $state.Name
+            sf-app-states-remove $state.Name
         }
     }
 }

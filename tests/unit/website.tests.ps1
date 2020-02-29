@@ -5,10 +5,10 @@ InModuleScope sf-dev {
     Mock execute-native { }
     . "$PSScriptRoot\init.ps1"
     
-    Describe "site-browse"  {
+    Describe "sf-iis-site-browse"  {
         It "do not open browser when no sitefinity selected" {
             Mock sf-project-getCurrent { $null }
-            { site-browse } | Should -Throw "No project selected."
+            { sf-iis-site-browse } | Should -Throw "No project selected."
             Assert-MockCalled execute-native -Times 0 -Scope It
         }
     }

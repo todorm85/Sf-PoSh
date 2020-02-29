@@ -3,7 +3,7 @@ function sf-app-waitForSitefinityToStart {
         [Int32]$totalWaitSeconds = $Global:Sf.config.app.startupMaxWait
     )
 
-    $url = url-get
+    $url = sf-iis-site-getUrl
     $statusUrl = "$url/appstatus"
 
     Write-Information "Starting Sitefinity..."
@@ -60,16 +60,16 @@ function sf-app-uninitialize {
     }
     
     Write-Information "Restarting app pool..."
-    pool-reset
+    sf-iis-poolreset
 
     if ($force) {
         Write-Information "Unlocking files..."
-        sol-unlockAllFiles
+        sf-sol-unlockAllFiles
     }
     
     Write-Information "Resetting App_Data files..."
     try {
-        sol-resetSitefinityFolder
+        sf-sol-resetSitefinityFolder
     }
     catch {
         Write-Information "Errors ocurred while resetting App_Data files.`n $_"
@@ -91,35 +91,13 @@ function sf-app-reinitializeAndStart {
     
     $project = sf-project-getCurrent
 
-    $dbName = db-getNameFromDataConfig # this needs to be here before DataConfig.config gets deleted!!!
+    $dbName = sf-db-getNameFromDataConfig # this needs to be here before DataConfig.config gets deleted!!!
     if (!$dbName) {
         $dbName = $project.id
     }
 
     sf-app-uninitialize -force:$force
     _app-initialize -dbName $dbName
-}
-
-function _app-initialize {
-    param(
-        [Parameter(Mandatory=$true)]$dbName
-    )
-
-    Start-Sleep -s 2
-    try {
-        config-createStartupConfig $Global:Sf.config.sitefinityUser $dbName
-    }
-    catch {
-        throw "Erros while creating startupConfig: $_"
-    }
-
-    try {
-        sf-app-waitForSitefinityToStart
-    }
-    catch {
-        config-removeStartupConfig
-        throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
-    }
 }
 
 <#
@@ -147,7 +125,7 @@ function sf-app-addPrecompiledTemplates {
     
     $context = sf-project-getCurrent
     $webAppPath = $context.webAppPath
-    $appUrl = url-get
+    $appUrl = sf-iis-site-getUrl
     if ($revert) {
         $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
         try {
@@ -159,6 +137,28 @@ function sf-app-addPrecompiledTemplates {
     }
     else {
         & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default" /url="${appUrl}"
+    }
+}
+
+function _app-initialize {
+    param(
+        [Parameter(Mandatory=$true)]$dbName
+    )
+
+    Start-Sleep -s 2
+    try {
+        sf-sol-createStartupConfig $Global:Sf.config.sitefinityUser $dbName
+    }
+    catch {
+        throw "Erros while creating startupConfig: $_"
+    }
+
+    try {
+        sf-app-waitForSitefinityToStart
+    }
+    catch {
+        sf-sol-removeStartupConfig
+        throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
     }
 }
 

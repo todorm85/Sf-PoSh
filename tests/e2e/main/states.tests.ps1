@@ -15,13 +15,13 @@ InModuleScope sf-dev {
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
             
-            states-save -stateName $stateName
+            sf-app-states-save -stateName $stateName
             
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
             New-Item $afterSaveFilePath
             Remove-Item -Path $beforeSaveFilePath
-            $dbName = db-getNameFromDataConfig
+            $dbName = sf-db-getNameFromDataConfig
             $dbName | Should -Not -BeNullOrEmpty
             
             $table = 'sf_xml_config_items'
@@ -34,7 +34,7 @@ InModuleScope sf-dev {
             $config = sql-get-items -dbName $dbName -tableName $table -whereFilter $where -selectFilter $select
             $config | Should -Not -BeNullOrEmpty
 
-            states-restore -stateName $stateName
+            sf-app-states-restore -stateName $stateName
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse

@@ -8,7 +8,7 @@ InModuleScope sf-dev {
 
         $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
         Test-Path $configsPath | Should -Be $true
-        $dbName = db-getNameFromDataConfig
+        $dbName = sf-db-getNameFromDataConfig
         $dbName | Should -Not -BeNullOrEmpty
         sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
 

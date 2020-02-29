@@ -39,7 +39,7 @@ function sf-project-new {
     $result = sf-project-use $newContext
 
     if (!$newContext.websiteName) {
-        site-new
+        sf-iis-site-new
     }
 
     _createUserFriendlySlnName $newContext
@@ -109,7 +109,7 @@ function sf-project-clone {
 
     try {
         Write-Information "Creating website..."
-        site-new
+        sf-iis-site-new
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -122,7 +122,7 @@ function sf-project-clone {
     if ($sourceDbName -and $isDuplicate) {
         $newDbName = $newProject.id
         try {
-            db-setNameInDataConfig $newDbName -context $newProject
+            sf-db-setNameInDataConfig $newDbName -context $newProject
         }
         catch {
             Write-Error "Error setting new database name in config $newDbName).`n $_"                    
@@ -137,7 +137,7 @@ function sf-project-clone {
     }
 
     try {
-        states-removeAll
+        sf-app-states-removeAll
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
@@ -198,14 +198,14 @@ function sf-project-remove {
     $websiteName = $context.websiteName
     if ($websiteName -and (iis-test-isSiteNameDuplicate $websiteName)) {
         try {
-            pool-stop $websiteName
+            sf-iis-poolstop $websiteName
         }
         catch {
             Write-Warning "Could not stop app pool: $_`n"            
         }
 
         try {
-            site-delete $context.websiteName
+            sf-iis-site-delete $context.websiteName
         }
         catch {
             Write-Warning "Errors deleting website ${websiteName}. $_`n"
@@ -347,7 +347,7 @@ function sf-project-rename {
     }
     
     $domain = _generateDomainName -context $context
-    site-changeDomain -domainName $domain
+    sf-iis-site-changeDomain -domainName $domain
     Set-Prompt -project $context
     
     _saveSelectedProject $context

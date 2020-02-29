@@ -19,7 +19,7 @@ InModuleScope sf-dev {
             existsInHostsFile -searchParam $newName | Should -Be $true
             Test-Path "$($testProject.solutionPath)\$newName($id).sln" | Should -Be $true
             Test-Path "$($testProject.solutionPath)\$oldName($id).sln" | Should -Be $false
-            ([string](url-get)).IndexOf($newName) | Should -BeGreaterThan -1
+            ([string](sf-iis-site-getUrl)).IndexOf($newName) | Should -BeGreaterThan -1
 
             sf-project-rename $oldName
             existsInHostsFile -searchParam $newName | Should -Be $false

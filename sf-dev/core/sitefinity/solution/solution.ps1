@@ -4,7 +4,7 @@
     .OUTPUTS
     None
 #>
-function sol-build {
+function sf-sol-build {
     Param(
         $retryCount = 0
     )
@@ -18,7 +18,7 @@ function sol-build {
     while ($tries -le $retryCount -and (-not $isBuilt)) {
         try {
             if (!(Test-Path $solutionPath)) {
-                sol-buildWebAppProj
+                sf-sol-buildWebAppProj
             }
             else {
                 try {
@@ -50,7 +50,7 @@ function sol-build {
     .OUTPUTS
     None
 #>
-function sol-rebuild {
+function sf-sol-rebuild {
     
     Param(
         [bool]$cleanPackages = $false,
@@ -58,16 +58,16 @@ function sol-rebuild {
     
     Write-Information "Rebuilding solution..."
     try {
-        sol-clean -cleanPackages $cleanPackages
+        sf-sol-clean -cleanPackages $cleanPackages
     }
     catch {
         Write-Information "Errors while cleaning solution: $_"
     }
 
-    sol-build -retryCount $retryCount
+    sf-sol-build -retryCount $retryCount
 }
 
-function sol-clean {
+function sf-sol-clean {
     Param(
         [bool]$cleanPackages = $false)
 
@@ -79,7 +79,7 @@ function sol-clean {
         throw "invalid or no solution path"
     }
 
-    sol-unlockAllFiles
+    sf-sol-unlockAllFiles
 
     $errorMessage = ''
     #delete all bin, obj and packages
@@ -100,7 +100,7 @@ function sol-clean {
 
     if ($cleanPackages) {
         try {
-            sol-clearPackages
+            sf-sol-clearPackages
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
@@ -112,7 +112,7 @@ function sol-clean {
     }
 }
 
-function sol-clearPackages {
+function sf-sol-clearPackages {
     [SfProject]$project = sf-project-getCurrent
     $solutionPath = $project.solutionPath
     if (!(Test-Path "${solutionPath}\packages")) {
@@ -135,7 +135,7 @@ function sol-clearPackages {
     .OUTPUTS
     None
 #>
-function sol-open {
+function sf-sol-open {
     Param(
         [switch]$useDefault
     )
@@ -175,7 +175,7 @@ function sol-open {
     .OUTPUTS
     None
 #>
-function sol-buildWebAppProj () {
+function sf-sol-buildWebAppProj () {
     $context = sf-project-getCurrent
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
@@ -185,7 +185,7 @@ function sol-buildWebAppProj () {
     _buildProj $path
 }
 
-function sol-unlockAllFiles {
+function sf-sol-unlockAllFiles {
     $project = sf-project-getCurrent
 
     if ($project.solutionPath -ne "") {
@@ -200,7 +200,7 @@ function sol-unlockAllFiles {
     }
 }
 
-function sol-resetSitefinityFolder {
+function sf-sol-resetSitefinityFolder {
     [SfProject]$context = sf-project-getCurrent
     $webAppPath = $context.webAppPath
     $errorMessage = ''

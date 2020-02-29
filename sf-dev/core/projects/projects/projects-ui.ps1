@@ -83,7 +83,7 @@ function sf-project-show {
 
         [pscustomobject]@{id = 2.5; Parameter = " "; Value = " "; },
         
-        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = db-getNameFromDataConfig; },
+        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sf-db-getNameFromDataConfig; },
         
         [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
 

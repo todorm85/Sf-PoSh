@@ -5,7 +5,7 @@
     .OUTPUTS
     None
 #>
-function sc-undoPendingChanges {
+function sf-sol-source-undoPendingChanges {
     
     Param()
 
@@ -28,7 +28,7 @@ function sc-undoPendingChanges {
     .OUTPUTS
     None
 #>
-function sc-showPendingChanges {
+function sf-sol-source-showPendingChanges {
     
     Param(
         [switch]$detailed
@@ -53,8 +53,8 @@ function sc-showPendingChanges {
     tfs-show-PendingChanges $workspaceName $format
 }
 
-function sc-hasPendingChanges {
-    $pendingResult = sc-showPendingChanges
+function sf-sol-source-hasPendingChanges {
+    $pendingResult = sf-sol-source-showPendingChanges
     if ($pendingResult -eq 'There are no pending changes.') {
         return $false
     } else {
@@ -69,7 +69,7 @@ function sc-hasPendingChanges {
     .OUTPUTS
     None
 #>
-function sc-getLatestChanges {
+function sf-sol-source-getLatestChanges {
     
     Param(
         [switch]$overwrite
