@@ -6,7 +6,7 @@ $Script:tagCompleter = {
         $fakeBoundParameters )
 
     
-    $possibleValues = sf-projectTags-getAll
+    $possibleValues = sd-projectTags-getAll
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
             $_ -like "$($wordToComplete.TrimStart($prefixes))*"
@@ -16,18 +16,18 @@ $Script:tagCompleter = {
     $possibleValues
 }
 
-function sf-projectTags-getAll {
-    sf-project-getAll | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
+function sd-projectTags-getAll {
+    sd-project-getAll | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
 }
 
-function sf-projectTags-addToCurrent {
+function sd-projectTags-addToCurrent {
     param (
         [string]$tagName
     )
 
     _validateTag $tagName
     
-    [SfProject]$project = sf-project-getCurrent
+    [SfProject]$project = sd-project-getCurrent
     if (!$project.tags) {
         $project.tags = @($tagName)
     }
@@ -38,9 +38,9 @@ function sf-projectTags-addToCurrent {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName sf-projectTags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName sd-projectTags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sf-projectTags-removeFromCurrent {
+function sd-projectTags-removeFromCurrent {
     param (
         [string]$tagName
     )
@@ -50,7 +50,7 @@ function sf-projectTags-removeFromCurrent {
         throw "Invalid tag name to remove."
     }
 
-    [SfProject]$project = sf-project-getCurrent
+    [SfProject]$project = sd-project-getCurrent
     if ($project.tags) {
         $newTags = @()
         $project.tags | ? {$_ -ne $tagName } | ForEach-Object {$newTags += @($_)}
@@ -60,15 +60,15 @@ function sf-projectTags-removeFromCurrent {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName sf-projectTags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName sd-projectTags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sf-projectTags-removeAllFromCurrent {
-    [SfProject]$project = sf-project-getCurrent
+function sd-projectTags-removeAllFromCurrent {
+    [SfProject]$project = sd-project-getCurrent
     $project.tags = @()
     _saveSelectedProject -context $project
 }
 
-function sf-projectTags-getAllFromCurrent {
-    $project = sf-project-getCurrent
+function sd-projectTags-getAllFromCurrent {
+    $project = sd-project-getCurrent
     return $project.tags
 }

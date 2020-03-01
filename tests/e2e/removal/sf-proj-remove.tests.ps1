@@ -8,7 +8,7 @@ InModuleScope sf-dev {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
             
-            sf-project-remove -noPrompt
+            sd-project-remove -noPrompt
             
             $sitefinities = @(_data-getAllProjects) | Where-Object { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0

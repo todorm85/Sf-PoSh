@@ -1,5 +1,5 @@
 
-function _createWorkspace ($context, $branch) {
+function _createWorkspace ([SfProject]$context, $branch) {
     try {
         # create and map workspace
         Write-Information "Creating workspace..."
@@ -23,6 +23,7 @@ function _createWorkspace ($context, $branch) {
         tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite > $null
         $context.branch = $branch
         $context.lastGetLatest = [DateTime]::Today
+        $context.daysSinceLastGet = _getDaysSinceDate $context.lastGetLatest
         _saveSelectedProject $context
     }
     catch {

@@ -7,13 +7,13 @@
     tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
     If tagsFilter is equal to '+' only untagged projects are shown. 
 #>
-function sf-project-select {
+function sd-project-select {
     Param(
         [string[]]$tagsFilter
     )
     
     if (!$tagsFilter) {
-        $tagsFilter = sf-projectTags-getDefaultFilter
+        $tagsFilter = sd-projectTags-getDefaultFilter
     }
 
     [SfProject[]]$sitefinities = @(_data-getAllProjects -tagsFilter $tagsFilter)
@@ -25,20 +25,20 @@ function sf-project-select {
 
     $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
     _proj-refreshData $selectedSitefinity
-    $result = sf-project-use $selectedSitefinity
-    sf-project-show
+    $result = sd-project-use $selectedSitefinity
+    sd-project-show
 }
 
 <#
     .SYNOPSIS 
     Shows info for selected sitefinity.
 #>
-function sf-project-show {
+function sd-project-show {
     Param(
         [switch]$detail
     )
 
-    [SfProject]$context = sf-project-getCurrent
+    [SfProject]$context = sd-project-getCurrent
     
     if ($null -eq ($context)) {
         Write-Warning "No project selected"
@@ -53,7 +53,7 @@ function sf-project-show {
     }
 
     if (-not $detail) {
-        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $(_getDaysSinceDate $context.lastGetLatest)"
+        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $($context.daysSinceLastGet)"
         return    
     }
 
@@ -83,7 +83,7 @@ function sf-project-show {
 
         [pscustomobject]@{id = 2.5; Parameter = " "; Value = " "; },
         
-        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sf-db-getNameFromDataConfig; },
+        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sd-db-getNameFromDataConfig; },
         
         [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
 
@@ -108,7 +108,7 @@ function sf-project-show {
     .SYNOPSIS 
     Shows info for all sitefinities managed by the script.
 #>
-function sf-project-showAll {
+function sd-project-showAll {
     Param(
         [SfProject[]]$sitefinities
     )
@@ -125,7 +125,7 @@ function sf-project-showAll {
                 Branch  = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0];
                 Ports   = "$ports";
                 ID      = "$($sitefinity.id)";
-                LastGet = _getDaysSinceDate $sitefinity.lastGetLatest;
+                LastGet = $sitefinity.daysSinceLastGet;
                 Tags    = $sitefinity.tags
             }) > $null
     }
@@ -137,6 +137,10 @@ function _getDaysSinceDate {
     Param(
         $dateFromAsText
     )
+
+    if (!$dateFromAsText) {
+        return
+    }
 
     if ($dateFromAsText) {
         [datetime]$dateFrom = [datetime]::Parse($dateFromAsText)
@@ -214,7 +218,7 @@ function _promptProjectSelect {
     
     $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
 
-    sf-project-showAll $sortedSitefinities
+    sd-project-showAll $sortedSitefinities
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
@@ -241,7 +245,7 @@ function _proj-promptSourcePathSelect {
 }
 
 function _proj-promptSfsSelection ([SfProject[]]$sitefinities) {
-    sf-project-showAll $sitefinities
+    sd-project-showAll $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')

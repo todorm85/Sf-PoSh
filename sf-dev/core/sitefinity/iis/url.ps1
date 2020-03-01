@@ -1,9 +1,9 @@
-function sf-iisSite-getUrl {
+function sd-iisSite-getUrl {
     Param(
         [switch]$useDevUrl
     )
 
-    $context = sf-project-getCurrent
+    $context = sd-project-getCurrent
     
     if (!$context) {
         throw "No project selected."
@@ -44,7 +44,7 @@ function _generateDomainName {
 }
 
 function _getDevAppUrl {
-    $context = sf-project-getCurrent
+    $context = sd-project-getCurrent
     
     $port = @(iis-get-websitePort $context.websiteName)[0]
     if ($port -eq '' -or $null -eq $port) {

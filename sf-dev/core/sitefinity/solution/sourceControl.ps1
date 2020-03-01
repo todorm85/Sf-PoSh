@@ -5,11 +5,11 @@
     .OUTPUTS
     None
 #>
-function sf-sourceControl-undoPendingChanges {
+function sd-sourceControl-undoPendingChanges {
     
     Param()
 
-    $context = sf-project-getCurrent
+    $context = sd-project-getCurrent
     if (!$context.branch) {
         return
     }
@@ -28,7 +28,7 @@ function sf-sourceControl-undoPendingChanges {
     .OUTPUTS
     None
 #>
-function sf-sourceControl-showPendingChanges {
+function sd-sourceControl-showPendingChanges {
     
     Param(
         [switch]$detailed
@@ -40,7 +40,7 @@ function sf-sourceControl-showPendingChanges {
         $format = "Brief"
     }
 
-    $context = sf-project-getCurrent
+    $context = sd-project-getCurrent
     if (!$context.branch) {
         return
     }
@@ -53,8 +53,8 @@ function sf-sourceControl-showPendingChanges {
     tfs-show-PendingChanges $workspaceName $format
 }
 
-function sf-sourceControl-hasPendingChanges {
-    $pendingResult = sf-sourceControl-showPendingChanges
+function sd-sourceControl-hasPendingChanges {
+    $pendingResult = sd-sourceControl-showPendingChanges
     if ($pendingResult -eq 'There are no pending changes.') {
         return $false
     } else {
@@ -69,13 +69,13 @@ function sf-sourceControl-hasPendingChanges {
     .OUTPUTS
     None
 #>
-function sf-sourceControl-getLatestChanges {
+function sd-sourceControl-getLatestChanges {
     
     Param(
         [switch]$overwrite
     )
     
-    [SfProject]$context = sf-project-getCurrent
+    [SfProject]$context = sd-project-getCurrent
     if (!$context.branch) {
         return
     }

@@ -6,10 +6,10 @@
     .OUTPUTS
     None
 #>
-function sf-iisAppPool-ResetThread {
+function sd-iisAppPool-ResetThread {
     Param([switch]$start)
 
-    $project = sf-project-getCurrent
+    $project = sd-project-getCurrent
 
     $binPath = "$($project.webAppPath)\bin\dummy.sf"
     New-Item -ItemType file -Path $binPath > $null
@@ -17,7 +17,7 @@ function sf-iisAppPool-ResetThread {
 
     if ($start) {
         Start-Sleep -s 1
-        sf-app-waitForSitefinityToStart
+        sd-app-waitForSitefinityToStart
     }
 }
 
@@ -28,13 +28,13 @@ function sf-iisAppPool-ResetThread {
     .OUTPUTS
     None
 #>
-function sf-iisAppPool-Reset {
+function sd-iisAppPool-Reset {
     
     Param(
         [switch]$start
     )
 
-    $project = sf-project-getCurrent
+    $project = sd-project-getCurrent
 
     $appPool = @(iis-get-siteAppPool $project.websiteName)
     if ($appPool -eq '') {
@@ -44,11 +44,11 @@ function sf-iisAppPool-Reset {
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
     if ($start) {
         Start-Sleep -s 1
-        sf-app-waitForSitefinityToStart
+        sd-app-waitForSitefinityToStart
     }
 }
 
-function sf-iisAppPool-Stop {
+function sd-iisAppPool-Stop {
     param(
         $websiteName
     )

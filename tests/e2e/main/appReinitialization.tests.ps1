@@ -8,11 +8,11 @@ InModuleScope sf-dev {
 
         $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
         Test-Path $configsPath | Should -Be $true
-        $dbName = sf-db-getNameFromDataConfig
+        $dbName = sd-db-getNameFromDataConfig
         $dbName | Should -Not -BeNullOrEmpty
         sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
 
-        sf-app-uninitialize
+        sd-app-uninitialize
 
         It "remove app data and database" {            
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
@@ -20,7 +20,7 @@ InModuleScope sf-dev {
         }
 
         It "start successfully after reset" {
-            sf-app-reinitializeAndStart
+            sd-app-reinitializeAndStart
             Test-Path $configsPath | Should -Be $true
             $dbName = _db-getNameFromDataConfig  $project.webAppPath
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1

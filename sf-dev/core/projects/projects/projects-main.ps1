@@ -16,7 +16,7 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
     .OUTPUTS
     None
 #>
-function sf-project-new {
+function sd-project-create {
     Param(
         [string]$sourcePath,
         [string]$displayName = 'Untitled'
@@ -36,22 +36,22 @@ function sf-project-new {
 
     _tag-setNewProjectDefaultTags -project $newContext
     _saveSelectedProject $newContext
-    $result = sf-project-use $newContext
+    $result = sd-project-use $newContext
 
     if (!$newContext.websiteName) {
-        sf-iisSite-new
+        sd-iisSite-new
     }
 
     _createUserFriendlySlnName $newContext
     return $newContext
 }
 
-function sf-project-clone {
+function sd-project-clone {
     Param(
         [switch]$skipSourceControlMapping
     )
 
-    $context = sf-project-getCurrent
+    $context = sd-project-getCurrent
 
     $sourcePath = $context.solutionPath;
     $hasSolution = !([string]::IsNullOrEmpty($sourcePath));
@@ -96,7 +96,7 @@ function sf-project-clone {
         $newProject.webAppPath = $targetPath
     }
 
-    $result = sf-project-use -newContext $newProject
+    $result = sd-project-use -newContext $newProject
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
@@ -109,7 +109,7 @@ function sf-project-clone {
 
     try {
         Write-Information "Creating website..."
-        sf-iisSite-new
+        sd-iisSite-new
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -122,7 +122,7 @@ function sf-project-clone {
     if ($sourceDbName -and $isDuplicate) {
         $newDbName = $newProject.id
         try {
-            sf-db-setNameInDataConfig $newDbName -context $newProject
+            sd-db-setNameInDataConfig $newDbName -context $newProject
         }
         catch {
             Write-Error "Error setting new database name in config $newDbName).`n $_"                    
@@ -137,14 +137,14 @@ function sf-project-clone {
     }
 
     try {
-        sf-appStates-removeAll
+        sd-appStates-removeAll
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
     }
 }
 
-function sf-project-removeBulk {
+function sd-project-removeBulk {
     $sitefinities = @(_data-getAllProjects)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
@@ -155,7 +155,7 @@ function sf-project-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sf-project-remove -context $selectedSitefinity -noPrompt
+            sd-project-remove -context $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id)"       
@@ -177,7 +177,7 @@ function sf-project-removeBulk {
     .OUTPUTS
     None
 #>
-function sf-project-remove {
+function sd-project-remove {
     Param(
         [switch]$keepDb,
         [switch]$keepWorkspace,
@@ -186,7 +186,7 @@ function sf-project-remove {
         [SfProject]$context = $null
     )
     
-    [SfProject]$currentProject = sf-project-getCurrent
+    [SfProject]$currentProject = sd-project-getCurrent
     $clearCurrentSelectedProject = $false
     if ($null -eq $context -or $currentProject.id -eq $context.id) {
         $context = $currentProject
@@ -198,14 +198,14 @@ function sf-project-remove {
     $websiteName = $context.websiteName
     if ($websiteName -and (iis-test-isSiteNameDuplicate $websiteName)) {
         try {
-            sf-iisAppPool-Stop $websiteName
+            sd-iisAppPool-Stop $websiteName
         }
         catch {
             Write-Warning "Could not stop app pool: $_`n"            
         }
 
         try {
-            sf-iisSite-delete $context.websiteName
+            sd-iisSite-delete $context.websiteName
         }
         catch {
             Write-Warning "Errors deleting website ${websiteName}. $_`n"
@@ -280,21 +280,21 @@ function sf-project-remove {
     }
     
     if ($clearCurrentSelectedProject) {
-        $result = sf-project-use $null
+        $result = sd-project-use $null
     }
 
     if (-not ($noPrompt)) {
-        sf-project-select
+        sd-project-select
     }
 }
 
-function sf-project-rename {
+function sd-project-rename {
     Param(
         [string]$newName,
         [switch]$setDescription
     )
 
-    $project = sf-project-getCurrent
+    $project = sd-project-getCurrent
     [SfProject]$context = $project
 
     if (-not $newName) {
@@ -347,13 +347,13 @@ function sf-project-rename {
     }
     
     $domain = _generateDomainName -context $context
-    sf-iisSite-changeDomain -domainName $domain
+    sd-iisSite-changeDomain -domainName $domain
     Set-Prompt -project $context
     
     _saveSelectedProject $context
 }
 
-function sf-project-getCurrent {
+function sd-project-getCurrent {
     $currentContext = $Script:globalContext
 
     if ($null -eq $currentContext) {
@@ -364,7 +364,7 @@ function sf-project-getCurrent {
     return [SfProject]$context
 }
 
-function sf-project-use {
+function sd-project-use {
     [CmdletBinding()]
     [OutputType([SfProject])]
     Param(
@@ -382,7 +382,7 @@ function sf-project-use {
     }
 }
 
-function sf-project-getAll {
+function sd-project-getAll {
     [OutputType([SfProject[]])]
     Param()
     _data-getAllProjects
@@ -408,7 +408,7 @@ function _proj-tryUseExisting {
     Write-Information "Detected existing app..."
 
     $project.webAppPath = $path
-    $result = sf-project-use $project
+    $result = sd-project-use $project
     _proj-refreshData -project $project
     _saveSelectedProject $project
     return $true
@@ -574,7 +574,7 @@ function _generateSolutionFriendlyName {
     )
     
     if (-not ($context)) {
-        $context = sf-project-getCurrent
+        $context = sd-project-getCurrent
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"

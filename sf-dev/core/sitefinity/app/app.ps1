@@ -1,9 +1,9 @@
-function sf-app-waitForSitefinityToStart {
+function sd-app-waitForSitefinityToStart {
     param(
         [Int32]$totalWaitSeconds = $GLOBAL:sf.config.app.startupMaxWait
     )
 
-    $url = sf-iisSite-getUrl
+    $url = sd-iisSite-getUrl
     $statusUrl = "$url/appstatus"
 
     Write-Information "Starting Sitefinity..."
@@ -49,27 +49,27 @@ function sf-app-waitForSitefinityToStart {
     }
 }
 
-function sf-app-uninitialize {
+function sd-app-uninitialize {
     Param(
         [switch]$force
     )
 
-    $project = sf-project-getCurrent
+    $project = sd-project-getCurrent
     if (!$project) {
         Write-Error "No project selected"
     }
     
     Write-Information "Restarting app pool..."
-    sf-iisAppPool-Reset
+    sd-iisAppPool-Reset
 
     if ($force) {
         Write-Information "Unlocking files..."
-        sf-sol-unlockAllFiles
+        sd-sol-unlockAllFiles
     }
     
     Write-Information "Resetting App_Data files..."
     try {
-        sf-sol-resetSitefinityFolder
+        sd-sol-resetSitefinityFolder
     }
     catch {
         Write-Information "Errors ocurred while resetting App_Data files.`n $_"
@@ -84,19 +84,19 @@ function sf-app-uninitialize {
     }
 }
 
-function sf-app-reinitializeAndStart {
+function sd-app-reinitializeAndStart {
     Param(
         [switch]$force
     )
     
-    $project = sf-project-getCurrent
+    $project = sd-project-getCurrent
 
-    $dbName = sf-db-getNameFromDataConfig # this needs to be here before DataConfig.config gets deleted!!!
+    $dbName = sd-db-getNameFromDataConfig # this needs to be here before DataConfig.config gets deleted!!!
     if (!$dbName) {
         $dbName = $project.id
     }
 
-    sf-app-uninitialize -force:$force
+    sd-app-uninitialize -force:$force
     _app-initialize -dbName $dbName
 }
 
@@ -106,7 +106,7 @@ function sf-app-reinitializeAndStart {
     .DESCRIPTION
     Precompiled templates give much faster page loads when web app is restarted (when building or rebuilding solution) on first load of the page. Useful with local sitefinity development. WARNING: Any changes to markup are ignored when precompiled templates are added to the project, meaning the markup at the time of precompilation is always used. In order to see new changes to markup you need to remove the precompiled templates and generate them again.
 #>
-function sf-appPrecompiledTemplates-add {
+function sd-appPrecompiledTemplates-add {
     # path to sitefinity compiler tool
     $sitefinityCompiler = "$PSScriptRoot\external-tools\Telerik.Sitefinity.Compiler.exe"
 
@@ -114,9 +114,9 @@ function sf-appPrecompiledTemplates-add {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
     
-    $context = sf-project-getCurrent
+    $context = sd-project-getCurrent
     $webAppPath = $context.webAppPath
-    $appUrl = sf-iisSite-getUrl
+    $appUrl = sd-iisSite-getUrl
     & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default" /url="${appUrl}"
 }
 
@@ -124,7 +124,7 @@ function sf-appPrecompiledTemplates-add {
     .SYNOPSIS 
     Removes previously added precompiled templates to selected sitefinity solution.
 #>
-function sf-appPrecompiledTemplates-remove {
+function sd-appPrecompiledTemplates-remove {
     # path to sitefinity compiler tool
     $sitefinityCompiler = "$PSScriptRoot\external-tools\Telerik.Sitefinity.Compiler.exe"
 
@@ -132,7 +132,7 @@ function sf-appPrecompiledTemplates-remove {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
     
-    $context = sf-project-getCurrent
+    $context = sd-project-getCurrent
     $webAppPath = $context.webAppPath
     $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
     try {
@@ -150,17 +150,17 @@ function _app-initialize {
 
     Start-Sleep -s 2
     try {
-        sf-appStartupConfig-create $GLOBAL:sf.config.sitefinityUser $dbName
+        sd-appStartupConfig-create $GLOBAL:sf.config.sitefinityUser $dbName
     }
     catch {
         throw "Erros while creating startupConfig: $_"
     }
 
     try {
-        sf-app-waitForSitefinityToStart
+        sd-app-waitForSitefinityToStart
     }
     catch {
-        sf-appStartupConfig-remove
+        sd-appStartupConfig-remove
         throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
     }
 }

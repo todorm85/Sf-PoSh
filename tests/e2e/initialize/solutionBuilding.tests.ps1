@@ -5,6 +5,6 @@ InModuleScope sf-dev {
 
     It "when building succeed after at least 3 retries" {
         Set-TestProject
-        sf-sol-build -retryCount 3
+        sd-sol-build -retryCount 3
     }
 }

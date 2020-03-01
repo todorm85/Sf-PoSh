@@ -26,6 +26,6 @@ In powershell console window type:
 ``` PowerShell
 Import-Module sf-dev
 sf- #then press ctrl + space, which should list all commands
-sf-proj- #then ctrl+space, would list all related to module`s projects etc.
-sf-proj-new -displayName test -sourcePath "any path to sitefinity web app zip or tfs branch" # this creates a new project with which the tool can work. It is automatically selected for the current session. All commands that are executed in the powershell session are modifying the currently selected project - it should be displayed on the prompt and on the console status bar.
+sd-proj- #then ctrl+space, would list all related to module`s projects etc.
+sd-proj-new -displayName test -sourcePath "any path to sitefinity web app zip or tfs branch" # this creates a new project with which the tool can work. It is automatically selected for the current session. All commands that are executed in the powershell session are modifying the currently selected project - it should be displayed on the prompt and on the console status bar.
 ```

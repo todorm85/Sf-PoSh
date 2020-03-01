@@ -1,13 +1,13 @@
-function sf-appStates-save {
+function sd-appStates-save {
     Param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         $stateName
     )
     
-    $project = sf-project-getCurrent
+    $project = sd-project-getCurrent
     
-    $dbName = sf-db-getNameFromDataConfig
+    $dbName = sd-db-getNameFromDataConfig
     $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
@@ -41,13 +41,13 @@ function sf-appStates-save {
     _appData-copy -dest $appDataStatePath
 }
 
-function sf-appStates-restore {
+function sd-appStates-restore {
     Param(
         [string]$stateName,
         [bool]$force = $false
     )
 
-    $project = sf-project-getCurrent
+    $project = sd-project-getCurrent
 
     if (!$stateName) {
         $stateName = _selectAppState -context $context
@@ -57,9 +57,9 @@ function sf-appStates-restore {
         return
     }
 
-    sf-iisAppPool-Reset
+    sd-iisAppPool-Reset
     if ($force) {
-        sf-sol-unlockAllFiles
+        sd-sol-unlockAllFiles
     }
     
     $statesPath = _getStatesPath
@@ -79,7 +79,7 @@ function sf-appStates-restore {
     _appData-restore "$appDataStatePath/*"
 }
 
-function sf-appStates-remove ($stateName) {
+function sd-appStates-remove ($stateName) {
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = _selectAppState
     }
@@ -95,12 +95,12 @@ function sf-appStates-remove ($stateName) {
     }
 }
 
-function sf-appStates-removeAll {
+function sd-appStates-removeAll {
     $statesPath = _getStatesPath
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
-            sf-appStates-remove $state.Name
+            sd-appStates-remove $state.Name
         }
     }
 }
@@ -135,7 +135,7 @@ function _getSqlBackupStateName {
         [Parameter(Mandatory = $true)]$stateName
     )
     
-    [SfProject]$context = sf-project-getCurrent
+    [SfProject]$context = sd-project-getCurrent
     return "$($context.id)_$stateName.bak"
 }
 
@@ -146,7 +146,7 @@ function _getSqlCredentials {
 }
 
 function _getStatesPath {
-    $context = sf-project-getCurrent
+    $context = sd-project-getCurrent
     $path = "$($context.webAppPath)/dev-tool"
     
     if (!(Test-Path $path)) {
@@ -162,14 +162,14 @@ function _getStatesPath {
 }
 
 function _appData-copy ($dest) {
-    [SfProject]$project = sf-project-getCurrent
+    [SfProject]$project = sd-project-getCurrent
 
     $src = "$($project.webAppPath)\App_Data\*"
     Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude $(_getSitefinityAppDataExcludeFilter)
 }
 
 function _appData-restore ($src) {
-    [SfProject]$context = sf-project-getCurrent
+    [SfProject]$context = sd-project-getCurrent
     $webAppPath = $context.webAppPath
 
     _appData-remove
@@ -180,7 +180,7 @@ function _appData-restore ($src) {
 }
 
 function _appData-remove {
-    [SfProject]$context = sf-project-getCurrent
+    [SfProject]$context = sd-project-getCurrent
     $webAppPath = $context.webAppPath
 
     $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude $(_getSitefinityAppDataExcludeFilter) -File

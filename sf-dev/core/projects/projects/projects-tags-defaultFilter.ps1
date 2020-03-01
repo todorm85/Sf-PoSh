@@ -34,9 +34,9 @@ $Script:selectFunctionTagCompleter = {
     $values
 }
 
-Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock $selectFunctionTagCompleter
+Register-ArgumentCompleter -CommandName sd-project-select -ParameterName tagsFilter -ScriptBlock $selectFunctionTagCompleter
 
-function sf-projectTags-setDefaultFilter {
+function sd-projectTags-setDefaultFilter {
     param (
         [string[]]$filter
     )
@@ -44,7 +44,7 @@ function sf-projectTags-setDefaultFilter {
     _setDefaultTagsFilter -defaultTagsFilter $filter
 }
 
-function sf-projectTags-getDefaultFilter {
+function sd-projectTags-getDefaultFilter {
     [OutputType([string[]])]
     Param()
 
@@ -52,7 +52,7 @@ function sf-projectTags-getDefaultFilter {
     return ,$filter
 }
 
-function sf-projectTags-addToDefaultFilter {
+function sd-projectTags-addToDefaultFilter {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -60,14 +60,14 @@ function sf-projectTags-addToDefaultFilter {
         $tag
     )
 
-    $defaultFilter = sf-projectTags-getDefaultFilter
+    $defaultFilter = sd-projectTags-getDefaultFilter
     $defaultFilter += @($tag)
-    sf-projectTags-setDefaultFilter -filter $defaultFilter
+    sd-projectTags-setDefaultFilter -filter $defaultFilter
 }
 
-Register-ArgumentCompleter -CommandName sf-projectTags-addToDefaultFilter -ParameterName tag -ScriptBlock $Script:tagFilterCompleter
+Register-ArgumentCompleter -CommandName sd-projectTags-addToDefaultFilter -ParameterName tag -ScriptBlock $Script:tagFilterCompleter
 
-function sf-projectTags-removeFromDefaultFilter {
+function sd-projectTags-removeFromDefaultFilter {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -75,12 +75,12 @@ function sf-projectTags-removeFromDefaultFilter {
         $tag
     )
     
-    [string[]]$defaultFilter = sf-projectTags-getDefaultFilter
+    [string[]]$defaultFilter = sd-projectTags-getDefaultFilter
     $defaultFilter = $defaultFilter -notlike $tag
-    sf-projectTags-setDefaultFilter -filter $defaultFilter
+    sd-projectTags-setDefaultFilter -filter $defaultFilter
 }
 
-Register-ArgumentCompleter -CommandName sf-projectTags-removeFromDefaultFilter -ParameterName tag -ScriptBlock $Script:tagFilterCompleter
+Register-ArgumentCompleter -CommandName sd-projectTags-removeFromDefaultFilter -ParameterName tag -ScriptBlock $Script:tagFilterCompleter
 
 <#
     passing '+u' in include tags will take only untagged
@@ -136,7 +136,7 @@ function _tag-setNewProjectDefaultTags {
         [SfProject]$project
     )
     
-    $tagsFilter = sf-projectTags-getDefaultFilter
+    $tagsFilter = sd-projectTags-getDefaultFilter
     if (!$tagsFilter) {
         return    
     }

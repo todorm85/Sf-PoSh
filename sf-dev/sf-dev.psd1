@@ -6,7 +6,7 @@
     Description       = 'Manage Sitefinity instances on local machine. Docs: https://github.com/todorm85/sitefinity-dev-orchestration/blob/master/README.md'
     PowerShellVersion = '5.1'
     CLRVersion        = '4.0'
-    FunctionsToExport = 'iis-get-websitePort', 'iis-get-usedPorts', 'iis-create-website', 'iis-get-siteAppPool', 'iis-test-isPortFree', 'iis-test-isSiteNameDuplicate', 'iis-get-subAppName', 'iis-new-subApp', 'iis-remove-subApp', 'iis-set-sitePath', 'iis-set-binding', 'iis-get-binding', 'iis-find-site', 'clear-nugetCache', 'os-popup-notification', 'os-test-isPortFree', 'execute-native', 'unlock-allFiles', 'os-hosts-add', 'os-hosts-get', 'os-hosts-remove', 'sql-delete-database', 'sql-rename-database', 'sql-get-dbs', 'sql-get-items', 'sql-update-items', 'sql-insert-items', 'sql-delete-items', 'sql-test-isDbNameDuplicate', 'sql-copy-db', 'tfs-get-workspaces', 'tf-query-workspaces', 'tfs-delete-workspace', 'tfs-create-workspace', 'tfs-create-mappings', 'tfs-checkout-file', 'tfs-get-latestChanges', 'tfs-undo-pendingChanges', 'tfs-show-pendingChanges', 'tfs-get-workspaceName', 'tfs-get-branchPath', 'tfs-get-lastWorkspaceChangeset', 'sf-project-setDescription', 'sf-project-getDescription', 'sf-project-new', 'sf-project-clone', 'sf-project-removeBulk', 'sf-project-remove', 'sf-project-rename', 'sf-project-getCurrent', 'sf-project-use', 'sf-project-getAll', 'sf-projectTags-setDefaultFilter', 'sf-projectTags-getDefaultFilter', 'sf-projectTags-addToDefaultFilter', 'sf-projectTags-removeFromDefaultFilter', 'sf-projectTags-getAll', 'sf-projectTags-addToCurrent', 'sf-projectTags-removeFromCurrent', 'sf-projectTags-removeAllFromCurrent', 'sf-projectTags-getAllFromCurrent', 'sf-project-select', 'sf-project-show', 'sf-project-showAll', 'sf-app-waitForSitefinityToStart', 'sf-app-reinitializeAndStart', 'sf-appPrecompiledTemplates-add', 'sf-appStartupConfig-remove', 'sf-appStartupConfig-create', 'sf-db-getNameFromDataConfig', 'sf-db-setNameInDataConfig', 'sf-sol-build', 'sf-sol-rebuild', 'sf-sol-clean', 'sf-sol-clearPackages', 'sf-sol-open', 'sf-sol-buildWebAppProj', 'sf-sol-unlockAllFiles', 'sf-sol-resetSitefinityFolder', 'sf-sourceControl-undoPendingChanges', 'sf-sourceControl-showPendingChanges', 'sf-sourceControl-hasPendingChanges', 'sf-sourceControl-getLatestChanges', 'sf-appStates-save', 'sf-appStates-restore', 'sf-appStates-remove', 'sf-appStates-removeAll', 'sf-iisAppPool-ResetThread', 'sf-iisAppPool-Reset', 'sf-iisAppPool-Stop', 'sf-iisSite-browse', 'sf-iisSite-new', 'sf-iisSite-delete', 'sf-iisSite-changeDomain', 'sf-iisSite-getUrl', 'sf-iisSubApp-set', 'sf-iisSubApp-remove', 'sf-app-uninitialize', 'sf-appPrecompiledTemplates-remove'
+    FunctionsToExport = 'iis-get-websitePort', 'iis-get-usedPorts', 'iis-create-website', 'iis-get-siteAppPool', 'iis-test-isPortFree', 'iis-test-isSiteNameDuplicate', 'iis-get-subAppName', 'iis-new-subApp', 'iis-remove-subApp', 'iis-set-sitePath', 'iis-set-binding', 'iis-get-binding', 'iis-find-site', 'clear-nugetCache', 'os-popup-notification', 'os-test-isPortFree', 'execute-native', 'unlock-allFiles', 'os-hosts-add', 'os-hosts-get', 'os-hosts-remove', 'sql-delete-database', 'sql-rename-database', 'sql-get-dbs', 'sql-get-items', 'sql-update-items', 'sql-insert-items', 'sql-delete-items', 'sql-test-isDbNameDuplicate', 'sql-copy-db', 'tfs-get-workspaces', 'tf-query-workspaces', 'tfs-delete-workspace', 'tfs-create-workspace', 'tfs-create-mappings', 'tfs-checkout-file', 'tfs-get-latestChanges', 'tfs-undo-pendingChanges', 'tfs-show-pendingChanges', 'tfs-get-workspaceName', 'tfs-get-branchPath', 'tfs-get-lastWorkspaceChangeset', 'sd-project-setDescription', 'sd-project-getDescription', 'sd-project-create', 'sd-project-clone', 'sd-project-removeBulk', 'sd-project-remove', 'sd-project-rename', 'sd-project-getCurrent', 'sd-project-use', 'sd-project-getAll', 'sd-projectTags-setDefaultFilter', 'sd-projectTags-getDefaultFilter', 'sd-projectTags-addToDefaultFilter', 'sd-projectTags-removeFromDefaultFilter', 'sd-projectTags-getAll', 'sd-projectTags-addToCurrent', 'sd-projectTags-removeFromCurrent', 'sd-projectTags-removeAllFromCurrent', 'sd-projectTags-getAllFromCurrent', 'sd-project-select', 'sd-project-show', 'sd-project-showAll', 'sd-app-waitForSitefinityToStart', 'sd-app-reinitializeAndStart', 'sd-appPrecompiledTemplates-add', 'sd-appStartupConfig-remove', 'sd-appStartupConfig-create', 'sd-db-getNameFromDataConfig', 'sd-db-setNameInDataConfig', 'sd-sol-build', 'sd-sol-rebuild', 'sd-sol-clean', 'sd-sol-clearPackages', 'sd-sol-open', 'sd-sol-buildWebAppProj', 'sd-sol-unlockAllFiles', 'sd-sol-resetSitefinityFolder', 'sd-sourceControl-undoPendingChanges', 'sd-sourceControl-showPendingChanges', 'sd-sourceControl-hasPendingChanges', 'sd-sourceControl-getLatestChanges', 'sd-appStates-save', 'sd-appStates-restore', 'sd-appStates-remove', 'sd-appStates-removeAll', 'sd-iisAppPool-ResetThread', 'sd-iisAppPool-Reset', 'sd-iisAppPool-Stop', 'sd-iisSite-browse', 'sd-iisSite-new', 'sd-iisSite-delete', 'sd-iisSite-changeDomain', 'sd-iisSite-getUrl', 'sd-iisSubApp-set', 'sd-iisSubApp-remove', 'sd-app-uninitialize', 'sd-appPrecompiledTemplates-remove'
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
@@ -41,7 +41,7 @@
             10.2.2
                 Renaming a project hangs #100
             10.2.1
-                add sf-proj-getAll
+                add sd-proj-getAll
             10.1.1
                 Remove import web administration
             9.3.1
@@ -52,7 +52,7 @@
             9.2.2
                 Removed dependencies to toko-admin and toko-posh-dev-tools
             9.2.1
-                api sf-sf-app-waitForSitefinityToStart
+                api sd-sd-app-waitForSitefinityToStart
                 bug fixes
             9.1.5
                 Bugfix: Error log not displayed when build fails
@@ -61,9 +61,9 @@
             9.1.3
                 Bugfix: Undoing pending changes
             9.1.2
-                sf-proj-reset always resets not only when old project
+                sd-proj-reset always resets not only when old project
             9.1.1
-                sf-proj-new now can use existing app path. Removed sf-proj-import.
+                sd-proj-new now can use existing app path. Removed sd-proj-import.
             8.2.2
                 Major refacotring and improved error handling
             8.2.1
