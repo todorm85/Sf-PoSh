@@ -1,9 +1,9 @@
 function sf-app-waitForSitefinityToStart {
     param(
-        [Int32]$totalWaitSeconds = $Global:Sf.config.app.startupMaxWait
+        [Int32]$totalWaitSeconds = $GLOBAL:sf.config.app.startupMaxWait
     )
 
-    $url = sf-iis-site-getUrl
+    $url = sf-iisSite-getUrl
     $statusUrl = "$url/appstatus"
 
     Write-Information "Starting Sitefinity..."
@@ -60,7 +60,7 @@ function sf-app-uninitialize {
     }
     
     Write-Information "Restarting app pool..."
-    sf-iis-poolreset
+    sf-iisAppPool-Reset
 
     if ($force) {
         Write-Information "Unlocking files..."
@@ -105,17 +105,8 @@ function sf-app-reinitializeAndStart {
     Generates and adds precompiled templates to selected sitefinity solution.
     .DESCRIPTION
     Precompiled templates give much faster page loads when web app is restarted (when building or rebuilding solution) on first load of the page. Useful with local sitefinity development. WARNING: Any changes to markup are ignored when precompiled templates are added to the project, meaning the markup at the time of precompilation is always used. In order to see new changes to markup you need to remove the precompiled templates and generate them again.
-    .PARAMETER revert
-    Reverts previous changes
-    .OUTPUTS
-    None
 #>
-function sf-app-addPrecompiledTemplates {
-    
-    param(
-        [switch]$revert
-    )
-    
+function sf-appPrecompiledTemplates-add {
     # path to sitefinity compiler tool
     $sitefinityCompiler = "$PSScriptRoot\external-tools\Telerik.Sitefinity.Compiler.exe"
 
@@ -125,29 +116,41 @@ function sf-app-addPrecompiledTemplates {
     
     $context = sf-project-getCurrent
     $webAppPath = $context.webAppPath
-    $appUrl = sf-iis-site-getUrl
-    if ($revert) {
-        $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
-        try {
-            $dlls | Remove-Item -Force
-        }
-        catch {
-            throw "Item could not be deleted: $dll.PSPath`nMessage:$_"
-        }
+    $appUrl = sf-iisSite-getUrl
+    & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default" /url="${appUrl}"
+}
+
+<#
+    .SYNOPSIS 
+    Removes previously added precompiled templates to selected sitefinity solution.
+#>
+function sf-appPrecompiledTemplates-remove {
+    # path to sitefinity compiler tool
+    $sitefinityCompiler = "$PSScriptRoot\external-tools\Telerik.Sitefinity.Compiler.exe"
+
+    if (-not (Test-Path $sitefinityCompiler)) {
+        Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
-    else {
-        & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default" /url="${appUrl}"
+    
+    $context = sf-project-getCurrent
+    $webAppPath = $context.webAppPath
+    $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
+    try {
+        $dlls | Remove-Item -Force
+    }
+    catch {
+        throw "Item could not be deleted: $dll.PSPath`nMessage:$_"
     }
 }
 
 function _app-initialize {
     param(
-        [Parameter(Mandatory=$true)]$dbName
+        [Parameter(Mandatory = $true)]$dbName
     )
 
     Start-Sleep -s 2
     try {
-        sf-sol-createStartupConfig $Global:Sf.config.sitefinityUser $dbName
+        sf-appStartupConfig-create $GLOBAL:sf.config.sitefinityUser $dbName
     }
     catch {
         throw "Erros while creating startupConfig: $_"
@@ -157,7 +160,7 @@ function _app-initialize {
         sf-app-waitForSitefinityToStart
     }
     catch {
-        sf-sol-removeStartupConfig
+        sf-appStartupConfig-remove
         throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
     }
 }

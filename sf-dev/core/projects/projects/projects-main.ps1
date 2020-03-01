@@ -1,4 +1,4 @@
-$Global:Sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Backlog Item ", "Bug ", "Task ", "Feature ") -MemberType NoteProperty
+$GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Backlog Item ", "Bug ", "Task ", "Feature ") -MemberType NoteProperty
 
 <#
     .SYNOPSIS 
@@ -39,7 +39,7 @@ function sf-project-new {
     $result = sf-project-use $newContext
 
     if (!$newContext.websiteName) {
-        sf-iis-site-new
+        sf-iisSite-new
     }
 
     _createUserFriendlySlnName $newContext
@@ -64,7 +64,7 @@ function sf-project-clone {
     }
 
     $targetDirectoryName = [Guid]::NewGuid()
-    $targetPath = $GLOBAL:Sf.Config.projectsDirectory + "\$targetDirectoryName"
+    $targetPath = $GLOBAL:sf.Config.projectsDirectory + "\$targetDirectoryName"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
     }
@@ -109,7 +109,7 @@ function sf-project-clone {
 
     try {
         Write-Information "Creating website..."
-        sf-iis-site-new
+        sf-iisSite-new
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -137,7 +137,7 @@ function sf-project-clone {
     }
 
     try {
-        sf-app-states-removeAll
+        sf-appStates-removeAll
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
@@ -198,14 +198,14 @@ function sf-project-remove {
     $websiteName = $context.websiteName
     if ($websiteName -and (iis-test-isSiteNameDuplicate $websiteName)) {
         try {
-            sf-iis-poolstop $websiteName
+            sf-iisAppPool-Stop $websiteName
         }
         catch {
             Write-Warning "Could not stop app pool: $_`n"            
         }
 
         try {
-            sf-iis-site-delete $context.websiteName
+            sf-iisSite-delete $context.websiteName
         }
         catch {
             Write-Warning "Errors deleting website ${websiteName}. $_`n"
@@ -225,7 +225,7 @@ function sf-project-remove {
     if ($workspaceName -and !($keepWorkspace)) {
         Write-Information "Deleting workspace..."
         try {
-            tfs-delete-workspace $workspaceName $GLOBAL:Sf.Config.tfsServerName
+            tfs-delete-workspace $workspaceName $GLOBAL:sf.Config.tfsServerName
         }
         catch {
             Write-Warning "Could not delete workspace $_"
@@ -276,7 +276,7 @@ function sf-project-remove {
         _removeProjectData $context
     }
     catch {
-        Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:Sf.Config.dataPath)"
+        Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
     }
     
     if ($clearCurrentSelectedProject) {
@@ -347,7 +347,7 @@ function sf-project-rename {
     }
     
     $domain = _generateDomainName -context $context
-    sf-iis-site-changeDomain -domainName $domain
+    sf-iisSite-changeDomain -domainName $domain
     Set-Prompt -project $context
     
     _saveSelectedProject $context
@@ -417,7 +417,7 @@ function _proj-tryUseExisting {
 function _getNameParts {
     Param([string]$name)
     $description = ''
-    $titleKeys = $Global:Sf.config.azureDevOpsItemTypes
+    $titleKeys = $GLOBAL:sf.config.azureDevOpsItemTypes
     $title = $name
     foreach ($key in $titleKeys) {
         if ($name.StartsWith($key)) {
@@ -526,9 +526,9 @@ function _getIsIdDuplicate ($id) {
         }
     }
 
-    if (Test-Path "$($GLOBAL:Sf.Config.projectsDirectory)\$id") { return $true }
+    if (Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id") { return $true }
 
-    $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName | Where-Object { _isDuplicate $_ }
+    $wss = tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName | Where-Object { _isDuplicate $_ }
     if ($wss) { return $true }
 
     Import-Module WebAdministration
@@ -552,7 +552,7 @@ function _getIsIdDuplicate ($id) {
 function _generateId {
     $i = 0;
     while ($true) {
-        $name = "$($GLOBAL:Sf.Config.idPrefix)$i"
+        $name = "$($GLOBAL:sf.Config.idPrefix)$i"
         $_isDuplicate = (_getIsIdDuplicate $name)
         if (-not $_isDuplicate) {
             break;
@@ -634,7 +634,7 @@ function _proj-createProjectDirectory {
     )
     
     Write-Information "Creating project files..."
-    $projectDirectory = "$($GLOBAL:Sf.Config.projectsDirectory)\$($project.id)"
+    $projectDirectory = "$($GLOBAL:sf.Config.projectsDirectory)\$($project.id)"
     if (Test-Path $projectDirectory) {
         throw "Path already exists:" + $projectDirectory
     }

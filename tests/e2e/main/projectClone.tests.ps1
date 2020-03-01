@@ -41,7 +41,7 @@ InModuleScope sf-dev {
         }
 
         It "set project solution path" {
-            $project.solutionPath.Contains($GLOBAL:Sf.Config.projectsDirectory) | Should -Be $true
+            $project.solutionPath.Contains($GLOBAL:sf.Config.projectsDirectory) | Should -Be $true
         }
 
         It "set project site" {

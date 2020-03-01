@@ -3,12 +3,12 @@ function sql-delete-database {
         [Parameter(Mandatory = $true)][string] $dbName
     )
 
-    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$dbName'") -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$dbName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
     ForEach ($Database in $Databases) { 
-        Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query (
+        Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query (
             "alter database [" + $Database.Name + "] set single_user with rollback immediate
-            DROP DATABASE [" + $Database.Name + "]") -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+            DROP DATABASE [" + $Database.Name + "]") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
     }
 }
 
@@ -18,18 +18,18 @@ function sql-rename-database {
         [Parameter(Mandatory = $true)][string] $newName
     )
 
-    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$oldName'") -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$oldName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
     ForEach ($Database in $Databases) { 
-        Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query (
+        Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query (
             "alter database [" + $Database.Name + "] set single_user with rollback immediate
             EXEC sp_renamedb '$oldName', '$newName'
-            ALTER DATABASE [$newName] SET MULTI_USER") -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+            ALTER DATABASE [$newName] SET MULTI_USER") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
     }
 }
 
 function sql-get-dbs {
-    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query ("SELECT * from sys.databases") -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
     return $Databases
 }
@@ -37,10 +37,10 @@ function sql-get-dbs {
 function sql-get-items {
     Param($dbName, $tableName, $selectFilter, $whereFilter)
 
-    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query ("
+    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("
         SELECT $selectFilter
         FROM [${dbName}].[dbo].[${tableName}]
-        WHERE $whereFilter") -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+        WHERE $whereFilter") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
     return $result
 }
@@ -48,10 +48,10 @@ function sql-get-items {
 function sql-update-items {
     Param($dbName, $tableName, $value, $whereFilter)
 
-    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query "
+    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query "
         UPDATE [${dbName}].[dbo].[${tableName}]
         SET ${value}
-        WHERE $whereFilter" -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+        WHERE $whereFilter" -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
     return $result
 }
@@ -61,9 +61,9 @@ function sql-insert-items {
         $dbName, $tableName, $columns, $values
     )
 
-    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query "
+    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query "
         INSERT INTO [${dbName}].[dbo].[${tableName}] ($columns)
-        VALUES (${values})" -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+        VALUES (${values})" -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
     return $result
 }
@@ -71,9 +71,9 @@ function sql-insert-items {
 function sql-delete-items {
     Param($dbName, $tableName, $whereFilter)
 
-    Invoke-SQLcmd -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Query ("
+    Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("
         DELETE FROM [${dbName}].[dbo].[${tableName}]
-        WHERE $whereFilter") -Username $GLOBAL:Sf.config.sqlUser -Password $GLOBAL:Sf.config.sqlPass
+        WHERE $whereFilter") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 }
 
 function sql-test-isDbNameDuplicate {
@@ -81,7 +81,7 @@ function sql-test-isDbNameDuplicate {
         [string]$dbName
     )
 
-    $existingDbs = @(sql-get-dbs -user $GLOBAL:Sf.config.sqlUser -pass $GLOBAL:Sf.config.sqlPass -sqlServerInstance $GLOBAL:Sf.config.sqlServerInstance)
+    $existingDbs = @(sql-get-dbs -user $GLOBAL:sf.config.sqlUser -pass $GLOBAL:sf.config.sqlPass -sqlServerInstance $GLOBAL:sf.config.sqlServerInstance)
     $exists = $false
     ForEach ($db in $existingDbs) {
         if ($db.name -eq $dbName) {
@@ -102,10 +102,10 @@ function sql-copy-db {
 
     #your SQL Server Instance Name
     $connection = [Microsoft.SqlServer.Management.Common.ServerConnection]::new()
-    $connection.ServerInstance = $GLOBAL:Sf.config.sqlServerInstance
+    $connection.ServerInstance = $GLOBAL:sf.config.sqlServerInstance
     $connection.LoginSecure = $false
-    $connection.Login = $GLOBAL:Sf.config.sqlUser
-    $connection.Password = $GLOBAL:Sf.config.sqlPass
+    $connection.Login = $GLOBAL:sf.config.sqlUser
+    $connection.Password = $GLOBAL:sf.config.sqlPass
     $Server = [Microsoft.SqlServer.Management.Smo.Server]::new($connection)
 
     #create SMO handle to your database
@@ -133,11 +133,11 @@ function sql-copy-db {
     $ObjTransfer.Options.DriAllConstraints = $true
     $ObjTransfer.Options.DriForeignKeys = $true
     $ObjTransfer.DestinationDatabase = $CopyDBName
-    $ObjTransfer.DestinationServer = $GLOBAL:Sf.config.sqlServerInstance
+    $ObjTransfer.DestinationServer = $GLOBAL:sf.config.sqlServerInstance
     $ObjTransfer.DestinationLoginSecure = $false
     $ObjTransfer.CopySchema = $true
-    $ObjTransfer.DestinationLogin = $GLOBAL:Sf.config.sqlUser
-    $ObjTransfer.DestinationPassword = $GLOBAL:Sf.config.sqlPass
+    $ObjTransfer.DestinationLogin = $GLOBAL:sf.config.sqlUser
+    $ObjTransfer.DestinationPassword = $GLOBAL:sf.config.sqlPass
 
     #if you wish to just generate the copy script
     #just script out the transfer

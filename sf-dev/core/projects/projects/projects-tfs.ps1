@@ -4,7 +4,7 @@ function _createWorkspace ($context, $branch) {
         # create and map workspace
         Write-Information "Creating workspace..."
         $workspaceName = $context.id
-        tfs-create-workspace $workspaceName $context.solutionPath $GLOBAL:Sf.Config.tfsServerName
+        tfs-create-workspace $workspaceName $context.solutionPath $GLOBAL:sf.Config.tfsServerName
     }
     catch {
         throw "Could not create workspace $workspaceName in $($context.solutionPath).`n $_"
@@ -12,7 +12,7 @@ function _createWorkspace ($context, $branch) {
 
     try {
         Write-Information "Creating workspace mappings..."
-        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $GLOBAL:Sf.Config.tfsServerName
+        tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $GLOBAL:sf.Config.tfsServerName
     }
     catch {
         throw "Could not create mapping $($branch) in $($context.solutionPath) for workspace ${workspaceName}.`n $_"

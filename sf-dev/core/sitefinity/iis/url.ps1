@@ -1,4 +1,4 @@
-function sf-iis-site-getUrl {
+function sf-iisSite-getUrl {
     Param(
         [switch]$useDevUrl
     )

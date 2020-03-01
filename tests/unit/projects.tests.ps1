@@ -5,7 +5,7 @@ InModuleScope sf-dev {
     . "${PSScriptRoot}\..\test-utils\test-util.ps1"
     
     Describe "_createProjectFilesFromSource should" {
-        $GLOBAL:Sf.Config.projectsDirectory = "$TestDrive"
+        $GLOBAL:sf.Config.projectsDirectory = "$TestDrive"
         Copy-Item -Path "$PSScriptRoot\..\test-utils\files\Build\SitefinityWebApp.zip" -Destination "$TestDrive"
         $appNoSolutionZipPath = "$TestDrive\SitefinityWebApp.zip"
         Copy-Item -Path "$PSScriptRoot\..\test-utils\files\Build\SitefinitySource.zip" -Destination "$TestDrive"

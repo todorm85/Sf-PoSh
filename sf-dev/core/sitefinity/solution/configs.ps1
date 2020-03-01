@@ -1,4 +1,4 @@
-function sf-sol-removeStartupConfig {
+function sf-appStartupConfig-remove {
     $context = sf-project-getCurrent
     $configPath = "$($context.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
     Remove-Item -Path $configPath -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
@@ -7,13 +7,13 @@ function sf-sol-removeStartupConfig {
     }
 }
 
-function sf-sol-createStartupConfig {
+function sf-appStartupConfig-create {
     param(
-        [string]$user = $GLOBAL:Sf.Config.sitefinityUser,
+        [string]$user = $GLOBAL:sf.Config.sitefinityUser,
         [Parameter(Mandatory = $true)][string]$dbName,
-        [string]$password = $GLOBAL:Sf.Config.sitefinityPassword,
-        [string]$sqlUser = $GLOBAL:Sf.Config.sqlUser,
-        [string]$sqlPass = $GLOBAL:Sf.Config.sqlPass
+        [string]$password = $GLOBAL:sf.Config.sitefinityPassword,
+        [string]$sqlUser = $GLOBAL:sf.Config.sqlUser,
+        [string]$sqlPass = $GLOBAL:sf.Config.sqlPass
     )
 
     $context = sf-project-getCurrent
@@ -53,7 +53,7 @@ function sf-sol-createStartupConfig {
         $XmlWriter.WriteAttributeString("lastName", $username)
         $XmlWriter.WriteAttributeString("dbName", $dbName)
         $XmlWriter.WriteAttributeString("dbType", "SqlServer")
-        $XmlWriter.WriteAttributeString("sqlInstance", $GLOBAL:Sf.config.sqlServerInstance)
+        $XmlWriter.WriteAttributeString("sqlInstance", $GLOBAL:sf.config.sqlServerInstance)
         $XmlWriter.WriteAttributeString("sqlAuthUserName", $sqlUser)
         $XmlWriter.WriteAttributeString("sqlAuthUserPassword", $sqlPass)
         $xmlWriter.WriteEndElement()

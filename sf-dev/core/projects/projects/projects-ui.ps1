@@ -13,7 +13,7 @@ function sf-project-select {
     )
     
     if (!$tagsFilter) {
-        $tagsFilter = sf-project-tags-getDefaultFilter
+        $tagsFilter = sf-projectTags-getDefaultFilter
     }
 
     [SfProject[]]$sitefinities = @(_data-getAllProjects -tagsFilter $tagsFilter)
@@ -149,7 +149,7 @@ function _getDaysSinceDate {
 }
 
 function _promptPredefinedBranchSelect {
-    $branches = @($GLOBAL:Sf.Config.predefinedBranches)
+    $branches = @($GLOBAL:sf.Config.predefinedBranches)
 
     if ($branches.Count -eq 0) {
         $selectedBranch = Read-Host -Prompt 'No predefined branches, enter branch path'
@@ -176,7 +176,7 @@ function _promptPredefinedBranchSelect {
 }
 
 function _promptPredefinedBuildPathSelect {
-    $paths = @($GLOBAL:Sf.Config.predefinedBuildPaths)
+    $paths = @($GLOBAL:sf.Config.predefinedBuildPaths)
 
     if ($paths.Count -eq 0) {
         $selectedPath = Read-Host -Prompt 'No predefined build paths, enter build path'

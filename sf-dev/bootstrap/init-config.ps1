@@ -53,4 +53,4 @@ $configFile = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPa
 Add-Member -InputObject $configFile -MemberType NoteProperty -Name dataPath -Value "$Script:moduleUserDir\db.xml"
 $configFile.projectsDirectory = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)
 
-Add-Member -InputObject $GLOBAL:Sf -MemberType NoteProperty -Name config -Value $configFile
+Add-Member -InputObject $GLOBAL:sf -MemberType NoteProperty -Name config -Value $configFile

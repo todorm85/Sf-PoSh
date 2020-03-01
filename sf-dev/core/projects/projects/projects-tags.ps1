@@ -6,7 +6,7 @@ $Script:tagCompleter = {
         $fakeBoundParameters )
 
     
-    $possibleValues = sf-project-tags-getAll
+    $possibleValues = sf-projectTags-getAll
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
             $_ -like "$($wordToComplete.TrimStart($prefixes))*"
@@ -16,11 +16,11 @@ $Script:tagCompleter = {
     $possibleValues
 }
 
-function sf-project-tags-getAll {
+function sf-projectTags-getAll {
     sf-project-getAll | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
 }
 
-function sf-project-tags-addToCurrent {
+function sf-projectTags-addToCurrent {
     param (
         [string]$tagName
     )
@@ -38,9 +38,9 @@ function sf-project-tags-addToCurrent {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName sf-project-tags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName sf-projectTags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sf-project-tags-removeFromCurrent {
+function sf-projectTags-removeFromCurrent {
     param (
         [string]$tagName
     )
@@ -60,15 +60,15 @@ function sf-project-tags-removeFromCurrent {
     _saveSelectedProject -context $project
 }
 
-Register-ArgumentCompleter -CommandName sf-project-tags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName sf-projectTags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sf-project-tags-removeAllFromCurrent {
+function sf-projectTags-removeAllFromCurrent {
     [SfProject]$project = sf-project-getCurrent
     $project.tags = @()
     _saveSelectedProject -context $project
 }
 
-function sf-project-tags-getAllFromCurrent {
+function sf-projectTags-getAllFromCurrent {
     $project = sf-project-getCurrent
     return $project.tags
 }

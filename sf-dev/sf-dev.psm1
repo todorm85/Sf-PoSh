@@ -1,4 +1,4 @@
-$GLOBAL:Sf = [PSCustomObject]@{}
+$GLOBAL:sf = [PSCustomObject]@{}
 
 $Script:moduleUserDir = "$Global:HOME\documents\sf-dev"
 if (-not (Test-Path $Script:moduleUserDir)) {

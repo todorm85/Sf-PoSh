@@ -1,7 +1,7 @@
 Import-Module dev -Force
 
 function sf-project-tools-clearAllProjectsLeftovers {
-    $projectsDir = $GLOBAL:Sf.Config.projectsDirectory
+    $projectsDir = $GLOBAL:sf.Config.projectsDirectory
     $idsInUse = _data-getAllProjects | ForEach-Object { $_.id }
     
     function _shouldClean {
@@ -9,7 +9,7 @@ function sf-project-tools-clearAllProjectsLeftovers {
             $id
         )
 
-        if (-not ($id -match "$($GLOBAL:Sf.Config.idPrefix)\d+")) {
+        if (-not ($id -match "$($GLOBAL:sf.Config.idPrefix)\d+")) {
             return $false
         }
         
@@ -54,8 +54,8 @@ function sf-project-tools-clearAllProjectsLeftovers {
 
     try {
         Write-Information "TFS cleanup"
-        $wss = tfs-get-workspaces $GLOBAL:Sf.Config.tfsServerName
-        $wss | Where-Object { _shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:Sf.Config.tfsServerName }
+        $wss = tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName
+        $wss | Where-Object { _shouldClean $_ } | ForEach-Object { tfs-delete-workspace $_ $GLOBAL:sf.Config.tfsServerName }
     }
     catch {
         _addError "Tfs workspaces were not cleaned up: $_"
@@ -65,7 +65,7 @@ function sf-project-tools-clearAllProjectsLeftovers {
         Write-Information "DBs cleanup"
         
         $dbs = sql-get-dbs
-        $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:Sf.Config.idPrefix)") -and (_shouldClean $_.name) } | ForEach-Object {
+        $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:sf.Config.idPrefix)") -and (_shouldClean $_.name) } | ForEach-Object {
             sql-delete-database -dbName $_.name
         }
     }

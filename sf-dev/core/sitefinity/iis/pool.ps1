@@ -6,7 +6,7 @@
     .OUTPUTS
     None
 #>
-function sf-iis-poolresetThread {
+function sf-iisAppPool-ResetThread {
     Param([switch]$start)
 
     $project = sf-project-getCurrent
@@ -28,7 +28,7 @@ function sf-iis-poolresetThread {
     .OUTPUTS
     None
 #>
-function sf-iis-poolreset {
+function sf-iisAppPool-Reset {
     
     Param(
         [switch]$start
@@ -48,7 +48,7 @@ function sf-iis-poolreset {
     }
 }
 
-function sf-iis-poolstop {
+function sf-iisAppPool-Stop {
     param(
         $websiteName
     )

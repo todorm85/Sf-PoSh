@@ -36,7 +36,7 @@ InModuleScope sf-dev {
             $res.name | Should -BeLike "Audit_should_not_log_the_event_when_a_frontend_use"
         }
         It "return correct title for valid azure dev ops CUSTOM title" {
-            $Global:Sf.config.azureDevOpsItemTypes += @("Custom title")
+            $GLOBAL:sf.config.azureDevOpsItemTypes += @("Custom title")
             $testName = "Custom title 343346: Audit should not log the event when a frontend user signs in using frontend login widget."
             $res = _getNameParts -name $testName
             $res.name | Should -BeLike "Audit_should_not_log_the_event_when_a_frontend_use"

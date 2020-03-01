@@ -3,7 +3,7 @@ function _data-getAllProjects {
         [string[]]$tagsFilter
     )
     $data = New-Object XML
-    $data.Load($GLOBAL:Sf.Config.dataPath)
+    $data.Load($GLOBAL:sf.Config.dataPath)
     $sfs = $data.data.sitefinities.sitefinity
     [System.Collections.Generic.List``1[SfProject]]$sitefinities = New-Object System.Collections.Generic.List``1[SfProject]
     if ($sfs) {
@@ -49,7 +49,7 @@ function _removeProjectData {
     $id = $context.id
     try {
         $data = New-Object XML
-        $data.Load($GLOBAL:Sf.Config.dataPath) > $null
+        $data.Load($GLOBAL:sf.Config.dataPath) > $null
         $sitefinities = $data.data.sitefinities.sitefinity
         ForEach ($sitefinity in $sitefinities) {
             if ($sitefinity.id -eq $id) {
@@ -58,7 +58,7 @@ function _removeProjectData {
             }
         }
 
-        $data.Save($GLOBAL:Sf.Config.dataPath) > $null
+        $data.Save($GLOBAL:sf.Config.dataPath) > $null
     }
     catch {
         throw "Error deleting sitefinity from ${dataPath}. Message: $_"
@@ -70,7 +70,7 @@ function _setProjectData {
 
     $context = [SfProject]$context
     $data = New-Object XML
-    $data.Load($GLOBAL:Sf.Config.dataPath) > $null
+    $data.Load($GLOBAL:sf.Config.dataPath) > $null
     $sitefinities = $data.data.sitefinities.sitefinity
     ForEach ($sitefinity in $sitefinities) {
         if ($sitefinity.id -eq $context.id) {
@@ -102,7 +102,7 @@ function _setProjectData {
     $sitefinityEntry.SetAttribute("tags", $tags)
     $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
 
-    $data.Save($GLOBAL:Sf.Config.dataPath) > $null
+    $data.Save($GLOBAL:sf.Config.dataPath) > $null
 }
 
 function _setDefaultTagsFilter {
@@ -111,18 +111,18 @@ function _setDefaultTagsFilter {
     )
     
     $data = New-Object XML
-    $data.Load($GLOBAL:Sf.Config.dataPath) > $null
+    $data.Load($GLOBAL:sf.Config.dataPath) > $null
     $serializedFilter = ""
     $defaultTagsFilter | ForEach-Object { $serializedFilter = "$serializedFilter $_" }
     $serializedFilter = $serializedFilter.Trim()
     $data.data.SetAttribute("defaultTagsFilter", $serializedFilter) > $null
     
-    $data.Save($GLOBAL:Sf.Config.dataPath) > $null
+    $data.Save($GLOBAL:sf.Config.dataPath) > $null
 }
 
 function _getDefaultTagsFilter {
     $data = New-Object XML
-    $data.Load($GLOBAL:Sf.Config.dataPath) > $null
+    $data.Load($GLOBAL:sf.Config.dataPath) > $null
     $result = $data.data.GetAttribute("defaultTagsFilter").Split(" ")
     if ($result) {
         return ,$result

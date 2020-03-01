@@ -161,7 +161,7 @@ function sf-sol-open {
         }
     }
 
-    $vsPath = $Global:Sf.config.vsPath
+    $vsPath = $GLOBAL:sf.config.vsPath
     if (!(Test-Path $vsPath)) {
         throw "Invalid visual studio path configured ($vsPath). Configure it in $Script:moduleUserDir -> vsPath"
     }
@@ -234,12 +234,12 @@ function _buildProj {
 
     Write-Information "Building ${path}"
 
-    if (!(Test-Path $Global:Sf.config.msBuildPath)) {
-        throw "Invalid ms build tools path configured $($Global:Sf.config.msBuildPath). Configure it in $Script:moduleUserDir -> msBuildPath"
+    if (!(Test-Path $GLOBAL:sf.config.msBuildPath)) {
+        throw "Invalid ms build tools path configured $($GLOBAL:sf.config.msBuildPath). Configure it in $Script:moduleUserDir -> msBuildPath"
     }
 
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
-    $output = Invoke-Expression "& `"$($Global:Sf.config.msBuildPath)`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:d"
+    $output = Invoke-Expression "& `"$($GLOBAL:sf.config.msBuildPath)`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:d"
     $elapsed.Stop()
     
     if ($LastExitCode -ne 0) {

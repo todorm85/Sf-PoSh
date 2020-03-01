@@ -1,4 +1,4 @@
-function sf-app-states-save {
+function sf-appStates-save {
     Param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -28,7 +28,7 @@ function sf-app-states-save {
     Set-Acl $statePath $Acl
 
     $backupName = _getSqlBackupStateName -stateName $stateName
-    Backup-SqlDatabase -ServerInstance $GLOBAL:Sf.Config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials) -Initialize
+    Backup-SqlDatabase -ServerInstance $GLOBAL:sf.Config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials) -Initialize
     
     $stateDataPath = "$statePath/data.xml"
     New-Item $stateDataPath > $null
@@ -41,7 +41,7 @@ function sf-app-states-save {
     _appData-copy -dest $appDataStatePath
 }
 
-function sf-app-states-restore {
+function sf-appStates-restore {
     Param(
         [string]$stateName,
         [bool]$force = $false
@@ -57,7 +57,7 @@ function sf-app-states-restore {
         return
     }
 
-    sf-iis-poolreset
+    sf-iisAppPool-Reset
     if ($force) {
         sf-sol-unlockAllFiles
     }
@@ -68,7 +68,7 @@ function sf-app-states-restore {
     
     sql-delete-database -dbName $dbName
     $backupName = _getSqlBackupStateName -stateName $stateName
-    Restore-SqlDatabase -ServerInstance $GLOBAL:Sf.config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials)
+    Restore-SqlDatabase -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials)
 
     $appDataStatePath = "$statePath/App_Data"
     $appDataPath = "$($project.webAppPath)/App_Data"
@@ -79,7 +79,7 @@ function sf-app-states-restore {
     _appData-restore "$appDataStatePath/*"
 }
 
-function sf-app-states-remove ($stateName) {
+function sf-appStates-remove ($stateName) {
     if ([string]::IsNullOrEmpty($stateName)) {
         $stateName = _selectAppState
     }
@@ -95,12 +95,12 @@ function sf-app-states-remove ($stateName) {
     }
 }
 
-function sf-app-states-removeAll {
+function sf-appStates-removeAll {
     $statesPath = _getStatesPath
     if (Test-Path $statesPath) {
         $states = Get-ChildItem $statesPath
         foreach ($state in $states) {
-            sf-app-states-remove $state.Name
+            sf-appStates-remove $state.Name
         }
     }
 }
@@ -140,8 +140,8 @@ function _getSqlBackupStateName {
 }
 
 function _getSqlCredentials {
-    $password = ConvertTo-SecureString $GLOBAL:Sf.Config.sqlPass -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential ($GLOBAL:Sf.Config.sqlUser, $password)
+    $password = ConvertTo-SecureString $GLOBAL:sf.Config.sqlPass -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential ($GLOBAL:sf.Config.sqlUser, $password)
     $credential
 }
 
