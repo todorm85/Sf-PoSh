@@ -130,7 +130,7 @@ function tfs-get-latestChanges {
         $output = execute-native "& `"$(_get-tfPath)`" get" -successCodes @(1)
     }
 
-    if ($LASTEXITCODE -eq 1) {
+    if ($LASTEXITCODE -eq 1 -or $LASTEXITCODE -eq 0) {
         $output -match ".*?(?<conflicts>\d+) conflicts, \d+ warnings, (?<errors>\d+) errors.*"
         $conflictsCount = 0
         if ($Matches.conflicts) {
