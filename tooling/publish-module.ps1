@@ -11,10 +11,14 @@ if (!$Script:version) {
 
 Set-Location "$PSScriptRoot"
 
-. "./set-exportedFunctions.ps1"
-git commit --quiet -a -m "Update before tag"
+# . "./set-exportedFunctions.ps1"
+# git commit --quiet -a -m "Update exported functions definition"
 
-git tag $Script:version
+$res = git tag $Script:version 2>&1
+if ($res.ToString().Contains('fatal')) {
+    throw $res
+}
+
 git push origin --tags
 
 Publish-Module -Name "sf-dev" -NuGetApiKey $Env:NuGetApiKey
