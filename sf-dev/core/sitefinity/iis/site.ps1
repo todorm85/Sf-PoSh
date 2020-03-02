@@ -43,11 +43,12 @@ function sd-iisSite-new {
     $context = sd-project-getCurrent
 
     $port = 2111
-    while (!(os-test-isPortFree $port) -or !(iis-test-isPortFree $port)) {
+    while (!(os-test-isPortFree $port) -or !(iis-isPortFree $port)) {
         $port++
     }
 
-    while ([string]::IsNullOrEmpty($context.id) -or (iis-test-isSiteNameDuplicate $context.id)) {
+    $siteExists = @(Get-Website | ? { $_.name -eq $context.id }).Count -gt 0
+    while ([string]::IsNullOrEmpty($context.id) -or $siteExists) {
         throw "Website with name $($context.id) already exists or no name provided:"
     }
 
@@ -59,13 +60,11 @@ function sd-iisSite-new {
     $newAppPool = $context.id
     $domain = _generateDomainName -context $context
     try {
-        iis-create-website -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
+        iis-website-create -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
     catch {
         throw "Error creating site: $_"
     }
-
-    _saveSelectedProject $context
 
     try {
         if ($domain) {
@@ -77,13 +76,14 @@ function sd-iisSite-new {
     }
 }
 
-function sd-iisSite-delete ($websiteName) {
+function sd-iisSite-delete {
+    $websiteName = (sd-project-getCurrent).websiteName
     if (!$websiteName) {
         throw "Website name not set."
     }
     
-    $appPool = @(iis-get-siteAppPool $websiteName)
-    $domain = (iis-get-binding $websiteName).domain
+    $appPool = Get-IISSite -Name $websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
+    $domains = iis-bindings-getAll -siteName $websiteName | ? { $_.domain }
     $errors = ''
     try {
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse -ErrorAction SilentlyContinue -ErrorVariable +errors
@@ -100,8 +100,8 @@ function sd-iisSite-delete ($websiteName) {
     }
 
     try {
-        if ($domain) {
-            os-hosts-remove -hostname $domain > $null
+        if ($domains.Count) {
+            $domains | % { os-hosts-remove -hostname $_ > $null }
         }
     }
     catch {
@@ -112,34 +112,69 @@ function sd-iisSite-delete ($websiteName) {
         throw $errors
     }
 }
-
+# todo
 function sd-iisSite-changeDomain {
     param (
-        $domainName
+        $domainName,
+        $oldDomain
     )
 
-    $context = sd-project-getCurrent
-    $websiteName = $context.websiteName
-    if (!$websiteName) {
-        return
+    try {
+        os-hosts-remove -hostname $oldDomain > $null
+    }
+    catch {
+        Write-Warning "Error cleaning previous domain. It was not found in hosts file."            
+    }
+    
+    $p = sd-project-getCurrent
+    $websiteName = $p.websiteName
+    [SiteBinding]$binding = iis-bindings-getAll -siteName $p.websiteName | ? { $_.domain -eq $oldDomain }
+    $oldBindingFound = !!$binding
+    if (!$oldBindingFound) {
+        $binding = sd-iisSite-getDefaultBinding
     }
 
-    $oldDomain = (iis-get-binding $websiteName).domain
-    if ($oldDomain) {
-        try {
-            os-hosts-remove -hostname $oldDomain > $null
-        }
-        catch {
-            Write-Error "Error cleaning previous domain not found in hosts file."            
-        }
-    }
-
-    $port = (iis-get-binding $websiteName).port
+    $port = if ($binding) { $binding.port } else { $null }
     if ($port) {
-        iis-set-binding $websiteName $domainName $port
+        if ($oldBindingFound) {
+            Remove-WebBinding -Name $websiteName -Port $port -HostHeader $oldDomain -Protocol http
+        }
+
+        New-WebBinding -Name $websiteName -Protocol http -Port $port -HostHeader $domainName
         os-hosts-add -address 127.0.0.1 -hostname $domainName
     }
     else {
         throw "No binding found for site $websiteName"
     }
+}
+
+function sd-iisSite-getDefaultPort {
+    $binding = sd-iisSite-getDefaultBinding
+    if ($binding) {
+        $binding.port
+    }
+    else {
+        $null
+    }
+}
+
+function sd-iisSite-getDefaultBinding {
+    [CmdletBinding()]
+    [OutputType([SiteBinding])]
+    param()
+    
+    [SfProject]$project = sd-project-getCurrent
+    $bindings = @(iis-bindings-getAll -siteName $project.websiteName)
+    if ($bindings.Count -gt 0) {
+        $bindings[$bindings.Count - 1]
+    }
+    else {
+        $null
+    }
+}
+
+function sd-iisSite-getSubAppName {
+    $proj = sd-project-getCurrent    
+    [SfProject]$proj = sd-project-getCurrent
+    Get-WebApplication -Site $proj.websiteName | ? { $_.PhysicalPath.ToLower() -eq $proj.webAppPath } | % { $_.path.TrimStart('/') }
 }

@@ -1,20 +1,4 @@
-function iis-get-websitePort {
-    Param (
-        [string]$webAppName
-    )
-    if (-not ($webAppName)) {
-        return ""
-    }
-
-    (iis-get-binding $webAppName).port
-}
-
-function iis-get-usedPorts {
-
-    Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object {$_.split(':')[-2]}
-}
-
-function iis-create-website {
+function iis-website-create {
     Param(
         [Parameter(Mandatory = $true)][string]$newWebsiteName,
         [string]$domain = '',
@@ -46,70 +30,23 @@ function iis-create-website {
     }
 
     # create website
-    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol = "http"; bindingInformation = "*:${newPort}:"} -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool > $null
+    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol = "http"; bindingInformation = "*:${newPort}:" } -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool > $null
     if ($domain) {
-        iis-set-binding -siteName $newWebsiteName -domainName $domain -port $newPort
+        New-WebBinding -Name $newWebsiteName -Protocol http -Port $newPort -HostHeader $domain
     }
 
     $Acl = Get-Acl $newAppPath
     $Ar = New-Object  system.security.accesscontrol.filesystemaccessrule("IIS AppPool\$newAppPool", "Full", "ContainerInherit,ObjectInherit", "None", "Allow")
     $Acl.SetAccessRule($Ar)
     Set-Acl $newAppPath $Acl
-    $res = @{name = $newWebsiteName; port = $newPort; appPool = $newAppPool; appPath = $newAppPath}
+    $res = @{name = $newWebsiteName; port = $newPort; appPool = $newAppPool; appPath = $newAppPath }
     return $res
 }
 
-function iis-get-siteAppPool {
-    Param(
-        [string]$websiteName
-    )
-    
-    if (-not ($websiteName)) {
-        return ""
-    }
-
-    Get-ItemProperty "IIS:\Sites\${websiteName}" -Name "applicationPool"
-}
-
-function iis-test-isPortFree {
+function iis-isPortFree {
     Param($port)
-
-    $usedPorts = iis-get-usedPorts
-    $isFree = $true
-    ForEach ($usedPort in $usedPorts) {
-        if ($usedPort -eq $port) {
-            $isFree = $false
-            break
-        }
-    }
-
-    return $isFree
-}
-
-function iis-test-isSiteNameDuplicate {
-    Param(
-        [string]$name
-    )
-
-    $availableSites = @(Get-ChildItem -Path "IIS:\Sites")
-    $isDuplicateSite = $false
-    ForEach ($site in $availableSites) {
-        if ($site.name.ToLower() -eq $name.ToLower()) {
-            $isDuplicateSite = $true
-            break
-        }
-    }
-
-    return $isDuplicateSite
-}
-
-function iis-get-subAppName {
-    Param(
-        [string]$websiteName
-    )
-
-    $appNames = Get-Item "iis:\Sites\$websiteName\*" | Where-Object { $_.GetType().Name -eq "ConfigurationElement" } | ForEach-Object { $_.Name }
-    return @($appNames)[0]
+    $matchedPorts = @(Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object { $_.split(':')[-2] } | ? { $_ -eq $port} )
+    $matchedPorts.Count -eq 0
 }
 
 function iis-new-subApp {
@@ -118,11 +55,10 @@ function iis-new-subApp {
         [string]$appName,
         [string]$path
     )
-
     
     New-Item "IIS:\Sites\$($siteName)\${appName}" -physicalPath $path -type "Application" > $null
     
-    $pool = iis-get-siteAppPool -websiteName $siteName
+    $pool = Get-IISSite -Name $siteName | Get-IISAppPool | Select-Object -ExpandProperty Name
     Set-ItemProperty -Path "IIS:\Sites\$($siteName)\${appName}" -Name "applicationPool" -Value $pool > $null
 }
 
@@ -148,40 +84,20 @@ function iis-set-sitePath {
     Get-Item ("iis:\Sites\$($siteName)") | Set-ItemProperty -Name "physicalPath" -Value $path
 }
 
-function iis-set-binding {
-    param (
-        $siteName,
-        $domainName,
-        $port
+function iis-bindings-getAll {
+    [CmdletBinding()]
+    [OutputType([SiteBinding[]])]
+    Param(
+        [Parameter(Mandatory = $true)]$siteName
     )
-    
-    Get-WebBinding $siteName | Remove-WebBinding
-    New-WebBinding -Name $siteName -Protocol http -Port $port
-    if ($domainName) {
-        New-WebBinding -Name $siteName -Protocol http -Port $port -HostHeader $domainName        
-    }
-}
 
-function iis-get-binding {
-    param (
-        $siteName
-    )
-    
     $bindings = @(Get-WebBinding -Name $siteName)
-    if ($bindings.Count -eq 0) {
-        return @{port = $null; domain = $null}
+    $bindings | ForEach-Object {
+        $bindingInfo = $_.bindingInformation
+        $port = $bindingInfo.Split(':')[1]
+        $domain = $bindingInfo.Split(':')[2]
+        [SiteBinding]@{port = $port; domain = $domain; }
     }
-    
-    # first binding is to localhost, second to domain if set, port is same for all
-    $binding = $bindings[0]
-    if ($bindings[1]) {
-        $binding = $bindings[1]
-    }
-
-    $bindingInfo = $binding.bindingInformation
-    $port = $bindingInfo.Split(':')[1]
-    $domain = $bindingInfo.Split(':')[2]
-    return @{port = $port; domain = $domain; }
 }
 
 function iis-find-site {

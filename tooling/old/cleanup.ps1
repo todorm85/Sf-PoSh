@@ -2,7 +2,7 @@ Import-Module dev -Force
 
 function sd-project-tools-clearAllProjectsLeftovers {
     $projectsDir = $GLOBAL:sf.Config.projectsDirectory
-    $idsInUse = _data-getAllProjects | ForEach-Object { $_.id }
+    $idsInUse = sd-project-getAll | ForEach-Object { $_.id }
     
     function _shouldClean {
         param (

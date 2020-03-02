@@ -7,7 +7,7 @@ InModuleScope sf-dev {
         [SfProject]$project = set-testProject
         $subApp = "subApp"
         $site = $project.websiteName
-        $pool = iis-get-siteAppPool -websiteName $site
+        $pool = Get-IISSite -Name $site | Get-IISAppPool | Select-Object -ExpandProperty Name
 
         It "create application and set its path and app pool" {
             sd-iisSubApp-set -subAppName $subApp

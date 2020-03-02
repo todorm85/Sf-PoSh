@@ -4,40 +4,40 @@ InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
 
     Describe "Tags should" -Tags ("fluent") {
-        Mock _proj-refreshData { }
+        Mock _proj-initialize { }
         Mock _validateProject { }
         Mock _setConsoleTitle { }
         $testTag1 = 'test-sd-projectTags-1'
         $testTag2 = 'test-sd-projectTags-2'
         $testTag3 = 'test-sd-projectTags-3'
         $testTag4 = 'test-sd-projectTags-4'
-        $result = sd-project-use -newContext $([SfProject]::new())
+        $result = sd-project-setCurrent -newContext $([SfProject]::new())
 
         It "Add single tag to project" {
             sd-projectTags-addToCurrent -tagName $testTag1
-            [SfProject]$proj = (_data-getAllProjects)[0]
+            [SfProject]$proj = (sd-project-getAll)[0]
             $proj.tags | Should -Be $testTag1
-            $result = sd-project-use $proj
+            $result = sd-project-setCurrent $proj
             sd-projectTags-getAllFromCurrent | Should -Be $testTag1
         }
         It "Add multiple tags to project" {
             $expectedTags = @($testTag1, $testTag2, $testTag3)
             sd-projectTags-addToCurrent $testTag2
             sd-projectTags-addToCurrent $testTag3
-            [SfProject]$proj = (_data-getAllProjects)[0]
+            [SfProject]$proj = (sd-project-getAll)[0]
             $proj.tags | Should -Be $expectedTags
-            $result = sd-project-use $proj
+            $result = sd-project-setCurrent $proj
             sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove tag from project" {
             $expectedTags = @($testTag1, $testTag3)
 
-            [SfProject]$proj = (_data-getAllProjects)[0]
-            $result = sd-project-use $proj
+            [SfProject]$proj = (sd-project-getAll)[0]
+            $result = sd-project-setCurrent $proj
             sd-projectTags-removeFromCurrent $testTag2
             
-            [SfProject]$proj = (_data-getAllProjects)[0]
-            $result = sd-project-use $proj
+            [SfProject]$proj = (sd-project-getAll)[0]
+            $result = sd-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
@@ -46,25 +46,25 @@ InModuleScope sf-dev {
             sd-projectTags-addToCurrent $testTag2
             sd-projectTags-addToCurrent $testTag4
 
-            [SfProject]$proj = (_data-getAllProjects)[0]
-            $result = sd-project-use $proj
+            [SfProject]$proj = (sd-project-getAll)[0]
+            $result = sd-project-setCurrent $proj
             sd-projectTags-removeFromCurrent $testTag2
             sd-projectTags-removeFromCurrent $testTag3
             
-            [SfProject]$proj = (_data-getAllProjects)[0]
-            $result = sd-project-use $proj
+            [SfProject]$proj = (sd-project-getAll)[0]
+            $result = sd-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove first tag" {
             $expectedTags = @($testTag4)
 
-            [SfProject]$proj = (_data-getAllProjects)[0]
-            $result = sd-project-use $proj
+            [SfProject]$proj = (sd-project-getAll)[0]
+            $result = sd-project-setCurrent $proj
             sd-projectTags-removeFromCurrent $testTag1
             
-            [SfProject]$proj = (_data-getAllProjects)[0]
-            $result = sd-project-use $proj
+            [SfProject]$proj = (sd-project-getAll)[0]
+            $result = sd-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
@@ -72,12 +72,12 @@ InModuleScope sf-dev {
             $expectedTags = @($testTag4)
             sd-projectTags-addToCurrent $testTag2
 
-            [SfProject]$proj = (_data-getAllProjects)[0]
-            $result = sd-project-use $proj
+            [SfProject]$proj = (sd-project-getAll)[0]
+            $result = sd-project-setCurrent $proj
             sd-projectTags-removeFromCurrent $testTag2
             
-            [SfProject]$proj = (_data-getAllProjects)[0]
-            $result = sd-project-use $proj
+            [SfProject]$proj = (sd-project-getAll)[0]
+            $result = sd-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }

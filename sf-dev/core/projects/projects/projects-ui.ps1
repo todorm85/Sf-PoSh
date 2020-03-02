@@ -16,7 +16,7 @@ function sd-project-select {
         $tagsFilter = sd-projectTags-getDefaultFilter
     }
 
-    [SfProject[]]$sitefinities = @(_data-getAllProjects -tagsFilter $tagsFilter)
+    [SfProject[]]$sitefinities = @(sd-project-getAll -tagsFilter $tagsFilter)
 
     if (!$sitefinities[0]) {
         Write-Warning "No projects found. Check if not using default tag filter."
@@ -24,8 +24,7 @@ function sd-project-select {
     }
 
     $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
-    _proj-refreshData $selectedSitefinity
-    $result = sd-project-use $selectedSitefinity
+    sd-project-setCurrent $selectedSitefinity >> $null
     sd-project-show
 }
 
@@ -45,7 +44,7 @@ function sd-project-show {
         return
     }
 
-    $ports = @(iis-get-websitePort $context.websiteName)
+    $ports = @(sd-iisSite-getDefaultPort)
     $branchShortName = "no branch"
     if ($context.branch) {
         $branchParts = $context.branch.split('/')
@@ -66,7 +65,7 @@ function sd-project-show {
     }
 
     try {
-        $appPool = @(iis-get-siteAppPool $context.websiteName)
+        $appPool = Get-IISSite -Name $context.websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
     }
     catch {
         Write-Information "Error getting some details from IIS: $_"    
@@ -115,14 +114,14 @@ function sd-project-showAll {
     
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {
-        $ports = @(iis-get-websitePort $sitefinity.websiteName)
+        $ports = iis-bindings-getAll -siteName $sitefinity.websiteName | Select-Object -ExpandProperty 'port' | Get-Unique
         [SfProject]$sitefinity = $sitefinity
         $index = [array]::IndexOf($sitefinities, $sitefinity)
-        
+        $branch = if ($sitefinity.branch) { $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]} else { '' }
         $output.add([pscustomobject]@{
                 order   = $index;
                 Title   = "$index : $($sitefinity.displayName)";
-                Branch  = $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0];
+                Branch  = $branch;
                 Ports   = "$ports";
                 ID      = "$($sitefinity.id)";
                 LastGet = $sitefinity.daysSinceLastGet;
@@ -260,26 +259,4 @@ function _proj-promptSfsSelection ([SfProject[]]$sitefinities) {
     }    
 
     return $sfsToDelete
-}
-
-function _setConsoleTitle {
-    param (
-        [SfProject]$newContext
-    )
-
-    if ($newContext) {
-        $ports = @(iis-get-websitePort $newContext.websiteName)
-        if ($newContext.branch) {
-            $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
-        }
-        else {
-            $branch = '/no branch'
-        }
-
-        [System.Console]::Title = "$($newContext.displayName) ($($newContext.id)) $branch $ports "
-        Set-Location $newContext.webAppPath
-    }
-    else {
-        [System.Console]::Title = ""
-    }
 }

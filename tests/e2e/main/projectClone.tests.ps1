@@ -9,7 +9,7 @@ InModuleScope sf-dev {
         $sourceName = $sourceProj.displayName
         $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
         
-        _data-getAllProjects | Where-Object displayName -eq $cloneTestName | ForEach-Object {
+        sd-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
             sd-project-remove -noPrompt -context $_
         }
         

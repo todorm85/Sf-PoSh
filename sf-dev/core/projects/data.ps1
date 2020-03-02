@@ -1,20 +1,18 @@
 function _data-getAllProjects {
-    param(
-        [string[]]$tagsFilter
-    )
     $data = New-Object XML
     $data.Load($GLOBAL:sf.Config.dataPath)
     $sfs = $data.data.sitefinities.sitefinity
+    $dataVersion = $data.data.version
+    if ($dataVersion -and $script:cachedDataVersion -eq $dataVersion -and $Script:sfsDataCache) {
+        return $Script:sfsDataCache
+    }
+    elseif ($dataVersion) {
+        $script:cachedDataVersion = $dataVersion
+    }
+
     [System.Collections.Generic.List``1[SfProject]]$sitefinities = New-Object System.Collections.Generic.List``1[SfProject]
     if ($sfs) {
         $sfs | ForEach-Object {
-            if ($_.lastGetLatest) {
-                $lastGetLatest = [System.DateTime]::Parse($_.lastGetLatest)
-            }
-            else {
-                $lastGetLatest = $null
-            }
-
             $tags = @()
             if ($_.tags) {
                 $tags = $_.tags.Split(' ')
@@ -22,24 +20,16 @@ function _data-getAllProjects {
 
             $clone = [SfProject]::new()
             $clone.id = $_.id;
-            $clone.branch = $_.branch;
             $clone.description = $_.description;
             $clone.displayName = $_.displayName;
-            $clone.solutionPath = $_.solutionPath;
             $clone.webAppPath = $_.webAppPath;
-            $clone.websiteName = $_.websiteName;
             $clone.tags = $tags;
-            $clone.lastGetLatest = $lastGetLatest;
-            $clone.daysSinceLastGet = _getDaysSinceDate $lastGetLatest;
 
             $sitefinities.Add($clone)
         }
     }
-
-    if ($tagsFilter) {
-        $sitefinities = _filterProjectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
-    }
-
+    
+    $Script:sfsDataCache = $sitefinities
     return $sitefinities
 }
 
@@ -58,7 +48,7 @@ function _removeProjectData {
             }
         }
 
-        $data.Save($GLOBAL:sf.Config.dataPath) > $null
+        _updateData $data
     }
     catch {
         throw "Error deleting sitefinity from ${dataPath}. Message: $_"
@@ -94,15 +84,11 @@ function _setProjectData {
 
     $sitefinityEntry.SetAttribute("id", $context.id)
     $sitefinityEntry.SetAttribute("displayName", $context.displayName)
-    $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
     $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
-    $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
-    $sitefinityEntry.SetAttribute("branch", $context.branch)
     $sitefinityEntry.SetAttribute("description", $context.description)
     $sitefinityEntry.SetAttribute("tags", $tags)
-    $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
 
-    $data.Save($GLOBAL:sf.Config.dataPath) > $null
+    _updateData $data
 }
 
 function _setDefaultTagsFilter {
@@ -117,7 +103,7 @@ function _setDefaultTagsFilter {
     $serializedFilter = $serializedFilter.Trim()
     $data.data.SetAttribute("defaultTagsFilter", $serializedFilter) > $null
     
-    $data.Save($GLOBAL:sf.Config.dataPath) > $null
+    _updateData $data
 }
 
 function _getDefaultTagsFilter {
@@ -125,9 +111,22 @@ function _getDefaultTagsFilter {
     $data.Load($GLOBAL:sf.Config.dataPath) > $null
     $result = $data.data.GetAttribute("defaultTagsFilter").Split(" ")
     if ($result) {
-        return ,$result
-    } else {
+        return , $result
+    }
+    else {
         return @()
     }
 }
 
+function _updateData {
+    param(
+        [XML]$data
+    )
+
+    $newVersion = [System.Guid]::NewGuid().ToString()
+    $data.data.SetAttribute('version', $newVersion)
+    $script:cachedDataVersion = $newVersion
+    $Script:sfsDataCache = $null
+
+    $data.Save($GLOBAL:sf.Config.dataPath) > $null
+}

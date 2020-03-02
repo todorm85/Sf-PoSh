@@ -4,7 +4,7 @@ InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
     . "${PSScriptRoot}\..\test-utils\test-util.ps1"
     
-    Describe "_createProjectFilesFromSource should" {
+    Describe "_createAndDetectProjectArtifactsFromSourcePath should" {
         $GLOBAL:sf.Config.projectsDirectory = "$TestDrive"
         Copy-Item -Path "$PSScriptRoot\..\test-utils\files\Build\SitefinityWebApp.zip" -Destination "$TestDrive"
         $appNoSolutionZipPath = "$TestDrive\SitefinityWebApp.zip"
@@ -15,7 +15,7 @@ InModuleScope sf-dev {
             $id = generateRandomName
             [SfProject]$project = _newSfProjectObject -id $id
 
-            _createProjectFilesFromSource -project $project -sourcePath $appNoSolutionZipPath
+            _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath $appNoSolutionZipPath
 
             $project.webAppPath | Should -Be "$TestDrive\$id"
             $project.solutionPath | Should -BeNullOrEmpty
@@ -24,7 +24,7 @@ InModuleScope sf-dev {
             $id = generateRandomName
             [SfProject]$project = _newSfProjectObject -id $id
 
-            _createProjectFilesFromSource -project $project -sourcePath $appWithSolutionZipPath
+            _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath $appWithSolutionZipPath
 
             $project.webAppPath | Should -Be "$TestDrive\$id/SitefinityWebApp"
             $project.solutionPath | Should -Be "$TestDrive\$id"
@@ -33,13 +33,13 @@ InModuleScope sf-dev {
             $id = generateRandomName
             [SfProject]$project = _newSfProjectObject -id $id
 
-            { _createProjectFilesFromSource -project $project -sourcePath "$TestDrive/nonexisting.zip" } | Should -Throw -ExpectedMessage "Source path does not exist"
+            { _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath "$TestDrive/nonexisting.zip" } | Should -Throw -ExpectedMessage "Source path does not exist"
         }
         It "throw when no folder found" {
             $id = generateRandomName
             [SfProject]$project = _newSfProjectObject -id $id
 
-            { _createProjectFilesFromSource -project $project -sourcePath "$TestDrive/nonexisting" } | Should -Throw -ExpectedMessage "Source path does not exist"
+            { _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath "$TestDrive/nonexisting" } | Should -Throw -ExpectedMessage "Source path does not exist"
         }
         It "create from source when branch supplied" {
             $id = generateRandomName
@@ -49,7 +49,7 @@ InModuleScope sf-dev {
                 $branch | Should -Be $branchPath
             }
 
-            _createProjectFilesFromSource -project $project -sourcePath $branchPath
+            _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath $branchPath
 
             $project.solutionPath | Should -Be "$($TestDrive)\$id"
             $project.webAppPath | Should -Be "$($TestDrive)\$id\SitefinityWebApp"

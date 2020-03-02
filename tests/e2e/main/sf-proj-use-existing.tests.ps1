@@ -25,7 +25,9 @@ InModuleScope sf-dev {
         }
         It "use existing website" {
             $importedProject.websiteName | Should -Be $project.websiteName
-            iis-test-isSiteNameDuplicate -name $importedProject.websiteName | Should -Be $true
+
+            $siteExists = @(Get-Website | ? { $_.name -eq $importedProject.websiteName }).Count -gt 0
+            $siteExists | Should -Be $true
         }
     }
 }

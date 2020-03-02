@@ -9,7 +9,7 @@ InModuleScope sf-dev {
             $projName = $Global:fromZipProjectName + $suffix
             sd-project-create -displayName $projName -sourcePath "$PSScriptRoot\..\..\test-utils\files\Build\SitefinityWebApp.zip"
 
-            $sitefinities = @(_data-getAllProjects) | Where-Object { $_.displayName -eq $projName }
+            $sitefinities = @(sd-project-getAll) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id

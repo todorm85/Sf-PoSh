@@ -13,19 +13,20 @@ function sd-iisSite-getUrl {
         return _getDevAppUrl
     }
 
-    $port = @(iis-get-websitePort $context.websiteName)[0]
+    $port = @(sd-iisSite-getDefaultPort)[0]
     if ($port -eq '' -or $null -eq $port) {
         throw "No sitefinity port set."
     }
 
-    $domain = (iis-get-binding -siteName $context.websiteName).domain
+    $binding = sd-iisSite-getDefaultBinding
+    $domain = if ($binding) {$binding.domain} else { $null }
     if (-not $domain) {
         $domain = "localhost"
     }
     
     $result = "http://${domain}:$port"
     
-    $subAppName = iis-get-subAppName -websiteName $context.websiteName
+    $subAppName = sd-iisSite-getSubAppName -websiteName $context.websiteName
     if ($null -ne $subAppName) {
         $result = "${result}/${subAppName}"
     }
@@ -46,7 +47,7 @@ function _generateDomainName {
 function _getDevAppUrl {
     $context = sd-project-getCurrent
     
-    $port = @(iis-get-websitePort $context.websiteName)[0]
+    $port = @(sd-iisSite-getDefaultPort $context.websiteName)[0]
     if ($port -eq '' -or $null -eq $port) {
         throw "No sitefinity port set."
     }

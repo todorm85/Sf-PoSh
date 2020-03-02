@@ -6,14 +6,14 @@
     None
 #>
 function sd-iisSubApp-set {
-    
     Param(
         [Parameter(Mandatory = $true)][string]$subAppName
     )
 
     $project = sd-project-getCurrent
-    $subApp = iis-get-subAppName -websiteName $project.websiteName
+    $subApp = sd-iisSite-getSubAppName -websiteName $project.websiteName
     if ($subApp) {
+        Write-Warning "Application already set up as subapp."
         return
     }
     
@@ -29,8 +29,9 @@ function sd-iisSubApp-set {
 function sd-iisSubApp-remove {
     $project = sd-project-getCurrent
 
-    $subAppName = iis-get-subAppName $project.websiteName
+    $subAppName = sd-iisSite-getSubAppName $project.websiteName
     if ($null -eq $subAppName) {
+        Write-Warning "Application not set up as subapp."
         return
     }
 

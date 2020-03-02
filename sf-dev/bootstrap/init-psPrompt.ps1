@@ -6,13 +6,10 @@ function Global:prompt {
     return " "
 }
 
-function Set-Prompt {
-    param (
-        [SfProject]$project
-    )
-
-    _setConsoleTitle -newContext $project
-
+function _update-prompt {
+    _setConsoleTitle
+    
+    $project = sd-project-getCurrent
     $projectName = $project.displayName
     if ($projectName) {
         $prompt = " [$projectName]"
@@ -22,4 +19,23 @@ function Set-Prompt {
     }
 
     $Script:prompt = $prompt
+}
+
+function _setConsoleTitle {
+    $newContext = sd-project-getCurrent
+    if ($newContext) {
+        $ports = sd-iisSite-getDefaultPort
+        if ($newContext.branch) {
+            $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
+        }
+        else {
+            $branch = '/no branch'
+        }
+
+        [System.Console]::Title = "($($newContext.id)) $ports $($newContext.displayName) $branch "
+        Set-Location $newContext.webAppPath
+    }
+    else {
+        [System.Console]::Title = ""
+    }
 }
