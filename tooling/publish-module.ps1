@@ -12,7 +12,7 @@ if (!$Script:version) {
 Set-Location "$PSScriptRoot"
 
 . "./set-exportedFunctions.ps1"
-git commit --quiet -a -m "Update module definition"
+git commit --quiet -a -m "Update before tag"
 
 git tag $Script:version
 git push origin --tags
