@@ -114,7 +114,12 @@ function sd-project-showAll {
     
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {
-        $ports = iis-bindings-getAll -siteName $sitefinity.websiteName | Select-Object -ExpandProperty 'port' | Get-Unique
+        $ports = if ($sitefinity.websiteName) {
+            iis-bindings-getAll -siteName $sitefinity.websiteName | Select-Object -ExpandProperty 'port' | Get-Unique
+        } else {
+            ''
+        }
+        
         [SfProject]$sitefinity = $sitefinity
         $index = [array]::IndexOf($sitefinities, $sitefinity)
         $branch = if ($sitefinity.branch) { $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]} else { '' }

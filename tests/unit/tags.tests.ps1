@@ -11,7 +11,10 @@ InModuleScope sf-dev {
         $testTag2 = 'test-sd-projectTags-2'
         $testTag3 = 'test-sd-projectTags-3'
         $testTag4 = 'test-sd-projectTags-4'
-        $result = sd-project-setCurrent -newContext $([SfProject]::new())
+        $newContext = [SfProject]::new()
+        $newContext.id = 'test-id-tags'
+        $newContext.webAppPath = "TestDrive:\"
+        $result = sd-project-setCurrent -newContext $newContext
 
         It "Add single tag to project" {
             sd-projectTags-addToCurrent -tagName $testTag1

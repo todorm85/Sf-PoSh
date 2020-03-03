@@ -199,7 +199,6 @@ function tfs-get-workspaceName {
         $wsInfo = $wsInfo[0].trim()
     }
     catch {
-        Write-Warning "No workspace info from TFS! If that is unexpected your credentials could have expired. To renew them login from visual studio..."
         $wsInfo = ''
     }
 

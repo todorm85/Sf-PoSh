@@ -10,7 +10,7 @@ function _update-prompt {
     _setConsoleTitle
     
     $project = sd-project-getCurrent
-    $projectName = $project.displayName
+    $projectName = if ($project) { $project.displayName } else { '' }
     if ($projectName) {
         $prompt = " [$projectName]"
     } 

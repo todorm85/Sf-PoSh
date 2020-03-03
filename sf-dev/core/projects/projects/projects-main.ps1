@@ -91,6 +91,7 @@ function sd-project-clone {
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
+            Write-Information "Creating the workspace."
             _createWorkspace -context $newProject -branch $context.branch
         }
     }
@@ -149,7 +150,7 @@ function sd-project-removeBulk {
             sd-project-remove -context $selectedSitefinity -noPrompt
         }
         catch {
-            Write-Error "Error deleting project with id = $($selectedSitefinity.id)"       
+            Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"       
         }
     }
 }
@@ -184,7 +185,7 @@ function sd-project-remove {
         $clearCurrentSelectedProject = $true        
     }    
     
-    sd-project-setCurrent -newContext $context
+    sd-project-setCurrent -newContext $context > $null
 
     # Del Website
     Write-Information "Deleting website..."
@@ -275,7 +276,8 @@ function sd-project-remove {
     
     if ($clearCurrentSelectedProject) {
         $result = sd-project-setCurrent $null
-    } else {
+    }
+    else {
         $result = sd-project-setCurrent $currentProject
     }
 
@@ -369,13 +371,25 @@ function sd-project-setCurrent {
     )
     
     process {
-        if ($null -ne $newContext) {
-            _validateProject $newContext
-            _proj-initialize -project $newContext
-        } 
-        
+        try {
+            if ($null -ne $newContext) {
+                _proj-initialize -project $newContext
+                _validateProject $newContext
+            } 
+        }
+        catch {
+            Write-Error "$_"
+        }
+            
         $Script:globalContext = $newContext
-        _update-prompt
+        
+        try {
+            _update-prompt
+        }
+        catch {
+            Write-Error "$_"            
+        }
+
         return $newContext
     }
 }
@@ -480,7 +494,6 @@ function _getValidTitle {
 function _createUserFriendlySlnName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     if (!(Test-Path $solutionFilePath)) {
-        Write-Warning "Solution file not available."
         return
     }
 
@@ -492,8 +505,15 @@ function _createUserFriendlySlnName ($context) {
 
 function _saveSelectedProject {
     Param($context)
+    
+    if (!$context.id) {
+        throw "No project id."
+    }
 
-    _validateProject $context
+    if (-not ($context.webAppPath -and (Test-Path $context.webAppPath))) {
+        throw "No web app path set or it does not exist."
+    }
+
     _setProjectData $context
 }
 
@@ -501,17 +521,30 @@ function _validateProject {
     Param($context)
 
     if (!$context.id) {
-        throw "Invalid sitefinity context. No sitefinity id."
+        Write-Warning "No project id."
     }
 
-    if ($context.solutionPaths) {
+    if (-not ($context.webAppPath -and (Test-Path $context.webAppPath))) {
+        Write-Warning "No web app path set or it does not exist."
+    }
+
+    if ($context.solutionPath) {
         if (-not (Test-Path $context.solutionPath)) {
-            throw "Invalid sitefinity context. Solution path does not exist."
+            Write-Warning "Solution path does not exist."
+        }
+        
+        $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+        if (!(Test-Path $solutionFilePath)) {
+            Write-Warning "Solution file not existing."
         }
     }
-        
-    if (-not ($context.webAppPath -and (Test-Path $context.webAppPath))) {
-        throw "Invalid sitefinity context. No web app path or it does not exist."
+
+    if (!$context.branch) {
+        Write-Warning "Could not detect source control."
+    }
+
+    if (!$context.websiteName) {
+        Write-Warning "Could not detect IIS website."
     }
 }
 
@@ -600,19 +633,36 @@ function _proj-initialize {
         return
     }
 
-    $errorMessgePrefix = "ERROR Working with project $($project.displayName) in $($project.webAppPath) and id $($project.id)."
-
     if (!(Test-Path $project.webAppPath)) {
-        if (!$suppressWarnings) {
-            Write-Warning "$errorMessgePrefix $($project.webAppPath) does not exist."
-        }
-        
+        $project.isInitialized = $true
         return
     }
 
-    _proj-detectSolution -project $project
-    _proj-detectTfs -project $project
-    _proj-detectSite -project $project
+    $errors = ''
+    try {
+        _proj-detectSolution -project $project
+    }
+    catch {
+        $errors += "`nSolution detection: $_."
+    }
+
+    try {
+        _proj-detectTfs -project $project
+    }
+    catch {
+        $errors += "`nSource control detection: $_."
+    }
+
+    try {
+        _proj-detectSite -project $project    
+    }
+    catch {
+        $errors += "`nSite detection from IIS: $_."
+    }
+
+    if ($errors) {
+        Write-Error "Some errors occurred during project detection. $errors"
+    }
 
     $project.isInitialized = $true
 }
@@ -705,7 +755,6 @@ function _proj-detectTfs ([SfProject]$project) {
     }
     else {
         $project.branch = '';
-        Write-Warning "Could not detect source control branch"
     }
 }
 
@@ -720,6 +769,5 @@ function _proj-detectSite ([Sfproject]$project) {
     }
     else {
         $project.websiteName = ''
-        Write-Warning "$errorMessgePrefix Could not detect website for the current project."
     }
 }

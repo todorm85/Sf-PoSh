@@ -77,13 +77,14 @@ function sd-iisSite-new {
 }
 
 function sd-iisSite-delete {
-    $websiteName = (sd-project-getCurrent).websiteName
+    $proj = sd-project-getCurrent
+    $websiteName = $proj.websiteName
     if (!$websiteName) {
         throw "Website name not set."
     }
     
     $appPool = Get-IISSite -Name $websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
-    $domains = iis-bindings-getAll -siteName $websiteName | ? { $_.domain }
+    $domains = iis-bindings-getAll -siteName $websiteName | ? { $_.domain } | select -ExpandProperty domain
     $errors = ''
     try {
         Remove-Item ("iis:\Sites\${websiteName}") -Force -Recurse -ErrorAction SilentlyContinue -ErrorVariable +errors
@@ -100,7 +101,7 @@ function sd-iisSite-delete {
     }
 
     try {
-        if ($domains.Count) {
+        if ($domains) {
             $domains | % { os-hosts-remove -hostname $_ > $null }
         }
     }
@@ -164,6 +165,10 @@ function sd-iisSite-getDefaultBinding {
     param()
     
     [SfProject]$project = sd-project-getCurrent
+    if (!$project.websiteName) {
+        return $null
+    }
+
     $bindings = @(iis-bindings-getAll -siteName $project.websiteName)
     if ($bindings.Count -gt 0) {
         $bindings[$bindings.Count - 1]
