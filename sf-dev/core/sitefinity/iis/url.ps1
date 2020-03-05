@@ -45,7 +45,7 @@ function sd-iisSite-changeDomain {
         $websiteName = $p.websiteName        
         try {
             Remove-WebBinding -Name $websiteName -Port $binding.port -HostHeader $binding.domain -Protocol $binding.protocol
-            os-hosts-remove -hostname $oldDomain > $null
+            os-hosts-remove -hostname $binding.domain > $null
         }
         catch {
             Write-Warning "Error cleaning previous domain. $_"            

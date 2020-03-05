@@ -4,7 +4,7 @@ function set-testProject {
     [SfProject[]]$allProjects = @(sd-project-getAll)
     $proj = $allProjects | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
     if ($proj.Count -eq 0) {
-        throw 'Project named e2e_tests not found. Create and initialize one first from TFS.'
+        throw "Project named $Global:testProjectDisplayName not found. Create and initialize one first from TFS."
     }
 
     $proj = $proj[0]

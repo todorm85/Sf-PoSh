@@ -1,5 +1,16 @@
 $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Backlog Item ", "Bug ", "Task ", "Feature ") -MemberType NoteProperty
 
+function _newSfProjectObject ($id) {
+    [SfProject]$newProject = [SfProject]::new()
+    if (!$id) {        
+        $newProject.id = _generateId    
+    } else {
+        $newProject.id = $id
+    }
+
+    return $newProject
+}
+
 <#
     .SYNOPSIS 
     Provisions a new sitefinity instance project. 

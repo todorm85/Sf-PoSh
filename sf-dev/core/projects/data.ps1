@@ -100,7 +100,12 @@ function _setProjectData {
     $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
     $sitefinityEntry.SetAttribute("description", $context.description)
     $sitefinityEntry.SetAttribute("tags", $tags)
-    $sitefinityEntry.SetAttribute("defaultBinding", "$($context.defaultBinding.protocol):$($context.defaultBinding.domain):$($context.defaultBinding.port)")
+    if ($context.defaultBinding) {
+        $sitefinityEntry.SetAttribute("defaultBinding", "$($context.defaultBinding.protocol):$($context.defaultBinding.domain):$($context.defaultBinding.port)")
+    }
+    else {
+        $sitefinityEntry.SetAttribute("defaultBinding", "")
+    }
 
     _updateData $data
 }
