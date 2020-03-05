@@ -44,15 +44,20 @@ function sd-project-show {
         return
     }
 
-    $ports = @(sd-iisSite-getDefaultPort)
+    $binding = sd-iisSite-getBinding
+    $url = ''
+    if ($binding) {
+        $url = "$($binding.domain):$($binding.port) | "
+    }
+
     $branchShortName = "no branch"
     if ($context.branch) {
         $branchParts = $context.branch.split('/')
-        $branchShortName = $branchParts[$branchParts.Count - 1]
+        $branchShortName = "$($branchParts[$branchParts.Count - 1]) | "
     }
 
     if (-not $detail) {
-        Write-Host "$($context.id) | $($context.displayName) | $($branchShortName) | $ports | $($context.daysSinceLastGet)"
+        Write-Host "$url$($context.id):$($context.displayName) | $branchShortName$($context.daysSinceLastGet)"
         return    
     }
 
@@ -71,6 +76,8 @@ function sd-project-show {
         Write-Information "Error getting some details from IIS: $_"    
     }
 
+    $bindings = iis-bindings-getAll $context.websiteName
+
     $otherDetails = @(
         [pscustomobject]@{id = 0; Parameter = "Title"; Value = $context.displayName; },
         [pscustomobject]@{id = 0.5; Parameter = "Id"; Value = $context.id; },
@@ -87,7 +94,7 @@ function sd-project-show {
         [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
 
         [pscustomobject]@{id = 4; Parameter = "Website Name in IIS"; Value = $context.websiteName; },
-        [pscustomobject]@{id = 5; Parameter = "Ports"; Value = $ports; },
+        [pscustomobject]@{id = 5; Parameter = "Bindings"; Value = $bindings; },
         [pscustomobject]@{id = 6; Parameter = "Application Pool Name"; Value = $appPool; },
 
         [pscustomobject]@{id = 6.5; Parameter = " "; Value = " "; },

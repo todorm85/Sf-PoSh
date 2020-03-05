@@ -15,6 +15,15 @@ function sd-iisSite-browse {
     )
 
     $browserPath = $GLOBAL:sf.Config.browserPath;
+    [SfProject]$project = sd-project-getCurrent
+    [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $project.websiteName
+    if (!$project.defaultBinding -and $bindings -and $bindings.Count -gt 1) {
+        $choice = Read-Host -Prompt "Site has several bindings and there is no default one set. Do you want to set a default binding to be used by the tool? y/n"
+        if ($choice -eq 'y') {
+            sd-iisSite-setBinding
+        }
+    }
+
     $appUrl = sd-iisSite-getUrl
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:moduleUserDir -> browserPath"
@@ -111,70 +120,6 @@ function sd-iisSite-delete {
 
     if ($errors) {
         throw $errors
-    }
-}
-# todo
-function sd-iisSite-changeDomain {
-    param (
-        $domainName,
-        $oldDomain
-    )
-
-    try {
-        os-hosts-remove -hostname $oldDomain > $null
-    }
-    catch {
-        Write-Warning "Error cleaning previous domain. It was not found in hosts file."            
-    }
-    
-    $p = sd-project-getCurrent
-    $websiteName = $p.websiteName
-    [SiteBinding]$binding = iis-bindings-getAll -siteName $p.websiteName | ? { $_.domain -eq $oldDomain }
-    $oldBindingFound = !!$binding
-    if (!$oldBindingFound) {
-        $binding = sd-iisSite-getDefaultBinding
-    }
-
-    $port = if ($binding) { $binding.port } else { $null }
-    if ($port) {
-        if ($oldBindingFound) {
-            Remove-WebBinding -Name $websiteName -Port $port -HostHeader $oldDomain -Protocol http
-        }
-
-        New-WebBinding -Name $websiteName -Protocol http -Port $port -HostHeader $domainName
-        os-hosts-add -address 127.0.0.1 -hostname $domainName
-    }
-    else {
-        throw "No binding found for site $websiteName"
-    }
-}
-
-function sd-iisSite-getDefaultPort {
-    $binding = sd-iisSite-getDefaultBinding
-    if ($binding) {
-        $binding.port
-    }
-    else {
-        $null
-    }
-}
-
-function sd-iisSite-getDefaultBinding {
-    [CmdletBinding()]
-    [OutputType([SiteBinding])]
-    param()
-    
-    [SfProject]$project = sd-project-getCurrent
-    if (!$project.websiteName) {
-        return $null
-    }
-
-    $bindings = @(iis-bindings-getAll -siteName $project.websiteName)
-    if ($bindings.Count -gt 0) {
-        $bindings[$bindings.Count - 1]
-    }
-    else {
-        $null
     }
 }
 

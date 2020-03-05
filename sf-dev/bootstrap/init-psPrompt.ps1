@@ -24,7 +24,11 @@ function _update-prompt {
 function _setConsoleTitle {
     $newContext = sd-project-getCurrent
     if ($newContext) {
-        $ports = sd-iisSite-getDefaultPort
+        $binding = sd-iisSite-getBinding
+        if ($binding) {
+            $ports = "$($binding.domain):$($binding.port)"
+        }
+
         if ($newContext.branch) {
             $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
         }

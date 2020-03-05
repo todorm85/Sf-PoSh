@@ -294,7 +294,6 @@ function sd-project-rename {
 
     $project = sd-project-getCurrent
     [SfProject]$context = $project
-    $oldDomain = _generateDomainName -context $context
 
     if (-not $newName) {
         while ([string]::IsNullOrEmpty($newName)) {
@@ -345,10 +344,7 @@ function sd-project-rename {
         }
     }
     
-    $domain = _generateDomainName -context $context
-    sd-iisSite-changeDomain -domainName $domain -oldDomain $oldDomain
     _update-prompt
-    
     _saveSelectedProject $context
 }
 

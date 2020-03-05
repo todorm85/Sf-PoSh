@@ -1,42 +1,79 @@
-function sd-iisSite-getUrl {
-    Param(
-        [switch]$useDevUrl
-    )
-
-    $context = sd-project-getCurrent
-    
+function sd-iisSite-getBinding {
+    [SfProject]$context = sd-project-getCurrent
     if (!$context) {
         throw "No project selected."
     }
 
-    if ($useDevUrl) {
-        return _getDevAppUrl
+    [SiteBinding]$binding = $null
+    $allBindings = iis-bindings-getAll -siteName $context.websiteName
+    if ($context.defaultBinding) {
+        $binding = $allBindings | Where-Object { $_.domain -eq $context.defaultBinding.domain -and $_.protocol -eq $context.defaultBinding.protocol -and $_.port -eq $context.defaultBinding.port }
     }
 
-    $port = @(sd-iisSite-getDefaultPort)[0]
-    if ($port -eq '' -or $null -eq $port) {
-        throw "No sitefinity port set."
+    if (!$binding) {
+        $binding = $allBindings | Select-Object -Last 1
     }
 
-    $binding = sd-iisSite-getDefaultBinding
-    $domain = if ($binding) {$binding.domain} else { $null }
-    if (-not $domain) {
-        $domain = "localhost"
+    return $binding
+}
+
+function sd-iisSite-setBinding {    
+    [SfProject]$project = sd-project-getCurrent
+    $selectedBinding = _promptBindings
+    $project.defaultBinding = [SiteBinding]$defBinding = @{
+        protocol = $selectedBinding.protocol
+        domain   = if ($selectedBinding.domain) { $selectedBinding.domain } else { 'localhost' }
+        port     = $selectedBinding.port
     }
+
+    _setProjectData -context $project
+}
+
+function sd-iisSite-getUrl {
+    [SiteBinding]$binding = sd-iisSite-getBinding
+    return _iisSite-appendSubAppPath "$($binding.protocol)://$($binding.domain):$($binding.port)"
+}
+
+function sd-iisSite-changeDomain {
+    param (
+        $domainName
+    )
     
-    $result = "http://${domain}:$port"
+    [SiteBinding]$binding = sd-iisSite-getBinding
+    if ($binding) {
+        $p = sd-project-getCurrent
+        $websiteName = $p.websiteName        
+        try {
+            Remove-WebBinding -Name $websiteName -Port $binding.port -HostHeader $binding.domain -Protocol $binding.protocol
+            os-hosts-remove -hostname $oldDomain > $null
+        }
+        catch {
+            Write-Warning "Error cleaning previous domain. $_"            
+        }
+
+        New-WebBinding -Name $websiteName -Protocol $binding.protocol -Port $binding.port -HostHeader $domainName
+        os-hosts-add -address 127.0.0.1 -hostname $domainName
+    }
+    else {
+        throw "No binding found for site $websiteName"
+    }
+}
+
+function _iisSite-appendSubAppPath {
+    param($path)
     
+    $context = sd-project-getCurrent
     $subAppName = sd-iisSite-getSubAppName -websiteName $context.websiteName
     if ($null -ne $subAppName) {
-        $result = "${result}/${subAppName}"
+        $path = "$path/${subAppName}"
     }
-    
-    return $result
+
+    return $path
 }
 
 function _generateDomainName {
     Param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [SfProject]
         $context
     )
@@ -44,13 +81,28 @@ function _generateDomainName {
     return "$($context.displayName)_$($context.id).com"
 }
 
-function _getDevAppUrl {
-    $context = sd-project-getCurrent
-    
-    $port = @(sd-iisSite-getDefaultPort $context.websiteName)[0]
-    if ($port -eq '' -or $null -eq $port) {
-        throw "No sitefinity port set."
+function _promptBindings {
+    [SfProject]$project = sd-project-getCurrent
+    [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $project.websiteName
+    if (!$bindings) {
+        Write-Warning "No bindings defined for website."
+        return
     }
 
-    return "http://localhost:${port}"
+    $i = 0
+    $bindings | % {
+        $domain = if ($_.domain) { $_.domain } else { 'localhost' }
+        Write-Host "$i : $($_.protocol)://$($domain):$($_.port)"
+        $i++
+    }
+
+    while ($true) {
+        $choice = Read-Host -Prompt "Choose default binding:"
+        $index = $null
+        if (!([int]::TryParse($choice, [ref]$index))) { return }
+        $selectedBinding = $bindings[$index]
+        if ($selectedBinding) {
+            return $selectedBinding
+        }
+    }
 }

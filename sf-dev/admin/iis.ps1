@@ -94,9 +94,10 @@ function iis-bindings-getAll {
     $bindings = @(Get-WebBinding -Name $siteName)
     $bindings | ForEach-Object {
         $bindingInfo = $_.bindingInformation
+        $protocol = $_.protocol
         $port = $bindingInfo.Split(':')[1]
         $domain = $bindingInfo.Split(':')[2]
-        [SiteBinding]@{port = $port; domain = $domain; }
+        [SiteBinding]@{ port = $port; domain = $domain; protocol = $protocol }
     }
 }
 

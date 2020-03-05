@@ -25,6 +25,19 @@ function _data-getAllProjects {
             $clone.webAppPath = $_.webAppPath;
             $clone.tags = $tags;
 
+            if ($_.defaultBinding) {
+                $parts = ([string]$_.defaultBinding).Split(':')
+                if ($defBinding.protocol -and $defBinding.port) {
+                    [SiteBinding]$defBinding = @{
+                        protocol = $parts[0]
+                        domain   = $parts[1]
+                        port     = $parts[2]
+                    }
+
+                    $clone.defaultBinding = $defBinding;
+                }
+            }
+
             $sitefinities.Add($clone)
         }
     }
@@ -87,6 +100,7 @@ function _setProjectData {
     $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
     $sitefinityEntry.SetAttribute("description", $context.description)
     $sitefinityEntry.SetAttribute("tags", $tags)
+    $sitefinityEntry.SetAttribute("defaultBinding", "$($context.defaultBinding.protocol):$($context.defaultBinding.domain):$($context.defaultBinding.port)")
 
     _updateData $data
 }
