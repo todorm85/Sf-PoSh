@@ -10,19 +10,14 @@ InModuleScope sf-dev {
             $oldName = "$($testProject.displayName)"
             $newName = generateRandomName
 
-            existsInHostsFile -searchParam $newName | Should -Be $false
             Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id\$newName($id).sln" | Should -Be $false
-            existsInHostsFile -searchParam $oldName | Should -Be $true
 
             sd-project-rename $newName
             
-            existsInHostsFile -searchParam $newName | Should -Be $true
             Test-Path "$($testProject.solutionPath)\$newName($id).sln" | Should -Be $true
             Test-Path "$($testProject.solutionPath)\$oldName($id).sln" | Should -Be $false
-            ([string](sd-iisSite-getUrl)).IndexOf($newName) | Should -BeGreaterThan -1
 
             sd-project-rename $oldName
-            existsInHostsFile -searchParam $newName | Should -Be $false
         }
     }
 }
