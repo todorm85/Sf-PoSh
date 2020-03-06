@@ -41,7 +41,7 @@ function sd-iisSite-changeDomain {
 
     [SiteBinding]$binding = sd-iisSite-getBinding
     if ($binding) {
-        $p = sd-project-getCurrent
+        [SfProject]$p = sd-project-getCurrent
         $websiteName = $p.websiteName
         try {
             Remove-WebBinding -Name $websiteName -Port $binding.port -HostHeader $binding.domain -Protocol $binding.protocol
@@ -53,6 +53,11 @@ function sd-iisSite-changeDomain {
 
         New-WebBinding -Name $websiteName -Protocol $binding.protocol -Port $binding.port -HostHeader $domainName
         os-hosts-add -address 127.0.0.1 -hostname $domainName
+
+        if ($p.defaultBinding) {
+            $p.defaultBinding.domain = $domainName
+            _setProjectData -context $p
+        }
     }
     else {
         Write-Warning "No binding found for site $websiteName"

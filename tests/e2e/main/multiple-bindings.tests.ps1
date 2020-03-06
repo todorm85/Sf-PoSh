@@ -67,5 +67,17 @@ InModuleScope sf-dev {
             $result = os-hosts-get | ? { $_.Contains($newBinding.domain) }
             $result | Should -Not -BeNullOrEmpty
         }
+
+        It "changing domain for a default binding updates the default binding as well" {
+            $domain = "gosho$([GUID]::NewGuid().ToString()).com"
+            [SiteBinding]$binding = sd-iisSite-getBinding
+            Mock _promptBindings { $binding }
+            sd-iisSite-setBinding
+            sd-iisSite-changeDomain -domainName $domain
+            $p = sd-project-getCurrent
+            $p.defaultBinding.domain | Should -Be $domain
+            $p.defaultBinding.protocol | Should -Be $binding.protocol
+            $p.defaultBinding.port | Should -Be $binding.port
+        }
     }
 }
