@@ -4,7 +4,7 @@ Get-Content -Path "$PSScriptRoot/../sf-dev/sf-dev.psd1" |
             $Script:version = $matches["vrsn"]
         }
     }
-    
+
 if (!$Script:version) {
     throw 'No module version found.'
 }
