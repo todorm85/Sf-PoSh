@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '15.1.0'
+    ModuleVersion     = '15.2.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
         @{ModuleName = 'IISAdministration'; ModuleVersion = '1.1.0.0'; MaximumVersion = '1.1.0.0' }
@@ -19,6 +19,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            15.2.0
+                renaming improvements
+                bugfixes
             15.1.0
                 multiple bindings
             15.0.0
