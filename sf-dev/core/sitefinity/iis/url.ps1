@@ -55,7 +55,7 @@ function sd-iisSite-changeDomain {
         os-hosts-add -address 127.0.0.1 -hostname $domainName
     }
     else {
-        throw "No binding found for site $websiteName"
+        Write-Warning "No binding found for site $websiteName"
     }
 }
 
