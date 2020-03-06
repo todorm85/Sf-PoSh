@@ -20,6 +20,10 @@ function sd-iisSite-browse {
         throw "No project selected."
     }
 
+    if ((Get-WebsiteState) -ne "Started") {
+        throw "Website is stopped in IIS."
+    }
+
     [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $project.websiteName
     if (!$project.defaultBinding -and $bindings -and $bindings.Count -gt 1) {
         $choice = Read-Host -Prompt "Site has several bindings and there is no default one set. Do you want to set a default binding to be used by the tool? y/n"
