@@ -2,7 +2,7 @@
 
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
-    
+
     Describe "Subapp functionality should" -Tags ("subapp") {
         [SfProject]$project = set-testProject
         $subApp = "subApp"

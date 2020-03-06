@@ -8,12 +8,12 @@ function Global:prompt {
 
 function _update-prompt {
     _setConsoleTitle
-    
+
     $project = sd-project-getCurrent
     $projectName = if ($project) { $project.displayName } else { '' }
     if ($projectName) {
         $prompt = " [$projectName]"
-    } 
+    }
     else {
         $prompt = ""
     }

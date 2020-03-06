@@ -41,7 +41,7 @@ function _data-getAllProjects {
             $sitefinities.Add($clone)
         }
     }
-    
+
     $Script:sfsDataCache = $sitefinities
     return $sitefinities
 }
@@ -114,14 +114,14 @@ function _setDefaultTagsFilter {
     param (
         [string[]]$defaultTagsFilter
     )
-    
+
     $data = New-Object XML
     $data.Load($GLOBAL:sf.Config.dataPath) > $null
     $serializedFilter = ""
     $defaultTagsFilter | ForEach-Object { $serializedFilter = "$serializedFilter $_" }
     $serializedFilter = $serializedFilter.Trim()
     $data.data.SetAttribute("defaultTagsFilter", $serializedFilter) > $null
-    
+
     _updateData $data
 }
 

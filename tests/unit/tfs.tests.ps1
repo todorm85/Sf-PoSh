@@ -2,7 +2,7 @@
 
 InModuleScope sf-dev {
     Mock Set-Location { }
-    
+
     Describe "tfs-get-workspaces" {
 
         It "return names of all workspaces" {
@@ -27,7 +27,7 @@ InModuleScope sf-dev {
                 "Workspace   Owner            Computer Comment"
                 "----------- ---------------- -----"
             }
-            
+
             $projects = tfs-get-workspaces
             $projects | Should -Be $null
         }
@@ -39,7 +39,7 @@ InModuleScope sf-dev {
                 "----------- ---------------- -----"
                 "test1    Todor Mitskovski TMITSKOV"
             }
-            
+
             $projects = tfs-get-workspaces
             $projects | Should -HaveCount 1
         }
@@ -57,21 +57,21 @@ InModuleScope sf-dev {
         }
 
         It "return multiple lines result correctly" {
-            Mock execute-native { 
-                "line1" 
+            Mock execute-native {
+                "line1"
                 "line2"
             }
-            
+
             $res = tf-query-workspaces
             $res | Should -HaveCount 2
             $res[1] | Should -Be "line2"
         }
-        
+
         It "return null if native errors out" {
-            Mock execute-native { 
+            Mock execute-native {
                 throw "Dummy errors"
             }
-            
+
             $res = tf-query-workspaces
             $res | Should -Be $null
         }
@@ -112,7 +112,7 @@ InModuleScope sf-dev {
 
         Context "unmapping default path fails and delete workfold fails" {
             Mock execute-native { throw 'dummy' } -ParameterFilter { $command -and $command.Contains("/unmap") }
-            Mock tfs-delete-workspace { throw "delete failed" } 
+            Mock tfs-delete-workspace { throw "delete failed" }
 
             { tfs-create-workspace "testName" "dummy path" -server "dummy" } | Should -Throw "Workspace created but... "
 
@@ -142,19 +142,19 @@ InModuleScope sf-dev {
             Mock execute-native { $GLOBAL:LASTEXITCODE = 1; return "ontend\SocialShare  ---- Summary: 0 conflicts, 1 warnings, 0 errors ----" }
             tfs-get-latestChanges $anyPath
          }
-        It "throws when conflicts" { 
+        It "throws when conflicts" {
             Mock execute-native { $GLOBAL:LASTEXITCODE = 1; return "ontend\SocialShare  ---- Summary: 1 conflicts, 0 warnings, 0 errors ----" }
             { tfs-get-latestChanges $anyPath } | Should -Throw "There were 1 conflicts when getting latest."
         }
-        It "throws when conflicts and warnings" { 
+        It "throws when conflicts and warnings" {
             Mock execute-native { $GLOBAL:LASTEXITCODE = 1; return "ontend\SocialShare  ---- Summary: 1 conflicts, 1 warnings, 0 errors ----" }
             { tfs-get-latestChanges $anyPath } | Should -Throw "There were 1 conflicts when getting latest."
         }
-        It "throws when errors" { 
+        It "throws when errors" {
             Mock execute-native { $GLOBAL:LASTEXITCODE = 1; return "ontend\SocialShare  ---- Summary: 0 conflicts, 0 warnings, 1 errors ----" }
             {tfs-get-latestChanges $anyPath} | Should -Throw "There were 1 errors when getting latest."
         }
-        It "throws when errors and warnings" { 
+        It "throws when errors and warnings" {
             Mock execute-native { $GLOBAL:LASTEXITCODE = 1; return "ontend\SocialShare  ---- Summary: 0 conflicts, 3 warnings, 5 errors ----" }
             {tfs-get-latestChanges $anyPath} | Should -Throw "There were 5 errors when getting latest."
         }

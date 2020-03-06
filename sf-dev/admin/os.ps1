@@ -17,7 +17,7 @@ if (!(Test-Path $handleToolPath)) {
         Remove-Item -Path $archive -Force
     }
     catch {
-        Write-Error "Error fetching the handle tool from $handleLink auto unlocking files will not work."        
+        Write-Error "Error fetching the handle tool from $handleLink auto unlocking files will not work."
     }
 }
 
@@ -28,14 +28,14 @@ function os-popup-notification {
 
     [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
-    $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon 
+    $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
 
     $objNotifyIcon.Icon = "${PSScriptRoot}\resources\icon.ico"
     $objNotifyIcon.BalloonTipIcon = "Info"
     $objNotifyIcon.BalloonTipText = $msg
     $objNotifyIcon.BalloonTipTitle = "Powershell operation done."
-     
-    $objNotifyIcon.Visible = $True 
+
+    $objNotifyIcon.Visible = $True
     $objNotifyIcon.ShowBalloonTip(10000)
 }
 
@@ -62,7 +62,7 @@ execute-native "& `"$path`" workspaces `"C:\dummySubApp`""
 function execute-native ([string]$command, [array]$successCodes) {
     $command = $command + " 2>&1"
     $output = Invoke-Expression $command
-    
+
     if ($lastexitcode -and -not ($successCodes -and $successCodes.Count -gt 0 -and $successCodes.Contains($lastexitcode))) {
         throw "Error executing native operation ($command). Last exit code was $lastexitcode. Native call output: $output`n"
     }
@@ -75,14 +75,14 @@ function unlock-allFiles ($path) {
     if (!$path -or !(Test-Path $path)) {
         throw "The supplied path `"$path`" was not found.";
     }
-    
+
     if (!(Test-Path $handleToolPath)) {
         Write-Error "Handles tool not found. Unlocking open files will not work. Project files might need to be cleaned up manually if opened."
     }
-    
+
     $handlesList = execute-native "& `"$handleToolPath`" /accepteula `"$path`""
     $pids = New-Object -TypeName System.Collections.ArrayList
-    $handlesList | ForEach-Object { 
+    $handlesList | ForEach-Object {
         $isFound = $_ -match "^.*pid: (?<pid>.*?) .*$"
         if ($isFound) {
             $id = $Matches.pid
@@ -108,7 +108,7 @@ function os-hosts-add ($hostname, $address = '127.0.0.1') {
 }
 
 function os-hosts-get {
-    Get-Content $Script:hostsPath    
+    Get-Content $Script:hostsPath
 }
 
 function os-hosts-remove ($hostname) {

@@ -1,5 +1,5 @@
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Resets the current sitefinity web app threads in the app pool in IIS, without resetting the app pool.
     .PARAMETER start
     If switch is passed sitefinity is automatically initialized after the reset.
@@ -22,14 +22,14 @@ function sd-iisAppPool-ResetThread {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     .DESCRIPTION
     .PARAMETER xxxx
     .OUTPUTS
     None
 #>
 function sd-iisAppPool-Reset {
-    
+
     Param(
         [switch]$start
     )

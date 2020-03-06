@@ -1,5 +1,5 @@
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Builds the current sitefinity instance solution.
     .OUTPUTS
     None
@@ -8,11 +8,11 @@ function sd-sol-build {
     Param(
         $retryCount = 0
     )
-    
+
     $project = sd-project-getCurrent
 
     $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
-    
+
     $tries = 0
     $isBuilt = $false
     while ($tries -le $retryCount -and (-not $isBuilt)) {
@@ -29,13 +29,13 @@ function sd-sol-build {
                     _switchStyleCop -enable:$true
                 }
             }
-            
+
             $isBuilt = $true
         }
         catch {
             $tries++
             if ($tries -le $retryCount) {
-                Write-Information "Build failed. Retrying..." 
+                Write-Information "Build failed. Retrying..."
             }
             else {
                 throw "Solution could not build after $retryCount retries. $_"
@@ -45,17 +45,17 @@ function sd-sol-build {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Does a true rebuild of the current sitefinity instance solution by deleteing all bin and obj folders and then builds.
     .OUTPUTS
     None
 #>
 function sd-sol-rebuild {
-    
+
     Param(
         [bool]$cleanPackages = $false,
         $retryCount = 0)
-    
+
     Write-Information "Rebuilding solution..."
     try {
         sd-sol-clean -cleanPackages $cleanPackages
@@ -128,7 +128,7 @@ function sd-sol-clearPackages {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Opens the selected sitefinity solution.
     .DESCRIPTION
     If a webapp without solution was imported nothing is opened.
@@ -141,7 +141,7 @@ function sd-sol-open {
     )
 
     $project = sd-project-getCurrent
-    
+
     if (!$project.solutionPath -and !$project.webAppPath) {
         throw "invalid or no solution path and webApp path"
     }
@@ -170,7 +170,7 @@ function sd-sol-open {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Builds the current sitefinity instance webapp project file.
     .OUTPUTS
     None
@@ -223,7 +223,7 @@ function sd-sol-resetSitefinityFolder {
 }
 
 function _buildProj {
-    
+
     Param(
         [Parameter(Mandatory)][string]$path
     )
@@ -241,7 +241,7 @@ function _buildProj {
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
     $output = Invoke-Expression "& `"$($GLOBAL:sf.config.msBuildPath)`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:d"
     $elapsed.Stop()
-    
+
     if ($LastExitCode -ne 0) {
         $errorLogPath = "$Script:moduleUserDir/MsBuild-Errors.log"
         $output | Out-File $errorLogPath
@@ -256,7 +256,7 @@ function _switchStyleCop {
     param (
         [switch]$enable
     )
-    
+
     $context = sd-project-getCurrent
 
     $styleCopTaskPath = "$($context.solutionPath)\Builds\StyleCop\StyleCop.Targets"

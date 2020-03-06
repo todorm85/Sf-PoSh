@@ -6,7 +6,7 @@ function sd-db-getNameFromDataConfig {
 
 function sd-db-setNameInDataConfig ($newName) {
     $context = sd-project-getCurrent
-    
+
     $dbName = sd-db-getNameFromDataConfig -context $context
     if (-not $dbName) {
         throw "No database configured for sitefinity."
@@ -39,7 +39,7 @@ function _db-getNameFromDataConfig ($appPath) {
                 return $dbName
             }
         }
-    }    
+    }
 
     return $null
 }

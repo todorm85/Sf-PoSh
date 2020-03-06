@@ -23,7 +23,7 @@ InModuleScope sf-dev {
             $result = _db-getNameFromDataConfig
             $result | Should -Be "sf_0"
         }
-        
+
         it "should return correct dbname when one connection strings" {
             $Script:xmlContent = '<?xml version="1.0" encoding="utf-8"?>
             <dataConfig xmlns:config="urn:telerik:sitefinity:configuration" xmlns:type="urn:telerik:sitefinity:configuration:type" config:version="12.1.7100.0">
@@ -35,7 +35,7 @@ InModuleScope sf-dev {
             $result = _db-getNameFromDataConfig
             $result | Should -Be "sf_0"
         }
-        
+
         it "should return null dbname when no connection strings" {
             $Script:xmlContent = '<?xml version="1.0" encoding="utf-8"?>
             <dataConfig xmlns:config="urn:telerik:sitefinity:configuration" xmlns:type="urn:telerik:sitefinity:configuration:type" config:version="12.1.7100.0">

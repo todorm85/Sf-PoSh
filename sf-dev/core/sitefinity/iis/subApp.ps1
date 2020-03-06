@@ -1,5 +1,5 @@
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     .DESCRIPTION
     .PARAMETER xxxx
     .OUTPUTS
@@ -16,12 +16,12 @@ function sd-iisSubApp-set {
         Write-Warning "Application already set up as subapp."
         return
     }
-    
+
     $dummyPath = "c:\sf-dev-temp"
     if (-not (Test-Path $dummyPath)) {
         New-Item $dummyPath -ItemType Directory
     }
-        
+
     iis-set-sitePath $project.websiteName $dummyPath
     iis-new-subApp $project.websiteName $subAppName $project.webAppPath
 }

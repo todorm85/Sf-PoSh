@@ -1,17 +1,17 @@
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Displays a list of available sitefinities to select from.
     .DESCRIPTION
     Sitefinities that are displayed are displayed by their names. These are sitefinities that were either provisioned or imported by this script.
     .INPUTS
     tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
-    If tagsFilter is equal to '+' only untagged projects are shown. 
+    If tagsFilter is equal to '+' only untagged projects are shown.
 #>
 function sd-project-select {
     Param(
         [string[]]$tagsFilter
     )
-    
+
     if (!$tagsFilter) {
         $tagsFilter = sd-projectTags-getDefaultFilter
     }
@@ -29,7 +29,7 @@ function sd-project-select {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Shows info for selected sitefinity.
 #>
 function sd-project-show {
@@ -38,7 +38,7 @@ function sd-project-show {
     )
 
     [SfProject]$context = sd-project-getCurrent
-    
+
     if ($null -eq ($context)) {
         Write-Warning "No project selected"
         return
@@ -58,7 +58,7 @@ function sd-project-show {
 
     if (-not $detail) {
         Write-Host "$url$($context.id):$($context.displayName) | $branchShortName$($context.daysSinceLastGet)"
-        return    
+        return
     }
 
     try {
@@ -66,14 +66,14 @@ function sd-project-show {
         $branch = tfs-get-branchPath $context.solutionPath
     }
     catch {
-        Write-Information "Error getting some details from TFS: $_"    
+        Write-Information "Error getting some details from TFS: $_"
     }
 
     try {
         $appPool = Get-IISSite -Name $context.websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
     }
     catch {
-        Write-Information "Error getting some details from IIS: $_"    
+        Write-Information "Error getting some details from IIS: $_"
     }
 
     $bindings = iis-bindings-getAll $context.websiteName
@@ -88,9 +88,9 @@ function sd-project-show {
         [pscustomobject]@{id = 2; Parameter = "Web app path"; Value = $context.webAppPath; },
 
         [pscustomobject]@{id = 2.5; Parameter = " "; Value = " "; },
-        
+
         [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sd-db-getNameFromDataConfig; },
-        
+
         [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
 
         [pscustomobject]@{id = 4; Parameter = "Website Name in IIS"; Value = $context.websiteName; },
@@ -111,14 +111,14 @@ function sd-project-show {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Shows info for all sitefinities managed by the script.
 #>
 function sd-project-showAll {
     Param(
         [SfProject[]]$sitefinities
     )
-    
+
     [System.Collections.ArrayList]$output = @()
     foreach ($sitefinity in $sitefinities) {
         $ports = if ($sitefinity.websiteName) {
@@ -126,7 +126,7 @@ function sd-project-showAll {
         } else {
             ''
         }
-        
+
         [SfProject]$sitefinity = $sitefinity
         $index = [array]::IndexOf($sitefinities, $sitefinity)
         $branch = if ($sitefinity.branch) { $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]} else { '' }
@@ -226,7 +226,7 @@ function _promptProjectSelect {
         Write-Warning "No sitefinities found. Check if not filtered with default tags."
         return
     }
-    
+
     $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
 
     sd-project-showAll $sortedSitefinities
@@ -268,7 +268,7 @@ function _proj-promptSfsSelection ([SfProject[]]$sitefinities) {
         }
 
         $sfsToDelete.Add($selectedSitefinity)
-    }    
+    }
 
     return $sfsToDelete
 }

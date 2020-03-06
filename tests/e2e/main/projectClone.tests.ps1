@@ -8,11 +8,11 @@ InModuleScope sf-dev {
 
         $sourceName = $sourceProj.displayName
         $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
-        
+
         sd-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
             sd-project-remove -noPrompt -context $_
         }
-        
+
         sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
 
         # edit a file in source project and mark as changed in TFS
@@ -35,7 +35,7 @@ InModuleScope sf-dev {
         It "set project displayName" {
             $project.displayName | Should -Be $cloneTestName
         }
-        
+
         It "set project branch" {
             $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
         }
@@ -47,7 +47,7 @@ InModuleScope sf-dev {
         It "set project site" {
             $project.websiteName | Should -Be $cloneTestId
         }
-    
+
         It "create project solution directory" {
             Test-Path $project.solutionPath | Should -Be $true
         }

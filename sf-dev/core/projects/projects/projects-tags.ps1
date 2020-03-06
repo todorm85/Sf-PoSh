@@ -5,14 +5,14 @@ $Script:tagCompleter = {
         $commandAst,
         $fakeBoundParameters )
 
-    
+
     $possibleValues = sd-projectTags-getAll
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
             $_ -like "$($wordToComplete.TrimStart($prefixes))*"
         }
     }
-    
+
     $possibleValues
 }
 
@@ -26,7 +26,7 @@ function sd-projectTags-addToCurrent {
     )
 
     _validateTag $tagName
-    
+
     [SfProject]$project = sd-project-getCurrent
     if (!$project.tags) {
         $project.tags = @($tagName)
@@ -44,7 +44,7 @@ function sd-projectTags-removeFromCurrent {
     param (
         [string]$tagName
     )
-    
+
     _validateTag $tagName
     if (!$tagName) {
         throw "Invalid tag name to remove."

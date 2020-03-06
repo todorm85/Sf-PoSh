@@ -3,7 +3,7 @@
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
     . "${PSScriptRoot}\..\test-utils\test-util.ps1"
-    
+
     Describe "_createAndDetectProjectArtifactsFromSourcePath should" {
         $GLOBAL:sf.Config.projectsDirectory = "$TestDrive"
         Copy-Item -Path "$PSScriptRoot\..\test-utils\files\Build\SitefinityWebApp.zip" -Destination "$TestDrive"

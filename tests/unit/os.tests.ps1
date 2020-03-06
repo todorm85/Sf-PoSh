@@ -10,7 +10,7 @@ InModuleScope sf-dev {
         }
 
         It "stop all processes that are locking files when one process" {
-            Mock execute-native { 
+            Mock execute-native {
                 "Copyright (C) 1997-2017 Mark Russinovich"
                 "Sysinternals - www.sysinternals.com"
                 "`n"
@@ -24,7 +24,7 @@ InModuleScope sf-dev {
         }
 
         It "stop all processes that are locking files when more than one processes" {
-            Mock execute-native { 
+            Mock execute-native {
                 "Copyright (C) 1997-2017 Mark Russinovich"
                 "Sysinternals - www.sysinternals.com"
                 "`n"
@@ -40,7 +40,7 @@ InModuleScope sf-dev {
         }
 
         It "consider only unique process ids" {
-            Mock execute-native { 
+            Mock execute-native {
                 "Copyright (C) 1997-2017 Mark Russinovich"
                 "Sysinternals - www.sysinternals.com"
                 "`n"
@@ -57,9 +57,9 @@ InModuleScope sf-dev {
             $ids[1] | Should -Be 10763
             $ids[2] | Should -Be 11760
         }
-        
+
         It "do nothing when no locking processes" {
-            Mock execute-native { 
+            Mock execute-native {
                 "Copyright (C) 1997-2017 Mark Russinovich"
                 "Sysinternals - www.sysinternals.com"
                 "`n"

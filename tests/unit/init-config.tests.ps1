@@ -1,7 +1,7 @@
 . "$PSScriptRoot\..\test-utils\load-module.ps1"
 
 InModuleScope sf-dev {
-    
+
     Describe "init-config should" {
 
         $mockDefaultConfigPath = "y:\default.json"
@@ -23,11 +23,11 @@ InModuleScope sf-dev {
             } -ParameterFilter { $Path -and $Path -eq $mockDefaultConfigPath }
 
             Mock Get-Content {
-                $defaultConfig | ConvertTo-Json        
+                $defaultConfig | ConvertTo-Json
             } -ParameterFilter { $Path -and $Path -eq $mockDefaultConfigPath }
 
             Mock Get-Content {
-                $userConfig | ConvertTo-Json        
+                $userConfig | ConvertTo-Json
             } -ParameterFilter { $Path -and $Path -eq $userConfigPath }
 
             Mock Test-Path {
@@ -88,7 +88,7 @@ InModuleScope sf-dev {
                 DefaultSetting = "DefaultSettingValue"
                 NewSetting     = "NewSettingValue"
             }
-        
+
             $userConfig = [PSCustomObject]@{
                 DefaultSetting = "DefaultSettingValueModified"
             }
@@ -105,7 +105,7 @@ InModuleScope sf-dev {
             $defaultConfig = [PSCustomObject]@{
                 DefaultSetting = "DefaultSettingValue"
             }
-        
+
             $userConfig = [PSCustomObject]@{
                 DefaultSetting = "DefaultSettingValue"
                 OldSetting     = "OldSettingValue"

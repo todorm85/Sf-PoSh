@@ -2,15 +2,15 @@
 
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
-    
+
     Describe "Use existing" {
         [SfProject]$project = set-testProject
         $sourceProjectDbName = _db-getNameFromDataConfig -appPath $project.webAppPath
 
         sd-project-create -displayName "test-use-existing" -sourcePath $project.webAppPath
-        
+
         [SfProject]$importedProject = sd-project-getCurrent
-        
+
         It "generate new id" {
             $importedProject.id | Should -Not -Be $project.id
         }

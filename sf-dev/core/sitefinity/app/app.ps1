@@ -45,7 +45,7 @@ function sd-app-waitForSitefinityToStart {
         }
         else {
             throw "Sitefinity failed to start - StatusCode: $($response)"
-        }   
+        }
     }
 }
 
@@ -58,7 +58,7 @@ function sd-app-uninitialize {
     if (!$project) {
         Write-Error "No project selected"
     }
-    
+
     Write-Information "Restarting app pool..."
     sd-iisAppPool-Reset
 
@@ -66,7 +66,7 @@ function sd-app-uninitialize {
         Write-Information "Unlocking files..."
         sd-sol-unlockAllFiles
     }
-    
+
     Write-Information "Resetting App_Data files..."
     try {
         sd-sol-resetSitefinityFolder
@@ -77,7 +77,7 @@ function sd-app-uninitialize {
 
     Write-Information "Deleting database..."
     try {
-        sql-delete-database -dbName $dbName 
+        sql-delete-database -dbName $dbName
     }
     catch {
         throw "Erros while deleting database: $_"
@@ -88,7 +88,7 @@ function sd-app-reinitializeAndStart {
     Param(
         [switch]$force
     )
-    
+
     $project = sd-project-getCurrent
 
     $dbName = sd-db-getNameFromDataConfig # this needs to be here before DataConfig.config gets deleted!!!
@@ -101,7 +101,7 @@ function sd-app-reinitializeAndStart {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Generates and adds precompiled templates to selected sitefinity solution.
     .DESCRIPTION
     Precompiled templates give much faster page loads when web app is restarted (when building or rebuilding solution) on first load of the page. Useful with local sitefinity development. WARNING: Any changes to markup are ignored when precompiled templates are added to the project, meaning the markup at the time of precompilation is always used. In order to see new changes to markup you need to remove the precompiled templates and generate them again.
@@ -113,7 +113,7 @@ function sd-appPrecompiledTemplates-add {
     if (-not (Test-Path $sitefinityCompiler)) {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
-    
+
     $context = sd-project-getCurrent
     $webAppPath = $context.webAppPath
     $appUrl = sd-iisSite-getUrl
@@ -121,7 +121,7 @@ function sd-appPrecompiledTemplates-add {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Removes previously added precompiled templates to selected sitefinity solution.
 #>
 function sd-appPrecompiledTemplates-remove {
@@ -131,7 +131,7 @@ function sd-appPrecompiledTemplates-remove {
     if (-not (Test-Path $sitefinityCompiler)) {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
-    
+
     $context = sd-project-getCurrent
     $webAppPath = $context.webAppPath
     $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }

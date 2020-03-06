@@ -38,7 +38,7 @@ InModuleScope sf-dev {
             [SfProject]$proj = (sd-project-getAll)[0]
             $result = sd-project-setCurrent $proj
             sd-projectTags-removeFromCurrent $testTag2
-            
+
             [SfProject]$proj = (sd-project-getAll)[0]
             $result = sd-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
@@ -53,7 +53,7 @@ InModuleScope sf-dev {
             $result = sd-project-setCurrent $proj
             sd-projectTags-removeFromCurrent $testTag2
             sd-projectTags-removeFromCurrent $testTag3
-            
+
             [SfProject]$proj = (sd-project-getAll)[0]
             $result = sd-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
@@ -65,7 +65,7 @@ InModuleScope sf-dev {
             [SfProject]$proj = (sd-project-getAll)[0]
             $result = sd-project-setCurrent $proj
             sd-projectTags-removeFromCurrent $testTag1
-            
+
             [SfProject]$proj = (sd-project-getAll)[0]
             $result = sd-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
@@ -78,7 +78,7 @@ InModuleScope sf-dev {
             [SfProject]$proj = (sd-project-getAll)[0]
             $result = sd-project-setCurrent $proj
             sd-projectTags-removeFromCurrent $testTag2
-            
+
             [SfProject]$proj = (sd-project-getAll)[0]
             $result = sd-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
@@ -104,7 +104,7 @@ InModuleScope sf-dev {
         Mock sd-projectTags-getDefaultFilter {
             $Script:filter
         }
-        
+
         $test = {
             [SfProject]$p = _newSfProjectObject -id 'testId'
             _tag-setNewProjectDefaultTags -project $p

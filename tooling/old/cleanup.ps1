@@ -3,7 +3,7 @@ Import-Module dev -Force
 function sd-project-tools-clearAllProjectsLeftovers {
     $projectsDir = $GLOBAL:sf.Config.projectsDirectory
     $idsInUse = sd-project-getAll | ForEach-Object { $_.id }
-    
+
     function _shouldClean {
         param (
             $id
@@ -12,11 +12,11 @@ function sd-project-tools-clearAllProjectsLeftovers {
         if (-not ($id -match "$($GLOBAL:sf.Config.idPrefix)\d+")) {
             return $false
         }
-        
+
         if (-not $idsInUse.Contains($id)) {
             return $true
         }
-    
+
         return $false
     }
 
@@ -28,9 +28,9 @@ function sd-project-tools-clearAllProjectsLeftovers {
     try {
         Write-Information "Sites cleanup"
         Import-Module WebAdministration
-        $sites = Get-Item "IIS:\Sites" 
+        $sites = Get-Item "IIS:\Sites"
         $names = $sites.Children.Keys | Where-Object { _shouldClean $_ }
-        
+
         foreach ($site in $names) {
             Remove-Item "IIS:\Sites\$($site)" -Force -Recurse
         }
@@ -42,7 +42,7 @@ function sd-project-tools-clearAllProjectsLeftovers {
     try {
         Write-Information "App pool cleanup"
         Import-Module WebAdministration
-        $pools = Get-Item "IIS:\AppPools" 
+        $pools = Get-Item "IIS:\AppPools"
         $names = $pools.Children.Keys | Where-Object { _shouldClean $_ }
         foreach ($poolName in $names) {
             Remove-Item "IIS:\AppPools\$($poolName)" -Force -Recurse
@@ -63,7 +63,7 @@ function sd-project-tools-clearAllProjectsLeftovers {
 
     try {
         Write-Information "DBs cleanup"
-        
+
         $dbs = sql-get-dbs
         $dbs | Where-Object { $_.name.StartsWith("$($GLOBAL:sf.Config.idPrefix)") -and (_shouldClean $_.name) } | ForEach-Object {
             sql-delete-database -dbName $_.name

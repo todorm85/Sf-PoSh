@@ -17,7 +17,7 @@ function sd-iisSite-getBinding {
     return $binding
 }
 
-function sd-iisSite-setBinding {    
+function sd-iisSite-setBinding {
     [SfProject]$project = sd-project-getCurrent
     $selectedBinding = _promptBindings
     $project.defaultBinding = [SiteBinding]$defBinding = @{
@@ -38,17 +38,17 @@ function sd-iisSite-changeDomain {
     param (
         $domainName
     )
-    
+
     [SiteBinding]$binding = sd-iisSite-getBinding
     if ($binding) {
         $p = sd-project-getCurrent
-        $websiteName = $p.websiteName        
+        $websiteName = $p.websiteName
         try {
             Remove-WebBinding -Name $websiteName -Port $binding.port -HostHeader $binding.domain -Protocol $binding.protocol
             os-hosts-remove -hostname $binding.domain > $null
         }
         catch {
-            Write-Warning "Error cleaning previous domain. $_"            
+            Write-Warning "Error cleaning previous domain. $_"
         }
 
         New-WebBinding -Name $websiteName -Protocol $binding.protocol -Port $binding.port -HostHeader $domainName
@@ -61,7 +61,7 @@ function sd-iisSite-changeDomain {
 
 function _iisSite-appendSubAppPath {
     param($path)
-    
+
     $context = sd-project-getCurrent
     $subAppName = sd-iisSite-getSubAppName -websiteName $context.websiteName
     if ($null -ne $subAppName) {
@@ -77,7 +77,7 @@ function _generateDomainName {
         [SfProject]
         $context
     )
-    
+
     return "$($context.displayName)_$($context.id).com"
 }
 

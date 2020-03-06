@@ -120,7 +120,7 @@
                 Removed fluent api, no longr necessary to load module with using
                 New Api and Renaming of Old Apis
                 Fix: when delete project and removing from tool fails there is no validation for success.
-            1.4.0            
+            1.4.0
                 Fix: renaming a project does not change the console title
             1.3.5
                 BUG Fix DbBackups not overriden
@@ -132,10 +132,10 @@
                 Fix wrong build selected from prompt
             1.3.2
                 Fix prompting for build path
-            1.3.1            
+            1.3.1
                 Fix Prompting for branches
                 Fix states
-                
+
             1.3.0
                 Ability to create project from build path
             1.2.0

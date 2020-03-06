@@ -2,7 +2,7 @@
 
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
-    
+
     Describe "States should" -Tags ("states") {
         It "save and then restore app_data folder and database" {
             set-testProject
@@ -14,16 +14,16 @@ InModuleScope sf-dev {
 
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
-            
+
             sd-appStates-save -stateName $stateName
-            
+
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
             New-Item $afterSaveFilePath
             Remove-Item -Path $beforeSaveFilePath
             $dbName = sd-db-getNameFromDataConfig
             $dbName | Should -Not -BeNullOrEmpty
-            
+
             $table = 'sf_xml_config_items'
             $columns = "path, dta, last_modified, id"
             $values = "'test', '<testConfigs/>', '$([System.DateTime]::Now.ToString())', '$([System.Guid]::NewGuid())'"
@@ -38,7 +38,7 @@ InModuleScope sf-dev {
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse
-            $config = sql-get-items -dbName $dbName -selectFilter $select -whereFilter $where -tableName $table 
+            $config = sql-get-items -dbName $dbName -selectFilter $select -whereFilter $where -tableName $table
             $config | Should -BeNullOrEmpty
         }
     }

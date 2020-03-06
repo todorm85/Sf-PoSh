@@ -12,7 +12,7 @@ InModuleScope sf-dev {
             $result | Should -Be 200
         }
     }
-    
+
     Describe "Resetting app should" -Tags ("reset") {
         [SfProject]$project = set-testProject
 
@@ -24,9 +24,9 @@ InModuleScope sf-dev {
 
         sd-app-uninitialize
 
-        It "remove app data and database" {            
+        It "remove app data and database" {
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
-            Test-Path $configsPath | Should -Be $false            
+            Test-Path $configsPath | Should -Be $false
         }
 
         It "start successfully after reset" {

@@ -2,8 +2,8 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
 
 function _newSfProjectObject ($id) {
     [SfProject]$newProject = [SfProject]::new()
-    if (!$id) {        
-        $newProject.id = _generateId    
+    if (!$id) {
+        $newProject.id = _generateId
     } else {
         $newProject.id = $id
     }
@@ -12,8 +12,8 @@ function _newSfProjectObject ($id) {
 }
 
 <#
-    .SYNOPSIS 
-    Provisions a new sitefinity instance project. 
+    .SYNOPSIS
+    Provisions a new sitefinity instance project.
     .DESCRIPTION
     Gets latest from the branch, builds and starts a sitefinity instance with default admin user username:admin pass:admin@2. The local path where the project files are created is specified in the constants script file (EnvConstants.ps1).
     .PARAMETER sourcePath
@@ -128,9 +128,9 @@ function sd-project-clone {
             sd-db-setNameInDataConfig $newDbName -context $newProject
         }
         catch {
-            Write-Error "Error setting new database name in config $newDbName).`n $_"                    
+            Write-Error "Error setting new database name in config $newDbName).`n $_"
         }
-                
+
         try {
             sql-copy-db -SourceDBName $sourceDbName -targetDbName $newDbName
         }
@@ -143,7 +143,7 @@ function sd-project-clone {
         sd-appStates-removeAll
     }
     catch {
-        Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"        
+        Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"
     }
 }
 
@@ -161,16 +161,16 @@ function sd-project-removeBulk {
             sd-project-remove -context $selectedSitefinity -noPrompt
         }
         catch {
-            Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"       
+            Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"
         }
     }
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Deletes a sitefinity instance managed by the script.
     .DESCRIPTION
-    Everything is deleted - local project files, database, TFS workspace if no switches are passed. 
+    Everything is deleted - local project files, database, TFS workspace if no switches are passed.
     .PARAMETER keepWorkspace
     Keeps the workspace if one exists.
     .PARAMETER keepProjectFiles
@@ -188,14 +188,14 @@ function sd-project-remove {
         [switch]$noPrompt,
         [SfProject]$context = $null
     )
-    
+
     [SfProject]$currentProject = sd-project-getCurrent
     $clearCurrentSelectedProject = $false
     if ($null -eq $context -or $currentProject.id -eq $context.id) {
         $context = $currentProject
-        $clearCurrentSelectedProject = $true        
-    }    
-    
+        $clearCurrentSelectedProject = $true
+    }
+
     sd-project-setCurrent -newContext $context > $null
 
     # Del Website
@@ -207,7 +207,7 @@ function sd-project-remove {
             sd-iisAppPool-Stop
         }
         catch {
-            Write-Warning "Could not stop app pool: $_`n"            
+            Write-Warning "Could not stop app pool: $_`n"
         }
 
         try {
@@ -225,9 +225,9 @@ function sd-project-remove {
         $workspaceName = tfs-get-workspaceName $context.webAppPath
     }
     catch {
-        Write-Warning "No workspace to delete, no TFS mapping found."        
+        Write-Warning "No workspace to delete, no TFS mapping found."
     }
-    
+
     if ($workspaceName -and !($keepWorkspace)) {
         Write-Information "Deleting workspace..."
         try {
@@ -243,7 +243,7 @@ function sd-project-remove {
     # Del db
     if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
         Write-Information "Deleting sitefinity database..."
-        
+
         try {
             sql-delete-database -dbName $dbName
         }
@@ -262,7 +262,7 @@ function sd-project-remove {
             else {
                 $path = $context.webAppPath
             }
-            
+
             Write-Information "Unlocking all locked files in solution directory..."
             unlock-allFiles -path $path
 
@@ -284,7 +284,7 @@ function sd-project-remove {
     catch {
         Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
     }
-    
+
     if ($clearCurrentSelectedProject) {
         $result = sd-project-setCurrent $null
     }
@@ -335,12 +335,12 @@ function sd-project-rename {
         if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
             _createUserFriendlySlnName -context $context
         }
-    
+
         $newSolutionName = _generateSolutionFriendlyName -context $context
         $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
         if (Test-Path $oldSolutionPath) {
             Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
-        
+
             $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
             $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
             $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
@@ -349,12 +349,12 @@ function sd-project-rename {
                 unlock-allFiles -path $oldSolutionCachePath
                 Remove-Item -Path $oldSolutionCachePath -Force -Recurse
             }
-        
+
             unlock-allFiles -path $oldSolutionPath
             Remove-Item -Path $oldSolutionPath -Force
         }
     }
-    
+
     _update-prompt
     _saveSelectedProject $context
 }
@@ -376,25 +376,25 @@ function sd-project-setCurrent {
     Param(
         [Parameter(ValueFromPipeline)][SfProject]$newContext
     )
-    
+
     process {
         try {
             if ($null -ne $newContext) {
                 _proj-initialize -project $newContext
                 _validateProject $newContext
-            } 
+            }
         }
         catch {
             Write-Error "$_"
         }
-            
+
         $Script:globalContext = $newContext
-        
+
         try {
             _update-prompt
         }
         catch {
-            Write-Error "$_"            
+            Write-Error "$_"
         }
 
         return $newContext
@@ -406,9 +406,9 @@ function sd-project-getAll {
     param(
         [string[]]$tagsFilter
     )
-    
+
     $sitefinities = _data-getAllProjects
-    
+
     if ($tagsFilter) {
         $sitefinities = _filterProjectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
     }
@@ -419,13 +419,13 @@ function sd-project-getAll {
 }
 
 function _proj-tryUseExisting {
-    
+
     Param(
         [Parameter(Mandatory = $true)][SfProject]$project,
         [Parameter(Mandatory = $true)][string]$path
     )
 
-    
+
     if (Test-Path -Path "$path\SitefinityWebApp") {
         $path = "$path\SitefinityWebApp"
     }
@@ -455,7 +455,7 @@ function _getNameParts {
             for ($i = 2; $i -lt $nameParts.Count; $i++) {
                 $title = "$title$($nameParts[$i])"
             }
-            
+
             $title = $title.Trim();
             $title = _getValidTitle $title
 
@@ -494,7 +494,7 @@ function _getValidTitle {
     if ($resultTitle.Length -ge 51) {
         $resultTitle = $resultTitle.Remove(50);
     }
-    
+
     return $resultTitle;
 }
 
@@ -512,7 +512,7 @@ function _createUserFriendlySlnName ($context) {
 
 function _saveSelectedProject {
     Param($context)
-    
+
     if (!$context.id) {
         throw "No project id."
     }
@@ -539,7 +539,7 @@ function _validateProject {
         if (-not (Test-Path $context.solutionPath)) {
             Write-Warning "Solution path does not exist."
         }
-        
+
         $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
         if (!(Test-Path $solutionFilePath)) {
             Write-Warning "Solution file not existing."
@@ -587,7 +587,7 @@ function _getIsIdDuplicate ($id) {
         $names = $pools.Children.Keys | Where-Object { _isDuplicate $_ }
         if ($names) { return $true }
     }
-    
+
     $dbs = sql-get-dbs | Where-Object { _isDuplicate $_.name }
     if ($dbs) { return $true }
 
@@ -602,14 +602,14 @@ function _generateId {
         if (-not $_isDuplicate) {
             break;
         }
-        
+
         $i++
     }
 
     if ([string]::IsNullOrEmpty($name) -or (-not (_validateNameSyntax $name))) {
         throw "Invalid id $name"
     }
-    
+
     return $name
 }
 
@@ -617,13 +617,13 @@ function _generateSolutionFriendlyName {
     Param(
         [SfProject]$context
     )
-    
+
     if (-not ($context)) {
         $context = sd-project-getCurrent
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"
-    
+
     return $solutionName
 }
 
@@ -635,7 +635,7 @@ function _proj-initialize {
     param (
         [Parameter(Mandatory = $true)][SfProject]$project
     )
-    
+
     if ($project.isInitialized) {
         return
     }
@@ -661,7 +661,7 @@ function _proj-initialize {
     }
 
     try {
-        _proj-detectSite -project $project    
+        _proj-detectSite -project $project
     }
     catch {
         $errors += "`nSite detection from IIS: $_."
@@ -679,7 +679,7 @@ function _createAndDetectProjectArtifactsFromSourcePath {
         [Parameter(Mandatory = $true)][Sfproject]$project,
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
-    
+
     if (!(_proj-tryCreateFromBranch -project $project -sourcePath $sourcePath) -and
         !(_proj-tryCreateFromZip -project $project -sourcePath $sourcePath) -and
         !(_proj-tryUseExisting -project $project -path $sourcePath)
@@ -692,7 +692,7 @@ function _proj-createProjectDirectory {
     param (
         [Parameter(Mandatory = $true)][Sfproject]$project
     )
-    
+
     Write-Information "Creating project files..."
     $projectDirectory = "$($GLOBAL:sf.Config.projectsDirectory)\$($project.id)"
     if (Test-Path $projectDirectory) {

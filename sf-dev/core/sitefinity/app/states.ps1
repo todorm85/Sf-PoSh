@@ -4,9 +4,9 @@ function sd-appStates-save {
         [ValidateNotNullOrEmpty()]
         $stateName
     )
-    
+
     $project = sd-project-getCurrent
-    
+
     $dbName = sd-db-getNameFromDataConfig
     $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
@@ -29,7 +29,7 @@ function sd-appStates-save {
 
     $backupName = _getSqlBackupStateName -stateName $stateName
     Backup-SqlDatabase -ServerInstance $GLOBAL:sf.Config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials) -Initialize
-    
+
     $stateDataPath = "$statePath/data.xml"
     New-Item $stateDataPath > $null
     $stateData = New-Object XML
@@ -61,11 +61,11 @@ function sd-appStates-restore {
     if ($force) {
         sd-sol-unlockAllFiles
     }
-    
+
     $statesPath = _getStatesPath
     $statePath = "${statesPath}/$stateName"
     $dbName = ([xml](Get-Content "$statePath/data.xml")).root.dbName
-    
+
     sql-delete-database -dbName $dbName
     $backupName = _getSqlBackupStateName -stateName $stateName
     Restore-SqlDatabase -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Database $dbName -BackupFile $backupName -Credential $(_getSqlCredentials)
@@ -75,7 +75,7 @@ function sd-appStates-restore {
     if (-not (Test-Path $appDataPath)) {
         New-Item $appDataPath -ItemType Directory > $null
     }
-    
+
     _appData-restore "$appDataStatePath/*"
 }
 
@@ -112,7 +112,7 @@ function _selectAppState {
         Write-Warning "No states."
         return
     }
-    
+
     $i = 0
     foreach ($state in $states) {
         Write-Host :"$i : $($state.Name)"
@@ -134,7 +134,7 @@ function _getSqlBackupStateName {
     param (
         [Parameter(Mandatory = $true)]$stateName
     )
-    
+
     [SfProject]$context = sd-project-getCurrent
     return "$($context.id)_$stateName.bak"
 }
@@ -148,7 +148,7 @@ function _getSqlCredentials {
 function _getStatesPath {
     $context = sd-project-getCurrent
     $path = "$($context.webAppPath)/dev-tool"
-    
+
     if (!(Test-Path $path)) {
         New-Item $path -ItemType Directory -ErrorAction Stop
     }
@@ -157,7 +157,7 @@ function _getStatesPath {
     if (-not (Test-Path $path)) {
         New-Item $path -ItemType Directory -ErrorAction Stop
     }
-    
+
     return $path
 }
 
@@ -190,7 +190,7 @@ function _appData-remove {
     if ($errors) {
         Write-Information "Some files in AppData folder could not be cleaned up, perhaps in use?"
     }
-    
+
     # clean empty dirs
     _clean-emptyDirs -path "${webAppPath}\App_Data"
 }

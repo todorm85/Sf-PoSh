@@ -1,35 +1,35 @@
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     .DESCRIPTION
     .PARAMETER xxxx
     .OUTPUTS
     None
 #>
 function sd-sourceControl-undoPendingChanges {
-    
+
     Param()
 
     $context = sd-project-getCurrent
     if (!$context.branch) {
         return
     }
-    
+
     if (!(Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
     }
-    
+
     tfs-undo-PendingChanges $context.solutionPath
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     .DESCRIPTION
     .PARAMETER xxxx
     .OUTPUTS
     None
 #>
 function sd-sourceControl-showPendingChanges {
-    
+
     Param(
         [switch]$detailed
         )
@@ -48,7 +48,7 @@ function sd-sourceControl-showPendingChanges {
     if (-not $context -or -not $context.solutionPath -or -not (Test-Path $context.solutionPath)) {
         throw "invalid or no solution path"
     }
-    
+
     $workspaceName = tfs-get-workspaceName $context.solutionPath
     tfs-show-PendingChanges $workspaceName $format
 }
@@ -63,23 +63,23 @@ function sd-sourceControl-hasPendingChanges {
 }
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     .DESCRIPTION
     .PARAMETER xxxx
     .OUTPUTS
     None
 #>
 function sd-sourceControl-getLatestChanges {
-    
+
     Param(
         [switch]$overwrite
     )
-    
+
     [SfProject]$context = sd-project-getCurrent
     if (!$context.branch) {
         return
     }
-    
+
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
@@ -95,7 +95,7 @@ function sd-sourceControl-getLatestChanges {
     } else {
         tfs-get-latestChanges -branchMapPath $solutionPath
     }
-    
+
     $context.lastGetLatest = [System.DateTime]::Today
     _saveSelectedProject $context
 

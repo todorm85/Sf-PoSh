@@ -3,7 +3,7 @@ function get-userConfig {
         [Parameter(Mandatory=$true)][string]$defaultConfigPath,
         [Parameter(Mandatory=$true)][string]$userConfigPath
     )
-    
+
     if (!(Test-Path $defaultConfigPath)) {
         throw "Default config path not found."
     }
@@ -38,7 +38,7 @@ function get-userConfig {
                 $userConfig.PSObject.Properties.Remove($_.Name)
             }
         }
-    
+
         $userConfig | ConvertTo-Json | Out-File $userConfigPath
     }
 

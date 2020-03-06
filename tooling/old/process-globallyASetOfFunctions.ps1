@@ -8,7 +8,7 @@ function Rename-Function {
     param (
         [string]$text
     )
-    
+
     $text = $text.Replace("_", "");
     $result = "";
     $setCapital = $true;
@@ -33,7 +33,7 @@ function Rename-Function {
 
 $scripts = Get-ChildItem $path -Recurse | Where-Object { $_.Extension -eq '.ps1'}
 
-$scripts | % { 
+$scripts | % {
     $content = Get-Content $_.FullName
     $oldNames | % {
         # $newTitle = Rename-Function($_)

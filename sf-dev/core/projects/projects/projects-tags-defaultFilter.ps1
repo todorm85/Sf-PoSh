@@ -26,7 +26,7 @@ $Script:selectFunctionTagCompleter = {
         $wordToComplete,
         $commandAst,
         $fakeBoundParameters )
-    
+
     $values = @(Invoke-Command -ScriptBlock $tagFilterCompleter -ArgumentList $commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
     $values += @("+a")
@@ -74,7 +74,7 @@ function sd-projectTags-removeFromDefaultFilter {
         [string]
         $tag
     )
-    
+
     [string[]]$defaultFilter = sd-projectTags-getDefaultFilter
     $defaultFilter = $defaultFilter -notlike $tag
     sd-projectTags-setDefaultFilter -filter $defaultFilter
@@ -92,7 +92,7 @@ Register-ArgumentCompleter -CommandName sd-projectTags-removeFromDefaultFilter -
         [SfProject[]]$sitefinities,
         [string[]]$tagsFilter
     )
-    
+
     if ($tagsFilter -eq '+u') {
         $sitefinities = $sitefinities | Where-Object { !$_.tags }
     }
@@ -135,14 +135,14 @@ function _tag-setNewProjectDefaultTags {
     param (
         [SfProject]$project
     )
-    
+
     $tagsFilter = sd-projectTags-getDefaultFilter
     if (!$tagsFilter) {
-        return    
+        return
     }
 
     $includeTags = $tagsFilter | Where-Object { !$_.StartsWith($excludeTagPrefix) }
-    $includeTags | ForEach-Object { 
+    $includeTags | ForEach-Object {
         $project.tags += @($_)
     }
 }
@@ -151,7 +151,7 @@ function _validateTag {
     param (
         $tagName
     )
-    
+
     if (!$tagName -or $tagName.StartsWith($excludeTagPrefix) -or $tagName.Contains(' ')) {
         throw "Invalid tag name. Must not contain spaces and start with $excludeTagPrefix"
     }

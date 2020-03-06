@@ -5,7 +5,7 @@ function sql-delete-database {
 
     $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$dbName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
-    ForEach ($Database in $Databases) { 
+    ForEach ($Database in $Databases) {
         Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query (
             "alter database [" + $Database.Name + "] set single_user with rollback immediate
             DROP DATABASE [" + $Database.Name + "]") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
@@ -20,7 +20,7 @@ function sql-rename-database {
 
     $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$oldName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
-    ForEach ($Database in $Databases) { 
+    ForEach ($Database in $Databases) {
         Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query (
             "alter database [" + $Database.Name + "] set single_user with rollback immediate
             EXEC sp_renamedb '$oldName', '$newName'
@@ -95,7 +95,7 @@ function sql-test-isDbNameDuplicate {
 
 function sql-copy-db {
     Param(
-        [string]$SourceDBName, 
+        [string]$SourceDBName,
         [string]$targetDbName
     )
     #import SQL Server module

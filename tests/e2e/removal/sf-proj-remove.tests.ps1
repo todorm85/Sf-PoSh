@@ -7,9 +7,9 @@ InModuleScope sf-dev {
         It "remove all" {
             [SfProject]$proj = set-testProject
             $testId = $proj.id
-            
+
             sd-project-remove -noPrompt
-            
+
             $sitefinities = @(sd-project-getAll) | Where-Object { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0
             Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\${testId}" | Should -Be $false

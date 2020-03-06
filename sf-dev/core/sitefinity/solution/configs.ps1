@@ -18,7 +18,7 @@ function sd-appStartupConfig-create {
 
     $context = sd-project-getCurrent
     $webAppPath = $context.webAppPath
-    
+
     Write-Information "Creating StartupConfig..."
     try {
         $appConfigPath = "${webAppPath}\App_Data\Sitefinity\Configuration"
@@ -34,7 +34,7 @@ function sd-appStartupConfig-create {
                 throw "Could not remove old StartupConfig $ProcessError"
             }
         }
-        
+
         if ((sql-test-isDbNameDuplicate -dbName $dbName) -or [string]::IsNullOrEmpty($dbName)) {
             throw "Error creating startup.config. Database with name $dbName already exists."
         }

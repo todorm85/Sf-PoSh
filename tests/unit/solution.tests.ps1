@@ -2,9 +2,9 @@
 
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
-    
+
     Describe "_switchStyleCop" {
-        
+
         $expectedOn = @(
             "  <!-- Define StyleCopEnabled property. -->",
                 "  <PropertyGroup Condition=""('`$(SourceAnalysisEnabled)' != '') and ('`$(StyleCopEnabled)' == '')"">",

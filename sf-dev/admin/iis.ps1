@@ -7,7 +7,7 @@ function iis-website-create {
         [Parameter(Mandatory = $true)][string]$newAppPool
     )
 
-    
+
     ForEach ($reservedPort in $reservedPorts) {
         if ($reservedPort -eq $newPort) {
             throw "Port ${newPort} already used"
@@ -55,9 +55,9 @@ function iis-new-subApp {
         [string]$appName,
         [string]$path
     )
-    
+
     New-Item "IIS:\Sites\$($siteName)\${appName}" -physicalPath $path -type "Application" > $null
-    
+
     $pool = Get-IISSite -Name $siteName | Get-IISAppPool | Select-Object -ExpandProperty Name
     Set-ItemProperty -Path "IIS:\Sites\$($siteName)\${appName}" -Name "applicationPool" -Value $pool > $null
 }

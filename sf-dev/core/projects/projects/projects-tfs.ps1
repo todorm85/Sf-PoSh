@@ -35,7 +35,7 @@ function _updateLastGetLatest {
     param (
         [SfProject]$context
     )
-    
+
     $lastGetLatestTfs = _getLastWorkspaceChangesetDate $context.solutionPath
     $context.lastGetLatest = $lastGetLatestTfs
     $project.daysSinceLastGet = _getDaysSinceDate $lastGetLatestTfs;
@@ -55,7 +55,7 @@ function _getLastWorkspaceChangesetDate {
         $changesetInfo = tfs-get-lastWorkspaceChangeset $path
     }
     catch {
-        Write-Information "Unable to retrieve latest changeset from workspace, fallback to last time get-latest command was issued in this tool."        
+        Write-Information "Unable to retrieve latest changeset from workspace, fallback to last time get-latest command was issued in this tool."
     }
 
     if ($changesetInfo -and $changesetInfo[2]) {

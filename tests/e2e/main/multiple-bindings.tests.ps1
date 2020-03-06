@@ -6,7 +6,7 @@ InModuleScope sf-dev {
         [SfProject]$sourceProj = Set-TestProject
         $sourceProj.defaultBinding = $null
         _setProjectData -context $sourceProj
-        1..2 | % { 
+        1..2 | % {
             $domain = "newDomain$([System.Guid]::NewGuid().ToString()).com"
             New-WebBinding -Name $sourceProj.websiteName -HostHeader $domain -Port "55000" -Protocol 'http'
             os-hosts-add -hostname $domain -address '127.0.0.1'
@@ -58,9 +58,9 @@ InModuleScope sf-dev {
             [SiteBinding]$newBinding = sd-iisSite-getBinding
             $newBinding.domain | Should -Be $domain
             [SiteBinding[]]$newAllBindings = iis-bindings-getAll -siteName $sourceProj.websiteName
-            $result = $newAllBindings | ? { $_.domain -eq $binding.domain } 
+            $result = $newAllBindings | ? { $_.domain -eq $binding.domain }
             $result | Should -BeNullOrEmpty
-            $result = $newAllBindings | ? { $_.domain -eq $newBinding.domain } 
+            $result = $newAllBindings | ? { $_.domain -eq $newBinding.domain }
             $result | Should -Not -BeNullOrEmpty
             $result = os-hosts-get | ? { $_.Contains($binding.domain) }
             $result | Should -BeNullOrEmpty

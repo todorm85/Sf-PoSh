@@ -21,7 +21,7 @@ function tf-query-workspaces ($server) {
     }
     catch {
         Write-Warning "Error querying tf.exe `n $_"
-        return $null     
+        return $null
     }
 }
 
@@ -40,12 +40,12 @@ function tfs-create-workspace {
         [Parameter(Mandatory = $true)][string]$path,
         [Parameter(Mandatory = $true)][string]$server
     )
-    
+
     # needed otherwise if the current location is mapped to a workspace the command will throw
     Set-Location $path
 
     execute-native "& `"$(_get-tfPath)`" workspace `"$workspaceName`" /new /permission:private /noprompt /server:$server" > $null
-    
+
     Start-Sleep -m 1000
 
     try {
@@ -54,7 +54,7 @@ function tfs-create-workspace {
     catch {
         try {
             tfs-delete-workspace $workspaceName $server
-        } 
+        }
         catch {
             throw "Workspace created but... Error removing default workspace mapping $/. Message: $_"
         }
@@ -122,7 +122,7 @@ function tfs-get-latestChanges {
 
     $oldLocation = Get-Location
     Set-Location -Path $branchMapPath
-    
+
     if ($overwrite) {
         $output = execute-native "& `"$(_get-tfPath)`" get /overwrite /noprompt" -successCodes @(1)
     }
@@ -146,7 +146,7 @@ function tfs-get-latestChanges {
         if ($conflictsCount -gt 0) {
             $errors = "$errors`nThere were $conflictsCount conflicts when getting latest."
         }
-        
+
         if ($errorsCount -gt 0) {
             $errors = "$erors`nThere were $errorsCount errors when getting latest."
         }
@@ -157,7 +157,7 @@ function tfs-get-latestChanges {
     }
 
     Set-Location $oldLocation
-    
+
     return $output
 }
 
@@ -181,7 +181,7 @@ function tfs-get-workspaceName {
     Param(
         [string]$path
     )
-    
+
     if (!$path) {
         return ''
     }
@@ -209,7 +209,7 @@ function tfs-get-branchPath {
     Param(
         [string]$path
     )
-    
+
     if (!$path) {
         return ''
     }

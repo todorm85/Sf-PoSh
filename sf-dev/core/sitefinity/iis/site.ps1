@@ -1,6 +1,6 @@
 
 <#
-    .SYNOPSIS 
+    .SYNOPSIS
     Opens the current sitefinity webapp in the browser.
     .DESCRIPTION
     If an existing sitefinity web app without a solution was imported nothing is done.
@@ -19,7 +19,7 @@ function sd-iisSite-browse {
     if (!$project) {
         throw "No project selected."
     }
-    
+
     [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $project.websiteName
     if (!$project.defaultBinding -and $bindings -and $bindings.Count -gt 1) {
         $choice = Read-Host -Prompt "Site has several bindings and there is no default one set. Do you want to set a default binding to be used by the tool? y/n"
@@ -36,7 +36,7 @@ function sd-iisSite-browse {
     if (-not $useExistingBrowser) {
         execute-native "& Start-Process `"$browserPath`"" -successCodes @(100)
     }
-    
+
     execute-native "& `"$browserPath`" `"${appUrl}/Sitefinity`" -noframemerging" -successCodes @(100)
 }
 
@@ -68,7 +68,7 @@ function sd-iisSite-new {
     if (!$context.websiteName) {
         $context.websiteName = $context.id
     }
-    
+
     $newAppPath = $context.webAppPath
     $newAppPool = $context.id
     $domain = _generateDomainName -context $context
@@ -95,7 +95,7 @@ function sd-iisSite-delete {
     if (!$websiteName) {
         throw "Website name not set."
     }
-    
+
     $appPool = Get-IISSite -Name $websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
     $domains = iis-bindings-getAll -siteName $websiteName | ? { $_.domain } | select -ExpandProperty domain
     $errors = ''
@@ -119,7 +119,7 @@ function sd-iisSite-delete {
         }
     }
     catch {
-        $errors += "Error removing domain from hosts file. Error $_"        
+        $errors += "Error removing domain from hosts file. Error $_"
     }
 
     if ($errors) {
@@ -128,7 +128,7 @@ function sd-iisSite-delete {
 }
 
 function sd-iisSite-getSubAppName {
-    $proj = sd-project-getCurrent    
+    $proj = sd-project-getCurrent
     [SfProject]$proj = sd-project-getCurrent
     Get-WebApplication -Site $proj.websiteName | ? { $_.PhysicalPath.ToLower() -eq $proj.webAppPath } | % { $_.path.TrimStart('/') }
 }

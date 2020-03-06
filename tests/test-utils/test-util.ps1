@@ -25,7 +25,7 @@ function existsInHostsFile {
     $hostsPath = "$($env:windir)\system32\Drivers\etc\hosts"
     Get-Content $hostsPath | % {
         if ($_.Contains($searchParam)) {
-            $found = $true 
+            $found = $true
         }
     }
 
@@ -37,7 +37,7 @@ function generateRandomName {
     $random = $random.Substring(1)
     "a$random"
 }
-    
+
 function initialize-testEnvironment {
     Write-Information "Cleanup started."
     [SfProject[]]$projects = sd-project-getAll
