@@ -3,6 +3,11 @@
 InModuleScope sf-dev {
     . "$testUtilsDir\test-util.ps1"
 
+    It "when building succeed after at least 3 retries" {
+        Set-TestProject
+        sd-sol-build -retryCount 3
+    }
+
     Describe "App start should" {
         It "start the app correctly" {
             set-testProject
