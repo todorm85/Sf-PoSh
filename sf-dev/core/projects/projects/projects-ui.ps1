@@ -70,7 +70,7 @@ function sd-project-show {
     }
 
     try {
-        $appPool = Get-IISSite -Name $context.websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
+        $appPool = (Get-Website -Name $context.websiteName).applicationPool
     }
     catch {
         Write-Information "Error getting some details from IIS: $_"

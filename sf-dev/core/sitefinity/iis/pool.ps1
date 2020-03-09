@@ -36,7 +36,7 @@ function sd-iisAppPool-Reset {
 
     $project = sd-project-getCurrent
 
-    $appPool = Get-IISSite -Name $project.websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
+    $appPool = (Get-Website -Name $project.websiteName).applicationPool
     if ($appPool -eq '') {
         throw "No app pool set."
     }
@@ -52,7 +52,7 @@ function sd-iisAppPool-Stop {
     $websiteName = (sd-project-getCurrent).websiteName
     $errors = ''
     try {
-        $appPool = Get-IISSite -Name $websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
+        $appPool = (Get-Website -Name $websiteName).applicationPool
     }
     catch {
         $errors += "Error getting app pool $_"

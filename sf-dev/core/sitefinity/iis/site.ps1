@@ -58,12 +58,7 @@ function sd-iisSite-new {
     Write-Information "Creating website..."
 
     $context = sd-project-getCurrent
-
-    $port = 2111
-    while (!(os-test-isPortFree $port) -or !(iis-isPortFree $port)) {
-        $port++
-    }
-
+    $port = _getFreePort
     $siteExists = @(Get-Website | ? { $_.name -eq $context.id }).Count -gt 0
     while ([string]::IsNullOrEmpty($context.id) -or $siteExists) {
         throw "Website with name $($context.id) already exists or no name provided:"
@@ -93,6 +88,18 @@ function sd-iisSite-new {
     }
 }
 
+function _getFreePort {
+    param(
+        $port = 2111
+    )
+
+    while (!(os-test-isPortFree $port) -or !(iis-isPortFree $port)) {
+        $port++
+    }
+
+    return $port
+}
+
 function sd-iisSite-delete {
     $proj = sd-project-getCurrent
     $websiteName = $proj.websiteName
@@ -100,7 +107,7 @@ function sd-iisSite-delete {
         throw "Website name not set."
     }
 
-    $appPool = Get-IISSite -Name $websiteName | Get-IISAppPool | Select-Object -ExpandProperty Name
+    $appPool = (Get-Website -Name $websiteName).applicationPool
     $domains = iis-bindings-getAll -siteName $websiteName | ? { $_.domain } | select -ExpandProperty domain
     $errors = ''
     try {

@@ -6,10 +6,14 @@ if (-not (Test-Path $Script:moduleUserDir)) {
 }
 
 . "${PSScriptRoot}/bootstrap/init-config.ps1"
+if ($Global:OnAfterConfigInit) {
+    $Global:OnAfterConfigInit | % { Invoke-Command -ScriptBlock $_ }
+}
+
 . "${PSScriptRoot}/bootstrap/init-psPrompt.ps1"
 . "${PSScriptRoot}/bootstrap/load-scripts.ps1"
 
-Set-Alias -Name sf-create -Value sd-project-create -Scope global
+Set-Alias -Name sf-new -Value sd-project-new -Scope global
 Set-Alias -Name sf-remove -Value sd-project-remove -Scope global
 Set-Alias -Name sf-rename -Value sd-project-rename -Scope global
 Set-Alias -Name sf-select -Value sd-project-select -Scope global

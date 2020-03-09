@@ -21,7 +21,7 @@ function _newSfProjectObject ($id) {
     .PARAMETER displayName
     The name of the project that the tool will use to present it in the CLI
 #>
-function sd-project-create {
+function sd-project-new {
     Param(
         [string]$sourcePath,
         [string]$displayName = 'Untitled'

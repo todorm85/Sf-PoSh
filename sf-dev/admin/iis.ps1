@@ -45,7 +45,7 @@ function iis-website-create {
 
 function iis-isPortFree {
     Param($port)
-    $matchedPorts = @(Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object { $_.split(':')[-2] } | ? { $_ -eq $port} )
+    $matchedPorts = @(Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object { $_.split(':')[1] } | ? { $_ -eq $port} )
     $matchedPorts.Count -eq 0
 }
 
@@ -58,7 +58,7 @@ function iis-new-subApp {
 
     New-Item "IIS:\Sites\$($siteName)\${appName}" -physicalPath $path -type "Application" > $null
 
-    $pool = Get-IISSite -Name $siteName | Get-IISAppPool | Select-Object -ExpandProperty Name
+    $pool = (Get-Website -Name $siteName).applicationPool
     Set-ItemProperty -Path "IIS:\Sites\$($siteName)\${appName}" -Name "applicationPool" -Value $pool > $null
 }
 
