@@ -147,3 +147,31 @@ function sql-copy-db {
     #you can use the TransferData method
     $ObjTransfer.TransferData()
 }
+
+function sql-createDb {
+    param (
+        $dbName
+    )
+
+    if (!$dbName) {
+        Write-Warning "Could not create db. Invalid db name."
+        return
+    }
+
+    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("CREATE DATABASE $dbName") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+
+    return $result
+}
+
+function sql-createTable {
+    param(
+        [Parameter(Mandatory=$true)]$dbName,
+        [Parameter(Mandatory=$true)]$tableName
+    )
+
+    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("CREATE TABLE [$dbName].[dbo].[$tableName] (
+        test varchar(255)
+    )") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+
+    return $result
+}

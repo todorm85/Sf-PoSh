@@ -1,8 +1,10 @@
-. "$PSScriptRoot\init.ps1"
+. "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
+
     Describe "Test multiple bindings" {
-        Global:set-testProject -appPath (Get-PSDrive TestDrive).Root
+        . "$PSScriptRoot\test-project-init.ps1"
         $sourceProj = sd-project-getCurrent
         1..2 | % {
             $domain = "$([System.Guid]::NewGuid().ToString()).com"
@@ -80,6 +82,6 @@ InModuleScope sf-dev {
             $p.defaultBinding.port | Should -Be $binding.port
         }
 
-        Global:clean-testProjectLeftovers
+        . "$PSScriptRoot\test-project-teardown.ps1"
     }
 }

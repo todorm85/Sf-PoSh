@@ -1,6 +1,7 @@
-. "$PSScriptRoot\init.ps1"
+. "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
     Describe "Tags should" -Tags ("fluent") {
         Mock _proj-initialize { }
         Mock _validateProject { }

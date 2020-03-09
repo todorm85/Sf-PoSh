@@ -1,8 +1,11 @@
-. "$PSScriptRoot\init.ps1"
+. "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
+
     Describe "Subapp functionality should" -Tags ("subapp") {
-        Global:set-testProject -appPath (Get-PSDrive TestDrive).Root
+        . "$PSScriptRoot\test-project-init.ps1"
+
         [SfProject]$project = sd-project-getCurrent
         $subApp = "subApp"
         $site = $project.websiteName
@@ -28,6 +31,6 @@ InModuleScope sf-dev {
             $res.EndsWith($subApp) | Should -Not -Be $true
         }
 
-        Global:clean-testProjectLeftovers
+        . "$PSScriptRoot\test-project-teardown.ps1"
     }
 }

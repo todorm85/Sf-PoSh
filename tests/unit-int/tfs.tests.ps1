@@ -1,6 +1,8 @@
-. "$PSScriptRoot\init.ps1"
+. "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
+
     Mock Set-Location { }
 
     Describe "tfs-get-workspaces" {

@@ -1,6 +1,8 @@
-. "${PSScriptRoot}\init.ps1"
+. "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-dev {
+    . "${PSScriptRoot}\init.ps1"
+
     Describe "_switchStyleCop" {
 
         $expectedOn = @(

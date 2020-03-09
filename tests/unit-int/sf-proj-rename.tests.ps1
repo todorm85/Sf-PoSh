@@ -1,9 +1,11 @@
-. "$PSScriptRoot\init.ps1"
+. "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
+
     Describe "Rename should" -Tags ("rename") {
         It "change the display name and domain" {
-            Global:set-testProject -appPath (Get-PSDrive TestDrive).Root
+            . "$PSScriptRoot\test-project-init.ps1"
             [SfProject]$testProject = sd-project-getCurrent
             $id = $testProject.id
             $oldName = generateRandomName
@@ -31,6 +33,6 @@ InModuleScope sf-dev {
             sd-project-rename $oldName
         }
 
-        Global:clean-testProjectLeftovers
+        . "$PSScriptRoot\test-project-teardown.ps1"
     }
 }

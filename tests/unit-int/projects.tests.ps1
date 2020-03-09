@@ -1,6 +1,8 @@
-. "${PSScriptRoot}\init.ps1"
+. "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-dev {
+    . "${PSScriptRoot}\init.ps1"
+
     Describe "_createAndDetectProjectArtifactsFromSourcePath should" {
         $GLOBAL:sf.Config.projectsDirectory = "$TestDrive"
         $appNoSolutionZipPath = "$PSScriptRoot\..\utils\files\Build\SitefinityWebApp.zip"

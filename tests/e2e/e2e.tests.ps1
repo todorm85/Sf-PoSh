@@ -1,9 +1,18 @@
-. "$PSScriptRoot\init.ps1"
+if (!$Global:OnAfterConfigInit) { $Global:OnAfterConfigInit = @() }
+$Global:OnAfterConfigInit += {
+    $path = "$($GLOBAL:sf.Config.projectsDirectory)\data-e2e-tests-db.xml"
+    $GLOBAL:sf.Config.dataPath = $path
+    $GLOBAL:sf.config.idPrefix = "sfe"
+}
+
+. "${PSScriptRoot}\..\utils\load-module.ps1"
 
 $Global:testProjectDisplayName = 'created_from_TFS'
 $Global:fromZipProjectName = 'created_from_zip'
 
 InModuleScope sf-dev {
+    . "${PSScriptRoot}\..\utils\test-util.ps1"
+
     Describe "Creating the project from branch should" {
         [SfProject[]]$projects = sd-project-getAll
         foreach ($proj in $projects) {

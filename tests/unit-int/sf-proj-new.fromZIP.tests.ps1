@@ -1,6 +1,8 @@
-. "$PSScriptRoot\init.ps1"
+. "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-dev {
+    . "$PSScriptRoot\init.ps1"
+
     Describe "Creating project from ZIP should" {
         It "create site, add domain and set project properties correctly" {
             $suffix = generateRandomName
