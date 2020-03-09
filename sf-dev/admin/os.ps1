@@ -102,6 +102,10 @@ function unlock-allFiles ($path) {
 }
 
 function os-hosts-add ($hostname, $address = '127.0.0.1') {
+    if (!$hostname) {
+        return
+    }
+
     If ((Get-Content $Script:hostsPath) -notcontains "$address $hostname") {
         Add-Content -Encoding utf8 $Script:hostsPath "$address $hostname" -ErrorAction Stop
     }
@@ -112,6 +116,10 @@ function os-hosts-get {
 }
 
 function os-hosts-remove ($hostname) {
+    if (!$hostname) {
+        return
+    }
+
     $address = $null
     (Get-Content $Script:hostsPath) | ForEach-Object {
         $found = $_ -match "^(?<address>.*?) $hostname$"

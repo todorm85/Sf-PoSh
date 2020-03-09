@@ -4,6 +4,11 @@ function sd-iisSite-getBinding {
         throw "No project selected."
     }
 
+    if (!$context.websiteName) {
+        Write-Warning "No website for current project."
+        return
+    }
+
     [SiteBinding]$binding = $null
     $allBindings = iis-bindings-getAll -siteName $context.websiteName
     if ($context.defaultBinding) {
@@ -22,7 +27,7 @@ function sd-iisSite-setBinding {
     $selectedBinding = _promptBindings
     $project.defaultBinding = [SiteBinding]$defBinding = @{
         protocol = $selectedBinding.protocol
-        domain   = if ($selectedBinding.domain) { $selectedBinding.domain } else { 'localhost' }
+        domain   = $selectedBinding.domain
         port     = $selectedBinding.port
     }
 
