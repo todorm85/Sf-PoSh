@@ -40,8 +40,7 @@ function sd-project-create {
     }
 
     _tag-setNewProjectDefaultTags -project $newContext
-    _saveSelectedProject $newContext
-    sd-project-setCurrent $newContext >> $null
+    sd-project-saveCurrent $newContext
 
     if (!$newContext.websiteName) {
         sd-iisSite-new
@@ -358,7 +357,7 @@ function sd-project-rename {
     sd-iisSite-changeDomain -domainName $newName
 
     _update-prompt
-    _saveSelectedProject $context
+    sd-project-saveCurrent $context
 }
 
 function sd-project-getCurrent {
@@ -512,7 +511,7 @@ function _createUserFriendlySlnName ($context) {
     }
 }
 
-function _saveSelectedProject {
+function sd-project-saveCurrent {
     Param($context)
 
     if (!$context.id) {
@@ -524,6 +523,7 @@ function _saveSelectedProject {
     }
 
     _setProjectData $context
+    sd-project-setCurrent -newContext $context
 }
 
 function _validateProject {

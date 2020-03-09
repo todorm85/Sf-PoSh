@@ -24,7 +24,6 @@ function _createWorkspace ([SfProject]$context, $branch) {
         $context.branch = $branch
         $context.lastGetLatest = [DateTime]::Today
         $context.daysSinceLastGet = _getDaysSinceDate $context.lastGetLatest
-        _saveSelectedProject $context
     }
     catch {
         throw "Could not get latest workapce changes. $_"

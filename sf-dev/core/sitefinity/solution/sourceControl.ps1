@@ -97,7 +97,7 @@ function sd-sourceControl-getLatestChanges {
     }
 
     $context.lastGetLatest = [System.DateTime]::Today
-    _saveSelectedProject $context
+    sd-project-saveCurrent $context
 
     Write-Information "Getting latest changes complete."
 }

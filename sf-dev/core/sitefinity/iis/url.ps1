@@ -26,7 +26,7 @@ function sd-iisSite-setBinding {
         port     = $selectedBinding.port
     }
 
-    _setProjectData -context $project
+    sd-project-saveCurrent -context $project
 }
 
 function sd-iisSite-getUrl {
@@ -56,7 +56,7 @@ function sd-iisSite-changeDomain {
 
         if ($p.defaultBinding) {
             $p.defaultBinding.domain = $domainName
-            _setProjectData -context $p
+            sd-project-saveCurrent -context $p
         }
     }
     else {
