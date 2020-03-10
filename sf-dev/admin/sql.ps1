@@ -3,6 +3,11 @@ function sql-delete-database {
         [Parameter(Mandatory = $true)][string] $dbName
     )
 
+    if (!$dbName) {
+        Write-Warning "Trying to delete a database with empty name."
+        return
+    }
+
     $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$dbName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
 
     ForEach ($Database in $Databases) {

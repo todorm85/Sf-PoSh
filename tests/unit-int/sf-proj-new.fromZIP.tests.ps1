@@ -25,6 +25,16 @@ InModuleScope sf-dev {
             existsInHostsFile -searchParam $projName | Should -Be $true
 
             sd-project-remove -context $createdSf
+
+            $suffix = generateRandomName
+            $projName = $Global:fromZipProjectName + $suffix
+            sd-project-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinitySource.zip"
+            $sitefinities = @(sd-project-getAll) | Where-Object { $_.displayName -eq $projName }
+            $createdSf = [SfProject]$sitefinities[0]
+            $createdSf.solutionPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}"
+            $createdSf.webAppPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}/SitefinityWebApp"
+
+            sd-project-remove -context $createdSf
         }
     }
 }

@@ -144,6 +144,8 @@ function sd-project-clone {
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"
     }
+
+    sd-project-saveCurrent -context $newProject
 }
 
 function sd-project-removeBulk {
@@ -367,7 +369,7 @@ function sd-project-getCurrent {
         return $null
     }
 
-    $context = $currentContext.PsObject.Copy()
+    $context = $currentContext
     return [SfProject]$context
 }
 

@@ -22,6 +22,14 @@ InModuleScope sf-dev {
         [SfProject]$project = sd-project-getCurrent
         $cloneTestId = $project.id
 
+        It "save the cloned project in sfdev db" {
+            _data-getAllProjects | Should -HaveCount 2
+        }
+
+        It "set the current project to the cloned" {
+            $project.id | Should -Not -Be $sourceProj.id
+        }
+
         It "set project displayName" {
             $project.displayName | Should -Be $cloneTestName
         }
@@ -62,7 +70,7 @@ InModuleScope sf-dev {
             sql-get-dbs | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
         }
 
-        sd-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
+        $projects | ForEach-Object {
             sd-project-remove -noPrompt -context $_
         }
 

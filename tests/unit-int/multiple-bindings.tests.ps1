@@ -71,12 +71,20 @@ InModuleScope sf-dev {
         }
 
         It "changing domain for a default binding updates the default binding as well" {
-            $domain = "gosho$([GUID]::NewGuid().ToString()).com"
-            [SiteBinding]$binding = sd-iisSite-getBinding
+            $port = _getFreePort
+            $domain = "$([GUID]::NewGuid().ToString()).com"
+            [SiteBinding]$binding = @{ protocol = 'http'; domain = $domain; port = $port }
             Mock _promptBindings { $binding }
             sd-iisSite-setBinding
+
+            $defBinding = (sd-project-getCurrent).defaultBinding
+            $defBinding.domain | Should -Be $binding.domain
+            $defBinding.protocol | Should -Be $binding.protocol
+            $defBinding.port | Should -Be $binding.port
+
             sd-iisSite-changeDomain -domainName $domain
             $p = sd-project-getCurrent
+
             $p.defaultBinding.domain | Should -Be $domain
             $p.defaultBinding.protocol | Should -Be $binding.protocol
             $p.defaultBinding.port | Should -Be $binding.port

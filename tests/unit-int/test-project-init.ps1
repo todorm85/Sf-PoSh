@@ -18,4 +18,5 @@ $sourceProj.isInitialized = $true
 sd-project-saveCurrent -context $sourceProj
 $Global:testProject = $sourceProj
 
+sql-delete-database -dbName "testsDb"
 sql-createDb -dbName "testsDb"

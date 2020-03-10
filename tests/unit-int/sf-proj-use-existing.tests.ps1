@@ -12,6 +12,10 @@ InModuleScope sf-dev {
 
         [SfProject]$importedProject = sd-project-getCurrent
 
+        It "save the new project in sfdev db" {
+            _data-getAllProjects | Should -HaveCount 2
+        }
+
         It "generate new id" {
             $importedProject.id | Should -Not -Be $project.id
         }
