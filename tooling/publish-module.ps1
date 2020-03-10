@@ -11,6 +11,8 @@ if (!$Script:version) {
 
 Set-Location "$PSScriptRoot"
 
+git commit --quiet -a -m "Update for publishing"
+
 # . "./set-exportedFunctions.ps1"
 # git commit --quiet -a -m "Update exported functions definition"
 
