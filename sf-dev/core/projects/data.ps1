@@ -27,13 +27,13 @@ function _data-getAllProjects {
 
             if ($_.defaultBinding) {
                 $parts = ([string]$_.defaultBinding).Split(':')
-                if ($defBinding.protocol -and $defBinding.port) {
-                    [SiteBinding]$defBinding = @{
-                        protocol = $parts[0]
-                        domain   = $parts[1]
-                        port     = $parts[2]
-                    }
+                [SiteBinding]$defBinding = @{
+                    protocol = $parts[0]
+                    domain   = $parts[1]
+                    port     = $parts[2]
+                }
 
+                if ($defBinding.protocol -and $defBinding.port) {
                     $clone.defaultBinding = $defBinding;
                 }
             }

@@ -9,15 +9,12 @@ function sd-iisSite-getBinding {
         return
     }
 
-    [SiteBinding]$binding = $null
     $allBindings = iis-bindings-getAll -siteName $context.websiteName
-    if ($context.defaultBinding) {
-        $binding = $allBindings | Where-Object { $_.domain -eq $context.defaultBinding.domain -and $_.protocol -eq $context.defaultBinding.protocol -and $_.port -eq $context.defaultBinding.port }
+    if ($context.defaultBinding -and (_checkDefaultBindingIsWorking)) {
+        return $context.defaultBinding
     }
 
-    if (!$binding) {
-        $binding = $allBindings | Select-Object -Last 1
-    }
+    $binding = $allBindings | Select-Object -Last 1
 
     return $binding
 }
@@ -31,7 +28,11 @@ function sd-iisSite-setBinding {
         port     = $selectedBinding.port
     }
 
-    sd-project-saveCurrent -context $project
+    if ($binding.domain -and !(os-hosts-get | % { $_.Contains($binding.domain)})) {
+        os-hosts-add -hostname $binding.domain
+    }
+
+    sd-project-save -context $project
 }
 
 function sd-iisSite-getUrl {
@@ -61,7 +62,7 @@ function sd-iisSite-changeDomain {
 
         if ($p.defaultBinding) {
             $p.defaultBinding.domain = $domainName
-            sd-project-saveCurrent -context $p
+            sd-project-save -context $p
         }
     }
     else {
@@ -115,4 +116,31 @@ function _promptBindings {
             return $selectedBinding
         }
     }
+}
+
+function _verifyDefaultBinding {
+    $selectedSitefinity = sd-project-getCurrent
+    [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $selectedSitefinity.websiteName
+    if (!$selectedSitefinity.defaultBinding -and $bindings -and $bindings.Count -gt 1) {
+        $choice = Read-Host -Prompt "Site has several bindings and there is no default one set. Do you want to set a default binding to be used by the tool? y/n"
+        if ($choice -eq 'y') {
+            sd-iisSite-setBinding
+        }
+    }
+    elseif ($selectedSitefinity.defaultBinding -and !(_checkDefaultBindingIsWorking)) {
+        $selectedSitefinity.defaultBinding = $null
+        sd-project-save $selectedSitefinity
+        _verifyDefaultBinding
+    }
+}
+
+function _checkDefaultBindingIsWorking {
+    $selectedSitefinity = sd-project-getCurrent
+    $allBindings = iis-bindings-getAll -siteName $selectedSitefinity.websiteName
+    $binding = $allBindings | Where-Object { $_.domain -eq $selectedSitefinity.defaultBinding.domain -and $_.protocol -eq $selectedSitefinity.defaultBinding.protocol -and $_.port -eq $selectedSitefinity.defaultBinding.port }
+    if (!(os-hosts-get | ? { $_.Contains($selectedSitefinity.defaultBinding.domain) })) {
+        $binding = $null
+    }
+
+    return $binding
 }

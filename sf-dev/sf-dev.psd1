@@ -21,7 +21,7 @@
             15.3.1
                 Bugfixes cloning project and tests refactoring
             15.3.0
-                sd-project-saveCurrent added
+                sd-project-save added
                 fix bindings for localhost
             15.2.1
                 fix website browse

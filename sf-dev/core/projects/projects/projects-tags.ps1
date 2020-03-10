@@ -35,7 +35,7 @@ function sd-projectTags-addToCurrent {
         $project.tags += @($tagName)
     }
 
-    sd-project-saveCurrent -context $project
+    sd-project-save -context $project
 }
 
 Register-ArgumentCompleter -CommandName sd-projectTags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
@@ -57,7 +57,7 @@ function sd-projectTags-removeFromCurrent {
         $project.tags = $newTags
     }
 
-    sd-project-saveCurrent -context $project
+    sd-project-save -context $project
 }
 
 Register-ArgumentCompleter -CommandName sd-projectTags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
@@ -65,7 +65,7 @@ Register-ArgumentCompleter -CommandName sd-projectTags-removeFromCurrent -Parame
 function sd-projectTags-removeAllFromCurrent {
     [SfProject]$project = sd-project-getCurrent
     $project.tags = @()
-    sd-project-saveCurrent -context $project
+    sd-project-save -context $project
 }
 
 function sd-projectTags-getAllFromCurrent {

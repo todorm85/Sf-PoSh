@@ -15,7 +15,8 @@ $port = _getFreePort
 New-Website -Name $sourceProj.websiteName -PhysicalPath $sourceProj.webAppPath -Port $port
 
 $sourceProj.isInitialized = $true
-sd-project-saveCurrent -context $sourceProj
+sd-project-save -context $sourceProj
+sd-project-setCurrent $sourceProj
 $Global:testProject = $sourceProj
 
 sql-delete-database -dbName "testsDb"

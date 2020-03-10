@@ -36,5 +36,25 @@ InModuleScope sf-dev {
             $projects[0].id | Should -Be "id1"
             $projects[1].id | Should -Be "id2"
         }
+
+        It "persists defaultBinding correctly" {
+            sd-project-getAll | % { sd-project-remove $_ -noPrompt }
+            $proj1 = New-Object SfProject -Property @{
+                id             = "idsb";
+                defaultBinding = [SiteBinding]@{
+                    domain   = "test";
+                    port     = "55";
+                    protocol = "https"
+                }
+            }
+
+            _setProjectData -context $proj1
+
+            [SfProject[]]$projects = sd-project-getAll
+            $projects | Should -HaveCount 1
+            $projects[0].defaultBinding.domain | Should -Be "test"
+            $projects[0].defaultBinding.port | Should -Be "55"
+            $projects[0].defaultBinding.protocol | Should -Be "https"
+        }
     }
 }

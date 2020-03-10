@@ -40,7 +40,8 @@ function sd-project-new {
     }
 
     _tag-setNewProjectDefaultTags -project $newContext
-    sd-project-saveCurrent $newContext
+    sd-project-save $newContext
+    sd-project-setCurrent $newContext
 
     if (!$newContext.websiteName) {
         sd-iisSite-new
@@ -145,7 +146,8 @@ function sd-project-clone {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"
     }
 
-    sd-project-saveCurrent -context $newProject
+    sd-project-save -context $newProject
+    sd-project-setCurrent $newProject
 }
 
 function sd-project-removeBulk {
@@ -359,18 +361,11 @@ function sd-project-rename {
     sd-iisSite-changeDomain -domainName $newName
 
     _update-prompt
-    sd-project-saveCurrent $context
+    sd-project-save $context
 }
 
 function sd-project-getCurrent {
-    $currentContext = $Script:globalContext
-
-    if ($null -eq $currentContext) {
-        return $null
-    }
-
-    $context = $currentContext
-    return [SfProject]$context
+    $Script:globalContext
 }
 
 function sd-project-setCurrent {
@@ -513,7 +508,7 @@ function _createUserFriendlySlnName ($context) {
     }
 }
 
-function sd-project-saveCurrent {
+function sd-project-save {
     Param($context)
 
     if (!$context.id) {
@@ -525,7 +520,6 @@ function sd-project-saveCurrent {
     }
 
     _setProjectData $context
-    sd-project-setCurrent -newContext $context
 }
 
 function _validateProject {

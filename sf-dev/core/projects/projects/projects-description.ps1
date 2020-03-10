@@ -7,7 +7,7 @@ function sd-project-setDescription {
 
     $context.description = $(Read-Host -Prompt "Enter description: ").ToString()
 
-    sd-project-saveCurrent $context
+    sd-project-save $context
 }
 
 function sd-project-getDescription {
