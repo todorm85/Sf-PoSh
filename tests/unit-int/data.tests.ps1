@@ -56,5 +56,28 @@ InModuleScope sf-dev {
             $projects[0].defaultBinding.port | Should -Be "55"
             $projects[0].defaultBinding.protocol | Should -Be "https"
         }
+
+        # this test is for backward compatibility when branch and site were not saved but dynamically detected
+        # when they are null they are not present at all in sfdev db, meaning their value is still not known
+        # being present in the db with empty value means it is known that they do not exist
+        It "set branch and website to null if not present in sfdev db" {
+            "<?xml version=""1.0""?> `
+            <data defaultTagsFilter=""t3 t4"" version=""45eaf024-ebaf-421b-9166-26018cbd0fdf""> `
+              <sitefinities> `
+                <sitefinity id=""sft5"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\Users\User\Documents\sf-dev\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" /> `
+                <sitefinity id=""sft1"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\Users\User\Documents\sf-dev\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" branch="""" /> `
+                <sitefinity id=""sft1"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\Users\User\Documents\sf-dev\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" branch=""test"" /> `
+              </sitefinities> `
+              <containers defaultContainerName="""" /> `
+            </data>" | Out-File $Global:sf.config.dataPath
+            $s = _data-getAllProjects | Select -First 1
+            $null -eq $s.websiteName | Should -BeTrue
+            $null -eq $s.branch | Should -BeTrue
+            $s = _data-getAllProjects | Select -First 1 -Skip 1
+            $null -eq $s.websiteName | Should -BeTrue
+            $null -eq $s.branch | Should -Not -BeTrue
+            $s = _data-getAllProjects | Select -First 1 -Skip 2
+            $s.branch | Should -Be "test"
+        }
     }
 }

@@ -631,10 +631,11 @@ function _validateNameSyntax ($name) {
 
 function _proj-initialize {
     param (
-        [Parameter(Mandatory = $true)][SfProject]$project
+        [Parameter(Mandatory = $true)][SfProject]$project,
+        [switch]$force
     )
 
-    if ($project.isInitialized) {
+    if ($project.isInitialized -and !$force) {
         return
     }
 
@@ -644,31 +645,38 @@ function _proj-initialize {
     }
 
     $errors = ''
-    try {
-        _proj-detectSolution -project $project
-    }
-    catch {
-        $errors += "`nSolution detection: $_."
-    }
-
-    try {
-        _proj-detectTfs -project $project
-    }
-    catch {
-        $errors += "`nSource control detection: $_."
+    if ($force -or $null -eq $project.solutionPath) {
+        try {
+            _proj-detectSolution -project $project
+        }
+        catch {
+            $errors += "`nSolution detection: $_."
+        }
     }
 
-    try {
-        _proj-detectSite -project $project
+    if ($force -or $null -eq $project.branch) {
+        try {
+            _proj-detectTfs -project $project
+        }
+        catch {
+            $errors += "`nSource control detection: $_."
+        }
     }
-    catch {
-        $errors += "`nSite detection from IIS: $_."
+
+    if ($force -or $null -eq $project.websiteName) {
+        try {
+            _proj-detectSite -project $project
+        }
+        catch {
+            $errors += "`nSite detection from IIS: $_."
+        }
     }
 
     if ($errors) {
         Write-Error "Some errors occurred during project detection. $errors"
     }
 
+    sd-project-save $project
     $project.isInitialized = $true
 }
 

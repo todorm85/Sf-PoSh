@@ -17,7 +17,7 @@ New-Website -Name $sourceProj.websiteName -PhysicalPath $sourceProj.webAppPath -
 $sourceProj.isInitialized = $true
 sd-project-save -context $sourceProj
 sd-project-setCurrent $sourceProj
-$Global:testProject = $sourceProj
+$Global:testProjectWebsiteName = $id
 
 sql-delete-database -dbName "testsDb"
 sql-createDb -dbName "testsDb"

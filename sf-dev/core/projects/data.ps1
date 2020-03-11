@@ -23,6 +23,14 @@ function _data-getAllProjects {
             $clone.description = $_.description;
             $clone.displayName = $_.displayName;
             $clone.webAppPath = $_.webAppPath;
+            if (($_.Attributes | ? { $_.Name -eq "branch" })) {
+                $clone.branch = $_.branch
+            }
+
+            if (($_.Attributes | ? { $_.Name -eq "websiteName" })) {
+                $clone.websiteName = $_.websiteName
+            }
+
             $clone.tags = $tags;
 
             if ($_.defaultBinding) {
@@ -99,6 +107,8 @@ function _setProjectData {
     $sitefinityEntry.SetAttribute("displayName", $context.displayName)
     $sitefinityEntry.SetAttribute("webAppPath", $context.webAppPath)
     $sitefinityEntry.SetAttribute("description", $context.description)
+    $sitefinityEntry.SetAttribute("branch", $context.branch)
+    $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
     $sitefinityEntry.SetAttribute("tags", $tags)
     if ($context.defaultBinding) {
         $sitefinityEntry.SetAttribute("defaultBinding", "$($context.defaultBinding.protocol):$($context.defaultBinding.domain):$($context.defaultBinding.port)")

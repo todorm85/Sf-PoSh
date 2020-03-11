@@ -24,6 +24,8 @@ function sd-project-select {
     }
 
     $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
+    _proj-initialize -project $selectedSitefinity -force
+    sd-project-save -context $selectedSitefinity
     sd-project-setCurrent $selectedSitefinity >> $null
     _verifyDefaultBinding
     sd-project-show
