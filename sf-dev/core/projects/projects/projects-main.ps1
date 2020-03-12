@@ -4,7 +4,8 @@ function _newSfProjectObject ($id) {
     [SfProject]$newProject = [SfProject]::new()
     if (!$id) {
         $newProject.id = _generateId
-    } else {
+    }
+    else {
         $newProject.id = $id
     }
 
@@ -40,12 +41,14 @@ function sd-project-new {
     }
 
     _tag-setNewProjectDefaultTags -project $newContext
-    sd-project-save $newContext
-    sd-project-setCurrent $newContext
 
+    sd-project-setCurrent $newContext
     if (!$newContext.websiteName) {
         sd-iisSite-new
     }
+
+    _proj-initialize -project $newContext
+    sd-project-save $newContext
 
     return $newContext
 }
@@ -378,7 +381,6 @@ function sd-project-setCurrent {
     process {
         try {
             if ($null -ne $newContext) {
-                _proj-initialize -project $newContext
                 _validateProject $newContext
             }
         }
@@ -406,12 +408,9 @@ function sd-project-getAll {
     )
 
     $sitefinities = _data-getAllProjects
-
     if ($tagsFilter) {
         $sitefinities = _filterProjectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
     }
-
-    $sitefinities | % { _proj-initialize $_ }
 
     return $sitefinities
 }
@@ -676,7 +675,6 @@ function _proj-initialize {
         Write-Error "Some errors occurred during project detection. $errors"
     }
 
-    sd-project-save $project
     $project.isInitialized = $true
 }
 

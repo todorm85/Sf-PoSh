@@ -18,6 +18,7 @@ InModuleScope sf-dev {
         }
 
         It "project is initialized when using select from the prompt" {
+            [SfProject]$p = sd-project-getAll | select -First 1
             Mock _promptProjectSelect {
                 $p
             }

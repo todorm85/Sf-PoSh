@@ -10,7 +10,7 @@
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = '*'
-    ModuleVersion     = '15.4.1'
+    ModuleVersion     = '15.5.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
