@@ -13,6 +13,19 @@ if ($Global:OnAfterConfigInit) {
 . "${PSScriptRoot}/bootstrap/init-psPrompt.ps1"
 . "${PSScriptRoot}/bootstrap/load-scripts.ps1"
 
+
+$scripts = @(
+    # upgrade projects with not cached branch and site name when upgrading to 15.5.0
+    { 
+        param($oldVersion)
+        if ((_isFirstVersionLower $oldVersion "15.5.0")) {
+            sd-project-getAll | % { _proj-initialize $_ -force; sd-project-save $_ }
+        }
+    }
+)
+    
+upgrade -upgradeScripts $scripts
+    
 Set-Alias -Name sf-new -Value sd-project-new -Scope global
 Set-Alias -Name sf-remove -Value sd-project-remove -Scope global
 Set-Alias -Name sf-rename -Value sd-project-rename -Scope global

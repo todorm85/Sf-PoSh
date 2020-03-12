@@ -30,6 +30,7 @@
         'PSAvoidUsingEmptyCatchBlock',
         'PSAvoidGlobalVars',
         'PSUseShouldProcessForStateChangingFunctions',
-        'PSUseApprovedVerbs'
+        'PSUseApprovedVerbs',
+        'PSAvoidTrailingWhitespace'
         )
 }
