@@ -8,6 +8,15 @@ function Get-ScriptFiles {
     Get-ChildItem -Path "$PSScriptRoot\..\core" -Filter '*.ps1' -Recurse
 }
 
+function _getNewModuleVersion {
+    Get-Content -Path "$PSScriptRoot/../sf-dev.psd1" | ForEach-Object {
+        if ($_ -match "ModuleVersion\s*?=\s*?'(?<vrsn>.+?)'$") {
+            $newVersion = $matches["vrsn"]
+            return $newVersion
+        }
+    }
+}
+
 Import-Module WebAdministration -Force
 
 # Do not dot source in function scope it won`t be loaded inside the module

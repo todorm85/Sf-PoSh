@@ -19,7 +19,7 @@ $scripts = @(
     { 
         param($oldVersion)
         if ((_isFirstVersionLower $oldVersion "15.5.0")) {
-            sd-project-getAll | % { _proj-initialize $_ -force; sd-project-save $_ }
+            sd-project-getAll | % { _proj-initialize $_; }
         }
     }
 )

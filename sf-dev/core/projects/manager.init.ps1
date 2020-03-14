@@ -13,6 +13,12 @@ function _initManagerData {
         # Write the XML Decleration
         $xmlWriter.WriteStartDocument()
         $xmlWriter.WriteStartElement("data")
+        $v = _getNewModuleVersion
+        if (!$v) {
+            throw "Could not detect module version and create sfdev data file."
+        }
+
+        $xmlWriter.WriteAttributeString("moduleVersion", $v)
         $xmlWriter.WriteStartElement("sitefinities")
         $xmlWriter.WriteEndElement()
         $xmlWriter.WriteEndElement()

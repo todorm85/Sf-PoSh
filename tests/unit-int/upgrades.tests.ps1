@@ -112,5 +112,6 @@ InModuleScope sf-dev {
 
     It "getting module version should return value" {
         _getNewModuleVersion | Should -Match "^\d+\.\d+\.\d+$"
+        @(_getNewModuleVersion) | Should -HaveCount 1
     }
 }

@@ -6,15 +6,20 @@ InModuleScope sf-dev {
     Describe "test" {
         . "$PSScriptRoot\test-project-init.ps1"
 
+        [SfProject]$p = sd-project-getCurrent
+        $oldWebsiteName = $p.websiteName
+        $oldSolPath = $p.solutionPath
         It "project is not initialized when using the api" {
-            [SfProject]$p = sd-project-getCurrent
             $p.websiteName | Should -Not -BeNullOrEmpty
-            $p.websiteName = ''
+            $p.websiteName = 'wrongName'
+            $p.solutionPath = 'dummyPath'
             sd-project-save $p
             [SfProject]$p = sd-project-getCurrent
-            $p.websiteName | Should -BeNullOrEmpty
+            $p.websiteName | Should -Be 'wrongName'
+            $p.solutionPath | Should -Be 'dummyPath'
             [SfProject]$p = sd-project-getAll | select -First 1
-            $p.websiteName | Should -BeNullOrEmpty
+            $p.websiteName | Should -Be 'wrongName'
+            $p.solutionPath | Should -Be 'dummyPath'
         }
 
         It "project is initialized when using select from the prompt" {
@@ -25,7 +30,8 @@ InModuleScope sf-dev {
 
             sf-select
             [SfProject]$p = sd-project-getCurrent
-            $p.websiteName | Should -Not -BeNullOrEmpty
+            $p.websiteName | Should -Be $oldWebsiteName
+            $p.solutionPath | Should -Be $oldSolPath
         }
 
         . "$PSScriptRoot\test-project-teardown.ps1"

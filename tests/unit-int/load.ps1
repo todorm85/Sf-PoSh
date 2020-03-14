@@ -5,7 +5,7 @@ $Global:OnAfterConfigInit += {
     if (Test-Path $path) {
         Remove-Item $path -Force
     }
-
+    
     $GLOBAL:sf.Config.idPrefix = "sfi"
 }
 

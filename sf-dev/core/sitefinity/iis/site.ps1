@@ -47,9 +47,14 @@ The project for which to create a website.
 General notes
 #>
 function sd-iisSite-new {
-    Write-Information "Creating website..."
+    param(
+        [SfProject]$context
+    )
 
-    $context = sd-project-getCurrent
+    if (!$context) {
+        $context = sd-project-getCurrent
+    }
+    
     $port = _getFreePort
     $siteExists = @(Get-Website | ? { $_.name -eq $context.id }).Count -gt 0
     while ([string]::IsNullOrEmpty($context.id) -or $siteExists) {

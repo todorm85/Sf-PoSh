@@ -42,13 +42,11 @@ function sd-project-new {
 
     _tag-setNewProjectDefaultTags -project $newContext
 
-    sd-project-setCurrent $newContext
     if (!$newContext.websiteName) {
-        sd-iisSite-new
+        sd-iisSite-new -context $newContext
     }
-
-    _proj-initialize -project $newContext
-    sd-project-save $newContext
+    
+    sd-project-setCurrent $newContext
 
     return $newContext
 }
@@ -379,10 +377,14 @@ function sd-project-setCurrent {
     )
 
     process {
+        if (!$newContext) {
+            $Script:globalContext = $newContext
+            return
+        }
+
         try {
-            if ($null -ne $newContext) {
-                _validateProject $newContext
-            }
+            _proj-initialize -project $newContext
+            _validateProject $newContext
         }
         catch {
             Write-Error "$_"
@@ -435,6 +437,7 @@ function _proj-tryUseExisting {
     Write-Information "Detected existing app..."
 
     $project.webAppPath = $path
+    _proj-detectSite -project $project
     return $true
 }
 
@@ -630,50 +633,48 @@ function _validateNameSyntax ($name) {
 
 function _proj-initialize {
     param (
-        [Parameter(Mandatory = $true)][SfProject]$project,
-        [switch]$force
+        [Parameter(Mandatory = $true)][SfProject]$project
     )
 
-    if ($project.isInitialized -and !$force) {
+    if ($project.isInitialized) {
         return
     }
 
     if (!(Test-Path $project.webAppPath)) {
+        Write-Error "Current project $($project.id) has no valid web app path."
         $project.isInitialized = $true
         return
     }
 
     $errors = ''
-    if ($force -or $null -eq $project.solutionPath) {
-        try {
-            _proj-detectSolution -project $project
-        }
-        catch {
-            $errors += "`nSolution detection: $_."
-        }
+    try {
+        _proj-detectSolution -project $project
+    }
+    catch {
+        $errors += "`nSolution detection: $_."
     }
 
-    if ($force -or $null -eq $project.branch) {
-        try {
-            _proj-detectTfs -project $project
-        }
-        catch {
-            $errors += "`nSource control detection: $_."
-        }
+    _createUserFriendlySlnName $project
+
+    try {
+        _proj-detectTfs -project $project
+    }
+    catch {
+        $errors += "`nSource control detection: $_."
     }
 
-    if ($force -or $null -eq $project.websiteName) {
-        try {
-            _proj-detectSite -project $project
-        }
-        catch {
-            $errors += "`nSite detection from IIS: $_."
-        }
+    try {
+        _proj-detectSite -project $project
+    }
+    catch {
+        $errors += "`nSite detection from IIS: $_."
     }
 
     if ($errors) {
         Write-Error "Some errors occurred during project detection. $errors"
     }
+
+    sd-project-save -context $project
 
     $project.isInitialized = $true
 }

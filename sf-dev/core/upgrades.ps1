@@ -25,15 +25,6 @@ function upgrade {
     _updateModuleVersionInSfDevData $newVersion
 }
 
-function _getNewModuleVersion {
-    Get-Content -Path "$PSScriptRoot/../sf-dev.psd1" | ForEach-Object {
-        if ($_ -match "ModuleVersion\s*=\s*'(?<vrsn>.+?)'") {
-            $newVersion = $matches["vrsn"]
-            return $newVersion
-        }
-    }
-}
-
 function _getExistingModuleVersion {
     $data = New-Object XML
     $data.Load($GLOBAL:sf.Config.dataPath) > $null
@@ -64,12 +55,12 @@ function _isFirstVersionLower {
     
     $firstParts = $first.Split('.')
     $secondParts = $second.Split('.')
-    0..2 | % {
-        if ([int]::Parse($firstParts[$_]) -eq [int]::Parse($secondParts[$_])) {
+    for ($i = 0; $i -lt 3; $i++) {
+        if ([int]::Parse($firstParts[$i]) -eq [int]::Parse($secondParts[$i])) {
             continue
         }
 
-        if ([int]::Parse($firstParts[$_]) -lt [int]::Parse($secondParts[$_])) {
+        if ([int]::Parse($firstParts[$i]) -lt [int]::Parse($secondParts[$i])) {
             return $true    
         } else {
             return $false

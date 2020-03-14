@@ -31,6 +31,10 @@ function _data-getAllProjects {
                 $clone.websiteName = $_.websiteName
             }
 
+            if (($_.Attributes | ? { $_.Name -eq "solutionPath" })) {
+                $clone.solutionPath = $_.solutionPath
+            }
+
             $clone.tags = $tags;
 
             if ($_.defaultBinding) {
@@ -109,6 +113,7 @@ function _setProjectData {
     $sitefinityEntry.SetAttribute("description", $context.description)
     $sitefinityEntry.SetAttribute("branch", $context.branch)
     $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
+    $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
     $sitefinityEntry.SetAttribute("tags", $tags)
     if ($context.defaultBinding) {
         $sitefinityEntry.SetAttribute("defaultBinding", "$($context.defaultBinding.protocol):$($context.defaultBinding.domain):$($context.defaultBinding.port)")
