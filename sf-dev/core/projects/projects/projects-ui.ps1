@@ -125,44 +125,39 @@ function sd-project-showAll {
     foreach ($sitefinity in $sitefinities) {
         $ports = if ($sitefinity.websiteName) {
             iis-bindings-getAll -siteName $sitefinity.websiteName | Select-Object -ExpandProperty 'port' | Get-Unique
-        } else {
+        }
+        else {
             ''
         }
 
         [SfProject]$sitefinity = $sitefinity
         $index = [array]::IndexOf($sitefinities, $sitefinity)
-        $branch = if ($sitefinity.branch) { $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]} else { '' }
+        $branch = if ($sitefinity.branch) { $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0] } else { '' }
         $output.add([pscustomobject]@{
                 order   = $index;
+                ID      = "$($sitefinity.id)";
                 Title   = "$index : $($sitefinity.displayName)";
                 Branch  = $branch;
-                Ports   = "$ports";
-                ID      = "$($sitefinity.id)";
                 LastGet = $sitefinity.daysSinceLastGet;
+                Ports   = "$ports";
                 Tags    = $sitefinity.tags
             }) > $null
     }
 
-    $output | Sort-Object -Property order | Format-Table -Property Title, Branch, Ports, Id, LastGet, Tags | Out-String | ForEach-Object { Write-Host $_ }
+    $output | Sort-Object -Property order | Format-Table -Property Title, Id, Branch, LastGet, Ports, Tags | Out-String | ForEach-Object { Write-Host $_ }
 }
 
 function _getDaysSinceDate {
     Param(
-        $dateFromAsText
+        [Nullable[DateTime]]$date
     )
 
-    if (!$dateFromAsText) {
-        return
+    if (!$date) {
+        return $null
     }
 
-    if ($dateFromAsText) {
-        [datetime]$dateFrom = [datetime]::Parse($dateFromAsText)
-    }
-
-    if ($dateFrom) {
-        [System.TimeSpan]$days = [System.TimeSpan]([System.DateTime]::Today - $dateFrom.Date)
-        return [math]::Round($days.TotalDays, 0)
-    }
+    [System.TimeSpan]$days = [System.TimeSpan]([System.DateTime]::Today - $date.Date)
+    return [math]::Round($days.TotalDays, 0)
 }
 
 function _promptPredefinedBranchSelect {

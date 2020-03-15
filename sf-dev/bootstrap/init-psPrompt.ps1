@@ -25,10 +25,6 @@ function _setConsoleTitle {
     $newContext = sd-project-getCurrent
     if ($newContext) {
         $binding = sd-iisSite-getBinding
-        if ($binding) {
-            $ports = "$($binding.domain):$($binding.port)"
-        }
-
         if ($newContext.branch) {
             $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
         }
@@ -36,7 +32,7 @@ function _setConsoleTitle {
             $branch = '/no branch'
         }
 
-        [System.Console]::Title = "($($newContext.id)) $ports $($newContext.displayName) $branch "
+        [System.Console]::Title = "$($binding.port) | $($newContext.id) | $($newContext.displayName) | $branch"
         Set-Location $newContext.webAppPath
     }
     else {

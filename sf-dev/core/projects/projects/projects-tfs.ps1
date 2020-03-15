@@ -23,7 +23,7 @@ function _createWorkspace ([SfProject]$context, $branch) {
         tfs-get-latestChanges -branchMapPath $context.solutionPath -overwrite > $null
         $context.branch = $branch
         $context.lastGetLatest = [DateTime]::Today
-        $context.daysSinceLastGet = _getDaysSinceDate $context.lastGetLatest
+        $context.daysSinceLastGet = 0
     }
     catch {
         throw "Could not get latest workapce changes. $_"

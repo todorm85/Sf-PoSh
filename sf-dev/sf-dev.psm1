@@ -21,6 +21,9 @@ $scripts = @(
         if ((_isFirstVersionLower $oldVersion "15.5.0")) {
             sd-project-getAll | % { _proj-initialize $_; }
         }
+        if ((_isFirstVersionLower $oldVersion "15.5.1")) {
+            sd-project-getAll | % { _proj-initialize $_; }
+        }
     }
 )
     

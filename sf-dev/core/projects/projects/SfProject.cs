@@ -8,9 +8,9 @@ public class SfProject
 
     public string branch { get; set; }
     public string description { get; set; }
-    public string lastGetLatest { get; set; }
+    public System.Nullable<System.DateTime> lastGetLatest { get; set; }
     public bool isInitialized { get; set; }
     public string[] tags { get; set; }
-    public int daysSinceLastGet { get; set; }
+    public System.Nullable<int> daysSinceLastGet { get; set; }
     public SiteBinding defaultBinding { get; set; }
 }
