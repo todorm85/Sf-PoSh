@@ -193,107 +193,109 @@ function sd-project-remove {
         [switch]$keepProjectFiles
     )
 
-    [SfProject]$currentProject = sd-project-getCurrent
-    $clearCurrentSelectedProject = $false
-    if ($null -eq $context -or $currentProject.id -eq $context.id) {
-        $context = $currentProject
-        $clearCurrentSelectedProject = $true
-    }
-
-    sd-project-setCurrent -newContext $context > $null
-
-    # Del Website
-    Write-Information "Deleting website..."
-    $websiteName = $context.websiteName
-    $siteExists = @(Get-Website | ? { $_.name -eq $websiteName }).Count -gt 0
-    if ($websiteName -and $siteExists) {
-        try {
-            sd-iisAppPool-Stop
-        }
-        catch {
-            Write-Warning "Could not stop app pool: $_`n"
+    Process {
+        [SfProject]$currentProject = sd-project-getCurrent
+        $clearCurrentSelectedProject = $false
+        if ($null -eq $context -or $currentProject.id -eq $context.id) {
+            $context = $currentProject
+            $clearCurrentSelectedProject = $true
         }
 
-        try {
-            sd-iisSite-delete
-        }
-        catch {
-            Write-Warning "Errors deleting website ${websiteName}. $_`n"
-        }
-    }
+        sd-project-setCurrent -newContext $context > $null
 
-    # TFS
-    $workspaceName = $null
-    try {
-        Set-Location -Path $PSScriptRoot
-        $workspaceName = tfs-get-workspaceName $context.webAppPath
-    }
-    catch {
-        Write-Warning "No workspace to delete, no TFS mapping found."
-    }
-
-    if ($workspaceName -and !($keepWorkspace)) {
-        Write-Information "Deleting workspace..."
-        try {
-            tfs-delete-workspace $workspaceName $GLOBAL:sf.Config.tfsServerName
-        }
-        catch {
-            Write-Warning "Could not delete workspace $_"
-        }
-    }
-
-    $dbName = _db-getNameFromDataConfig -appPath $context.webAppPath
-
-    # Del db
-    if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
-        Write-Information "Deleting sitefinity database..."
-
-        try {
-            sql-delete-database -dbName $dbName
-        }
-        catch {
-            Write-Warning "Could not delete database: ${dbName}. $_"
-        }
-    }
-
-    # Del dir
-    if (!($keepProjectFiles)) {
-        try {
-            $solutionPath = $context.solutionPath
-            if ($solutionPath) {
-                $path = $solutionPath
+        # Del Website
+        Write-Information "Deleting website..."
+        $websiteName = $context.websiteName
+        $siteExists = @(Get-Website | ? { $_.name -eq $websiteName }).Count -gt 0
+        if ($websiteName -and $siteExists) {
+            try {
+                sd-iisAppPool-Stop
             }
-            else {
-                $path = $context.webAppPath
+            catch {
+                Write-Warning "Could not stop app pool: $_`n"
             }
 
-            Write-Information "Unlocking all locked files in solution directory..."
-            unlock-allFiles -path $path
-
-            Write-Information "Deleting solution directory..."
-            Remove-Item $path -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
-            if ($ProcessError) {
-                throw $ProcessError
+            try {
+                sd-iisSite-delete
+            }
+            catch {
+                Write-Warning "Errors deleting website ${websiteName}. $_`n"
             }
         }
-        catch {
-            Write-Warning "Errors deleting sitefinity directory. $_"
+
+        # TFS
+        $workspaceName = $null
+        try {
+            Set-Location -Path $PSScriptRoot
+            $workspaceName = tfs-get-workspaceName $context.webAppPath
         }
-    }
+        catch {
+            Write-Warning "No workspace to delete, no TFS mapping found."
+        }
 
-    Write-Information "Deleting data entry..."
-    try {
-        _removeProjectData $context
-    }
-    catch {
-        Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
-    }
+        if ($workspaceName -and !($keepWorkspace)) {
+            Write-Information "Deleting workspace..."
+            try {
+                tfs-delete-workspace $workspaceName $GLOBAL:sf.Config.tfsServerName
+            }
+            catch {
+                Write-Warning "Could not delete workspace $_"
+            }
+        }
 
-    if ($clearCurrentSelectedProject) {
-        sd-project-setCurrent $null > $null
-    }
-    else {
-        sd-project-setCurrent $currentProject > $null
+        $dbName = _db-getNameFromDataConfig -appPath $context.webAppPath
+
+        # Del db
+        if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
+            Write-Information "Deleting sitefinity database..."
+
+            try {
+                sql-delete-database -dbName $dbName
+            }
+            catch {
+                Write-Warning "Could not delete database: ${dbName}. $_"
+            }
+        }
+
+        # Del dir
+        if (!($keepProjectFiles)) {
+            try {
+                $solutionPath = $context.solutionPath
+                if ($solutionPath) {
+                    $path = $solutionPath
+                }
+                else {
+                    $path = $context.webAppPath
+                }
+
+                Write-Information "Unlocking all locked files in solution directory..."
+                unlock-allFiles -path $path
+
+                Write-Information "Deleting solution directory..."
+                Remove-Item $path -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+                if ($ProcessError) {
+                    throw $ProcessError
+                }
+            }
+            catch {
+                Write-Warning "Errors deleting sitefinity directory. $_"
+            }
+        }
+
+        Write-Information "Deleting data entry..."
+        try {
+            _removeProjectData $context
+        }
+        catch {
+            Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
+        }
+
+        if ($clearCurrentSelectedProject) {
+            sd-project-setCurrent $null > $null
+        }
+        else {
+            sd-project-setCurrent $currentProject > $null
+        }
     }
 }
 
