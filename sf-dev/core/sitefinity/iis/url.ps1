@@ -9,11 +9,11 @@ function sd-iisSite-getBinding {
         return
     }
 
-    $allBindings = iis-bindings-getAll -siteName $context.websiteName
     if ($context.defaultBinding -and (_checkDefaultBindingIsWorking)) {
         return $context.defaultBinding
     }
-
+    
+    $allBindings = iis-bindings-getAll -siteName $context.websiteName
     $binding = $allBindings | Select-Object -Last 1
 
     return $binding
@@ -37,7 +37,8 @@ function sd-iisSite-setBinding {
 
 function sd-iisSite-getUrl {
     [SiteBinding]$binding = sd-iisSite-getBinding
-    return _iisSite-appendSubAppPath "$($binding.protocol)://$($binding.domain):$($binding.port)"
+    $hostname = if ($binding.domain) {$binding.domain} else {"localhost"}
+    return _iisSite-appendSubAppPath "$($binding.protocol)://$($hostname):$($binding.port)"
 }
 
 function sd-iisSite-changeDomain {
