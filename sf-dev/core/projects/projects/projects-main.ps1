@@ -162,7 +162,7 @@ function sd-project-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sd-project-remove -context $selectedSitefinity -noPrompt
+            sd-project-remove -context $selectedSitefinity
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"
@@ -185,12 +185,12 @@ function sd-project-removeBulk {
     None
 #>
 function sd-project-remove {
+    [CmdletBinding()]
     Param(
+        [Parameter(ValueFromPipeline)][SfProject]$context = $null,
         [switch]$keepDb,
         [switch]$keepWorkspace,
-        [switch]$keepProjectFiles,
-        [switch]$noPrompt,
-        [SfProject]$context = $null
+        [switch]$keepProjectFiles
     )
 
     [SfProject]$currentProject = sd-project-getCurrent
@@ -290,14 +290,10 @@ function sd-project-remove {
     }
 
     if ($clearCurrentSelectedProject) {
-        $result = sd-project-setCurrent $null
+        sd-project-setCurrent $null > $null
     }
     else {
-        $result = sd-project-setCurrent $currentProject
-    }
-
-    if (-not ($noPrompt)) {
-        sd-project-select
+        sd-project-setCurrent $currentProject > $null
     }
 }
 

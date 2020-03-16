@@ -16,7 +16,7 @@ InModuleScope sf-dev {
     Describe "Creating the project from branch should" {
         [SfProject[]]$projects = sd-project-getAll
         foreach ($proj in $projects) {
-            sd-project-remove -context $proj -noPrompt
+            sd-project-remove -context $proj
         }
 
         sd-project-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
@@ -127,7 +127,7 @@ InModuleScope sf-dev {
         $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
         sd-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            sd-project-remove -noPrompt -context $_
+            sd-project-remove -context $_
         }
 
         sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
@@ -194,7 +194,7 @@ InModuleScope sf-dev {
         }
 
         sd-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            sd-project-remove -noPrompt -context $_
+            sd-project-remove -context $_
         }
     }
 
@@ -212,7 +212,7 @@ InModuleScope sf-dev {
         existsInHostsFile -searchParam $proj.id | Should -Be $true
         tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName | Where-Object { $_ -like "*$testId*" } | Should -HaveCount 1
 
-        sd-project-remove -noPrompt
+        sd-project-remove
 
         It "remove project from sf-dev" {
             $sitefinities = @(sd-project-getAll) | Where-Object { $_.id -eq $testId }

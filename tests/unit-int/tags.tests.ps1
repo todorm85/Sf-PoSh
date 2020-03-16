@@ -95,7 +95,7 @@ InModuleScope sf-dev {
             { sd-projectTags-addToCurrent $null } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
 
-        sd-project-remove -context $testProj -noPrompt
+        sd-project-remove -context $testProj
     }
 
     Describe "_tag-setNewProjectDefaultTags should" {

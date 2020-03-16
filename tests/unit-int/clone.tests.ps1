@@ -11,7 +11,7 @@ InModuleScope sf-dev {
         $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
         sd-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            sd-project-remove -noPrompt -context $_
+            sd-project-remove -context $_
         }
 
         $dbName = sd-db-getNameFromDataConfig
@@ -71,7 +71,7 @@ InModuleScope sf-dev {
         }
 
         $projects | ForEach-Object {
-            sd-project-remove -noPrompt -context $_
+            sd-project-remove -context $_
         }
 
         . "$PSScriptRoot\test-project-teardown.ps1"
