@@ -55,7 +55,7 @@ function sd-iisSite-new {
         $context = sd-project-getCurrent
     }
     
-    $port = _getFreePort
+    $port = sd-getFreePort
     $siteExists = @(Get-Website | ? { $_.name -eq $context.id }).Count -gt 0
     while ([string]::IsNullOrEmpty($context.id) -or $siteExists) {
         throw "Website with name $($context.id) already exists or no name provided:"
@@ -85,16 +85,16 @@ function sd-iisSite-new {
     }
 }
 
-function _getFreePort {
+function sd-getFreePort {
     param(
-        $port = 2111
+        $start = 2111
     )
 
-    while (!(os-test-isPortFree $port) -or !(iis-isPortFree $port)) {
-        $port++
+    while (!(os-test-isPortFree $start) -or !(iis-isPortFree $start)) {
+        $start++
     }
 
-    return $port
+    return $start
 }
 
 function sd-iisSite-delete {

@@ -11,7 +11,7 @@ $sourceProj.solutionPath = $solutionPath
 $sourceProj.webAppPath = $webAppPath
 $sourceProj.websiteName = $id
 Remove-Website -Name $sourceProj.websiteName -ErrorAction SilentlyContinue -Confirm:$false
-$port = _getFreePort
+$port = sd-getFreePort
 New-Website -Name $sourceProj.websiteName -PhysicalPath $sourceProj.webAppPath -Port $port
 
 $sourceProj.isInitialized = $true
