@@ -397,6 +397,10 @@ function sd-project-setCurrent {
             Write-Error "$_"
         }
 
+        if ($Global:OnAfterProjectSelected) {
+            $Global:OnAfterProjectSelected | % { Invoke-Command -ScriptBlock $_ }
+        }
+
         return $newContext
     }
 }
