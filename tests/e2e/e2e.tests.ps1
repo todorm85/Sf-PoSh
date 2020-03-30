@@ -1,5 +1,5 @@
-if (!$Global:OnAfterConfigInit) { $Global:OnAfterConfigInit = @() }
-$Global:OnAfterConfigInit += {
+if (!$Global:SfEvents_OnAfterConfigInit) { $Global:SfEvents_OnAfterConfigInit = @() }
+$Global:SfEvents_OnAfterConfigInit += {
     $path = "$($GLOBAL:sf.Config.projectsDirectory)\data-e2e-tests-db.xml"
     $GLOBAL:sf.Config.dataPath = $path
     $GLOBAL:sf.config.idPrefix = "sfe"

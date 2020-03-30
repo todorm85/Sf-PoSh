@@ -1,4 +1,5 @@
 $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Backlog Item ", "Bug ", "Task ", "Feature ") -MemberType NoteProperty
+$Global:SfEvents_OnAfterProjectSelected = @()
 
 function _newSfProjectObject ($id) {
     [SfProject]$newProject = [SfProject]::new()
@@ -397,8 +398,8 @@ function sd-project-setCurrent {
             Write-Error "$_"
         }
 
-        if ($Global:OnAfterProjectSelected) {
-            $Global:OnAfterProjectSelected | % { Invoke-Command -ScriptBlock $_ }
+        if ($Global:SfEvents_OnAfterProjectSelected) {
+            $Global:SfEvents_OnAfterProjectSelected | % { Invoke-Command -ScriptBlock $_ }
         }
 
         return $newContext
