@@ -358,7 +358,7 @@ function sd-project-rename {
         }
     }
 
-    sd-iisSite-changeDomain -domainName $newName
+    sd-iisSite-changeDomain -domainName "$($newName).$($context.id)"
 
     _update-prompt
     sd-project-save $context
