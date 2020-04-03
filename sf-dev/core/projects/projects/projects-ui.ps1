@@ -27,7 +27,6 @@ function sd-project-select {
     
     sd-project-setCurrent $selectedSitefinity >> $null
     _verifyDefaultBinding
-    sd-project-show
 }
 
 <#
@@ -35,10 +34,6 @@ function sd-project-select {
     Shows info for selected sitefinity.
 #>
 function sd-project-show {
-    Param(
-        [switch]$detail
-    )
-
     [SfProject]$context = sd-project-getCurrent
 
     if ($null -eq ($context)) {
@@ -56,11 +51,6 @@ function sd-project-show {
     if ($context.branch) {
         $branchParts = $context.branch.split('/')
         $branchShortName = "$($branchParts[$branchParts.Count - 1]) | "
-    }
-
-    if (-not $detail) {
-        Write-Host "$url$($context.id):$($context.displayName) | $branchShortName$($context.daysSinceLastGet)"
-        return
     }
 
     try {
