@@ -124,7 +124,7 @@ function tfs-get-latestChanges {
     Set-Location -Path $branchMapPath
 
     if ($overwrite) {
-        $output = execute-native "& `"$(_get-tfPath)`" get /overwrite /noprompt" -successCodes @(1)
+        $output = execute-native "& `"$(_get-tfPath)`" get /force /noprompt" -successCodes @(1)
     }
     else {
         $output = execute-native "& `"$(_get-tfPath)`" get" -successCodes @(1)
