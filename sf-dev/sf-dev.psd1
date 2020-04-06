@@ -11,7 +11,7 @@
     VariablesToExport = @()
     # !!! Performance issue with intellisense do not enable
     # AliasesToExport   = '*'
-    ModuleVersion     = '16.0.2'
+    ModuleVersion     = '17.0.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -19,6 +19,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            17.0.0
+                Breaking: SfProejct.daysSinceLastGet property removed, use GetDaysSinceLastGet method
+            16.0.2
             15.5.1
                 Bugfix last get latest broken
             15.4.1

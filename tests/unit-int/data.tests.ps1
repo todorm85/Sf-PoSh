@@ -76,7 +76,7 @@ InModuleScope sf-dev {
             $null -eq $s.websiteName | Should -BeTrue
             $null -eq $s.branch | Should -BeTrue
             $null -eq $s.lastGetLatest | Should -BeTrue
-            $s.daysSinceLastGet | Should -Be $null
+            $s.GetDaysSinceLastGet() | Should -Be $null
             $s = _data-getAllProjects | Select -First 1 -Skip 1
             $null -eq $s.websiteName | Should -BeTrue
             $null -eq $s.branch | Should -Not -BeTrue
@@ -84,7 +84,7 @@ InModuleScope sf-dev {
             $s.branch | Should -Be "test"
             $s = _data-getAllProjects | Select -First 1 -Skip 3
             $s.lastGetLatest.ToString("dd/MM/yy HH:mm:ss") | Should -Be $date.ToString("dd/MM/yy HH:mm:ss")
-            $s.daysSinceLastGet | Should -Be 2
+            $s.GetDaysSinceLastGet() | Should -Be 2
         }
     }
 }

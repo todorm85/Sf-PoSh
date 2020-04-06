@@ -33,7 +33,6 @@ function _data-getAllProjects {
             }
 
             $clone.lastGetLatest = $lastGetLatest;
-            $clone.daysSinceLastGet = _getDaysSinceDate $lastGetLatest;
 
             $clone.tags = $tags;
 

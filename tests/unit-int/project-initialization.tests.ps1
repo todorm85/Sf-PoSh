@@ -28,7 +28,7 @@ InModuleScope sf-dev {
                 $p
             }
 
-            sf-select
+            sd-project-select
             [SfProject]$p = sd-project-getCurrent
             $p.websiteName | Should -Be $oldWebsiteName
             $p.solutionPath | Should -Be $oldSolPath

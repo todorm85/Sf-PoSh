@@ -47,15 +47,8 @@ function sd-project-show {
         $url = "$($binding.domain):$($binding.port) | "
     }
 
-    $branchShortName = "no branch"
-    if ($context.branch) {
-        $branchParts = $context.branch.split('/')
-        $branchShortName = "$($branchParts[$branchParts.Count - 1]) | "
-    }
-
     try {
         $workspaceName = tfs-get-workspaceName $context.webAppPath
-        $branch = tfs-get-branchPath $context.solutionPath
     }
     catch {
         Write-Information "Error getting some details from TFS: $_"
@@ -94,8 +87,8 @@ function sd-project-show {
         [pscustomobject]@{id = 6.5; Parameter = " "; Value = " "; },
 
         [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
-        [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $branch; }
-        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = $context.daysSinceLastGet; }
+        [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $context.branch; }
+        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = $context.GetDaysSinceLastGet(); }
         [pscustomobject]@{id = 10; Parameter = "Tags"; Value = $context.tags }
     )
 
@@ -130,7 +123,7 @@ function sd-project-showAll {
                 ID      = "$($sitefinity.id)";
                 Title   = "$index : $($sitefinity.displayName)";
                 Branch  = $branch;
-                LastGet = $sitefinity.daysSinceLastGet;
+                LastGet = $sitefinity.GetDaysSinceLastGet();
                 Ports   = "$ports";
                 Tags    = $sitefinity.tags
             }) > $null

@@ -11,6 +11,16 @@ public class SfProject
     public System.Nullable<System.DateTime> lastGetLatest { get; set; }
     public bool isInitialized { get; set; }
     public string[] tags { get; set; }
-    public System.Nullable<int> daysSinceLastGet { get; set; }
     public SiteBinding defaultBinding { get; set; }
+
+    public System.Nullable<int> GetDaysSinceLastGet()
+    {
+        if (!this.lastGetLatest.HasValue)
+        {
+            return null;
+        }
+
+        var days = System.DateTime.Today - this.lastGetLatest.Value.Date;
+        return (int)System.Math.Round(days.TotalDays, 0);
+    }
 }
