@@ -37,6 +37,10 @@ function sd-iisSite-setBinding {
 
 function sd-iisSite-getUrl {
     [SiteBinding]$binding = sd-iisSite-getBinding
+    _sd-iisSite-buildUrlFromBinding -binding $binding
+}
+
+function _sd-iisSite-buildUrlFromBinding ([SiteBinding]$binding) {
     $hostname = if ($binding.domain) {$binding.domain} else {"localhost"}
     return _iisSite-appendSubAppPath "$($binding.protocol)://$($hostname):$($binding.port)"
 }

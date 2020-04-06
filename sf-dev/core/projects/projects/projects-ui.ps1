@@ -68,7 +68,9 @@ function sd-project-show {
         Write-Information "Error getting some details from IIS: $_"
     }
 
-    $bindings = iis-bindings-getAll $context.websiteName
+    [SiteBinding[]]$bindings = iis-bindings-getAll $context.websiteName
+    $bindingsLabel = ""
+    $bindings | % { $bindingsLabel += " $(_sd-iisSite-buildUrlFromBinding -binding $_)" }
 
     $otherDetails = @(
         [pscustomobject]@{id = 0; Parameter = "Title"; Value = $context.displayName; },
@@ -86,7 +88,7 @@ function sd-project-show {
         [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
 
         [pscustomobject]@{id = 4; Parameter = "Website Name in IIS"; Value = $context.websiteName; },
-        [pscustomobject]@{id = 5; Parameter = "Bindings"; Value = $bindings; },
+        [pscustomobject]@{id = 5; Parameter = "Bindings"; Value = $bindingsLabel; },
         [pscustomobject]@{id = 6; Parameter = "Application Pool Name"; Value = $appPool; },
 
         [pscustomobject]@{id = 6.5; Parameter = " "; Value = " "; },
