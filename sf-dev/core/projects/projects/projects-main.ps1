@@ -378,6 +378,7 @@ function sd-project-setCurrent {
     process {
         if (!$newContext) {
             $Script:globalContext = $newContext
+            _update-prompt
             return
         }
 
@@ -391,12 +392,7 @@ function sd-project-setCurrent {
 
         $Script:globalContext = $newContext
 
-        try {
-            _update-prompt
-        }
-        catch {
-            Write-Error "$_"
-        }
+        _update-prompt
 
         if ($Global:SfEvents_OnAfterProjectSelected) {
             $Global:SfEvents_OnAfterProjectSelected | % { Invoke-Command -ScriptBlock $_ }
