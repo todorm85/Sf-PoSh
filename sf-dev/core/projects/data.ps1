@@ -2,20 +2,12 @@ function _data-getAllProjects {
     $data = New-Object XML
     $data.Load($GLOBAL:sf.Config.dataPath)
     $sfs = $data.data.sitefinities.sitefinity
-    $dataVersion = $data.data.version
-    if ($dataVersion -and $script:cachedDataVersion -eq $dataVersion -and $Script:sfsDataCache) {
-        return $Script:sfsDataCache
-    }
-    elseif ($dataVersion) {
-        $script:cachedDataVersion = $dataVersion
-    }
-
     [System.Collections.Generic.List``1[SfProject]]$sitefinities = New-Object System.Collections.Generic.List``1[SfProject]
     if ($sfs) {
         $sfs | ForEach-Object {
-            $tags = @()
+            [System.Collections.Generic.List``1[string]]$tags = New-Object System.Collections.Generic.List``1[string]
             if ($_.tags) {
-                $tags = $_.tags.Split(' ')
+                [System.Collections.Generic.List``1[string]]$tags = $_.tags.Split(' ')
             }
 
             $clone = [SfProject]::new()
@@ -165,11 +157,6 @@ function _updateData {
     param(
         [XML]$data
     )
-
-    $newVersion = [System.Guid]::NewGuid().ToString()
-    $data.data.SetAttribute('version', $newVersion)
-    $script:cachedDataVersion = $newVersion
-    $Script:sfsDataCache = $null
 
     $data.Save($GLOBAL:sf.Config.dataPath) > $null
 }
