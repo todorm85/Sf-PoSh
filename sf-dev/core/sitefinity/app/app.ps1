@@ -108,7 +108,7 @@ function sd-app-reinitializeAndStart {
 #>
 function sd-appPrecompiledTemplates-add {
     # path to sitefinity compiler tool
-    $sitefinityCompiler = "$PSScriptRoot\external-tools\Telerik.Sitefinity.Compiler.exe"
+    $sitefinityCompiler = _sd-appPrecompiledTemplates-getCompilerPath
 
     if (-not (Test-Path $sitefinityCompiler)) {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
@@ -126,7 +126,7 @@ function sd-appPrecompiledTemplates-add {
 #>
 function sd-appPrecompiledTemplates-remove {
     # path to sitefinity compiler tool
-    $sitefinityCompiler = "$PSScriptRoot\external-tools\Telerik.Sitefinity.Compiler.exe"
+    $sitefinityCompiler = _sd-appPrecompiledTemplates-getCompilerPath
 
     if (-not (Test-Path $sitefinityCompiler)) {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
@@ -143,6 +143,9 @@ function sd-appPrecompiledTemplates-remove {
     }
 }
 
+function _sd-appPrecompiledTemplates-getCompilerPath() {
+    "$PSScriptRoot\external-tools\compiler\Telerik.Sitefinity.Compiler.exe"
+}
 function _app-initialize {
     param(
         [Parameter(Mandatory = $true)]$dbName
