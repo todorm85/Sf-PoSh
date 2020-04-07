@@ -28,12 +28,7 @@ function sd-projectTags-addToCurrent {
     _validateTag $tagName
 
     [SfProject]$project = sd-project-getCurrent
-    if (!$project.tags) {
-        $project.tags = @($tagName)
-    }
-    else {
-        $project.tags += @($tagName)
-    }
+    $project.tags.Add($tagName)
 
     sd-project-save -context $project
 }
@@ -53,8 +48,7 @@ function sd-projectTags-removeFromCurrent {
     [SfProject]$project = sd-project-getCurrent
     if ($project.tags) {
         $newTags = @()
-        $project.tags | ? {$_ -ne $tagName } | ForEach-Object {$newTags += @($_)}
-        $project.tags = $newTags
+        $project.tags.Remove($tagName)
     }
 
     sd-project-save -context $project
@@ -64,7 +58,7 @@ Register-ArgumentCompleter -CommandName sd-projectTags-removeFromCurrent -Parame
 
 function sd-projectTags-removeAllFromCurrent {
     [SfProject]$project = sd-project-getCurrent
-    $project.tags = @()
+    $project.tags.Clear()
     sd-project-save -context $project
 }
 

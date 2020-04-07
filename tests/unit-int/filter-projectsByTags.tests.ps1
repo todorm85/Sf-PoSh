@@ -8,7 +8,13 @@ InModuleScope sf-dev {
         )
 
         $proj = _newSfProjectObject -id "$([System.Guid]::NewGuid().ToString())"
-        $proj.tags = $tags
+        if ($null -eq $tags) {
+            $proj.tags = $null
+        }
+        else {
+            $proj.tags = [System.Collections.Generic.List``1[string]]($tags.Split(' '))
+        }
+
         $proj
     }
 

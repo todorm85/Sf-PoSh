@@ -16,6 +16,8 @@ New-Website -Name $sourceProj.websiteName -PhysicalPath $sourceProj.webAppPath -
 
 $sourceProj.isInitialized = $true
 sd-project-save -context $sourceProj
+
+$sourceProj = (sd-project-getAll)[0]
 sd-project-setCurrent $sourceProj
 $Global:testProjectWebsiteName = $id
 

@@ -1,5 +1,10 @@
 public class SfProject
 {
+    public SfProject()
+    {
+        this.tags = new System.Collections.Generic.List<string>();
+    }
+
     public string id { get; set; }
     public string displayName { get; set; }
     public string solutionPath { get; set; }
@@ -10,7 +15,7 @@ public class SfProject
     public string description { get; set; }
     public System.Nullable<System.DateTime> lastGetLatest { get; set; }
     public bool isInitialized { get; set; }
-    public string[] tags { get; set; }
+    public System.Collections.Generic.List<string> tags { get; set; }
     public SiteBinding defaultBinding { get; set; }
 
     public System.Nullable<int> GetDaysSinceLastGet()

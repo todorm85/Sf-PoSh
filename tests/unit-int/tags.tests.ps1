@@ -3,24 +3,20 @@
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
     Describe "Tags should" -Tags ("fluent") {
-        Mock _proj-initialize { }
-        Mock _validateProject { }
-        Mock _setConsoleTitle { }
+        . "$PSScriptRoot\test-project-init.ps1"
+
         $testTag1 = 'test-sd-projectTags-1'
         $testTag2 = 'test-sd-projectTags-2'
         $testTag3 = 'test-sd-projectTags-3'
         $testTag4 = 'test-sd-projectTags-4'
-        $newContext = [SfProject]::new()
-        $newContext.id = 'test-id-tags'
-        $newContext.webAppPath = "TestDrive:\"
-        $result = sd-project-setCurrent -newContext $newContext
 
         It "Add single tag to project" {
             sd-projectTags-addToCurrent -tagName $testTag1
             [SfProject]$proj = (sd-project-getAll)[0]
-            $proj.tags | Should -Be $testTag1
+            $proj.tags | Should -Contain $testTag1
             $result = sd-project-setCurrent $proj
-            sd-projectTags-getAllFromCurrent | Should -Be $testTag1
+            sd-projectTags-getAllFromCurrent | Should -Contain $testTag1
+            sd-projectTags-getAllFromCurrent | Should -HaveCount 1
         }
         It "Add multiple tags to project" {
             $expectedTags = @($testTag1, $testTag2, $testTag3)
@@ -187,5 +183,7 @@ InModuleScope sf-dev {
             (sd-projectTags-getDefaultFilter)[0] | Should -Be "t3"
             (sd-projectTags-getDefaultFilter)[1] | Should -Be "t4"
         }
+
+        . "$PSScriptRoot\test-project-teardown.ps1"
     }
 }

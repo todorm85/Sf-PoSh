@@ -34,7 +34,7 @@ function _data-getAllProjects {
 
             $clone.lastGetLatest = $lastGetLatest;
 
-            $clone.tags = $tags;
+            $clone.tags = [System.Collections.Generic.List``1[string]]$tags;
 
             if ($_.defaultBinding) {
                 $parts = ([string]$_.defaultBinding).Split(':')

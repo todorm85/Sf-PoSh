@@ -143,7 +143,7 @@ function _tag-setNewProjectDefaultTags {
 
     $includeTags = $tagsFilter | Where-Object { !$_.StartsWith($excludeTagPrefix) }
     $includeTags | ForEach-Object {
-        $project.tags += @($_)
+        $project.tags.Add($_)
     }
 }
 
