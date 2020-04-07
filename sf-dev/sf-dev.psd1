@@ -19,6 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            17.0.1
+                Tags are List
             17.0.0
                 Breaking: SfProejct.daysSinceLastGet property removed, use GetDaysSinceLastGet method
             16.0.2
