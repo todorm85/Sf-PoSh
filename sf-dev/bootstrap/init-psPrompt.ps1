@@ -37,7 +37,7 @@ function _setConsoleTitle {
             $branch = 'No TFS'
         }
 
-        [System.Console]::Title = "$($newContext.displayName)|$($newContext.id)|$branch"
+        [System.Console]::Title = "$($newContext.id)|$($newContext.displayName)|$branch"
         Set-Location $newContext.webAppPath
     }
     else {
