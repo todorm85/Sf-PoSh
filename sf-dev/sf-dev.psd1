@@ -11,7 +11,7 @@
     VariablesToExport = @()
     # !!! Performance issue with intellisense do not enable
     # AliasesToExport   = '*'
-    ModuleVersion     = '17.1.0'
+    ModuleVersion     = '17.2.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -19,6 +19,9 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            17.2.0
+                states improvements
+                bugfixes
             17.0.3
                 Performance states
             17.0.2
