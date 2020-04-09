@@ -34,10 +34,10 @@ function _setConsoleTitle {
             $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
         }
         else {
-            $branch = '/no branch'
+            $branch = 'No TFS'
         }
 
-        [System.Console]::Title = "$($binding.port) | $($newContext.id) | $($newContext.displayName) | $branch"
+        [System.Console]::Title = "$($newContext.displayName)|$($newContext.id)|$branch"
         Set-Location $newContext.webAppPath
     }
     else {
