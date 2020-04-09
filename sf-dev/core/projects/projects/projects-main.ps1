@@ -41,8 +41,6 @@ function sd-project-new {
         throw "Error creating the project. The project failed to initialize with web app path."
     }
 
-    _tag-setNewProjectDefaultTags -project $newContext
-
     if (!$newContext.websiteName) {
         sd-iisSite-new -context $newContext
     }
@@ -121,7 +119,7 @@ function sd-project-clone {
         $newProject.websiteName = ""
     }
 
-    $oldProject = $context
+    [SfProject]$oldProject = $context
     $sourceDbName = _db-getNameFromDataConfig $oldProject.webAppPath
     $isDuplicate = sql-test-isDbNameDuplicate -dbName $sourceDbName
     if ($sourceDbName -and $isDuplicate) {
@@ -134,7 +132,7 @@ function sd-project-clone {
         }
 
         try {
-            sql-copy-db -SourceDBName $sourceDbName -targetDbName $newDbName
+            sql-copy-db -SourceDBName $sourceDbName -targetDbName $newDbName > $null
         }
         catch {
             Write-Error "Error copying old database. Source: $sourceDbName Target $newDbName`n $_"
@@ -148,6 +146,7 @@ function sd-project-clone {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"
     }
 
+    $newProject.tags = $oldProject.tags
     sd-project-save -context $newProject
     sd-project-setCurrent $newProject
 }

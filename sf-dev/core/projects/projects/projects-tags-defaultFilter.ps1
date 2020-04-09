@@ -131,22 +131,6 @@ function _checkIfTagged {
     return $false
 }
 
-function _tag-setNewProjectDefaultTags {
-    param (
-        [SfProject]$project
-    )
-
-    $tagsFilter = sd-projectTags-getDefaultFilter
-    if (!$tagsFilter) {
-        return
-    }
-
-    $includeTags = $tagsFilter | Where-Object { !$_.StartsWith($excludeTagPrefix) }
-    $includeTags | ForEach-Object {
-        $project.tags.Add($_)
-    }
-}
-
 function _validateTag {
     param (
         $tagName
