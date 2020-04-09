@@ -31,6 +31,7 @@ function sd-iisSite-browse {
 
     if (-not $useExistingBrowser) {
         execute-native "& Start-Process `"$browserPath`"" -successCodes @(100)
+        Start-Sleep -Seconds 1
     }
 
     execute-native "& `"$browserPath`" `"${appUrl}/Sitefinity`" -noframemerging" -successCodes @(100)
