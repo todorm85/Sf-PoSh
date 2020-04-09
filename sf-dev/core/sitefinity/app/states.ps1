@@ -183,8 +183,8 @@ function _appData-remove {
     [SfProject]$context = sd-project-getCurrent
     $webAppPath = $context.webAppPath
 
+    unlock-allFiles -path "${webAppPath}\App_Data"
     $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude $(_getSitefinityAppDataExcludeFilter) -File
-    $toDelete | ForEach-Object { unlock-allFiles -path $_.FullName }
     $errors
     $toDelete | Remove-Item -Force -ErrorAction SilentlyContinue -ErrorVariable +errors
     if ($errors) {

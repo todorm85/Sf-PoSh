@@ -80,7 +80,15 @@ function unlock-allFiles ($path) {
         Write-Error "Handles tool not found. Unlocking open files will not work. Project files might need to be cleaned up manually if opened."
     }
 
-    $handlesList = execute-native "& `"$handleToolPath`" /accepteula `"$path`""
+    # sent async to prevent handles tool from getting locked by the process
+    $unlockFilesJob = {
+        $result = Invoke-Expression "& `"$($args[0])`" /accepteula `"$($args[1])`" 2>&1"
+        return $result
+    }
+
+    $job = Start-Job -ScriptBlock $unlockFilesJob -ArgumentList $handleToolPath, $path | Wait-Job
+    $handlesList = Receive-Job -Job $job
+
     $pids = New-Object -TypeName System.Collections.ArrayList
     $handlesList | ForEach-Object {
         $isFound = $_ -match "^.*pid: (?<pid>.*?) .*$"
