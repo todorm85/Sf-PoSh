@@ -11,8 +11,10 @@ $sourceProj.solutionPath = $solutionPath
 $sourceProj.webAppPath = $webAppPath
 $sourceProj.websiteName = $id
 Remove-Website -Name $sourceProj.websiteName -ErrorAction SilentlyContinue -Confirm:$false
+Remove-WebAppPool -Name $sourceProj.websiteName -ErrorAction SilentlyContinue -Confirm:$false
 $port = sd-getFreePort
-New-Website -Name $sourceProj.websiteName -PhysicalPath $sourceProj.webAppPath -Port $port
+New-WebAppPool -Name $sourceProj.websiteName
+New-Website -Name $sourceProj.websiteName -PhysicalPath $sourceProj.webAppPath -Port $port -ApplicationPool $sourceProj.websiteName
 
 $sourceProj.isInitialized = $true
 sd-project-save -context $sourceProj

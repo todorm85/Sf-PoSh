@@ -12,13 +12,12 @@ InModuleScope sf-dev {
         }
 
         It "stop all processes that are locking files when one process" {
-            Mock execute-native {
-                "Copyright (C) 1997-2017 Mark Russinovich"
-                "Sysinternals - www.sysinternals.com"
-                "`n"
-                "explorer.exe       pid: 10760  type: File          10D4: E:\dev-sitefinities\sf_dev_2\SitefinityWebApp\App_Data\Sitefinity"
-
-            } -ParameterFilter { $command -and $command.Contains("\handle.exe") }
+            Mock _executeJobAsync {
+                    "Copyright (C) 1997-2017 Mark Russinovich"
+                    "Sysinternals - www.sysinternals.com"
+                    "`n"
+                    "explorer.exe       pid: 10760  type: File          10D4: E:\dev-sitefinities\sf_dev_2\SitefinityWebApp\App_Data\Sitefinity"
+            }
 
             unlock-allFiles "c:\dummy"
 
@@ -26,14 +25,14 @@ InModuleScope sf-dev {
         }
 
         It "stop all processes that are locking files when more than one processes" {
-            Mock execute-native {
+            Mock _executeJobAsync {
                 "Copyright (C) 1997-2017 Mark Russinovich"
                 "Sysinternals - www.sysinternals.com"
                 "`n"
                 "explorer.exe       pid: 10760  type: File          10D4: E:\dev-sitefinities\sf_dev_2\SitefinityWebApp\App_Data\Sitefinity"
                 "explorer.exe       pid: 11760  type: File          10D4: E:\dev-sitefinities\sf_dev_2\SitefinityWebApp\App_Data\Sitefinity"
 
-            } -ParameterFilter { $command -and $command.Contains("\handle.exe") }
+            }
 
             unlock-allFiles "c:\dummy"
 
@@ -42,7 +41,7 @@ InModuleScope sf-dev {
         }
 
         It "consider only unique process ids" {
-            Mock execute-native {
+            Mock _executeJobAsync {
                 "Copyright (C) 1997-2017 Mark Russinovich"
                 "Sysinternals - www.sysinternals.com"
                 "`n"
@@ -51,7 +50,7 @@ InModuleScope sf-dev {
                 "explorer.exe       pid: 10763  type: File          10D4: E:\dev-sitefinities\sf_dev_2\SitefinityWebApp\App_Data\Sitefinity"
                 "explorer.exe       pid: 11760  type: File          10D4: E:\dev-sitefinities\sf_dev_2\SitefinityWebApp\App_Data\Sitefinity"
 
-            } -ParameterFilter { $command -and $command.Contains("\handle.exe") }
+            }
 
             unlock-allFiles "c:\dummy"
 
@@ -61,11 +60,11 @@ InModuleScope sf-dev {
         }
 
         It "do nothing when no locking processes" {
-            Mock execute-native {
+            Mock _executeJobAsync {
                 "Copyright (C) 1997-2017 Mark Russinovich"
                 "Sysinternals - www.sysinternals.com"
                 "`n"
-            } -ParameterFilter { $command -and $command.Contains("\handle.exe") }
+            }
 
             unlock-allFiles "c:\dummy"
 

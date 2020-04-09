@@ -86,9 +86,7 @@ function unlock-allFiles ($path) {
         return $result
     }
 
-    $job = Start-Job -ScriptBlock $unlockFilesJob -ArgumentList $handleToolPath, $path | Wait-Job
-    $handlesList = Receive-Job -Job $job
-
+    $handlesList = _executeJobAsync $unlockFilesJob
     $pids = New-Object -TypeName System.Collections.ArrayList
     $handlesList | ForEach-Object {
         $isFound = $_ -match "^.*pid: (?<pid>.*?) .*$"
@@ -159,4 +157,9 @@ function _clean-emptyDirs ($path) {
             Where-Object { (Get-ChildItem $_.fullName).Count -eq 0 -and !$failed.Contains($_.FullName) } | `
             Select-Object -expandproperty FullName
     } while ($dirs.count -gt 0)
+}
+
+function _executeJobAsync ($script) {
+    $job = Start-Job -ScriptBlock $script -ArgumentList $handleToolPath, $path | Wait-Job
+    Receive-Job -Job $job
 }

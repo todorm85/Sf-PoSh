@@ -31,6 +31,7 @@
         'PSAvoidGlobalVars',
         'PSUseShouldProcessForStateChangingFunctions',
         'PSUseApprovedVerbs',
-        'PSAvoidTrailingWhitespace'
+        'PSAvoidTrailingWhitespace',
+        'PSUseSingularNouns'
         )
 }

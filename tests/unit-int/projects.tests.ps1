@@ -18,7 +18,7 @@ InModuleScope sf-dev {
             $id = generateRandomName
             [SfProject]$project = _newSfProjectObject -id $id
             _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath $appWithSolutionZipPath
-            $project.webAppPath | Should -Be "$TestDrive\$id/SitefinityWebApp"
+            $project.webAppPath | Should -Be "$TestDrive\$id\SitefinityWebApp"
             $project.solutionPath | Should -Be "$TestDrive\$id"
         }
         It "throw when no zip found" {
