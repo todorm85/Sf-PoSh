@@ -741,9 +741,9 @@ function _proj-tryCreateFromZip {
     if ($sourcePath.EndsWith('.zip') -and (Test-Path $sourcePath)) {
         $projectDirectory = _proj-createProjectDirectory -project $project
         expand-archive -path $sourcePath -destinationpath $projectDirectory
-        $isSolution = (Test-Path -Path "$projectDirectory/Telerik.Sitefinity.sln") -and (Test-Path "$projectDirectory/SitefinityWebApp")
+        $isSolution = (Test-Path -Path "$projectDirectory\Telerik.Sitefinity.sln") -and (Test-Path "$projectDirectory\SitefinityWebApp")
         if ($isSolution) {
-            $project.webAppPath = "$projectDirectory/SitefinityWebApp"
+            $project.webAppPath = "$projectDirectory\SitefinityWebApp"
             $project.solutionPath = "$projectDirectory"
         }
         else {
