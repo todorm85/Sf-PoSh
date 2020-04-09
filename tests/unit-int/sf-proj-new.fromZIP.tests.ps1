@@ -28,11 +28,14 @@ InModuleScope sf-dev {
 
             $suffix = generateRandomName
             $projName = $Global:fromZipProjectName + $suffix
+            New-Item "$PSScriptRoot\..\utils\files\Build\Sitefinity.lic" -Force
             sd-project-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinitySource.zip"
             $sitefinities = @(sd-project-getAll) | Where-Object { $_.displayName -eq $projName }
             $createdSf = [SfProject]$sitefinities[0]
             $createdSf.solutionPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}"
-            $createdSf.webAppPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}/SitefinityWebApp"
+            $createdSf.webAppPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}\SitefinityWebApp"
+            Test-Path "$($createdSf.webAppPath)\App_Data\Sitefinity\Sitefinity.lic" | Should -BeTrue
+            Remove-Item "$PSScriptRoot\..\utils\files\Build\Sitefinity.lic"
 
             sd-project-remove -context $createdSf
         }

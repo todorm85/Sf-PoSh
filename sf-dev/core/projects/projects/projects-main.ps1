@@ -750,6 +750,18 @@ function _proj-tryCreateFromZip {
             $project.webAppPath = "$projectDirectory"
         }
 
+        # license from daily builds, if using source code zip no license is included
+        $dir = (Get-Item -Path $sourcePath).Directory
+        $licensePath = "$($dir.FullName)\Sitefinity.lic"
+        $sfPath = "$($project.webAppPath)\App_Data\Sitefinity"
+        if (Test-Path $licensePath) {
+            if (!(Test-Path $sfPath)) {
+                New-Item $sfPath -ItemType Directory
+            }
+
+            Copy-Item $licensePath $sfPath
+        }
+
         return $true
     }
 }
