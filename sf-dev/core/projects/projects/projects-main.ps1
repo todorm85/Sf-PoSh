@@ -370,7 +370,6 @@ function sd-project-getCurrent {
 
 function sd-project-setCurrent {
     [CmdletBinding()]
-    [OutputType([SfProject])]
     Param(
         [Parameter(ValueFromPipeline)][SfProject]$newContext
     )
@@ -397,8 +396,6 @@ function sd-project-setCurrent {
         if ($Global:SfEvents_OnAfterProjectSelected) {
             $Global:SfEvents_OnAfterProjectSelected | % { Invoke-Command -ScriptBlock $_ }
         }
-
-        return $newContext
     }
 }
 
