@@ -73,12 +73,16 @@ InModuleScope sf-dev {
 
         It "NOT create a copy of db when skipDb switch is passed" {
             $old = sd-project-getCurrent
+            $old.tags.Add("test")
             $oldDb = sd-db-getNameFromDataConfig
             sd-project-clone -skipDatabaseClone
             $p = sd-project-getCurrent
             sql-get-dbs | Where-Object { $_.name -eq $p.id } | Should -HaveCount 0
             sql-get-dbs | Where-Object { $_.name -eq $old.id } | Should -HaveCount 1
             sd-db-getNameFromDataConfig | Should -Be $oldDb
+            $p.tags | Should -Contain "test"
+            $old.tags.Add("test2")
+            $p.tags | Should -HaveCount 1
         }
 
         $projects | ForEach-Object {

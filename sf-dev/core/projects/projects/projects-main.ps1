@@ -147,7 +147,8 @@ function sd-project-clone {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"
     }
 
-    $newProject.tags = $oldProject.tags
+    $newProject.tags.AddRange($oldProject.tags) 
+
     sd-project-save -context $newProject
     sd-project-setCurrent $newProject
 }
