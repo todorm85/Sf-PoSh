@@ -146,7 +146,7 @@ function sd-appStates-get {
 }
 
 function _selectAppState {
-    $states = _getStates
+    $states = sd-appStates-get
     if (-not $states) {
         Write-Warning "No states."
         return
