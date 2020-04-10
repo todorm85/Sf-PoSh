@@ -52,7 +52,8 @@ function sd-project-new {
 
 function sd-project-clone {
     Param(
-        [switch]$skipSourceControlMapping
+        [switch]$skipSourceControlMapping,
+        [switch]$skipDatabaseClone
     )
 
     $context = sd-project-getCurrent
@@ -121,8 +122,8 @@ function sd-project-clone {
 
     [SfProject]$oldProject = $context
     $sourceDbName = _db-getNameFromDataConfig $oldProject.webAppPath
-    $isDuplicate = sql-test-isDbNameDuplicate -dbName $sourceDbName
-    if ($sourceDbName -and $isDuplicate) {
+    $exists = sql-test-isDbNameDuplicate -dbName $sourceDbName
+    if ($sourceDbName -and $exists -and !$skipDatabaseClone) {
         $newDbName = $newProject.id
         try {
             sd-db-setNameInDataConfig $newDbName -context $newProject
