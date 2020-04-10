@@ -1,8 +1,8 @@
-# SF-DEV PowerShell Module
+# Sitefinty PowerShell Module for core developers
 
 ## Description
 
-Manage Sitefinity instances on local machine.
+Manage Sitefinity instances on local machine. Utilities for developement of the core Sitefinity CMS.
 
 ## Installation
 
