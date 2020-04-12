@@ -14,7 +14,7 @@ function _sd-nlb-serverCodeDeploy {
     Copy-Item -Path "$src\*" -Destination $trg -Force -Recurse
 }
 
-function s-nlb-setup {
+function sd-nlb-setup {
     if (!(_nlb-isProjectValidForNlb)) { return }
     [SfProject]$firstNode = sd-project-getCurrent
     [SfProject]$secondNode = _nlb-createSecondProject -name $firstNode.displayName
@@ -25,20 +25,20 @@ function s-nlb-setup {
 
     _nginx-createNewCluster $firstNode $secondNode
     sd-project-setCurrent $firstNode
-    s-nginx-reset
+    sd-nginx-reset
 }
 
-function s-nlb-uninstall {
+function sd-nlb-uninstall {
     $p = sd-project-getCurrent
     if (!$p) {
         throw 'No project selected.'
     }
 
-    if (!(s-nlb-getStatus).enabled) {
+    if (!(sd-nlb-getStatus).enabled) {
         throw 'No NLB setup.'
     }
 
-    s-nlb-getOtherNodes | sd-project-remove -keepDb
+    sd-nlb-getOtherNodes | sd-project-remove -keepDb
     
     $nlbTag = _nlbTags-filterNlbTag $p.tags
     
@@ -49,7 +49,7 @@ function s-nlb-uninstall {
     sd-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "RemoveAllNodes" > $null
 }
 
-function s-nlb-getOtherNodes {
+function sd-nlb-getOtherNodes {
     [SfProject]$p = sd-project-getCurrent
     if (!$p) {
         throw "No project selected."
@@ -68,7 +68,7 @@ function s-nlb-getOtherNodes {
     $result
 }
 
-function s-nlb-forAllNodes {
+function sd-nlb-forAllNodes {
     param (
         [Parameter(Mandatory=$true)]
         [ScriptBlock]$script
@@ -80,7 +80,7 @@ function s-nlb-forAllNodes {
     }
 
     Invoke-Command -ScriptBlock $script
-    s-nlb-getOtherNodes | % {
+    sd-nlb-getOtherNodes | % {
         sd-project-setCurrent $_
         Invoke-Command -ScriptBlock $script
     }
@@ -88,13 +88,13 @@ function s-nlb-forAllNodes {
     sd-project-setCurrent $p
 }
 
-function s-nlb-setSslOffloadForAll {
+function sd-nlb-setSslOffloadForAll {
     param (
         [Parameter(Mandatory=$true)]
         [bool]$flag
     )
     
-    s-nlb-forAllNodes {
+    sd-nlb-forAllNodes {
         _s-nlb-setSslOffloadForCurrentNode -flag $flag
     }
 }
@@ -104,7 +104,7 @@ function _s-nlb-setSslOffloadForCurrentNode ([bool]$flag = $false) {
 }
 
 
-function s-nlb-getUrl {
+function sd-nlb-getUrl {
     $p = sd-project-getCurrent
     if (!$p) {
         throw "No project selected."
@@ -118,7 +118,7 @@ function s-nlb-getUrl {
     _nlbTags-getUrlFromTag $nlbTag
 }
 
-function s-nlb-getStatus {
+function sd-nlb-getStatus {
     $p = sd-project-getCurrent
     if (!$p) {
         throw "No project selected."
@@ -126,8 +126,8 @@ function s-nlb-getStatus {
 
     $nlbTag = _nlbTags-filterNlbTag $p.tags
     if ($nlbTag) {
-        $otherNode = s-nlb-getOtherNodes
-        $url = s-nlb-getUrl
+        $otherNode = sd-nlb-getOtherNodes
+        $url = sd-nlb-getUrl
         [PScustomObject]@{
             enabled = $true;
             url = $url;
@@ -141,12 +141,12 @@ function s-nlb-getStatus {
     }
 }
 
-function s-nlb-openNlbSite {
+function sd-nlb-openNlbSite {
     param(
         [switch]$openInSameWindow
     )
 
-    $url = s-nlb-getUrl
+    $url = sd-nlb-getUrl
     os-browseUrl -url $url -openInSameWindow:$openInSameWindow 
 }
 
@@ -200,7 +200,7 @@ function _nlb-isProjectValidForNlb {
         return    
     }
 
-    if ((s-nlb-getStatus).enabled) {
+    if ((sd-nlb-getStatus).enabled) {
         Write-Warning "Already setup in NLB"
         return $false
     }
@@ -228,7 +228,7 @@ function _nlb-getNlbClusterUrls {
         $secondNode
     )
 
-    $firstNodeUrl = s-bindings-getLocalhostUrl -websiteName $firstNode.websiteName
-    $secondNodeUrl = s-bindings-getLocalhostUrl -websiteName $secondNode.websiteName
+    $firstNodeUrl = sd-bindings-getLocalhostUrl -websiteName $firstNode.websiteName
+    $secondNodeUrl = sd-bindings-getLocalhostUrl -websiteName $secondNode.websiteName
     "$firstNodeUrl,$secondNodeUrl"
 }

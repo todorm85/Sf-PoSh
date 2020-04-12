@@ -1,11 +1,16 @@
-function s-nginx-reset {
+function sd-nginx-reset {
     # Get-Process -Name "nginx" -ErrorAction "SilentlyContinue" | Stop-Process -Force
-    $job = Start-Job -ScriptBlock {
-        Get-Process nginx | Stop-Process -Force
-        $nginxDirPath = (Get-Item $Global:sf.config.pathToNginxConfig).Parent.FullName
+    $nginxDirPath = (Get-Item $Global:sf.config.pathToNginxConfig).Directory.Parent.FullName
+    $nginxJob = Start-Job -ScriptBlock {
+        param($nginxDirPath)
+        Get-Process nginx | Stop-Process -Force -ErrorAction SilentlyContinue
+        
         Set-Location $nginxDirPath
         ./nginx.exe
-    }
+    } -ArgumentList $nginxDirPath
+
+    Start-Sleep 1
+    $nginxJob | Receive-Job
 }
 
 function _nginx-createNewCluster {
@@ -28,7 +33,7 @@ function _nginx-createNewCluster {
     $secondNode.tags.Add($nlbTag)
     sd-project-save $secondNode
 
-    s-nginx-reset
+    sd-nginx-reset
 }
 
 function _s-nginx-removeCluster {
@@ -58,8 +63,8 @@ function _nginx-createNlbClusterConfig {
 
     $nlbDomain = _nlbTags-getDomain -tag $nlbTag
 
-    [SiteBinding]$firstNodeBinding = s-bindings-getOrCreateLocalhostBinding -project $firstNode
-    [SiteBinding]$secondNodeBinding = s-bindings-getOrCreateLocalhostBinding -project $secondNode
+    [SiteBinding]$firstNodeBinding = sd-bindings-getOrCreateLocalhostBinding -project $firstNode
+    [SiteBinding]$secondNodeBinding = sd-bindings-getOrCreateLocalhostBinding -project $secondNode
 
     $nlbPairConfig = "upstream $nlbClusterId {
     server localhost:$($firstNodeBinding.port);

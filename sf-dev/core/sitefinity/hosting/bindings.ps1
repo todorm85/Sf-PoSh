@@ -1,4 +1,4 @@
-function s-bindings-add {
+function sd-bindings-add {
     Param(
         [Parameter(Mandatory = $true)]
         [AllowEmptyString()]
@@ -20,7 +20,7 @@ function s-bindings-add {
     New-WebBinding -Name $project.websiteName -IPAddress "*" -Port $port -HostHeader $domain
 }
 
-function s-bindings-get {
+function sd-bindings-get {
     [SfProject]$project = sd-project-getCurrent
     if (!$project) {
         throw 'no proj'
@@ -30,7 +30,7 @@ function s-bindings-get {
     Get-WebBinding -Name $s    
 }
 
-function s-bindings-remove {
+function sd-bindings-remove {
     Param(
         [Parameter(Mandatory = $true)]
         [AllowEmptyString()]
@@ -48,19 +48,19 @@ function s-bindings-remove {
     Remove-WebBinding -Name $project.websiteName -HostHeader $domain -Port $port
 }
 
-function s-bindings-getOrCreateLocalhostBinding {
+function sd-bindings-getOrCreateLocalhostBinding {
     param(
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]$project
     )
 
     $previous = sd-project-getCurrent
     try {
-        $firstNodeBinding = s-bindings-getLocalhostBinding $project.websiteName
+        $firstNodeBinding = sd-bindings-getLocalhostBinding $project.websiteName
         if (!$firstNodeBinding) {
             $freePort = sd-getFreePort
             sd-project-setCurrent $project
-            s-bindings-add -domain "" -port $freePort
-            $firstNodeBinding = s-bindings-getLocalhostBinding $project.websiteName
+            sd-bindings-add -domain "" -port $freePort
+            $firstNodeBinding = sd-bindings-getLocalhostBinding $project.websiteName
         }
 
         $firstNodeBinding
@@ -70,7 +70,7 @@ function s-bindings-getOrCreateLocalhostBinding {
     }
 }
 
-function s-bindings-getLocalhostBinding {
+function sd-bindings-getLocalhostBinding {
     param(
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$websiteName
     )
@@ -78,11 +78,11 @@ function s-bindings-getLocalhostBinding {
     iis-bindings-getAll -siteName $websiteName | ? domain -like "" | select -First 1
 }
 
-function s-bindings-getLocalhostUrl {
+function sd-bindings-getLocalhostUrl {
     param(
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$websiteName
     )
 
-    [SiteBinding]$b = s-bindings-getLocalhostBinding $websiteName
+    [SiteBinding]$b = sd-bindings-getLocalhostBinding $websiteName
     "$($b.protocol)://localhost:$($b.port)"
 }
