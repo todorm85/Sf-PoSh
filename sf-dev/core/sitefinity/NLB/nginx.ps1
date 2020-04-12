@@ -1,4 +1,4 @@
-function sd-nginx-reset {
+function sf-nginx-reset {
     # Get-Process -Name "nginx" -ErrorAction "SilentlyContinue" | Stop-Process -Force
     $nginxDirPath = (Get-Item $Global:sf.config.pathToNginxConfig).Directory.Parent.FullName
     $nginxJob = Start-Job -ScriptBlock {
@@ -29,11 +29,11 @@ function _nginx-createNewCluster {
     
     # update project tags
     $firstNode.tags.Add($nlbTag)
-    sd-project-save $firstNode
+    sf-project-save $firstNode
     $secondNode.tags.Add($nlbTag)
-    sd-project-save $secondNode
+    sf-project-save $secondNode
 
-    sd-nginx-reset
+    sf-nginx-reset
 }
 
 function _s-nginx-removeCluster {
@@ -63,8 +63,8 @@ function _nginx-createNlbClusterConfig {
 
     $nlbDomain = _nlbTags-getDomain -tag $nlbTag
 
-    [SiteBinding]$firstNodeBinding = sd-bindings-getOrCreateLocalhostBinding -project $firstNode
-    [SiteBinding]$secondNodeBinding = sd-bindings-getOrCreateLocalhostBinding -project $secondNode
+    [SiteBinding]$firstNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $firstNode
+    [SiteBinding]$secondNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $secondNode
 
     $nlbPairConfig = "upstream $nlbClusterId {
     server localhost:$($firstNodeBinding.port);

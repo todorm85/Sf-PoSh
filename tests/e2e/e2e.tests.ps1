@@ -14,14 +14,14 @@ InModuleScope sf-dev {
     . "${PSScriptRoot}\..\utils\test-util.ps1"
 
     Describe "Creating the project from branch should" {
-        [SfProject[]]$projects = sd-project-getAll
+        [SfProject[]]$projects = sf-project-getAll
         foreach ($proj in $projects) {
-            sd-project-remove -context $proj
+            sf-project-remove -context $proj
         }
 
-        sd-project-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
+        sf-project-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
 
-        $sitefinities = @(sd-project-getAll) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
+        $sitefinities = @(sf-project-getAll) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
         $sitefinities | Should -HaveCount 1
         $createdSf = [SfProject]$sitefinities[0]
         $id = $createdSf.id
@@ -43,34 +43,34 @@ InModuleScope sf-dev {
     }
 
     Describe "Building should" {
-        sd-project-getAll | select -First 1 | sd-project-setCurrent
+        sf-project-getAll | select -First 1 | sf-project-setCurrent
         It "succeed after at least 3 retries" {
-            sd-sol-build -retryCount 3
+            sf-sol-build -retryCount 3
         }
     }
 
     Describe "Reinitializing should" -Tags ("reset") {
-        sd-project-getAll | select -First 1 | sd-project-setCurrent
-        [SfProject]$project = sd-project-getCurrent
-        sd-app-reinitializeAndStart
-        $url = sd-iisSite-getUrl
+        sf-project-getAll | select -First 1 | sf-project-setCurrent
+        [SfProject]$project = sf-project-getCurrent
+        sf-app-reinitializeAndStart
+        $url = sf-iisSite-getUrl
         $result = _invokeNonTerminatingRequest $url
         $result | Should -Be 200
 
         $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
         Test-Path $configsPath | Should -Be $true
-        $dbName = sd-db-getNameFromDataConfig
+        $dbName = sf-db-getNameFromDataConfig
         $dbName | Should -Not -BeNullOrEmpty
         sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
 
         It "remove app data and database when uninitialize" {
-            sd-app-uninitialize
+            sf-app-uninitialize
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
             Test-Path $configsPath | Should -Be $false
         }
 
         It "start successfully after initialize" {
-            sd-app-reinitializeAndStart
+            sf-app-reinitializeAndStart
             Test-Path $configsPath | Should -Be $true
             $dbName = _db-getNameFromDataConfig  $project.webAppPath
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
@@ -78,10 +78,10 @@ InModuleScope sf-dev {
     }
 
     Describe "States should" -Tags ("states") {
-        sd-project-getAll | select -First 1 | sd-project-setCurrent
+        sf-project-getAll | select -First 1 | sf-project-setCurrent
 
         It "save and then restore app_data folder and database" {
-            [SfProject]$project = sd-project-getCurrent
+            [SfProject]$project = sf-project-getCurrent
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             [string]$stateName = generateRandomName
             $stateName = $stateName.Replace('-', '_')
@@ -90,13 +90,13 @@ InModuleScope sf-dev {
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
 
-            sd-appStates-save -stateName $stateName
+            sf-appStates-save -stateName $stateName
 
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
             New-Item $afterSaveFilePath
             Remove-Item -Path $beforeSaveFilePath
-            $dbName = sd-db-getNameFromDataConfig
+            $dbName = sf-db-getNameFromDataConfig
             $dbName | Should -Not -BeNullOrEmpty
 
             $table = 'sf_xml_config_items'
@@ -109,7 +109,7 @@ InModuleScope sf-dev {
             $config = sql-get-items -dbName $dbName -tableName $table -whereFilter $where -selectFilter $select
             $config | Should -Not -BeNullOrEmpty
 
-            sd-appStates-restore -stateName $stateName
+            sf-appStates-restore -stateName $stateName
 
             Test-Path $beforeSaveFilePath | Should -BeTrue
             Test-Path $afterSaveFilePath | Should -BeFalse
@@ -119,15 +119,15 @@ InModuleScope sf-dev {
     }
 
     Describe "Cloning project should" {
-        sd-project-getAll | select -First 1 | sd-project-setCurrent
+        sf-project-getAll | select -First 1 | sf-project-setCurrent
 
-        $sourceProj = sd-project-getCurrent
+        $sourceProj = sf-project-getCurrent
 
         $sourceName = $sourceProj.displayName
         $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
-        sd-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            sd-project-remove -context $_
+        sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
+            sf-project-remove -context $_
         }
 
         sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
@@ -144,9 +144,9 @@ InModuleScope sf-dev {
         $appSettings.AppendChild($newElement)
         $xmlData.Save($webConfigPath) > $null
 
-        sd-project-clone
+        sf-project-clone
 
-        [SfProject]$project = sd-project-getCurrent
+        [SfProject]$project = sf-project-getCurrent
         $cloneTestId = $project.id
 
         It "set project displayName" {
@@ -193,17 +193,17 @@ InModuleScope sf-dev {
             sql-get-dbs | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
         }
 
-        sd-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            sd-project-remove -context $_
+        sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
+            sf-project-remove -context $_
         }
     }
 
     Describe "Remove should" -Tags ("delete") {
-        sd-project-getAll | select -First 1 | sd-project-setCurrent
-        [SfProject]$proj = sd-project-getCurrent
+        sf-project-getAll | select -First 1 | sf-project-setCurrent
+        [SfProject]$proj = sf-project-getCurrent
         $testId = $proj.id
 
-        $sitefinities = @(sd-project-getAll) | Where-Object { $_.id -eq $testId }
+        $sitefinities = @(sf-project-getAll) | Where-Object { $_.id -eq $testId }
         $sitefinities | Should -HaveCount 1
         Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\${testId}" | Should -Be $true
         Test-Path "IIS:\AppPools\${testId}" | Should -Be $true
@@ -212,10 +212,10 @@ InModuleScope sf-dev {
         existsInHostsFile -searchParam $proj.id | Should -Be $true
         tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName | Where-Object { $_ -like "*$testId*" } | Should -HaveCount 1
 
-        sd-project-remove
+        sf-project-remove
 
         It "remove project from sf-dev" {
-            $sitefinities = @(sd-project-getAll) | Where-Object { $_.id -eq $testId }
+            $sitefinities = @(sf-project-getAll) | Where-Object { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0
         }
 

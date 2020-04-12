@@ -6,7 +6,7 @@ $Script:tagCompleter = {
         $fakeBoundParameters )
 
 
-    $possibleValues = sd-projectTags-getAll
+    $possibleValues = sf-projectTags-getAll
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
             $_ -like "$($wordToComplete.TrimStart($prefixes))*"
@@ -16,26 +16,26 @@ $Script:tagCompleter = {
     $possibleValues
 }
 
-function sd-projectTags-getAll {
-    sd-project-getAll | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
+function sf-projectTags-getAll {
+    sf-project-getAll | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
 }
 
-function sd-projectTags-addToCurrent {
+function sf-projectTags-addToCurrent {
     param (
         [string]$tagName
     )
 
     _validateTag $tagName
 
-    [SfProject]$project = sd-project-getCurrent
+    [SfProject]$project = sf-project-getCurrent
     $project.tags.Add($tagName)
 
-    sd-project-save -context $project
+    sf-project-save -context $project
 }
 
-Register-ArgumentCompleter -CommandName sd-projectTags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName sf-projectTags-addToCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sd-projectTags-removeFromCurrent {
+function sf-projectTags-removeFromCurrent {
     param (
         [string]$tagName
     )
@@ -45,24 +45,24 @@ function sd-projectTags-removeFromCurrent {
         throw "Invalid tag name to remove."
     }
 
-    [SfProject]$project = sd-project-getCurrent
+    [SfProject]$project = sf-project-getCurrent
     if ($project.tags) {
         $newTags = @()
         $project.tags.Remove($tagName)
     }
 
-    sd-project-save -context $project
+    sf-project-save -context $project
 }
 
-Register-ArgumentCompleter -CommandName sd-projectTags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
+Register-ArgumentCompleter -CommandName sf-projectTags-removeFromCurrent -ParameterName tagName -ScriptBlock $tagCompleter
 
-function sd-projectTags-removeAllFromCurrent {
-    [SfProject]$project = sd-project-getCurrent
+function sf-projectTags-removeAllFromCurrent {
+    [SfProject]$project = sf-project-getCurrent
     $project.tags.Clear()
-    sd-project-save -context $project
+    sf-project-save -context $project
 }
 
-function sd-projectTags-getAllFromCurrent {
-    $project = sd-project-getCurrent
+function sf-projectTags-getAllFromCurrent {
+    $project = sf-project-getCurrent
     return $project.tags
 }

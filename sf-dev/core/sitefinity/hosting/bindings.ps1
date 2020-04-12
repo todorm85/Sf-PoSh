@@ -1,4 +1,4 @@
-function sd-bindings-add {
+function sf-bindings-add {
     Param(
         [Parameter(Mandatory = $true)]
         [AllowEmptyString()]
@@ -8,20 +8,20 @@ function sd-bindings-add {
         $port
     )
 
-    [SfProject]$project = sd-project-getCurrent
+    [SfProject]$project = sf-project-getCurrent
     if (!$project) {
         throw 'no proj'
     }
 
     if (!$port) {
-        $port = sd-getFreePort
+        $port = sf-getFreePort
     }
 
     New-WebBinding -Name $project.websiteName -IPAddress "*" -Port $port -HostHeader $domain
 }
 
-function sd-bindings-get {
-    [SfProject]$project = sd-project-getCurrent
+function sf-bindings-get {
+    [SfProject]$project = sf-project-getCurrent
     if (!$project) {
         throw 'no proj'
     }
@@ -30,7 +30,7 @@ function sd-bindings-get {
     Get-WebBinding -Name $s    
 }
 
-function sd-bindings-remove {
+function sf-bindings-remove {
     Param(
         [Parameter(Mandatory = $true)]
         [AllowEmptyString()]
@@ -41,36 +41,36 @@ function sd-bindings-remove {
         $port
     )
 
-    [SfProject]$project = sd-project-getCurrent
+    [SfProject]$project = sf-project-getCurrent
     if (!$project) {
         throw 'no proj'
     }
     Remove-WebBinding -Name $project.websiteName -HostHeader $domain -Port $port
 }
 
-function sd-bindings-getOrCreateLocalhostBinding {
+function sf-bindings-getOrCreateLocalhostBinding {
     param(
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]$project
     )
 
-    $previous = sd-project-getCurrent
+    $previous = sf-project-getCurrent
     try {
-        $firstNodeBinding = sd-bindings-getLocalhostBinding $project.websiteName
+        $firstNodeBinding = sf-bindings-getLocalhostBinding $project.websiteName
         if (!$firstNodeBinding) {
-            $freePort = sd-getFreePort
-            sd-project-setCurrent $project
-            sd-bindings-add -domain "" -port $freePort
-            $firstNodeBinding = sd-bindings-getLocalhostBinding $project.websiteName
+            $freePort = sf-getFreePort
+            sf-project-setCurrent $project
+            sf-bindings-add -domain "" -port $freePort
+            $firstNodeBinding = sf-bindings-getLocalhostBinding $project.websiteName
         }
 
         $firstNodeBinding
     }
     finally {
-        sd-project-setCurrent $previous
+        sf-project-setCurrent $previous
     }
 }
 
-function sd-bindings-getLocalhostBinding {
+function sf-bindings-getLocalhostBinding {
     param(
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$websiteName
     )
@@ -78,11 +78,11 @@ function sd-bindings-getLocalhostBinding {
     iis-bindings-getAll -siteName $websiteName | ? domain -like "" | select -First 1
 }
 
-function sd-bindings-getLocalhostUrl {
+function sf-bindings-getLocalhostUrl {
     param(
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$websiteName
     )
 
-    [SiteBinding]$b = sd-bindings-getLocalhostBinding $websiteName
+    [SiteBinding]$b = sf-bindings-getLocalhostBinding $websiteName
     "$($b.protocol)://localhost:$($b.port)"
 }

@@ -1,13 +1,13 @@
-function sd-db-getNameFromDataConfig {
-    [SfProject]$context = sd-project-getCurrent
+function sf-db-getNameFromDataConfig {
+    [SfProject]$context = sf-project-getCurrent
 
     _db-getNameFromDataConfig -appPath $context.webAppPath
 }
 
-function sd-db-setNameInDataConfig ($newName) {
-    $context = sd-project-getCurrent
+function sf-db-setNameInDataConfig ($newName) {
+    $context = sf-project-getCurrent
 
-    $dbName = sd-db-getNameFromDataConfig -context $context
+    $dbName = sf-db-getNameFromDataConfig -context $context
     if (-not $dbName) {
         throw "No database configured for sitefinity."
     }

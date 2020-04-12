@@ -12,15 +12,15 @@ $sourceProj.webAppPath = $webAppPath
 $sourceProj.websiteName = $id
 Remove-Website -Name $sourceProj.websiteName -ErrorAction SilentlyContinue -Confirm:$false
 Remove-WebAppPool -Name $sourceProj.websiteName -ErrorAction SilentlyContinue -Confirm:$false
-$port = sd-getFreePort
+$port = sf-getFreePort
 New-WebAppPool -Name $sourceProj.websiteName
 New-Website -Name $sourceProj.websiteName -PhysicalPath $sourceProj.webAppPath -Port $port -ApplicationPool $sourceProj.websiteName
 
 $sourceProj.isInitialized = $true
-sd-project-save -context $sourceProj
+sf-project-save -context $sourceProj
 
-$sourceProj = (sd-project-getAll)[0]
-sd-project-setCurrent $sourceProj
+$sourceProj = (sf-project-getAll)[0]
+sf-project-setCurrent $sourceProj
 $Global:testProjectWebsiteName = $id
 
 sql-delete-database -dbName "testsDb"

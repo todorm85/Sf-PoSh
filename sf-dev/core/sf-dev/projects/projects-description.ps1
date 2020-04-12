@@ -2,16 +2,16 @@
 .SYNOPSIS
 Sets a longer description for the current project.
 #>
-function sd-project-setDescription {
-    $context = sd-project-getCurrent
+function sf-project-setDescription {
+    $context = sf-project-getCurrent
 
     $context.description = $(Read-Host -Prompt "Enter description: ").ToString()
 
-    sd-project-save $context
+    sf-project-save $context
 }
 
-function sd-project-getDescription {
-    $context = sd-project-getCurrent
+function sf-project-getDescription {
+    $context = sf-project-getCurrent
     if ($context.description -and $context.description.StartsWith("https://")) {
         $browserPath = $GLOBAL:sf.Config.browserPath;
         execute-native "& `"$browserPath`" `"$($context.description)`" -noframemerging" -successCodes @(100)

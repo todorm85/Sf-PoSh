@@ -23,10 +23,10 @@ To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/
 In powershell console window type:
 ``` PowerShell
 Import-Module sf-dev
-sd- #then press (ctrl + space), which should list all commands
-sd-proj #then ctrl+space, would list all related to module`s projects commands etc.
-sd-project-new -displayName test -sourcePath "any path to sitefinity web app zip or tfs branch" # this creates a new project, in case of tfs branch a separate workspace. It is automatically selected for the current session. All commands that are executed in the powershell session are modifying the currently selected project - it should be displayed on the prompt and on the console status bar.
-sd-project-select # to select a different project previously created etc.
-sd-project-getCurrent # returns the currently selected project object
-sd-project-set # sets the project object passed to the command as the current 
+sf- #then press (ctrl + space), which should list all commands
+sf-proj #then ctrl+space, would list all related to module`s projects commands etc.
+sf-project-new -displayName test -sourcePath "any path to sitefinity web app zip or tfs branch" # this creates a new project, in case of tfs branch a separate workspace. It is automatically selected for the current session. All commands that are executed in the powershell session are modifying the currently selected project - it should be displayed on the prompt and on the console status bar.
+sf-project-select # to select a different project previously created etc.
+sf-project-getCurrent # returns the currently selected project object
+sf-project-set # sets the project object passed to the command as the current 
 ```

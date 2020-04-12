@@ -7,9 +7,9 @@ InModuleScope sf-dev {
         It "create site, add domain and set project properties correctly" {
             $suffix = generateRandomName
             $projName = $Global:fromZipProjectName + $suffix
-            sd-project-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinityWebApp.zip"
+            sf-project-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinityWebApp.zip"
 
-            $sitefinities = @(sd-project-getAll) | Where-Object { $_.displayName -eq $projName }
+            $sitefinities = @(sf-project-getAll) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id
@@ -24,20 +24,20 @@ InModuleScope sf-dev {
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
             existsInHostsFile -searchParam $projName | Should -Be $true
 
-            sd-project-remove -context $createdSf
+            sf-project-remove -context $createdSf
 
             $suffix = generateRandomName
             $projName = $Global:fromZipProjectName + $suffix
             New-Item "$PSScriptRoot\..\utils\files\Build\Sitefinity.lic" -Force
-            sd-project-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinitySource.zip"
-            $sitefinities = @(sd-project-getAll) | Where-Object { $_.displayName -eq $projName }
+            sf-project-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinitySource.zip"
+            $sitefinities = @(sf-project-getAll) | Where-Object { $_.displayName -eq $projName }
             $createdSf = [SfProject]$sitefinities[0]
             $createdSf.solutionPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}"
             $createdSf.webAppPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}\SitefinityWebApp"
             Test-Path "$($createdSf.webAppPath)\App_Data\Sitefinity\Sitefinity.lic" | Should -BeTrue
             Remove-Item "$PSScriptRoot\..\utils\files\Build\Sitefinity.lic"
 
-            sd-project-remove -context $createdSf
+            sf-project-remove -context $createdSf
         }
     }
 }

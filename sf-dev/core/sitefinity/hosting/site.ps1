@@ -9,13 +9,13 @@
     .OUTPUTS
     None
 #>
-function sd-iisSite-browse {
+function sf-iisSite-browse {
     Param(
         [switch]$useExistingBrowser
     )
 
     $browserPath = $GLOBAL:sf.Config.browserPath;
-    [SfProject]$project = sd-project-getCurrent
+    [SfProject]$project = sf-project-getCurrent
     if (!$project) {
         throw "No project selected."
     }
@@ -24,7 +24,7 @@ function sd-iisSite-browse {
         throw "Website is stopped in IIS."
     }
 
-    $appUrl = sd-iisSite-getUrl
+    $appUrl = sf-iisSite-getUrl
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:moduleUserDir -> browserPath"
     }
@@ -42,16 +42,16 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function sd-iisSite-new {
+function sf-iisSite-new {
     param(
         [SfProject]$context
     )
 
     if (!$context) {
-        $context = sd-project-getCurrent
+        $context = sf-project-getCurrent
     }
     
-    $port = sd-getFreePort
+    $port = sf-getFreePort
     $siteExists = @(Get-Website | ? { $_.name -eq $context.id }).Count -gt 0
     while ([string]::IsNullOrEmpty($context.id) -or $siteExists) {
         throw "Website with name $($context.id) already exists or no name provided:"
@@ -81,7 +81,7 @@ function sd-iisSite-new {
     }
 }
 
-function sd-getFreePort {
+function sf-getFreePort {
     param(
         $start = 2111
     )
@@ -93,8 +93,8 @@ function sd-getFreePort {
     return $start
 }
 
-function sd-iisSite-delete {
-    $proj = sd-project-getCurrent
+function sf-iisSite-delete {
+    $proj = sf-project-getCurrent
     $websiteName = $proj.websiteName
     if (!$websiteName) {
         throw "Website name not set."
@@ -131,8 +131,8 @@ function sd-iisSite-delete {
     }
 }
 
-function sd-iisSite-getSubAppName {
-    $proj = sd-project-getCurrent
-    [SfProject]$proj = sd-project-getCurrent
+function sf-iisSite-getSubAppName {
+    $proj = sf-project-getCurrent
+    [SfProject]$proj = sf-project-getCurrent
     Get-WebApplication -Site $proj.websiteName | ? { $_.PhysicalPath.ToLower() -eq $proj.webAppPath } | % { $_.path.TrimStart('/') }
 }

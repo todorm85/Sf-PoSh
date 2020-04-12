@@ -7,16 +7,16 @@
     tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
     If tagsFilter is equal to '+' only untagged projects are shown.
 #>
-function sd-project-select {
+function sf-project-select {
     Param(
         [string[]]$tagsFilter
     )
 
     if (!$tagsFilter) {
-        $tagsFilter = sd-projectTags-getDefaultFilter
+        $tagsFilter = sf-projectTags-getDefaultFilter
     }
 
-    [SfProject[]]$sitefinities = @(sd-project-getAll -tagsFilter $tagsFilter)
+    [SfProject[]]$sitefinities = @(sf-project-getAll -tagsFilter $tagsFilter)
 
     if (!$sitefinities[0]) {
         Write-Warning "No projects found. Check if not using default tag filter."
@@ -25,7 +25,7 @@ function sd-project-select {
 
     $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
     
-    sd-project-setCurrent $selectedSitefinity >> $null
+    sf-project-setCurrent $selectedSitefinity >> $null
     _verifyDefaultBinding
 }
 
@@ -33,15 +33,15 @@ function sd-project-select {
     .SYNOPSIS
     Shows info for selected sitefinity.
 #>
-function sd-project-show {
-    [SfProject]$context = sd-project-getCurrent
+function sf-project-show {
+    [SfProject]$context = sf-project-getCurrent
 
     if ($null -eq ($context)) {
         Write-Warning "No project selected"
         return
     }
 
-    $binding = sd-iisSite-getBinding
+    $binding = sf-iisSite-getBinding
     $url = ''
     if ($binding) {
         $url = "$($binding.domain):$($binding.port) | "
@@ -76,7 +76,7 @@ function sd-project-show {
 
         [pscustomobject]@{id = 2.5; Parameter = " "; Value = " "; },
 
-        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sd-db-getNameFromDataConfig; },
+        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sf-db-getNameFromDataConfig; },
 
         [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
 
@@ -101,7 +101,7 @@ function sd-project-show {
     .SYNOPSIS
     Shows info for all sitefinities managed by the script.
 #>
-function sd-project-showAll {
+function sf-project-showAll {
     Param(
         [SfProject[]]$sitefinities
     )
@@ -211,7 +211,7 @@ function _promptProjectSelect {
 
     $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
 
-    sd-project-showAll $sortedSitefinities
+    sf-project-showAll $sortedSitefinities
 
     while ($true) {
         [int]$choice = Read-Host -Prompt 'Choose sitefinity'
@@ -238,7 +238,7 @@ function _proj-promptSourcePathSelect {
 }
 
 function _proj-promptSfsSelection ([SfProject[]]$sitefinities) {
-    sd-project-showAll $sitefinities
+    sf-project-showAll $sitefinities
 
     $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
     $choices = $choices.Split(' ')

@@ -5,12 +5,12 @@ InModuleScope sf-dev {
 
     Describe "Use existing" {
         . "$PSScriptRoot\test-project-init.ps1"
-        [SfProject]$project = sd-project-getCurrent
+        [SfProject]$project = sf-project-getCurrent
         $sourceProjectDbName = _db-getNameFromDataConfig -appPath $project.webAppPath
 
-        sd-project-new -displayName "test-use-existing" -sourcePath $project.webAppPath
+        sf-project-new -displayName "test-use-existing" -sourcePath $project.webAppPath
 
-        [SfProject]$importedProject = sd-project-getCurrent
+        [SfProject]$importedProject = sf-project-getCurrent
 
         It "save the new project in sfdev db" {
             _data-getAllProjects | Should -HaveCount 2

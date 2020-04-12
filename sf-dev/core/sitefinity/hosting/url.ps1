@@ -1,5 +1,5 @@
-function sd-iisSite-getBinding {
-    [SfProject]$context = sd-project-getCurrent
+function sf-iisSite-getBinding {
+    [SfProject]$context = sf-project-getCurrent
     if (!$context) {
         throw "No project selected."
     }
@@ -19,8 +19,8 @@ function sd-iisSite-getBinding {
     return $binding
 }
 
-function sd-iisSite-setBinding {
-    [SfProject]$project = sd-project-getCurrent
+function sf-iisSite-setBinding {
+    [SfProject]$project = sf-project-getCurrent
     $selectedBinding = _promptBindings
     $project.defaultBinding = [SiteBinding]$defBinding = @{
         protocol = $selectedBinding.protocol
@@ -32,11 +32,11 @@ function sd-iisSite-setBinding {
         os-hosts-add -hostname $binding.domain
     }
 
-    sd-project-save -context $project
+    sf-project-save -context $project
 }
 
-function sd-iisSite-getUrl {
-    [SiteBinding]$binding = sd-iisSite-getBinding
+function sf-iisSite-getUrl {
+    [SiteBinding]$binding = sf-iisSite-getBinding
     _sd-iisSite-buildUrlFromBinding -binding $binding
 }
 
@@ -45,14 +45,14 @@ function _sd-iisSite-buildUrlFromBinding ([SiteBinding]$binding) {
     return _iisSite-appendSubAppPath "$($binding.protocol)://$($hostname):$($binding.port)"
 }
 
-function sd-iisSite-changeDomain {
+function sf-iisSite-changeDomain {
     param (
         $domainName
     )
 
-    [SiteBinding]$binding = sd-iisSite-getBinding
+    [SiteBinding]$binding = sf-iisSite-getBinding
     if ($binding) {
-        [SfProject]$p = sd-project-getCurrent
+        [SfProject]$p = sf-project-getCurrent
         $websiteName = $p.websiteName
         try {
             Remove-WebBinding -Name $websiteName -Port $binding.port -HostHeader $binding.domain -Protocol $binding.protocol
@@ -67,7 +67,7 @@ function sd-iisSite-changeDomain {
 
         if ($p.defaultBinding) {
             $p.defaultBinding.domain = $domainName
-            sd-project-save -context $p
+            sf-project-save -context $p
         }
     }
     else {
@@ -78,8 +78,8 @@ function sd-iisSite-changeDomain {
 function _iisSite-appendSubAppPath {
     param($path)
 
-    $context = sd-project-getCurrent
-    $subAppName = sd-iisSite-getSubAppName -websiteName $context.websiteName
+    $context = sf-project-getCurrent
+    $subAppName = sf-iisSite-getSubAppName -websiteName $context.websiteName
     if ($null -ne $subAppName) {
         $path = "$path/${subAppName}"
     }
@@ -98,7 +98,7 @@ function _generateDomainName {
 }
 
 function _promptBindings {
-    [SfProject]$project = sd-project-getCurrent
+    [SfProject]$project = sf-project-getCurrent
     [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $project.websiteName
     if (!$bindings) {
         Write-Warning "No bindings defined for website."
@@ -124,24 +124,24 @@ function _promptBindings {
 }
 
 function _verifyDefaultBinding {
-    $selectedSitefinity = sd-project-getCurrent
+    $selectedSitefinity = sf-project-getCurrent
     if (!$selectedSitefinity.websiteName) { return }
     [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $selectedSitefinity.websiteName
     if (!$selectedSitefinity.defaultBinding -and $bindings -and $bindings.Count -gt 1) {
         $choice = Read-Host -Prompt "Site has several bindings and there is no default one set. Do you want to set a default binding to be used by the tool? y/n"
         if ($choice -eq 'y') {
-            sd-iisSite-setBinding
+            sf-iisSite-setBinding
         }
     }
     elseif ($selectedSitefinity.defaultBinding -and !(_checkDefaultBindingIsWorking)) {
         $selectedSitefinity.defaultBinding = $null
-        sd-project-save $selectedSitefinity
+        sf-project-save $selectedSitefinity
         _verifyDefaultBinding
     }
 }
 
 function _checkDefaultBindingIsWorking {
-    $selectedSitefinity = sd-project-getCurrent
+    $selectedSitefinity = sf-project-getCurrent
     $allBindings = iis-bindings-getAll -siteName $selectedSitefinity.websiteName
     $binding = $allBindings | Where-Object { $_.domain -eq $selectedSitefinity.defaultBinding.domain -and $_.protocol -eq $selectedSitefinity.defaultBinding.protocol -and $_.port -eq $selectedSitefinity.defaultBinding.port }
     if (!(os-hosts-get | ? { $_.Contains($selectedSitefinity.defaultBinding.domain) })) {

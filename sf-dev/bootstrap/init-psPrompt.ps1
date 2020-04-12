@@ -10,7 +10,7 @@ function _update-prompt {
     try {
         _setConsoleTitle
 
-        $project = sd-project-getCurrent
+        $project = sf-project-getCurrent
         $projectName = if ($project) { $project.displayName } else { '' }
         if ($projectName) {
             $prompt = " [$projectName]"
@@ -27,9 +27,9 @@ function _update-prompt {
 }
 
 function _setConsoleTitle {
-    $newContext = sd-project-getCurrent
+    $newContext = sf-project-getCurrent
     if ($newContext) {
-        $binding = sd-iisSite-getBinding
+        $binding = sf-iisSite-getBinding
         if ($newContext.branch) {
             $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
         }

@@ -11,92 +11,92 @@ InModuleScope sf-dev {
         $testTag4 = 'test-sd-projectTags-4'
 
         It "Add single tag to project" {
-            sd-projectTags-addToCurrent -tagName $testTag1
-            [SfProject]$proj = (sd-project-getAll)[0]
+            sf-projectTags-addToCurrent -tagName $testTag1
+            [SfProject]$proj = (sf-project-getAll)[0]
             $proj.tags | Should -Contain $testTag1
-            $result = sd-project-setCurrent $proj
-            sd-projectTags-getAllFromCurrent | Should -Contain $testTag1
-            sd-projectTags-getAllFromCurrent | Should -HaveCount 1
+            $result = sf-project-setCurrent $proj
+            sf-projectTags-getAllFromCurrent | Should -Contain $testTag1
+            sf-projectTags-getAllFromCurrent | Should -HaveCount 1
         }
         It "Add multiple tags to project" {
             $expectedTags = @($testTag1, $testTag2, $testTag3)
-            sd-projectTags-addToCurrent $testTag2
-            sd-projectTags-addToCurrent $testTag3
-            [SfProject]$proj = (sd-project-getAll)[0]
+            sf-projectTags-addToCurrent $testTag2
+            sf-projectTags-addToCurrent $testTag3
+            [SfProject]$proj = (sf-project-getAll)[0]
             $proj.tags | Should -Be $expectedTags
-            $result = sd-project-setCurrent $proj
-            sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
+            $result = sf-project-setCurrent $proj
+            sf-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove tag from project" {
             $expectedTags = @($testTag1, $testTag3)
 
-            [SfProject]$proj = (sd-project-getAll)[0]
-            $result = sd-project-setCurrent $proj
-            sd-projectTags-removeFromCurrent $testTag2
+            [SfProject]$proj = (sf-project-getAll)[0]
+            $result = sf-project-setCurrent $proj
+            sf-projectTags-removeFromCurrent $testTag2
 
-            [SfProject]$proj = (sd-project-getAll)[0]
-            $result = sd-project-setCurrent $proj
+            [SfProject]$proj = (sf-project-getAll)[0]
+            $result = sf-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
-            sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
+            sf-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove multiple tags from project" {
             $expectedTags = @($testTag1,$testTag4)
-            sd-projectTags-addToCurrent $testTag2
-            sd-projectTags-addToCurrent $testTag4
+            sf-projectTags-addToCurrent $testTag2
+            sf-projectTags-addToCurrent $testTag4
 
-            [SfProject]$proj = (sd-project-getAll)[0]
-            $result = sd-project-setCurrent $proj
-            sd-projectTags-removeFromCurrent $testTag2
-            sd-projectTags-removeFromCurrent $testTag3
+            [SfProject]$proj = (sf-project-getAll)[0]
+            $result = sf-project-setCurrent $proj
+            sf-projectTags-removeFromCurrent $testTag2
+            sf-projectTags-removeFromCurrent $testTag3
 
-            [SfProject]$proj = (sd-project-getAll)[0]
-            $result = sd-project-setCurrent $proj
+            [SfProject]$proj = (sf-project-getAll)[0]
+            $result = sf-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
-            sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
+            sf-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove first tag" {
             $expectedTags = @($testTag4)
 
-            [SfProject]$proj = (sd-project-getAll)[0]
-            $result = sd-project-setCurrent $proj
-            sd-projectTags-removeFromCurrent $testTag1
+            [SfProject]$proj = (sf-project-getAll)[0]
+            $result = sf-project-setCurrent $proj
+            sf-projectTags-removeFromCurrent $testTag1
 
-            [SfProject]$proj = (sd-project-getAll)[0]
-            $result = sd-project-setCurrent $proj
+            [SfProject]$proj = (sf-project-getAll)[0]
+            $result = sf-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
-            sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
+            sf-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove last tag" {
             $expectedTags = @($testTag4)
-            sd-projectTags-addToCurrent $testTag2
+            sf-projectTags-addToCurrent $testTag2
 
-            [SfProject]$proj = (sd-project-getAll)[0]
-            $result = sd-project-setCurrent $proj
-            sd-projectTags-removeFromCurrent $testTag2
+            [SfProject]$proj = (sf-project-getAll)[0]
+            $result = sf-project-setCurrent $proj
+            sf-projectTags-removeFromCurrent $testTag2
 
-            [SfProject]$proj = (sd-project-getAll)[0]
-            $result = sd-project-setCurrent $proj
+            [SfProject]$proj = (sf-project-getAll)[0]
+            $result = sf-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
-            sd-projectTags-getAllFromCurrent | Should -Be $expectedTags
+            sf-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Not accept tags starting with '-'" {
-            { sd-projectTags-addToCurrent "_ffd" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-projectTags-addToCurrent "_ffd" } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
         It "Not accept tags with spaces" {
-            { sd-projectTags-addToCurrent "dffd dfds" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-projectTags-addToCurrent "dffd dfds" } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
         It "Not accept Null or empty tags" {
-            { sd-projectTags-addToCurrent "   "} | Should -Throw -ExpectedMessage "Invalid tag name."
-            { sd-projectTags-addToCurrent "" } | Should -Throw -ExpectedMessage "Invalid tag name."
-            { sd-projectTags-addToCurrent $null } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-projectTags-addToCurrent "   "} | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-projectTags-addToCurrent "" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-projectTags-addToCurrent $null } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
 
-        sd-project-remove -context $testProj
+        sf-project-remove -context $testProj
     }
 
     # Describe "_tag-setNewProjectDefaultTags should" {
     #     $Script:filter = $null
-    #     Mock sd-projectTags-getDefaultFilter {
+    #     Mock sf-projectTags-getDefaultFilter {
     #         $Script:filter
     #     }
 
@@ -154,34 +154,34 @@ InModuleScope sf-dev {
 
     Describe "default tags operations" {
         It "adds tag to default tag filter" {
-            $filter = sd-projectTags-getDefaultFilter
+            $filter = sf-projectTags-getDefaultFilter
             $filter += @("t1")
-            sd-projectTags-setDefaultFilter $filter
-            sd-projectTags-getDefaultFilter | Should -Be @("t1")
+            sf-projectTags-setDefaultFilter $filter
+            sf-projectTags-getDefaultFilter | Should -Be @("t1")
             $filter += @("t2")
-            sd-projectTags-setDefaultFilter $filter
-            $filter = sd-projectTags-getDefaultFilter
+            sf-projectTags-setDefaultFilter $filter
+            $filter = sf-projectTags-getDefaultFilter
             $filter[0] | Should -Be "t1"
             $filter[1] | Should -Be "t2"
         }
         It "removes tag from default tags filter" {
-            sd-projectTags-removeFromDefaultFilter -tag "t1"
-            $filter = sd-projectTags-getDefaultFilter
+            sf-projectTags-removeFromDefaultFilter -tag "t1"
+            $filter = sf-projectTags-getDefaultFilter
             $filter[0] | Should -Be "t2"
         }
         It "removes nonexisting tag does nothing" {
-            sd-projectTags-removeFromDefaultFilter -tag "t1"
-            $filter = sd-projectTags-getDefaultFilter
+            sf-projectTags-removeFromDefaultFilter -tag "t1"
+            $filter = sf-projectTags-getDefaultFilter
             $filter[0] | Should -Be "t2"
         }
         It "removes all tags then add tags again" {
-            sd-projectTags-removeFromDefaultFilter -tag "t2"
-            $result = sd-projectTags-getDefaultFilter
+            sf-projectTags-removeFromDefaultFilter -tag "t2"
+            $result = sf-projectTags-getDefaultFilter
             $result | Should -Be @()
-            sd-projectTags-addToDefaultFilter -tag "t3"
-            sd-projectTags-addToDefaultFilter -tag "t4"
-            (sd-projectTags-getDefaultFilter)[0] | Should -Be "t3"
-            (sd-projectTags-getDefaultFilter)[1] | Should -Be "t4"
+            sf-projectTags-addToDefaultFilter -tag "t3"
+            sf-projectTags-addToDefaultFilter -tag "t4"
+            (sf-projectTags-getDefaultFilter)[0] | Should -Be "t3"
+            (sf-projectTags-getDefaultFilter)[1] | Should -Be "t4"
         }
 
         . "$PSScriptRoot\test-project-teardown.ps1"

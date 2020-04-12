@@ -6,7 +6,7 @@ InModuleScope sf-dev {
         . "$PSScriptRoot\test-project-init.ps1"
 
         It "save and then restore app_data folder and database" {
-            [SfProject]$project = sd-project-getCurrent
+            [SfProject]$project = sf-project-getCurrent
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             [string]$stateName = generateRandomName
             $stateName = $stateName.Replace('-', '_')
@@ -15,7 +15,7 @@ InModuleScope sf-dev {
             $beforeSaveFilePath = "$configsPath\before_$stateName"
             New-Item $beforeSaveFilePath
 
-            $dbName = sd-db-getNameFromDataConfig
+            $dbName = sf-db-getNameFromDataConfig
             $dbName | Should -Not -BeNullOrEmpty
             sql-createTable -dbName $dbName -tableName "tests"
             $table = 'tests'
@@ -23,7 +23,7 @@ InModuleScope sf-dev {
             $values = "'testVal1'"
             sql-insert-items -dbName $dbName -tableName $table -columns $columns -values $values
 
-            sd-appStates-save -stateName $stateName
+            sf-appStates-save -stateName $stateName
 
             # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
             $afterSaveFilePath = "$configsPath\after_$stateName"
@@ -45,7 +45,7 @@ InModuleScope sf-dev {
             $config = sql-get-items -dbName $dbName -tableName $table -whereFilter $where -selectFilter $select
             $config | Should -Not -BeNullOrEmpty
 
-            sd-appStates-restore -stateName $stateName
+            sf-appStates-restore -stateName $stateName
 
             $select = 'test'
             $where = "test = 'testVal1'"

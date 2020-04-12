@@ -22,7 +22,7 @@ function _newSfProjectObject ($id) {
     .PARAMETER displayName
     The name of the project that the tool will use to present it in the CLI
 #>
-function sd-project-new {
+function sf-project-new {
     Param(
         [string]$sourcePath,
         [string]$displayName = 'Untitled'
@@ -41,21 +41,21 @@ function sd-project-new {
     }
 
     if (!$newContext.websiteName) {
-        sd-iisSite-new -context $newContext
+        sf-iisSite-new -context $newContext
     }
     
-    sd-project-setCurrent $newContext
+    sf-project-setCurrent $newContext
 
     return $newContext
 }
 
-function sd-project-clone {
+function sf-project-clone {
     Param(
         [switch]$skipSourceControlMapping,
         [switch]$skipDatabaseClone
     )
 
-    $context = sd-project-getCurrent
+    $context = sf-project-getCurrent
 
     $sourcePath = $context.solutionPath;
     $hasSolution = !([string]::IsNullOrEmpty($sourcePath));
@@ -98,7 +98,7 @@ function sd-project-clone {
         $newProject.webAppPath = $targetPath
     }
 
-    sd-project-setCurrent -newContext $newProject >> $null
+    sf-project-setCurrent -newContext $newProject >> $null
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
@@ -112,7 +112,7 @@ function sd-project-clone {
 
     try {
         Write-Information "Creating website..."
-        sd-iisSite-new
+        sf-iisSite-new
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -125,7 +125,7 @@ function sd-project-clone {
     if ($sourceDbName -and $exists -and !$skipDatabaseClone) {
         $newDbName = $newProject.id
         try {
-            sd-db-setNameInDataConfig $newDbName -context $newProject
+            sf-db-setNameInDataConfig $newDbName -context $newProject
         }
         catch {
             Write-Error "Error setting new database name in config $newDbName).`n $_"
@@ -140,7 +140,7 @@ function sd-project-clone {
     }
 
     try {
-        sd-appStates-removeAll
+        sf-appStates-removeAll
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"
@@ -148,12 +148,12 @@ function sd-project-clone {
 
     $newProject.tags.AddRange($oldProject.tags) 
 
-    sd-project-save -context $newProject
-    sd-project-setCurrent $newProject
+    sf-project-save -context $newProject
+    sf-project-setCurrent $newProject
 }
 
-function sd-project-removeBulk {
-    $sitefinities = @(sd-project-getAll)
+function sf-project-removeBulk {
+    $sitefinities = @(sf-project-getAll)
     if ($null -eq $sitefinities[0]) {
         Write-Host "No projects found. Create one."
         return
@@ -163,7 +163,7 @@ function sd-project-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sd-project-remove -context $selectedSitefinity
+            sf-project-remove -context $selectedSitefinity
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"
@@ -185,7 +185,7 @@ function sd-project-removeBulk {
     .OUTPUTS
     None
 #>
-function sd-project-remove {
+function sf-project-remove {
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)][SfProject]$context = $null,
@@ -195,14 +195,14 @@ function sd-project-remove {
     )
 
     Process {
-        [SfProject]$currentProject = sd-project-getCurrent
+        [SfProject]$currentProject = sf-project-getCurrent
         $clearCurrentSelectedProject = $false
         if ($null -eq $context -or $currentProject.id -eq $context.id) {
             $context = $currentProject
             $clearCurrentSelectedProject = $true
         }
 
-        sd-project-setCurrent -newContext $context > $null
+        sf-project-setCurrent -newContext $context > $null
 
         # Del Website
         Write-Information "Deleting website..."
@@ -210,14 +210,14 @@ function sd-project-remove {
         $siteExists = @(Get-Website | ? { $_.name -eq $websiteName }).Count -gt 0
         if ($websiteName -and $siteExists) {
             try {
-                sd-iisAppPool-Stop
+                sf-iisAppPool-Stop
             }
             catch {
                 Write-Warning "Could not stop app pool: $_`n"
             }
 
             try {
-                sd-iisSite-delete
+                sf-iisSite-delete
             }
             catch {
                 Write-Warning "Errors deleting website ${websiteName}. $_`n"
@@ -292,21 +292,21 @@ function sd-project-remove {
         }
 
         if ($clearCurrentSelectedProject) {
-            sd-project-setCurrent $null > $null
+            sf-project-setCurrent $null > $null
         }
         else {
-            sd-project-setCurrent $currentProject > $null
+            sf-project-setCurrent $currentProject > $null
         }
     }
 }
 
-function sd-project-rename {
+function sf-project-rename {
     Param(
         [string]$newName,
         [switch]$setDescription
     )
 
-    $project = sd-project-getCurrent
+    $project = sf-project-getCurrent
     [SfProject]$context = $project
 
     if (-not $newName) {
@@ -358,17 +358,17 @@ function sd-project-rename {
         }
     }
 
-    sd-iisSite-changeDomain -domainName "$($newName).$($context.id)"
+    sf-iisSite-changeDomain -domainName "$($newName).$($context.id)"
 
     _update-prompt
-    sd-project-save $context
+    sf-project-save $context
 }
 
-function sd-project-getCurrent {
+function sf-project-getCurrent {
     $Script:globalContext
 }
 
-function sd-project-setCurrent {
+function sf-project-setCurrent {
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)][SfProject]$newContext
@@ -399,7 +399,7 @@ function sd-project-setCurrent {
     }
 }
 
-function sd-project-getAll {
+function sf-project-getAll {
     [OutputType([SfProject[]])]
     param(
         [string[]]$tagsFilter
@@ -506,7 +506,7 @@ function _createUserFriendlySlnName ($context) {
     }
 }
 
-function sd-project-save {
+function sf-project-save {
     Param($context)
 
     if (!$context.id) {
@@ -559,7 +559,7 @@ function _getIsIdDuplicate ($id) {
         return $false
     }
 
-    $sitefinities = [SfProject[]](sd-project-getAll)
+    $sitefinities = [SfProject[]](sf-project-getAll)
     $sitefinities | ForEach-Object {
         $sitefinity = [SfProject]$_
         if ($sitefinity.id -eq $id) {
@@ -615,7 +615,7 @@ function _generateSolutionFriendlyName {
     )
 
     if (-not ($context)) {
-        $context = sd-project-getCurrent
+        $context = sf-project-getCurrent
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"
@@ -670,7 +670,7 @@ function _proj-initialize {
         Write-Error "Some errors occurred during project detection. $errors"
     }
 
-    sd-project-save -context $project
+    sf-project-save -context $project
 
     $project.isInitialized = $true
 }

@@ -4,7 +4,7 @@ $Script:codeDeployment_ServerCodePath = "App_Code\sf-dev\codeRunner"
 
 $Global:SfEvents_OnAfterProjectSelected += { _sd-serverCode-deploy }
 
-function sd-serverCode-run {
+function sf-serverCode-run {
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
@@ -26,9 +26,9 @@ function sd-serverCode-run {
     $encodedMethod = [System.Web.HttpUtility]::UrlEncode($methodName)
     $serviceRequestPath = "CodeRunner.svc/CallMethod?methodName=$encodedMethod&typeName=$encodedType&params=$encodedParams"
 
-    sd-app-waitForSitefinityToStart > $null
+    sf-app-waitForSitefinityToStart > $null
     
-    $baseUrl = sd-iisSite-getUrl
+    $baseUrl = sf-iisSite-getUrl
     $response = Invoke-WebRequest -Uri "$baseUrl/$($Script:codeDeployment_ServicePath.Replace('\', '/'))/$serviceRequestPath"
     if ($response.StatusCode -ne 200) {
         Write-Error "Response status code for call $serviceRequestPath was not 200 OK."
@@ -46,7 +46,7 @@ function sd-serverCode-run {
 }
 
 function _sd-serverCode-deploy {
-    [SfProject]$p = sd-project-getCurrent
+    [SfProject]$p = sf-project-getCurrent
     if (!$p) {
         throw "No project selected."
     }

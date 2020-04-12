@@ -5,7 +5,7 @@ $Script:stateCompleter = {
         $commandAst,
         $fakeBoundParameters )
 
-    $possibleValues = sd-appStates-get | select -ExpandProperty name
+    $possibleValues = sf-appStates-get | select -ExpandProperty name
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
             $_ -like "$wordToComplete*"
@@ -15,16 +15,16 @@ $Script:stateCompleter = {
     $possibleValues
 }
 
-function sd-appStates-save {
+function sf-appStates-save {
     Param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         $stateName
     )
 
-    $project = sd-project-getCurrent
+    $project = sf-project-getCurrent
 
-    $dbName = sd-db-getNameFromDataConfig
+    $dbName = sf-db-getNameFromDataConfig
     $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
     if (-not $dbName -or -not $db) {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
@@ -58,9 +58,9 @@ function sd-appStates-save {
     _appData-copy -dest $appDataStatePath
 }
 
-Register-ArgumentCompleter -CommandName sd-appStates-save -ParameterName stateName -ScriptBlock $stateCompleter
+Register-ArgumentCompleter -CommandName sf-appStates-save -ParameterName stateName -ScriptBlock $stateCompleter
 
-function sd-appStates-restore {
+function sf-appStates-restore {
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)][string]$stateName,
@@ -68,7 +68,7 @@ function sd-appStates-restore {
     )
 
     process {
-        $project = sd-project-getCurrent
+        $project = sf-project-getCurrent
 
         if (!$stateName) {
             $stateName = _selectAppState -context $context
@@ -78,9 +78,9 @@ function sd-appStates-restore {
             return
         }
 
-        sd-iisAppPool-Reset
+        sf-iisAppPool-Reset
         if ($force) {
-            sd-sol-unlockAllFiles
+            sf-sol-unlockAllFiles
         }
 
         $statesPath = _getStatesPath
@@ -101,9 +101,9 @@ function sd-appStates-restore {
     }
 }
 
-Register-ArgumentCompleter -CommandName sd-appStates-restore -ParameterName stateName -ScriptBlock $stateCompleter
+Register-ArgumentCompleter -CommandName sf-appStates-restore -ParameterName stateName -ScriptBlock $stateCompleter
 
-function sd-appStates-remove {
+function sf-appStates-remove {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline)]$stateName
@@ -126,14 +126,14 @@ function sd-appStates-remove {
     }
 }
 
-Register-ArgumentCompleter -CommandName sd-appStates-remove -ParameterName stateName -ScriptBlock $stateCompleter
+Register-ArgumentCompleter -CommandName sf-appStates-remove -ParameterName stateName -ScriptBlock $stateCompleter
 
-function sd-appStates-removeAll {
-    sd-appStates-get | sd-appStates-remove
+function sf-appStates-removeAll {
+    sf-appStates-get | sf-appStates-remove
 }
 
 # returns object with name and path
-function sd-appStates-get {
+function sf-appStates-get {
     $statesPath = _getStatesPath
     $result = Get-ChildItem $statesPath -Directory | % { 
         [PSCustomObject]@{
@@ -146,7 +146,7 @@ function sd-appStates-get {
 }
 
 function _selectAppState {
-    $states = sd-appStates-get
+    $states = sf-appStates-get
     if (-not $states) {
         Write-Warning "No states."
         return
@@ -170,7 +170,7 @@ function _selectAppState {
 }
 
 function _getStatesPath {
-    $context = sd-project-getCurrent
+    $context = sf-project-getCurrent
     $path = "$($context.webAppPath)/dev-tool"
 
     if (!(Test-Path $path)) {
