@@ -11,7 +11,7 @@
     VariablesToExport = @()
     # !!! Performance issue with intellisense do not enable
     # AliasesToExport   = '*'
-    ModuleVersion     = '18.0.2'
+    ModuleVersion     = '18.1.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -19,6 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            18.1.0
+                NLB support
             17.3.0
                 Ability to skip db cloning on project clone.
             17.2.0
