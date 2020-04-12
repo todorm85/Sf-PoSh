@@ -11,6 +11,7 @@
     "sqlServerInstance": ".",
     "sqlUser": "sa",
     "sqlPass": "admin@2",
+    "pathToNginxConfig" : "C:\\nginx\\conf\\nginx.conf",
     "predefinedBranches": [
         "$/CMS/Sitefinity 4.0/Code Base",
         "$/CMS/Sitefinity 4.0/TeamBranches/U3/Code Base"

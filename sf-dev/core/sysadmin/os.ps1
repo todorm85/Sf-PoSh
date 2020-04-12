@@ -146,6 +146,21 @@ function os-hosts-remove ($hostname) {
     return $address
 }
 
+function os-browseUrl {
+    param (
+        [string]$url,
+        [switch]$openInSameWindow
+    )
+
+    $browserPath = $GLOBAL:sf.config.browserPath
+    if (-not $openInSameBrowser) {
+        execute-native "& Start-Process `"$browserPath`"" -successCodes @(100)
+        Start-Sleep -Seconds 0.5
+    }
+
+    execute-native "& `"$browserPath`" `"$url`" -noframemerging" -successCodes @(100)
+}
+
 function _clean-emptyDirs ($path) {
     $dirs = @()
     do {

@@ -1,5 +1,4 @@
 $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Backlog Item ", "Bug ", "Task ", "Feature ") -MemberType NoteProperty
-$Global:SfEvents_OnAfterProjectSelected = @()
 
 function _newSfProjectObject ($id) {
     [SfProject]$newProject = [SfProject]::new()

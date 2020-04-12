@@ -1,10 +1,8 @@
 function Get-CsharpClasses {
-    Get-ChildItem -Path "$PSScriptRoot\..\admin" -Filter '*.cs' -Recurse
-    Get-ChildItem -Path "$PSScriptRoot\..\core" -Filter '*.cs' -Recurse
+    Get-ChildItem -Path "$PSScriptRoot\..\core" -Filter '*.sfdev.cs' -Recurse
 }
 
 function Get-ScriptFiles {
-    Get-ChildItem -Path "$PSScriptRoot\..\admin" -Filter '*.ps1' -Recurse
     Get-ChildItem -Path "$PSScriptRoot\..\core" -Filter '*.ps1' -Recurse
 }
 

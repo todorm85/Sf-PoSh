@@ -74,7 +74,7 @@ InModuleScope sf-dev {
                 }
             )
 
-            upgrade $scripts
+            _upgrade $scripts
             $script:actual | Should -Be "0.0.0"
         }
 
@@ -101,12 +101,12 @@ InModuleScope sf-dev {
                 }
             )
 
-            upgrade $scripts
+            _upgrade $scripts
             $Script:executionCount | Should -Be 1
         }
         It "failing to get the new module version should not execute any scripts and throw" {
             Mock _getNewModuleVersion { }
-            { upgrade $scripts } | Should -Throw
+            { _upgrade $scripts } | Should -Throw
         }
     }
 

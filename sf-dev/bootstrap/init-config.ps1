@@ -46,10 +46,10 @@ function get-userConfig {
 }
 
 $userConfigPath = "$Script:moduleUserDir\config.json"
-
 $defaultConfigPath = "$PSScriptRoot\default_config.json"
 
 $configFile = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
+Add-Member -InputObject $configFile -MemberType NoteProperty -Name userConfigPath -Value $userConfigPath
 Add-Member -InputObject $configFile -MemberType NoteProperty -Name dataPath -Value "$Script:moduleUserDir\db.xml"
 $configFile.projectsDirectory = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)
 

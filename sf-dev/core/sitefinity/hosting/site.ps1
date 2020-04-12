@@ -29,12 +29,7 @@ function sd-iisSite-browse {
         throw "Invalid browser path configured ($browserPath). Configure it in $Script:moduleUserDir -> browserPath"
     }
 
-    if (-not $useExistingBrowser) {
-        execute-native "& Start-Process `"$browserPath`"" -successCodes @(100)
-        Start-Sleep -Seconds 1
-    }
-
-    execute-native "& `"$browserPath`" `"${appUrl}/Sitefinity`" -noframemerging" -successCodes @(100)
+    os-browseUrl -url "${appUrl}/Sitefinity" -openInSameWindow:$useExistingBrowser
 }
 
 <#

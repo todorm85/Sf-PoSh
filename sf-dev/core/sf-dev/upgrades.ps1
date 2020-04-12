@@ -1,4 +1,4 @@
-function upgrade {
+function _upgrade {
     param (
         [ScriptBlock[]]$upgradeScripts
     )

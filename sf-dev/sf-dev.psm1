@@ -10,6 +10,8 @@ if ($Global:SfEvents_OnAfterConfigInit) {
     $Global:SfEvents_OnAfterConfigInit | % { Invoke-Command -ScriptBlock $_ }
 }
 
+$Global:SfEvents_OnAfterProjectSelected = @()
+
 . "${PSScriptRoot}/bootstrap/init-psPrompt.ps1"
 . "${PSScriptRoot}/bootstrap/load-scripts.ps1"
 
@@ -33,6 +35,6 @@ $scripts = @(
     }
 )
     
-upgrade -upgradeScripts $scripts
-
+_upgrade -upgradeScripts $scripts
+$Global:InformationPreference = "Continue"
 Export-ModuleMember -Function *

@@ -14,6 +14,8 @@ $functions = $functionsLines | Where-Object { $_ -match $functionNamePattern } |
 $functionsEntry = ''
 $functions | ForEach-Object { $functionsEntry += "'$_', "}
 $functionsEntry = $functionsEntry.TrimEnd(@(',', ' '))
+
+# update psd
 $psdPath = "$PSScriptRoot\..\sf-dev\sf-dev.psd1";
 $psdContent = ""
 Get-Content -Path $psdPath | ForEach-Object {
@@ -23,7 +25,7 @@ Get-Content -Path $psdPath | ForEach-Object {
         $newLine = "$key$functionsEntry"
     }
 
-    $psdContent += "$newLine`n"
+    $psdContent += "$newLine$([Environment]::NewLine)"
 }
 
-$psdContent | Out-File -FilePath $psdPath -Encoding utf8
+$psdContent | Out-File -FilePath $psdPath -Encoding utf8 -NoNewline

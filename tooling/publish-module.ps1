@@ -10,11 +10,10 @@ if (!$Script:version) {
 }
 
 Set-Location "$PSScriptRoot"
-
 git commit --quiet -a -m "Update for publishing"
 
-# . "./set-exportedFunctions.ps1"
-# git commit --quiet -a -m "Update exported functions definition"
+. "./set-exportedFunctions.ps1"
+git commit --quiet -a -m "Update exported functions definition"
 
 $res = git tag $Script:version 2>&1
 if ($res -and $res.ToString().Contains('fatal')) {
