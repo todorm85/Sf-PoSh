@@ -61,7 +61,7 @@ function sf {
             sf-iisAppPool-Reset
         }
         if ($reOrInitializeSitefinityApp) {
-            sf-app-reinitializeAndStart
+            sf-app-reinitialize
         }
 
         if ($precompileTemplates) {
@@ -72,7 +72,7 @@ function sf {
         }
 
         if ($ensureSitefinityIsRunning) {
-            sf-app-waitForSitefinityToStart
+            sf-app-sendRequestAndEnsureInitialized
         }
 
         if ($saveApplicationState) {

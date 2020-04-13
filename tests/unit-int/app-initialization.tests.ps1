@@ -12,16 +12,16 @@ InModuleScope sf-dev {
         $dbName | Should -Not -BeNullOrEmpty
         sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
     
-        It "remove app data and database when uninitialize" {
+        It "remove app data and keep database when uninitialize" {
             sf-app-uninitialize
-            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
+            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
             Test-Path $configsPath | Should -Be $false
         }
     
         It "create startup config successfully when reinitialize" {
-            Mock sf-app-waitForSitefinityToStart { }
+            Mock sf-app-sendRequestAndEnsureInitialized { }
             $mock = Mock sf-app-uninitialize { }
-            sf-app-reinitializeAndStart
+            sf-app-reinitialize
             Test-Path "$configsPath\StartupConfig.config" | Should -Be $true
             Assert-MockCalled sf-app-uninitialize
         }

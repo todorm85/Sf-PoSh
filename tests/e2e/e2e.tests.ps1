@@ -52,7 +52,7 @@ InModuleScope sf-dev {
     Describe "Reinitializing should" -Tags ("reset") {
         sf-project-getAll | select -First 1 | sf-project-setCurrent
         [SfProject]$project = sf-project-getCurrent
-        sf-app-reinitializeAndStart
+        sf-app-reinitialize
         $url = sf-iisSite-getUrl
         $result = _invokeNonTerminatingRequest $url
         $result | Should -Be 200
@@ -63,14 +63,14 @@ InModuleScope sf-dev {
         $dbName | Should -Not -BeNullOrEmpty
         sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
 
-        It "remove app data and database when uninitialize" {
+        It "remove app data and keep database when uninitialize" {
             sf-app-uninitialize
-            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
+            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
             Test-Path $configsPath | Should -Be $false
         }
 
         It "start successfully after initialize" {
-            sf-app-reinitializeAndStart
+            sf-app-reinitialize
             Test-Path $configsPath | Should -Be $true
             $dbName = _db-getNameFromDataConfig  $project.webAppPath
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1

@@ -1,4 +1,4 @@
-function sf-app-waitForSitefinityToStart {
+function sf-app-sendRequestAndEnsureInitialized {
     param(
         [Int32]$totalWaitSeconds = $GLOBAL:sf.config.app.startupMaxWait
     )
@@ -49,6 +49,41 @@ function sf-app-waitForSitefinityToStart {
     }
 }
 
+function sf-app-initialize {
+    param(
+        [switch]$skipSendRequestAndEnsureInitialized
+    )
+
+    [SfProject]$p = sf-project-getCurrent
+    if (!$p) {
+        throw "No project selected."
+    }
+
+    $currentDbName = sf-db-getNameFromDataConfig
+    if ($currentDbName) {
+        throw "Already initialized  with database: $currentDbName. Uninitialize first."
+    }
+
+    Start-Sleep -s 1
+    try {
+        $dbName = $p.id
+        sql-delete-database $dbName
+        sf-appStartupConfig-create $GLOBAL:sf.config.sitefinityUser $dbName
+    }
+    catch {
+        throw "Erros while creating startupConfig: $_"
+    }
+    
+    try {
+        if (-not $skipSendRequestAndEnsureInitialized) {
+            sf-app-sendRequestAndEnsureInitialized
+        }
+    }
+    catch {
+        throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
+    }
+}
+
 function sf-app-uninitialize {
     Param(
         [switch]$force
@@ -58,28 +93,15 @@ function sf-app-uninitialize {
     if (!$project) {
         Write-Error "No project selected"
     }
-
-    Write-Information "Restarting app pool..."
-    sf-iisAppPool-Reset
-
-    if ($force) {
-        Write-Information "Unlocking files..."
-        sf-sol-unlockAllFiles
-    }
-
-    Write-Information "Deleting database..."
-    try {
-        $dbName = sf-db-getNameFromDataConfig
-        if ($dbName) {
-            sql-delete-database -dbName $dbName
-        }
-    }
-    catch {
-        throw "Erros while deleting database: $_"
-    }
     
-    Write-Information "Removing App_Data files..."
+    # not deleting the db as it might be used by other project if shared
+    
     try {
+        sf-iisAppPool-Reset
+        if ($force) {
+            sf-sol-unlockAllFiles
+        }
+
         sf-sol-resetSitefinityFolder
     }
     catch {
@@ -87,20 +109,13 @@ function sf-app-uninitialize {
     }
 }
 
-function sf-app-reinitializeAndStart {
+function sf-app-reinitialize {
     Param(
         [switch]$force
     )
 
-    $project = sf-project-getCurrent
-
-    $dbName = sf-db-getNameFromDataConfig # this needs to be here before DataConfig.config gets deleted!!!
-    if (!$dbName) {
-        $dbName = $project.id
-    }
-
     sf-app-uninitialize -force:$force
-    _app-initialize -dbName $dbName
+    sf-app-initialize
 }
 
 <#
@@ -148,27 +163,6 @@ function sf-appPrecompiledTemplates-remove {
 
 function _sd-appPrecompiledTemplates-getCompilerPath() {
     "$PSScriptRoot\external-tools\compiler\Telerik.Sitefinity.Compiler.exe"
-}
-function _app-initialize {
-    param(
-        [Parameter(Mandatory = $true)]$dbName
-    )
-
-    Start-Sleep -s 2
-    try {
-        sf-appStartupConfig-create $GLOBAL:sf.config.sitefinityUser $dbName
-    }
-    catch {
-        throw "Erros while creating startupConfig: $_"
-    }
-
-    try {
-        sf-app-waitForSitefinityToStart
-    }
-    catch {
-        sf-appStartupConfig-remove
-        throw "ERROS WHILE INITIALIZING WEB APP. MOST LIKELY CAUSE:`n$_`n"
-    }
 }
 
 function _invokeNonTerminatingRequest ($url) {

@@ -243,15 +243,14 @@ function sf-project-remove {
                 Write-Warning "Could not delete workspace $_"
             }
         }
-
-        $dbName = _db-getNameFromDataConfig -appPath $context.webAppPath
-
+        
         # Del db
-        if (-not [string]::IsNullOrEmpty($dbName) -and (-not $keepDb)) {
+        if (!$keepDb) {
             Write-Information "Deleting sitefinity database..."
-
             try {
+                $dbName = _db-getNameFromDataConfig -appPath $context.webAppPath
                 sql-delete-database -dbName $dbName
+                sql-delete-database -dbName $context.id
             }
             catch {
                 Write-Warning "Could not delete database: ${dbName}. $_"

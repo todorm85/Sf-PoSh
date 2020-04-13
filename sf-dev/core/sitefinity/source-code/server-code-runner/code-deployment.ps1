@@ -26,7 +26,7 @@ function sf-serverCode-run {
     $encodedMethod = [System.Web.HttpUtility]::UrlEncode($methodName)
     $serviceRequestPath = "CodeRunner.svc/CallMethod?methodName=$encodedMethod&typeName=$encodedType&params=$encodedParams"
 
-    sf-app-waitForSitefinityToStart > $null
+    sf-app-sendRequestAndEnsureInitialized > $null
     
     $baseUrl = sf-iisSite-getUrl
     $response = Invoke-WebRequest -Uri "$baseUrl/$($Script:codeDeployment_ServicePath.Replace('\', '/'))/$serviceRequestPath"
