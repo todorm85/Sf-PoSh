@@ -1,88 +1,83 @@
 function sf {
     [CmdletBinding()]
     param (
-        [switch]$getLatest,
-        [switch]$forceGet,
-        [switch]$stopIfNoNew,
-        [switch]$discardExisting,
-        [switch]$clean,
-        [switch]$build,
-        [switch]$reinitialize,
-        [switch]$resetPool,
-        [switch]$start,
-        [switch]$precompile,
-        [switch]$save,
-        [Parameter(ValueFromPipeline)][SfProject]$project
+        [switch]$getLatestChanges,
+        [switch]$forceGetLatest,
+        [switch]$stopIfNoNewGetlatest,
+        [switch]$discardExistingChanges,
+        [switch]$cleanSolution,
+        [switch]$buildSolution,
+        [switch]$reOrInitializeSitefinityApp,
+        [switch]$resetAppPool,
+        [switch]$precompileTemplates,
+        [switch]$ensureSitefinityIsRunning,
+        [switch]$saveApplicationState,
+        [Parameter(ValueFromPipeline)]
+        [SfProject]$project
         )
     
     Process {
-        if (!$getLatest -and !$clean -and !$build -and !$reinitialize -and !$resetPool -and !$start -and !$precompile -and !$save) {
-            sd-project-select
-        }
-
         if (!$project) {
-            $project = sd-project-getCurrent
+            $project = sf-project-getCurrent
             if (!$project) {
-                sd-project-select
+                sf-project-select -tagsFilter "+a"
             }
 
-            $project = sd-project-getCurrent
+            $project = sf-project-getCurrent
             if (!$project) {
-                sd-project-new
+                sf-project-new
             }
         }
-        else {
-            sd-project-setCurrent $project > $null
+
+        if ($discardExistingChanges -and (sf-sourceControl-hasPendingChanges)) {
+            sf-sourceControl-undoPendingChanges
+            $newChangesDetected = $true
         }
         
         if ($getLatest) {
             $newChangesDetected = $false
-            if ($discardExisting -and (sd-sourceControl-hasPendingChanges)) {
-                sd-sourceControl-undoPendingChanges
-                $newChangesDetected = $true
-            }
-            
-            $getLatestOutput = sd-sourceControl-getLatestChanges -overwrite:$forceGet
+            $getLatestOutput = sf-sourceControl-getLatestChanges -overwrite:$forceGetLatest
             if (!$getLatestOutput -or !($getLatestOutput.Contains('All files are up to date.'))) {
                 $newChangesDetected = $true
             }
             
             $project.lastGetLatest = [DateTime]::Now
-            sd-project-save -context $project
+            sf-project-save -context $project
         
-            if (!$newChangesDetected -and $stopIfNoNew) {
+            if (!$newChangesDetected -and $stopIfNoNewGetlatest) {
                 Write-Information "No new changes detected, stopping."
             }
         }
         
-        if ($clean) {
-            sd-sol-clean -cleanPackages $true
+        if ($cleanSolution) {
+            sf-sol-clean -cleanPackages $true
         }
 
-        if ($build) {
-            sd-sol-build -retryCount 3
+        if ($buildSolution) {
+            sf-sol-build -retryCount 3
         }
 
-        if ($resetPool) {
-            sd-iisAppPool-Reset
+        if ($resetAppPool) {
+            sf-iisAppPool-Reset
         }
-        if ($reinitialize) {
-            sd-app-reinitializeAndStart
-        }
-        elseif ($start) {
-            sd-app-waitForSitefinityToStart
+        if ($reOrInitializeSitefinityApp) {
+            sf-app-reinitializeAndStart
         }
 
-        if ($precompile) {
-            sd-appPrecompiledTemplates-add
+        if ($precompileTemplates) {
+            sf-appPrecompiledTemplates-add
         }
         else {
-            sd-appPrecompiledTemplates-remove
+            sf-appPrecompiledTemplates-remove
         }
 
-        if ($save) {
-            Start-Sleep -Seconds 2
-            sd-appStates-save -stateName "init"
+        if ($ensureSitefinityIsRunning) {
+            sf-app-waitForSitefinityToStart
+        }
+
+        if ($saveApplicationState) {
+            Start-Sleep -Seconds 1
+            sf-appStates-save -stateName "init"
         }
     }
 }

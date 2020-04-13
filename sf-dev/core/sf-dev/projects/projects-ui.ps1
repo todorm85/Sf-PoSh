@@ -159,6 +159,9 @@ function _promptPredefinedBranchSelect {
         Write-Host "[$i] : $branch"
     }
 
+    $i++
+    Write-Host "[$i] : custom"
+
     $selectedBranch = $null
     while (!$selectedBranch) {
         $userInput = Read-Host -Prompt "Select branch"
@@ -166,6 +169,9 @@ function _promptPredefinedBranchSelect {
         $userInput--
         if ($userInput -gt -1 -and $userInput -lt $branches.Count) {
             $selectedBranch = $branches[$userInput]
+        }
+        else {
+            $selectedBranch = Read-Host -Prompt 'enter branch path: '
         }
     }
 
@@ -186,6 +192,9 @@ function _promptPredefinedBuildPathSelect {
         Write-Host "[$i] : $path"
     }
 
+    $i++
+    Write-Host "[$i] : Custom"
+
     $selectedPath = $null
     while (!$selectedPath) {
         $userInput = Read-Host -Prompt "Select path"
@@ -193,6 +202,9 @@ function _promptPredefinedBuildPathSelect {
         $userInput--
         if ($userInput -gt -1 -and $userInput -lt $paths.Length) {
             $selectedPath = $paths[$userInput]
+        }
+        else {
+            $selectedPath = Read-Host -Prompt 'Enter build path (zip or existing web app):'
         }
     }
 
