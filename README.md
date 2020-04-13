@@ -30,5 +30,7 @@ sf-project-select # to select a different project previously created etc.
 sf-project-getCurrent # returns the currently selected project object
 sf-project-set # sets the project object passed to the command as the current 
 
-sf # function that is a facade and container for most useful operations regarding resetting and reinitializing sitefinity, getting latest changes etc. all operations are passed as switches ex: sf -getLatestChanges -buildSolution
+sf # function that is a facade and container for most useful operations regarding resetting 
+# and reinitializing sitefinity, getting latest changes etc. all operations are passed as
+# switches ex: sf -getLatestChanges -buildSolution
 ```
