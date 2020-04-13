@@ -36,5 +36,4 @@ $scripts = @(
 )
     
 _upgrade -upgradeScripts $scripts
-$Global:InformationPreference = "Continue"
 Export-ModuleMember -Function *

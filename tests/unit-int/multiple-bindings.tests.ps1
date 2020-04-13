@@ -10,7 +10,7 @@ InModuleScope sf-dev {
         It "Default site has not been set - returns the last binding" {
             1..2 | % {
                 $domain = "sfi$([System.Guid]::NewGuid().ToString()).com"
-                $port = sf-getFreePort
+                $port = iis-getFreePort
                 New-WebBinding -Name $sourceProj.websiteName -HostHeader $domain -Port $port -Protocol 'http'
                 os-hosts-add -hostname $domain
             }
@@ -94,7 +94,7 @@ InModuleScope sf-dev {
         }
 
         It "changing domain for a default binding updates the default binding as well" {
-            $port = sf-getFreePort
+            $port = iis-getFreePort
             $domain = "sfi$([GUID]::NewGuid().ToString()).com"
             os-hosts-add -hostname $domain
             [SiteBinding]$binding = @{ protocol = 'http'; domain = $domain; port = $port }

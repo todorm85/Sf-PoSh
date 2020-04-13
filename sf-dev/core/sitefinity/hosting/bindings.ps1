@@ -14,7 +14,7 @@ function sf-bindings-add {
     }
 
     if (!$port) {
-        $port = sf-getFreePort
+        $port = iis-getFreePort
     }
 
     New-WebBinding -Name $project.websiteName -IPAddress "*" -Port $port -HostHeader $domain
@@ -57,9 +57,8 @@ function sf-bindings-getOrCreateLocalhostBinding {
     try {
         $firstNodeBinding = sf-bindings-getLocalhostBinding $project.websiteName
         if (!$firstNodeBinding) {
-            $freePort = sf-getFreePort
             sf-project-setCurrent $project
-            sf-bindings-add -domain "" -port $freePort
+            sf-bindings-add -domain ""
             $firstNodeBinding = sf-bindings-getLocalhostBinding $project.websiteName
         }
 

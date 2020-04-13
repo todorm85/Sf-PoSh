@@ -51,7 +51,6 @@ function sf-iisSite-new {
         $context = sf-project-getCurrent
     }
     
-    $port = sf-getFreePort
     $siteExists = @(Get-Website | ? { $_.name -eq $context.id }).Count -gt 0
     while ([string]::IsNullOrEmpty($context.id) -or $siteExists) {
         throw "Website with name $($context.id) already exists or no name provided:"
@@ -65,7 +64,7 @@ function sf-iisSite-new {
     $newAppPool = $context.id
     $domain = _generateDomainName -context $context
     try {
-        iis-website-create -newWebsiteName $context.websiteName -domain $domain -newPort $port -newAppPath $newAppPath -newAppPool $newAppPool > $null
+        iis-website-create -newWebsiteName $context.websiteName -domain $domain -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }
     catch {
         throw "Error creating site: $_"
@@ -79,18 +78,6 @@ function sf-iisSite-new {
     catch {
         Write-Error "Error adding domain to hosts file."
     }
-}
-
-function sf-getFreePort {
-    param(
-        $start = 2111
-    )
-
-    while (!(os-test-isPortFree $start) -or !(iis-isPortFree $start)) {
-        $start++
-    }
-
-    return $start
 }
 
 function sf-iisSite-delete {

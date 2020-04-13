@@ -2,17 +2,11 @@ function iis-website-create {
     Param(
         [Parameter(Mandatory = $true)][string]$newWebsiteName,
         [string]$domain = '',
-        [Parameter(Mandatory = $true)][string]$newPort,
+        [string]$newPort,
         [Parameter(Mandatory = $true)][string]$newAppPath,
         [Parameter(Mandatory = $true)][string]$newAppPool
     )
 
-
-    ForEach ($reservedPort in $reservedPorts) {
-        if ($reservedPort -eq $newPort) {
-            throw "Port ${newPort} already used"
-        }
-    }
 
     $availablePools = @(Get-ChildItem -Path "IIS:\AppPools")
     $found = $false
@@ -30,7 +24,8 @@ function iis-website-create {
     }
 
     # create website
-    New-Item ("iis:\Sites\${newWebsiteName}") -bindings @{protocol = "http"; bindingInformation = "*:${newPort}:" } -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool > $null
+    if (!$newPort) { $newPort = iis-getFreePort }
+    New-Item ("iis:\Sites\$newWebsiteName") -bindings @{protocol = "http"; bindingInformation = "*:$($newPort):" } -physicalPath $newAppPath | Set-ItemProperty -Name "applicationPool" -Value $newAppPool > $null
     if ($domain) {
         New-WebBinding -Name $newWebsiteName -Protocol http -Port $newPort -HostHeader $domain
     }
@@ -45,7 +40,7 @@ function iis-website-create {
 
 function iis-isPortFree {
     Param($port)
-    $matchedPorts = @(Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object { $_.split(':')[1] } | ? { $_ -eq $port} )
+    $matchedPorts = @(Get-WebBinding | Select-Object -expand bindingInformation | ForEach-Object { $_.split(':')[1] } | ? { $_ -eq $port } )
     $matchedPorts.Count -eq 0
 }
 
@@ -119,4 +114,16 @@ function iis-find-site {
             return $parent.GetAttribute('name').Value
         }
     }
+}
+
+function iis-getFreePort {
+    param(
+        $start = 2111
+    )
+
+    while (!(os-test-isPortFree $start) -or !(iis-isPortFree $start)) {
+        $start++
+    }
+
+    return $start
 }
