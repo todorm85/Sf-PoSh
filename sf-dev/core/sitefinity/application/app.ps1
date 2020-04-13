@@ -77,7 +77,10 @@ function sf-app-uninitialize {
 
     Write-Information "Deleting database..."
     try {
-        sql-delete-database -dbName $dbName
+        $dbName = sf-db-getNameFromDataConfig
+        if ($dbName) {
+            sql-delete-database -dbName $dbName
+        }
     }
     catch {
         throw "Erros while deleting database: $_"
