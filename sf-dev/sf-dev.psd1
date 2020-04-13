@@ -11,7 +11,7 @@
     VariablesToExport = @()
     # !!! Performance issue with intellisense do not enable
     # AliasesToExport   = '*'
-    ModuleVersion     = '21.1.0'
+    ModuleVersion     = '21.1.1'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
@@ -19,6 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            21.1.1
+                Fix nlb uninstall when ap not initialized
             21.1.0
                 sf-app-isInitialized added
             18.1.0
