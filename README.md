@@ -32,5 +32,6 @@ sf-project-set # sets the project object passed to the command as the current
 
 sf # function that is a facade and container for most useful operations regarding resetting 
 # and reinitializing sitefinity, getting latest changes etc. all operations are passed as
-# switches ex: sf -getLatestChanges -buildSolution
+# switches ex:
+sf -getLatestChanges -buildSolution
 ```
