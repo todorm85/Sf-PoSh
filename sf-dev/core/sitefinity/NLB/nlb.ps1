@@ -194,7 +194,7 @@ function _nlb-setupNode ([SfProject]$node, $urls) {
 }
 
 function _nlb-isProjectValidForNlb {
-    if (!(Test-Path $global:sf.config.pathToNginxConfig)) {
+    if (!$global:sf.config.pathToNginxConfig -or !(Test-Path $global:sf.config.pathToNginxConfig)) {
         Write-Warning "Path to nginx config does not exist. Configure it in $($global:sf.config.userConfigPath)"
         . "$($global:sf.config.userConfigPath)"
         return    
