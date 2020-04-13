@@ -101,7 +101,7 @@ function _setProjectData {
 
     $tags = ''
     if ($context.tags) {
-        $context.tags | % { $tags = "$tags $_" }
+        $context.tags | Sort-Object | Get-Unique | % { $tags = "$tags $_" }
     }
 
     $tags = $tags.TrimStart(' ')
