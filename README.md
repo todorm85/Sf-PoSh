@@ -10,7 +10,7 @@ To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/
 
 ## Requirements
 
-- Powershell 5.1
+- Powershell 5.1 64bit
 - VS 2017 (or other, but needs configuration)
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
 - Enabled IIS server feature, which should add the WebAdministration powershell module
@@ -29,4 +29,9 @@ sf-project-new -displayName test -sourcePath "any path to sitefinity web app zip
 sf-project-select # to select a different project previously created etc.
 sf-project-getCurrent # returns the currently selected project object
 sf-project-set # sets the project object passed to the command as the current 
+
+sf # function that is a facade and container for most useful operations regarding resetting 
+# and reinitializing sitefinity, getting latest changes etc. all operations are passed as
+# switches ex:
+sf -getLatestChanges -buildSolution
 ```
