@@ -59,9 +59,8 @@ function sf-app-initialize {
         throw "No project selected."
     }
 
-    $currentDbName = sf-db-getNameFromDataConfig
-    if ($currentDbName) {
-        throw "Already initialized  with database: $currentDbName. Uninitialize first."
+    if (sf-app-isInitialized) {
+        throw "Already initialized. Uninitialize first."
     }
 
     Start-Sleep -s 1
@@ -159,6 +158,17 @@ function sf-appPrecompiledTemplates-remove {
     catch {
         throw "Item could not be deleted: $dll.PSPath`nMessage:$_"
     }
+}
+
+function sf-app-isInitialized {
+    try {
+        sf-app-sendRequestAndEnsureInitialized > $null
+    }
+    catch {
+        return $false        
+    }
+
+    return $true
 }
 
 function _sd-appPrecompiledTemplates-getCompilerPath() {
