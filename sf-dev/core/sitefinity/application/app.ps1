@@ -67,14 +67,6 @@ function sf-app-uninitialize {
         sf-sol-unlockAllFiles
     }
 
-    Write-Information "Resetting App_Data files..."
-    try {
-        sf-sol-resetSitefinityFolder
-    }
-    catch {
-        Write-Information "Errors ocurred while resetting App_Data files.`n $_"
-    }
-
     Write-Information "Deleting database..."
     try {
         $dbName = sf-db-getNameFromDataConfig
@@ -84,6 +76,14 @@ function sf-app-uninitialize {
     }
     catch {
         throw "Erros while deleting database: $_"
+    }
+    
+    Write-Information "Removing App_Data files..."
+    try {
+        sf-sol-resetSitefinityFolder
+    }
+    catch {
+        Write-Information "Errors ocurred while removing App_Data files.`n $_"
     }
 }
 
