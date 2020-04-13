@@ -10,7 +10,7 @@ To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/
 
 ## Requirements
 
-- Powershell 5.1
+- Powershell 5.1 64bit
 - VS 2017 (or other, but needs configuration)
 - First run of internet explorer to have completed (this is required for the WebClient in .NET)
 - Enabled IIS server feature, which should add the WebAdministration powershell module
