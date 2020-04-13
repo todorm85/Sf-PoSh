@@ -45,8 +45,13 @@ function sf-nlb-uninstall {
     _s-nginx-removeCluster $nlbTag
     
     sf-projectTags-removeFromCurrent -tagName $nlbTag
-    _s-nlb-setSslOffloadForCurrentNode -flag $false
-    sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "RemoveAllNodes" > $null
+    if (sf-app-isInitialized) {
+        _s-nlb-setSslOffloadForCurrentNode -flag $false
+        sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "RemoveAllNodes" > $null
+    }
+    else {
+        sf-app-reinitialize
+    }
 }
 
 function sf-nlb-getOtherNodes {
