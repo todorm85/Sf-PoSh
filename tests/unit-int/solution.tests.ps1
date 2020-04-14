@@ -30,6 +30,8 @@ InModuleScope sf-dev {
             $Script:result = $content
         }
 
+        Mock sf-project-getCurrent { }
+
         it "disables style cop task correctly" {
             Mock Get-Content {
                 $expectedOn

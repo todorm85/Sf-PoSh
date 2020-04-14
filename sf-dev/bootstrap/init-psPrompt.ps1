@@ -7,10 +7,11 @@ function Global:prompt {
 }
 
 function _update-prompt {
+    param($project)
+    
     try {
-        _setConsoleTitle
+        _setConsoleTitle $project
 
-        $project = sf-project-getCurrent
         $projectName = if ($project) { $project.displayName } else { '' }
         if ($projectName) {
             $prompt = " [$projectName]"
@@ -27,7 +28,8 @@ function _update-prompt {
 }
 
 function _setConsoleTitle {
-    $newContext = sf-project-getCurrent
+    param($newContext)
+
     if ($newContext) {
         $binding = sf-iisSite-getBinding
         if ($newContext.branch) {

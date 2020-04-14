@@ -361,12 +361,12 @@ function sf-project-rename {
 
     sf-iisSite-changeDomain -domainName "$($newName).$($context.id)"
 
-    _update-prompt
+    _update-prompt $context
     sf-project-save $context
 }
 
 function sf-project-getCurrent {
-    $p = $global:globalContext
+    $p = $Script:globalContext
     if (!$p) {
         throw "No project selected!"
     }
@@ -383,7 +383,7 @@ function sf-project-setCurrent {
     process {
         if (!$newContext) {
             $Script:globalContext = $null
-            _update-prompt
+            _update-prompt $null
             return
         }
 
@@ -397,8 +397,9 @@ function sf-project-setCurrent {
             $Script:globalContext = $old
             Write-Error "$_"
         }
-
-        _update-prompt        
+        finally {
+            _update-prompt $Script:globalContext
+        }
     }
 }
 
