@@ -2,7 +2,7 @@ $Script:codeDeployment_ServicePath = "sf-dev\services"
 $Script:codeDeployment_ResourcesPath = "$PSScriptRoot\resources"
 $Script:codeDeployment_ServerCodePath = "App_Code\sf-dev\codeRunner"
 
-$Global:SfEvents_OnAfterProjectSelected += { _sf-serverCode-deployHandler }
+$Global:SfEvents_OnAfterProjectInitialized += { _sf-serverCode-deployHandler }
 
 function sf-serverCode-run {
     param (

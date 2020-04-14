@@ -10,7 +10,7 @@ if ($Global:SfEvents_OnAfterConfigInit) {
     $Global:SfEvents_OnAfterConfigInit | % { Invoke-Command -ScriptBlock $_ }
 }
 
-$Global:SfEvents_OnAfterProjectSelected = @()
+$Global:SfEvents_OnAfterProjectInitialized = @()
 
 . "${PSScriptRoot}/bootstrap/init-psPrompt.ps1"
 . "${PSScriptRoot}/bootstrap/load-scripts.ps1"

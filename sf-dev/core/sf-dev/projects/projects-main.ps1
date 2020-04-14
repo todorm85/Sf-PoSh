@@ -380,21 +380,18 @@ function sf-project-setCurrent {
             return
         }
 
+        $old = $Script:globalContext
         $Script:globalContext = $newContext
         try {
             _proj-initialize -project $newContext
             _validateProject $newContext
         }
         catch {
+            $Script:globalContext = $old
             Write-Error "$_"
         }
 
-        _update-prompt
-
-        
-        if ($Global:SfEvents_OnAfterProjectSelected) {
-            $Global:SfEvents_OnAfterProjectSelected | % { Invoke-Command -ScriptBlock $_ }
-        }
+        _update-prompt        
     }
 }
 
@@ -670,6 +667,8 @@ function _proj-initialize {
     }
 
     sf-project-save -context $project
+
+    $Global:SfEvents_OnAfterProjectInitialized | % { Invoke-Command -ScriptBlock $_ }
 
     $project.isInitialized = $true
 }

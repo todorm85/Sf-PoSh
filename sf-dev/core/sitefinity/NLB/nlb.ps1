@@ -1,7 +1,7 @@
 $Script:nlbCodeDeployment_ResourcesPath = "$PSScriptRoot\resources\sf"
 $Script:nlbDeployment_ServerCodePath = "App_Code\sf-dev\nlb"
 
-$Global:SfEvents_OnAfterProjectSelected += { _sd-nlb-serverCodeDeployHandler }
+$Global:SfEvents_OnAfterProjectInitialized += { _sd-nlb-serverCodeDeployHandler }
 
 function _sd-nlb-serverCodeDeployHandler {
     [SfProject]$p = sf-project-getCurrent
