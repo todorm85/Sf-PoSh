@@ -2,6 +2,7 @@
 
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
+    
     Describe "Tags should" -Tags ("fluent") {
         . "$PSScriptRoot\test-project-init.ps1"
 
@@ -40,7 +41,7 @@ InModuleScope sf-dev {
             sf-projectTags-getAllFromCurrent | Should -Be $expectedTags
         }
         It "Remove multiple tags from project" {
-            $expectedTags = @($testTag1,$testTag4)
+            $expectedTags = @($testTag1, $testTag4)
             sf-projectTags-addToCurrent $testTag2
             sf-projectTags-addToCurrent $testTag4
 
@@ -86,12 +87,12 @@ InModuleScope sf-dev {
             { sf-projectTags-addToCurrent "dffd dfds" } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
         It "Not accept Null or empty tags" {
-            { sf-projectTags-addToCurrent "   "} | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-projectTags-addToCurrent "   " } | Should -Throw -ExpectedMessage "Invalid tag name."
             { sf-projectTags-addToCurrent "" } | Should -Throw -ExpectedMessage "Invalid tag name."
             { sf-projectTags-addToCurrent $null } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
 
-        sf-project-remove -context $testProj
+        . "$PSScriptRoot\test-project-teardown.ps1"
     }
 
     # Describe "_tag-setNewProjectDefaultTags should" {
@@ -153,6 +154,8 @@ InModuleScope sf-dev {
     # }
 
     Describe "default tags operations" {
+        . "$PSScriptRoot\test-project-init.ps1"
+
         It "adds tag to default tag filter" {
             $filter = sf-projectTags-getDefaultFilter
             $filter += @("t1")
