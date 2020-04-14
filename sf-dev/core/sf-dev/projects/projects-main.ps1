@@ -155,7 +155,7 @@ function sf-project-clone {
 function sf-project-removeBulk {
     $sitefinities = @(sf-project-getAll)
     if ($null -eq $sitefinities[0]) {
-        Write-Host "No projects found. Create one."
+        Write-Warning "No projects found. Create one."
         return
     }
 
@@ -195,11 +195,13 @@ function sf-project-remove {
     )
 
     Process {
-        [SfProject]$currentProject = sf-project-getCurrent
         $clearCurrentSelectedProject = $false
-        if ($null -eq $context -or $currentProject.id -eq $context.id) {
-            $context = $currentProject
-            $clearCurrentSelectedProject = $true
+        if (!$context) { 
+            [SfProject]$currentProject = sf-project-getCurrent
+            if ($currentProject.id -eq $context.id) {
+                $context = $currentProject
+                $clearCurrentSelectedProject = $true
+            }
         }
 
         sf-project-setCurrent -newContext $context > $null
@@ -364,7 +366,12 @@ function sf-project-rename {
 }
 
 function sf-project-getCurrent {
-    $Script:globalContext
+    $p = $global:globalContext
+    if (!$p) {
+        throw "No project selected!"
+    }
+
+    $p
 }
 
 function sf-project-setCurrent {
@@ -375,7 +382,7 @@ function sf-project-setCurrent {
 
     process {
         if (!$newContext) {
-            $Script:globalContext = $newContext
+            $Script:globalContext = $null
             _update-prompt
             return
         }
@@ -410,12 +417,10 @@ function sf-project-getAll {
 }
 
 function _proj-tryUseExisting {
-
     Param(
         [Parameter(Mandatory = $true)][SfProject]$project,
         [Parameter(Mandatory = $true)][string]$path
     )
-
 
     if (Test-Path -Path "$path\SitefinityWebApp") {
         $path = "$path\SitefinityWebApp"
