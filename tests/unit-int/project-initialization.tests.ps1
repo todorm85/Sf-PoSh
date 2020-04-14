@@ -3,13 +3,13 @@
 InModuleScope sf-dev {
     . "$PSScriptRoot\init.ps1"
 
-    Describe "test" {
+    Describe "Project initialization should" {
         . "$PSScriptRoot\test-project-init.ps1"
 
         [SfProject]$p = sf-project-getCurrent
         $oldWebsiteName = $p.websiteName
         $oldSolPath = $p.solutionPath
-        It "project is not initialized when using the api" {
+        It "not initialize when using the api" {
             $p.websiteName | Should -Not -BeNullOrEmpty
             $p.websiteName = 'wrongName'
             $p.solutionPath = 'dummyPath'
@@ -22,7 +22,7 @@ InModuleScope sf-dev {
             $p.solutionPath | Should -Be 'dummyPath'
         }
 
-        It "project is initialized when using select from the prompt" {
+        It "initialize when using select from the prompt" {
             [SfProject]$p = sf-project-getAll | select -First 1
             Mock _promptProjectSelect {
                 $p

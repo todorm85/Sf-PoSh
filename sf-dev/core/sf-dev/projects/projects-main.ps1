@@ -198,8 +198,8 @@ function sf-project-remove {
         $clearCurrentSelectedProject = $false
         if (!$context) { 
             [SfProject]$currentProject = sf-project-getCurrent
+            $context = $currentProject
             if ($currentProject.id -eq $context.id) {
-                $context = $currentProject
                 $clearCurrentSelectedProject = $true
             }
         }
