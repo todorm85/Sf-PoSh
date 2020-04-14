@@ -8,7 +8,7 @@ function _sd-nlb-serverCodeDeployHandler {
     $src = $Script:nlbCodeDeployment_ResourcesPath
     $trg = "$($p.webAppPath)\$($Script:nlbDeployment_ServerCodePath)"
 
-    _sf-serverCode-deployDirectory -$src $trg
+    _sf-serverCode-deployDirectory $src $trg
 }
 
 function sf-nlb-setup {
