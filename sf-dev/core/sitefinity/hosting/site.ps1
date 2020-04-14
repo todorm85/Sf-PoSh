@@ -20,7 +20,9 @@ function sf-iisSite-browse {
         throw "No project selected."
     }
 
-    if (!(iis-site-isStarted $name)) {
+    if (!$project.websiteName) { throw "No site defined for project." }
+
+    if (!(iis-site-isStarted $project.websiteName)) {
         throw "Website is stopped in IIS."
     }
 
