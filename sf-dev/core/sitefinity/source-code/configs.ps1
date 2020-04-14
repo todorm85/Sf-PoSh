@@ -10,7 +10,7 @@ function sf-appStartupConfig-remove {
 function sf-appStartupConfig-create {
     param(
         [string]$user = $GLOBAL:sf.Config.sitefinityUser,
-        [Parameter(Mandatory = $true)][string]$dbName,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string]$dbName,
         [string]$password = $GLOBAL:sf.Config.sitefinityPassword,
         [string]$sqlUser = $GLOBAL:sf.Config.sqlUser,
         [string]$sqlPass = $GLOBAL:sf.Config.sqlPass

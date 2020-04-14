@@ -45,7 +45,7 @@ function get-userConfig {
     return $userConfig
 }
 
-$userConfigPath = "$Script:moduleUserDir\config.json"
+$Script:userConfigPath = "$Script:moduleUserDir\config.json"
 $defaultConfigPath = "$PSScriptRoot\default_config.json"
 
 $configFile = get-userConfig -defaultConfigPath $defaultConfigPath -userConfigPath $userConfigPath
@@ -54,3 +54,7 @@ Add-Member -InputObject $configFile -MemberType NoteProperty -Name dataPath -Val
 $configFile.projectsDirectory = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)
 
 Add-Member -InputObject $GLOBAL:sf -MemberType NoteProperty -Name config -Value $configFile
+
+if ($Global:SfEvents_OnAfterConfigInit) {
+    $Global:SfEvents_OnAfterConfigInit | % { Invoke-Command -ScriptBlock $_ }
+}

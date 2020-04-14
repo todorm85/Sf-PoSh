@@ -1,0 +1,1 @@
+$Global:SfEvents_OnAfterProjectInitialized = @()

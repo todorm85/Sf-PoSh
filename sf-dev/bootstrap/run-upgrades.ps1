@@ -1,3 +1,22 @@
+$scripts = @(
+    # upgrade projects with not cached branch and site name when upgrading to 15.5.0
+    { 
+        param($oldVersion)
+        if ((_isFirstVersionLower $oldVersion "15.5.0")) {
+            sf-project-getAll | % { _proj-initialize $_; }
+        }
+        if ((_isFirstVersionLower $oldVersion "15.5.1")) {
+            sf-project-getAll | % { _proj-initialize $_; }
+        }
+        if ((_isFirstVersionLower $oldVersion "16.0.3")) {
+            $data = New-Object XML
+            $data.Load($GLOBAL:sf.Config.dataPath)
+            $data.data.RemoveAttribute('version')
+            $data.Save($GLOBAL:sf.Config.dataPath) > $null
+        }
+    }
+)
+
 function _upgrade {
     param (
         [ScriptBlock[]]$upgradeScripts
@@ -69,3 +88,5 @@ function _isFirstVersionLower {
 
     return $false
 }
+
+_upgrade -upgradeScripts $scripts

@@ -118,7 +118,7 @@ InModuleScope sf-dev {
         }
     }
 
-    Describe "Cloning project should" {
+    Describe "Cloning project should" -Tags ("clone") {
         sf-project-getAll | select -First 1 | sf-project-setCurrent
 
         $sourceProj = sf-project-getCurrent
@@ -141,7 +141,7 @@ InModuleScope sf-dev {
         $testKeyName = generateRandomName
         $newElement.SetAttribute("key", $testKeyName)
         $newElement.SetAttribute("value", "testing")
-        $appSettings.AppendChild($newElement)
+        $appSettings.AppendChild($newElement) > $null
         $xmlData.Save($webConfigPath) > $null
 
         sf-project-clone

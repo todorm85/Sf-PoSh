@@ -4,8 +4,36 @@ function sf-app-sendRequestAndEnsureInitialized {
         [Int32]$totalWaitSeconds = $GLOBAL:sf.config.app.startupMaxWait
     )
 
+    [SfProject]$p = sf-project-getCurrent
+    if (!$p.websiteName) {
+        throw "No website found for project."
+    }
+
+    if (!(Get-Website $p.websiteName)) {
+        throw "Website $($p.websiteName) for project does not exist."
+    }
+
+    if (!(iis-site-isStarted $p.websiteName)) {
+        throw "Website $($p.websiteName) is stopped in IIS. Duplicate port?"
+    }
+
+    $dbName = sf-db-getNameFromDataConfig
+    if ($dbName) {
+        if (!(sql-get-dbs | ? name -eq $dbName)) {
+            throw "Project database $dbName not found in database server."
+        }
+    }
+    else {
+        $startupConfigPath = "$($p.webAppPath)\App_Data\Sitefinity\Configuration\StartupConfig.config"
+        if (!(Test-Path $startupConfigPath)) {
+            throw "No data config found and no startup config found."
+        }
+    }
+
     $url = sf-iisSite-getUrl
-    $statusUrl = "$url/appstatus"
+    if (!$url) {
+        throw "Error consturcting the site url. Details: $_"
+    }
 
     Write-Information "Starting Sitefinity..."
     $ErrorActionPreference = "Continue"
@@ -17,6 +45,7 @@ function sf-app-sendRequestAndEnsureInitialized {
     }
 
     # if sitefinity bootstrapped successfully appstatus should return 200 ok and it is in initializing state
+    $statusUrl = "$url/appstatus"
     Write-Information "Checking Sitefinity status: '$statusUrl'"
     Write-Information "Sitefinity is initializing"
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
@@ -68,7 +97,7 @@ function sf-app-initialize {
     try {
         $dbName = $p.id
         sql-delete-database $dbName
-        sf-appStartupConfig-create $GLOBAL:sf.config.sitefinityUser $dbName
+        sf-appStartupConfig-create -dbName $dbName
     }
     catch {
         throw "Erros while creating startupConfig: $_"
@@ -105,7 +134,7 @@ function sf-app-uninitialize {
         sf-sol-resetSitefinityFolder
     }
     catch {
-        Write-Information "Errors ocurred while removing App_Data files.`n $_"
+        Write-Warning "Errors ocurred while removing App_Data files.`n $_"
     }
 }
 

@@ -127,3 +127,13 @@ function iis-getFreePort {
 
     return $start
 }
+
+function iis-site-isStarted {
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$name
+    )
+    
+    (Get-WebsiteState -Name $name).Value -eq "Started"
+}

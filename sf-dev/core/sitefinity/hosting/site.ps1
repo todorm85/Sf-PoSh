@@ -20,7 +20,7 @@ function sf-iisSite-browse {
         throw "No project selected."
     }
 
-    if ((Get-WebsiteState -Name $project.websiteName).Value -ne "Started") {
+    if (!(iis-site-isStarted $name)) {
         throw "Website is stopped in IIS."
     }
 
