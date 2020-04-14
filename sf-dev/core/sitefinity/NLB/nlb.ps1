@@ -1,23 +1,20 @@
 $Script:nlbCodeDeployment_ResourcesPath = "$PSScriptRoot\resources\sf"
 $Script:nlbDeployment_ServerCodePath = "App_Code\sf-dev\nlb"
 
-$Global:SfEvents_OnAfterProjectSelected += { _sd-nlb-serverCodeDeploy }
+$Global:SfEvents_OnAfterProjectSelected += { _sd-nlb-serverCodeDeployHandler }
 
-function _sd-nlb-serverCodeDeploy {
+function _sd-nlb-serverCodeDeployHandler {
     [SfProject]$p = sf-project-getCurrent
     $src = $Script:nlbCodeDeployment_ResourcesPath
     $trg = "$($p.webAppPath)\$($Script:nlbDeployment_ServerCodePath)"
-    if (!(Test-Path -Path $trg)) {
-        New-Item -Path $trg -ItemType Directory > $null
-    }
 
-    Copy-Item -Path "$src\*" -Destination $trg -Force -Recurse
+    _sf-serverCode-deployDirectory -$src $trg
 }
 
 function sf-nlb-setup {
     if (!(_nlb-isProjectValidForNlb)) { return }
     [SfProject]$firstNode = sf-project-getCurrent
-    [SfProject]$secondNode = _nlb-createSecondProject -name $firstNode.displayName
+    [SfProject]$secondNode = _nlb-createSecondProject -name "$($firstNode.displayName)_n2"
     
     $nlbNodesUrls = _nlb-getNlbClusterUrls $firstNode $secondNode
     _nlb-setupNode -node $firstNode -urls $nlbNodesUrls
@@ -25,7 +22,54 @@ function sf-nlb-setup {
 
     _nginx-createNewCluster $firstNode $secondNode
     sf-project-setCurrent $firstNode
+    
+    $nlbTag = _nlbTags-filterNlbTag $firstNode.tags
+    if ($nlbTag) {
+        sf-appStates-save $nlbTag
+    }
+
     sf-nginx-reset
+}
+
+function sf-nlb-restoreToInitialNlbState {
+    [SfProject]$p = sf-project-getCurrent
+    if (!$p) {
+        throw "No project."
+    }
+
+    $nlbTag = _nlbTags-filterNlbTag $p.tags
+    if (!$nlbTag) {
+        throw "No NLB cluster."
+    }
+
+    sf-nlb-restoreAllToState $nlbTag
+}
+
+function sf-nlb-restoreAllToState {
+    param([Parameter(Mandatory=$true)]$stateName)
+    [SfProject]$p = sf-project-getCurrent
+    if (!$p) {
+        throw "No project."
+    }
+
+    $nlbTag = _nlbTags-filterNlbTag $p.tags
+    if (!$nlbTag) {
+        throw "No NLB cluster."
+    }
+
+    try {
+        sf-appStates-restore -stateName $nlbTag
+    }
+    catch {
+        throw "Error restoring to initial nlb state. $_"        
+    }
+
+    if (sf-app-isInitialized) {
+        sf-nlb-overrideOtherNodeConfigs
+    }
+    else {
+        throw "Node did not initialize after state restore."
+    }
 }
 
 function sf-nlb-uninstall {
@@ -75,7 +119,7 @@ function sf-nlb-getOtherNodes {
 
 function sf-nlb-forAllNodes {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ScriptBlock]$script
     )
 
@@ -95,7 +139,7 @@ function sf-nlb-forAllNodes {
 
 function sf-nlb-setSslOffloadForAll {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [bool]$flag
     )
     
@@ -104,10 +148,56 @@ function sf-nlb-setSslOffloadForAll {
     }
 }
 
+function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
+    [SfProject]$currentNode = sf-project-getCurrent
+    $srcConfigs = _sf-nlb-getConfigsPath $currentNode
+    if (!(Test-Path $srcConfigs)) {
+        throw "No source config files."
+    }
+
+    $srcWebConfig = _sf-nlb-getWebConfigPath $currentNode
+    sf-nlb-getOtherNodes | % {
+        sf-project-setCurrent $_
+        $trg = _sf-nlb-getConfigsPath $_
+        if (!(Test-Path $trg)) {
+            New-Item $trg -ItemType Directory
+        }
+
+        Remove-Item -Path "$trg\*" -Recurse -Force
+        Copy-Item "$srcConfigs\*" $trg
+        
+        $trgWebConfig = _sf-nlb-getWebConfigPath $_
+        Copy-Item $srcWebConfig $trgWebConfig -Force
+    }
+
+    sf-project-setCurrent $currentNode
+    if (!$skipWait) {
+        sf-nlb-forAllNodes {
+            sf-app-sendRequestAndEnsureInitialized
+        }
+    }
+}
+
+function sf-nlb-resetAllNodes {
+    param([switch]$skipWait)
+    sf-nlb-forAllNodes {
+        sf-iisAppPool-Reset
+        if (!$skipWait) {
+            sf-app-sendRequestAndEnsureInitialized
+        }
+    }
+}
+
+function _sf-nlb-getConfigsPath ([SfProject]$project) {
+    "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
+}
+
+function _sf-nlb-getWebConfigPath ([SfProject]$project) {
+    "$($project.webAppPath)\web.config"
+}
 function _s-nlb-setSslOffloadForCurrentNode ([bool]$flag = $false) {
     sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "SetSslOffload" -parameters $flag.ToString() > $null
 }
-
 
 function sf-nlb-getUrl {
     $p = sf-project-getCurrent
@@ -135,7 +225,7 @@ function sf-nlb-getStatus {
         $url = sf-nlb-getUrl
         [PScustomObject]@{
             enabled = $true;
-            url = $url;
+            url     = $url;
             nodeIds = @($p.id, $otherNode.id)
         }
     }

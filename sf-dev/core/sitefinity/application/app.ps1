@@ -1,4 +1,5 @@
 function sf-app-sendRequestAndEnsureInitialized {
+    [CmdletBinding()]
     param(
         [Int32]$totalWaitSeconds = $GLOBAL:sf.config.app.startupMaxWait
     )

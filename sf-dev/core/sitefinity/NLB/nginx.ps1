@@ -104,11 +104,16 @@ function _nginx-escapePathForConfig {
 }
 
 function _nginx-initializeConfig {
-    $toolConfDirPath = _get-toolsConfigDirPath
-    if (!(Test-Path $toolConfDirPath)) {
-        Copy-Item "$PSScriptRoot\resources\nginx\*" (_getNginxConfigDirPath) -Recurse -Force
-        Import-Certificate -FilePath "$PSScriptRoot\resources\nginx\sf-dev\sfdev.crt" -CertStoreLocation "Cert:\LocalMachine\Root" > $null
+    $src = "$PSScriptRoot\resources\nginx"
+    $trg = _getNginxConfigDirPath
+    if (!(_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $src $trg)) {
+        Copy-Item "$src\*" $trg -Recurse -Force
+        $certificate = get-item "Cert:\LocalMachine\Root\7FCF4E2722E954357335E07D081D2A7953506991" -ErrorAction:SilentlyContinue
+        if (!$certificate) {
+            Import-Certificate -FilePath "$src\sf-dev\sfdev.crt" -CertStoreLocation "Cert:\LocalMachine\Root" > $null
+        }
     }
+
 }
 
 function _nginx-writeConfig {

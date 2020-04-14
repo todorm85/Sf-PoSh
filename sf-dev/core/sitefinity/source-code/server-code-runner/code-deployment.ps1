@@ -2,7 +2,7 @@ $Script:codeDeployment_ServicePath = "sf-dev\services"
 $Script:codeDeployment_ResourcesPath = "$PSScriptRoot\resources"
 $Script:codeDeployment_ServerCodePath = "App_Code\sf-dev\codeRunner"
 
-$Global:SfEvents_OnAfterProjectSelected += { _sd-serverCode-deploy }
+$Global:SfEvents_OnAfterProjectSelected += { _sf-serverCode-deployHandler }
 
 function sf-serverCode-run {
     param (
@@ -26,7 +26,7 @@ function sf-serverCode-run {
     $encodedMethod = [System.Web.HttpUtility]::UrlEncode($methodName)
     $serviceRequestPath = "CodeRunner.svc/CallMethod?methodName=$encodedMethod&typeName=$encodedType&params=$encodedParams"
 
-    sf-app-sendRequestAndEnsureInitialized > $null
+    sf-app-sendRequestAndEnsureInitialized -InformationAction:SilentlyContinue > $null
     
     $baseUrl = sf-iisSite-getUrl
     $response = Invoke-WebRequest -Uri "$baseUrl/$($Script:codeDeployment_ServicePath.Replace('\', '/'))/$serviceRequestPath"
@@ -45,24 +45,46 @@ function sf-serverCode-run {
     }
 }
 
-function _sd-serverCode-deploy {
+function _sf-serverCode-deployHandler {
     [SfProject]$p = sf-project-getCurrent
     if (!$p) {
         throw "No project selected."
     }
 
-    $dest = "$($p.webAppPath)\$Script:codeDeployment_ServerCodePath"
+    _sf-serverCode-deployDirectory "$($Script:codeDeployment_ResourcesPath)\code" "$($p.webAppPath)\$($Script:codeDeployment_ServerCodePath)" 
+
+    _sf-serverCode-deployDirectory "$($Script:codeDeployment_ResourcesPath)\services" "$($p.webAppPath)\$Script:codeDeployment_ServicePath"
+}
+
+function _sf-serverCode-areSourceAndTargetSfDevVersionsEqual {
+    param (
+        [Parameter(Mandatory=$true)]$src,
+        [Parameter(Mandatory=$true)]$trg
+    )
+    
+    $trgSign = Get-ChildItem $trg -Filter "*.sfdevversion"
+    $srcSign = Get-ChildItem $src -Filter "*.sfdevversion"
+    if ($trgSign.BaseName -eq $srcSign.BaseName) {
+        return $true
+    }
+
+    return $false
+}
+
+function _sf-serverCode-deployDirectory {
+    param (
+        [Parameter(Mandatory=$true)]$src,
+        [Parameter(Mandatory=$true)]$dest
+    )
+
+    if ((_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $src $dest)) {
+        return
+    }
+
     if (!(Test-Path $dest)) {
         New-Item -Path $dest -ItemType Directory > $null
     }
 
     Remove-Item "$dest\*" -Recurse -Force
-    Copy-Item -Path "$($Script:codeDeployment_ResourcesPath)\*" -Destination $dest -Recurse -ErrorAction Ignore -Exclude "*.svc"
-
-    $dest = "$($p.webAppPath)\$Script:codeDeployment_ServicePath"
-    if (!(Test-Path $dest)) {
-        New-Item -Path $dest -ItemType Directory > $null
-    }
-
-    Copy-Item -Path "$($Script:codeDeployment_ResourcesPath)\*" -Destination $dest -Recurse -ErrorAction Ignore -Filter "*.svc" -Force
+    Copy-Item -Path "$src\*" -Destination $dest -Recurse
 }

@@ -380,6 +380,7 @@ function sf-project-setCurrent {
             return
         }
 
+        $Script:globalContext = $newContext
         try {
             _proj-initialize -project $newContext
             _validateProject $newContext
@@ -388,10 +389,9 @@ function sf-project-setCurrent {
             Write-Error "$_"
         }
 
-        $Script:globalContext = $newContext
-
         _update-prompt
 
+        
         if ($Global:SfEvents_OnAfterProjectSelected) {
             $Global:SfEvents_OnAfterProjectSelected | % { Invoke-Command -ScriptBlock $_ }
         }

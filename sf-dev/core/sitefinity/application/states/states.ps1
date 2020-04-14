@@ -75,7 +75,7 @@ function sf-appStates-restore {
         }
 
         if (!$stateName) {
-            return
+            throw "Empty state name."
         }
 
         sf-iisAppPool-Reset
