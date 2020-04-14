@@ -20,10 +20,8 @@ InModuleScope sf-dev {
     
         It "create startup config successfully when reinitialize" {
             Mock sf-app-sendRequestAndEnsureInitialized { }
-            $mock = Mock sf-app-uninitialize { }
             sf-app-reinitialize
             Test-Path "$configsPath\StartupConfig.config" | Should -Be $true
-            Assert-MockCalled sf-app-uninitialize
         }
 
         . "$PSScriptRoot\test-project-teardown.ps1"

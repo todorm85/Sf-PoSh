@@ -60,7 +60,7 @@ function sf-app-initialize {
         throw "No project selected."
     }
 
-    if (sf-app-isInitialized) {
+    if (sf-db-getNameFromDataConfig) {
         throw "Already initialized. Uninitialize first."
     }
 
@@ -94,7 +94,7 @@ function sf-app-uninitialize {
         Write-Error "No project selected"
     }
     
-    # not deleting the db as it might be used by other project if shared
+    # not deleting the db as it might be used by other project if shared, if not it will be removed when sf-project-remove is called
     
     try {
         sf-iisAppPool-Reset

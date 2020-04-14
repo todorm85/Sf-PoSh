@@ -61,9 +61,11 @@ function sf-project-show {
         Write-Information "Error getting some details from IIS: $_"
     }
 
-    [SiteBinding[]]$bindings = iis-bindings-getAll $context.websiteName
     $bindingsLabel = ""
-    $bindings | % { $bindingsLabel += " $(_sd-iisSite-buildUrlFromBinding -binding $_)" }
+    if ($context.websiteName) {
+        [SiteBinding[]]$bindings = iis-bindings-getAll $context.websiteName
+        $bindings | % { $bindingsLabel += " $(_sd-iisSite-buildUrlFromBinding -binding $_)" }
+    }
 
     $otherDetails = @(
         [pscustomobject]@{id = 0; Parameter = "Title"; Value = $context.displayName; },

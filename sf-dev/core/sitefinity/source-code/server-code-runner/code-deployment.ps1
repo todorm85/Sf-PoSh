@@ -62,6 +62,10 @@ function _sf-serverCode-areSourceAndTargetSfDevVersionsEqual {
         [Parameter(Mandatory=$true)]$trg
     )
     
+    if (!(Test-Path $trg)) {
+        return $false
+    }
+
     $trgSign = Get-ChildItem $trg -Filter "*.sfdevversion"
     $srcSign = Get-ChildItem $src -Filter "*.sfdevversion"
     if ($trgSign.BaseName -eq $srcSign.BaseName) {
@@ -77,13 +81,13 @@ function _sf-serverCode-deployDirectory {
         [Parameter(Mandatory=$true)]$dest
     )
 
-    if ((_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $src $dest)) {
-        return
-    }
-
     if (!(Test-Path $dest)) {
         New-Item -Path $dest -ItemType Directory > $null
     }
+    
+    if ((_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $src $dest)) {
+        return
+    }    
 
     Remove-Item "$dest\*" -Recurse -Force
     Copy-Item -Path "$src\*" -Destination $dest -Recurse

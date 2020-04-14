@@ -83,7 +83,7 @@ function iis-bindings-getAll {
     [CmdletBinding()]
     [OutputType([SiteBinding[]])]
     Param(
-        [Parameter(Mandatory = $true)]$siteName
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]$siteName
     )
 
     $bindings = @(Get-WebBinding -Name $siteName)

@@ -82,6 +82,10 @@ function sf-iisSite-new {
 
 function sf-iisSite-delete {
     $proj = sf-project-getCurrent
+    if (!$proj) {
+        throw "No project!"
+    }
+    
     $websiteName = $proj.websiteName
     if (!$websiteName) {
         throw "Website name not set."

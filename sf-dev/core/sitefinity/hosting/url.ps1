@@ -99,6 +99,11 @@ function _generateDomainName {
 
 function _promptBindings {
     [SfProject]$project = sf-project-getCurrent
+    if (!$project.websiteName) {
+        Write-Warning "No website for project."
+        return
+    }
+
     [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $project.websiteName
     if (!$bindings) {
         Write-Warning "No bindings defined for website."
@@ -142,6 +147,10 @@ function _verifyDefaultBinding {
 
 function _checkDefaultBindingIsWorking {
     $selectedSitefinity = sf-project-getCurrent
+    if (!$selectedSitefinity.websiteName) {
+        return 
+    }
+    
     $allBindings = iis-bindings-getAll -siteName $selectedSitefinity.websiteName
     $binding = $allBindings | Where-Object { $_.domain -eq $selectedSitefinity.defaultBinding.domain -and $_.protocol -eq $selectedSitefinity.defaultBinding.protocol -and $_.port -eq $selectedSitefinity.defaultBinding.port }
     if (!(os-hosts-get | ? { $_.Contains($selectedSitefinity.defaultBinding.domain) })) {
