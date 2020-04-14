@@ -24,7 +24,7 @@ InModuleScope sf-dev {
 
         It "throw when no project selected" {
             sf-project-setCurrent $null
-            { sf-project-remove } | Should -Throw -ExpectedMessage "No project selected!"
+            { sf-project-remove } | Should -Throw -ExpectedMessage "No project parameter and no current project selected to delete."
         }
 
         It "is correctly initialized after unsuccessful delete attempt" {
@@ -46,6 +46,54 @@ InModuleScope sf-dev {
             (Test-Path $p.webAppPath) | Should -BeFalse
         }
 
+        . "$PSScriptRoot\test-project-teardown.ps1"
+    }
+
+    Describe "Project remove when no context passed and no project selected should" {
+        . "$PSScriptRoot\test-project-init.ps1"
+        
+        It "throw" {
+            sf-project-setCurrent $null
+            { sf-project-remove } | Should -Throw -ExpectedMessage "No project parameter and no current project selected to delete."
+        }
+
+        . "$PSScriptRoot\test-project-teardown.ps1"
+    }
+
+    Describe "Project remove when no context passed and a project is selected should" {
+        . "$PSScriptRoot\test-project-init.ps1"
+        It "remove the current selected" {
+            sf-project-remove
+            { sf-project-getCurrent } | Should -Throw -ExpectedMessage "No project selected!"
+        }
+        
+        . "$PSScriptRoot\test-project-teardown.ps1"
+    }
+
+    Describe "Project remove when context passed and same project is selected should" {
+        . "$PSScriptRoot\test-project-init.ps1"
+        It "remove the current selected" {
+            sf-project-remove -context (sf-project-getCurrent)
+            { sf-project-getCurrent } | Should -Throw -ExpectedMessage "No project selected!"
+        }
+        
+        . "$PSScriptRoot\test-project-teardown.ps1"
+    }
+    
+    Describe "Project remove when context passed and another project is selected should" {
+        . "$PSScriptRoot\test-project-init.ps1"
+        It "NOT remove the current selected" {
+            $toDelete = sf-project-getCurrent
+            $another = [SfProject]::new()
+            $another.id = "anotherId1"
+            $path = "TestDrive:\project"
+            New-Item $path -ItemType Directory
+            $another.webAppPath = $path
+            sf-project-setCurrent $another
+            sf-project-remove -context $toDelete
+            sf-project-getCurrent | Should -Be $another
+        }
+        
         . "$PSScriptRoot\test-project-teardown.ps1"
     }
 }

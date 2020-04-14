@@ -81,20 +81,44 @@ function sf-nlb-uninstall {
     if (!(sf-nlb-getStatus).enabled) {
         throw 'No NLB setup.'
     }
+    
+    try {
+        sf-nlb-getOtherNodes | % { sf-project-remove -context $_ -keepDb }
+    }
+    catch {
+        Write-Warning "Erros while removing other nodes. $_"        
+    }
 
-    sf-nlb-getOtherNodes | sf-project-remove -keepDb
-    
     $nlbTag = _nlbTags-filterNlbTag $p.tags
-    
-    _s-nginx-removeCluster $nlbTag
+    try {
+        _s-nginx-removeCluster $nlbTag
+    }
+    catch {
+        Write-Warning "Erros while removing cluster config from nginx configs. $_"        
+    }
     
     sf-projectTags-removeFromCurrent -tagName $nlbTag
     if (sf-app-isInitialized) {
-        _s-nlb-setSslOffloadForCurrentNode -flag $false
-        sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "RemoveAllNodes" > $null
+        try {
+            _s-nlb-setSslOffloadForCurrentNode -flag $false
+        }
+        catch {
+            Write-Warning "Erros while setting ssl offload setting in Sitefinity. $_"            
+        }
+
+        try {
+            sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "RemoveAllNodes" > $null
+        }
+        catch {
+            Write-Warning "Errors removing configured NLB nodes from Sitefinity settings. $_"        
+        }
     }
-    else {
-        sf-app-reinitialize
+
+    try {
+        sf-appStates-remove -stateName $nlbTag
+    }
+    catch {
+        Write-Warning "Error removing NLB initial state: $_"        
     }
 }
 
@@ -221,8 +245,20 @@ function sf-nlb-getStatus {
 
     $nlbTag = _nlbTags-filterNlbTag $p.tags
     if ($nlbTag) {
-        $otherNode = sf-nlb-getOtherNodes
-        $url = sf-nlb-getUrl
+        try {
+            $otherNode = sf-nlb-getOtherNodes
+        }
+        catch {
+            Write-Warning "No other nodes."            
+        }
+
+        try {
+            $url = sf-nlb-getUrl
+        }
+        catch {
+            Write-Warning "No nlb url could be constructed."            
+        }
+        
         [PScustomObject]@{
             enabled = $true;
             url     = $url;

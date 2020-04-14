@@ -68,7 +68,7 @@ function _removeProjectData {
         ForEach ($sitefinity in $sitefinities) {
             if ($sitefinity.id -eq $id) {
                 $sitefinitiesParent = $data.SelectSingleNode('/data/sitefinities')
-                $sitefinitiesParent.RemoveChild($sitefinity)
+                $sitefinitiesParent.RemoveChild($sitefinity) > $null
             }
         }
 
