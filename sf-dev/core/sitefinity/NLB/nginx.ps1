@@ -77,6 +77,7 @@ server {
     proxy_set_header Host `$host;
     include sf-dev/common.conf;
     location / {
+        proxy_read_timeout 180s;
         proxy_pass http://$nlbClusterId;
     }
 }
@@ -87,6 +88,7 @@ server {
     proxy_set_header Host `$host;
     include sf-dev/common.conf;
     location / {
+        proxy_read_timeout 180s;
         proxy_pass http://$nlbClusterId;
     }
 }"
