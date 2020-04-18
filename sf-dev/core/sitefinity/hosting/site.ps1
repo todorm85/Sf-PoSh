@@ -28,7 +28,7 @@ function sf-iisSite-browse {
 
     $appUrl = sf-iisSite-getUrl
     if (!(Test-Path $browserPath)) {
-        throw "Invalid browser path configured ($browserPath). Configure it in $Script:moduleUserDir -> browserPath"
+        throw "Invalid browser path configured ($browserPath). Configure it in $($global:sf.config.userConfigPath). -> browserPath"
     }
 
     os-browseUrl -url "${appUrl}/Sitefinity" -openInSameWindow:$useExistingBrowser

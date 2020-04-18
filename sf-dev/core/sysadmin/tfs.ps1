@@ -9,7 +9,7 @@ function tfs-get-workspaces ($server) {
 function _get-tfPath {
     $path = $GLOBAL:sf.config.tfPath
     if (!(Test-Path -Path $path)) {
-        throw "Wrong configuration path for tf.exe tool. Not found in $path. Configure it in $($Script:moduleUserDir) -> tfPath. It should be preinstalled with Visual Studio."
+        throw "Wrong configuration path for tf.exe tool. Not found in $path. Configure it in $($global:sf.config.userConfigPath) -> tfPath. It should be preinstalled with Visual Studio."
     }
 
     $path
