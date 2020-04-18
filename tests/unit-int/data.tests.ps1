@@ -1,6 +1,6 @@
 . "${PSScriptRoot}\load.ps1"
 
-InModuleScope sf-dev {
+InModuleScope sf-posh {
     . "${PSScriptRoot}\init.ps1"
 
     Describe "sf-project-getAll" {
@@ -65,10 +65,10 @@ InModuleScope sf-dev {
             "<?xml version=""1.0""?> `
             <data defaultTagsFilter=""t3 t4"" version=""45eaf024-ebaf-421b-9166-26018cbd0fdf""> `
               <sitefinities> `
-                <sitefinity id=""sft5"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\Users\User\Documents\sf-dev\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" /> `
-                <sitefinity id=""sft1"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\Users\User\Documents\sf-dev\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" branch="""" /> `
-                <sitefinity id=""sft1"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\Users\User\Documents\sf-dev\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" branch=""test"" /> `
-                <sitefinity id=""sft1"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\Users\User\Documents\sf-dev\sft5"" description="""" tags=""t3 t4"" lastGetLatest=""$date"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" branch=""test"" /> `
+                <sitefinity id=""sft5"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\users\admin\Documents\sf-posh\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" /> `
+                <sitefinity id=""sft1"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\users\admin\Documents\sf-posh\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" branch="""" /> `
+                <sitefinity id=""sft1"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\users\admin\Documents\sf-posh\sft5"" description="""" tags=""t3 t4"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" branch=""test"" /> `
+                <sitefinity id=""sft1"" displayName=""created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7"" webAppPath=""C:\users\admin\Documents\sf-posh\sft5"" description="""" tags=""t3 t4"" lastGetLatest=""$date"" defaultBinding=""http:created_from_zipaaf34aa0_48f6_44c2_89c0_3c8da6e3c3b7_sft5.com:2118"" branch=""test"" /> `
               </sitefinities> `
               <containers defaultContainerName="""" /> `
             </data>" | Out-File $Global:sf.config.dataPath

@@ -1,7 +1,7 @@
 Param([string]$path)
 
 if (!$path) {
-    $path = "$PSScriptRoot\..\sf-dev"
+    $path = "$PSScriptRoot\..\sf-posh"
 }
 
 $scripts = Get-ChildItem $path -Directory -Exclude "bootstrap" | Get-ChildItem -Recurse | Where-Object { $_.Extension -eq '.ps1' -and $_.Name -notlike "*.init.ps1" -and $_.Name -notlike "*.tests.ps1"}
@@ -16,7 +16,7 @@ $functions | ForEach-Object { $functionsEntry += "'$_', "}
 $functionsEntry = $functionsEntry.TrimEnd(@(',', ' '))
 
 # update psd
-$psdPath = "$PSScriptRoot\..\sf-dev\sf-dev.psd1";
+$psdPath = "$PSScriptRoot\..\sf-posh\sf-posh.psd1";
 $psdContent = ""
 Get-Content -Path $psdPath | ForEach-Object {
     $newLine = $_

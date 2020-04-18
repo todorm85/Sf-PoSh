@@ -1,6 +1,6 @@
 . "${PSScriptRoot}\load.ps1"
 
-InModuleScope sf-dev {
+InModuleScope sf-posh {
     . "$PSScriptRoot\init.ps1"
 
     Describe "Test multiple bindings" {

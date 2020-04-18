@@ -1,5 +1,5 @@
 ﻿@{
-    RootModule        = '.\sf-dev.psm1'
+    RootModule        = '.\sf-posh.psm1'
     GUID              = '570fb657-4d88-4883-8b39-2dae4db1280c'
     Author            = 'Todor Mitskovski'
     Copyright         = '(c) 2019 Todor Mitskovski. All rights reserved.'
@@ -11,7 +11,7 @@
     VariablesToExport = @()
     # !!! Performance issue with intellisense do not enable
     # AliasesToExport   = '*'
-    ModuleVersion     = '22.0.2'
+    ModuleVersion     = '22.0.3'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )

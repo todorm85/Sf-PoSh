@@ -75,7 +75,7 @@ server {
     listen 443 ssl;
     server_name $nlbDomain;
     proxy_set_header Host `$host;
-    include sf-dev/common.conf;
+    include sf-posh/common.conf;
     location / {
         proxy_read_timeout 180s;
         proxy_pass http://$nlbClusterId;
@@ -86,7 +86,7 @@ server {
     listen 80;
     server_name $nlbDomain;
     proxy_set_header Host `$host;
-    include sf-dev/common.conf;
+    include sf-posh/common.conf;
     location / {
         proxy_read_timeout 180s;
         proxy_pass http://$nlbClusterId;
@@ -112,7 +112,7 @@ function _nginx-initializeConfig {
         Copy-Item "$src\*" $trg -Recurse -Force
         $certificate = get-item "Cert:\LocalMachine\Root\7FCF4E2722E954357335E07D081D2A7953506991" -ErrorAction:SilentlyContinue
         if (!$certificate) {
-            Import-Certificate -FilePath "$src\sf-dev\sfdev.crt" -CertStoreLocation "Cert:\LocalMachine\Root" > $null
+            Import-Certificate -FilePath "$src\sf-posh\sfdev.crt" -CertStoreLocation "Cert:\LocalMachine\Root" > $null
         }
     }
 

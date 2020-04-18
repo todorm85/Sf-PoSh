@@ -1,9 +1,14 @@
 
-function _createWorkspace ([SfProject]$context, $branch) {
+function _createWorkspace ([SfProject]$context, $branch, [switch]$force) {
     try {
         # create and map workspace
         Write-Information "Creating workspace..."
         $workspaceName = $context.id
+        # $foundSpace = tfs-get-workspaces $sf.config.tfsServerName | ? {$_ -eq $workspaceName}
+        # if ($foundSpace) {
+        #     tfs-delete-workspace -workspaceName $workspaceName -server $sf.config.tfsServerName
+        # }
+
         tfs-create-workspace $workspaceName $context.solutionPath $GLOBAL:sf.Config.tfsServerName
     }
     catch {

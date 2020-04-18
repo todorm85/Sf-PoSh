@@ -1,6 +1,6 @@
 function _get-toolsConfigDirPath {
     $nginxConfigsDirPath = _getNginxConfigDirPath
-    "$nginxConfigsDirPath\sf-dev"
+    "$nginxConfigsDirPath\sf-posh"
 }
 
 function _getNginxConfigDirPath {

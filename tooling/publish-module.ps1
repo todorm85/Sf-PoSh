@@ -1,4 +1,4 @@
-Get-Content -Path "$PSScriptRoot/../sf-dev/sf-dev.psd1" |
+Get-Content -Path "$PSScriptRoot/../sf-posh/sf-posh.psd1" |
     ForEach-Object {
         if ($_ -match "ModuleVersion     = '(?<vrsn>.+?)'") {
             $Script:version = $matches["vrsn"]
@@ -25,4 +25,4 @@ if ($res -and $res.ToString().Contains('fatal')) {
     git push origin --tags
 }
 
-Publish-Module -Name "sf-dev" -NuGetApiKey $Env:NuGetApiKey
+Publish-Module -Name "sf-posh" -NuGetApiKey $Env:NuGetApiKey

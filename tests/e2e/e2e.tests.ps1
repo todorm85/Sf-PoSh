@@ -2,7 +2,7 @@ if (!$Global:SfEvents_OnAfterConfigInit) { $Global:SfEvents_OnAfterConfigInit = 
 $Global:SfEvents_OnAfterConfigInit += {
     $path = "$($GLOBAL:sf.Config.projectsDirectory)\data-e2e-tests-db.xml"
     $GLOBAL:sf.Config.dataPath = $path
-    $GLOBAL:sf.config.idPrefix = "sfe"
+    $GLOBAL:sf.config.idPrefix = "sfe2e"
 }
 
 . "${PSScriptRoot}\..\utils\load-module.ps1"
@@ -10,7 +10,7 @@ $Global:SfEvents_OnAfterConfigInit += {
 $Global:testProjectDisplayName = 'created_from_TFS'
 $Global:fromZipProjectName = 'created_from_zip'
 
-InModuleScope sf-dev {
+InModuleScope sf-posh {
     . "${PSScriptRoot}\..\utils\test-util.ps1"
 
     Describe "Creating the project from branch should" {
@@ -214,7 +214,7 @@ InModuleScope sf-dev {
 
         sf-project-remove
 
-        It "remove project from sf-dev" {
+        It "remove project from sf-posh" {
             $sitefinities = @(sf-project-getAll) | Where-Object { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0
         }

@@ -17,7 +17,7 @@ function sf-iisSubApp-set {
         return
     }
 
-    $dummyPath = "c:\sf-dev-temp"
+    $dummyPath = "c:\sf-posh-temp"
     if (-not (Test-Path $dummyPath)) {
         New-Item $dummyPath -ItemType Directory
     }

@@ -1,5 +1,5 @@
 $Script:nlbCodeDeployment_ResourcesPath = "$PSScriptRoot\resources\sf"
-$Script:nlbDeployment_ServerCodePath = "App_Code\sf-dev\nlb"
+$Script:nlbDeployment_ServerCodePath = "App_Code\sf-posh\nlb"
 
 $Global:SfEvents_OnAfterProjectInitialized += { _sd-nlb-serverCodeDeployHandler }
 
@@ -290,7 +290,7 @@ function _s-app-setMachineKey {
 
     [SfProject]$project = sf-project-getCurrent
     if (!$project) {
-        throw "You must select a project to work with first using sf-dev tool."
+        throw "You must select a project to work with first using sf-posh tool."
     }
 
     $webConfigPath = "$($project.webAppPath)/web.config"

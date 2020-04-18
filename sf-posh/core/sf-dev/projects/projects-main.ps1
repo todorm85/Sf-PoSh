@@ -734,7 +734,7 @@ function _proj-tryCreateFromBranch {
         $projectDirectory = _proj-createProjectDirectory -project $project
         $project.solutionPath = $projectDirectory;
         $project.webAppPath = "$projectDirectory\SitefinityWebApp";
-        _createWorkspace -context $project -branch $sourcePath
+        _createWorkspace -context $project -branch $sourcePath -force
         return $true
     }
 }
