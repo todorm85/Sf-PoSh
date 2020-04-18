@@ -12,6 +12,11 @@ $Global:fromZipProjectName = 'created_from_zip'
 
 InModuleScope sf-posh {
     . "${PSScriptRoot}\..\utils\test-util.ps1"
+    tfs-get-workspaces -server $sf.config.tfsServerName | % {
+        if ($_ -like "$($sf.config.idPrefix)*") {
+            tfs-delete-workspace -workspaceName $_ -server $sf.config.tfsServerName
+        }
+    }
 
     Describe "Creating the project from branch should" {
         [SfProject[]]$projects = sf-project-getAll

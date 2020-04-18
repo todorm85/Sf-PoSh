@@ -25,4 +25,5 @@ if ($res -and $res.ToString().Contains('fatal')) {
     git push origin --tags
 }
 
-Publish-Module -Name "sf-posh" -NuGetApiKey $Env:NuGetApiKey
+# Publish-Module -Name "sf-posh" -NuGetApiKey $Env:NuGetApiKey
+deploy-live

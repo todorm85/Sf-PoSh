@@ -1,2 +1,2 @@
-Import-Module "C:\users\admin\Desktop\sf-posh\sf-posh\sf-posh.psd1" -Force -DisableNameChecking
-Import-Module "C:\users\admin\Desktop\sf-posh\sf-posh\sf-posh.psm1" -Force -DisableNameChecking
+Remove-Module sf-posh
+Import-Module "$PSScriptRoot\..\..\sf-posh\sf-posh.psm1" -Force
