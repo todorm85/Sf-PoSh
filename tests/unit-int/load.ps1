@@ -1,6 +1,7 @@
 if (!$Global:SfEvents_OnAfterConfigInit) { $Global:SfEvents_OnAfterConfigInit = @() }
 $Global:SfEvents_OnAfterConfigInit += {
-    $path = "$($GLOBAL:sf.Config.projectsDirectory)\data-tests-db.xml"
+    $GLOBAL:sf.config.projectsDirectory = "e:\sf-posh-int-tests"
+    $path = "$($GLOBAL:sf.Config.projectsDirectory)\data-int-tests-db.xml"
     $GLOBAL:sf.Config.dataPath = $path
     if (Test-Path $path) {
         Remove-Item $path -Force
