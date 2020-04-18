@@ -26,4 +26,4 @@ if ($res -and $res.ToString().Contains('fatal')) {
 }
 
 # Publish-Module -Name "sf-posh" -NuGetApiKey $Env:NuGetApiKey
-deploy-live
+Copy-SfToLive
