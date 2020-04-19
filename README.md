@@ -6,7 +6,7 @@ Manage, provision and automate Sitefinity instances on local machine.
 
 ## Installation
 
-To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/sf-posh/). If problems see [How-To-Update-Powershell get](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget)
+Use the sf-posh directory from release branch and import the module in powershell session.
 
 ## Requirements
 
@@ -22,7 +22,7 @@ To install see: [PowerShell Gallery](https://www.powershellgallery.com/packages/
 ## Quickstart
 In powershell console window type:
 ``` PowerShell
-Import-Module sf-posh
+Import-Module $path # where $path is the system path to sf-posh.psd1
 sf-config-open # opens the configuration file with its default settings and paths (set for VS2017 tools) after editing you must restart the powershell session
 sf- #then press (ctrl + space), which should list all commands
 sf-proj #then ctrl+space, would list all related to module`s projects commands etc.
