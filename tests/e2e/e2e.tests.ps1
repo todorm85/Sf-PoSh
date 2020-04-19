@@ -8,25 +8,27 @@ $Global:testProjectDisplayName = 'created_from_TFS'
 $Global:fromZipProjectName = 'created_from_zip'
 
 InModuleScope sf-posh {
-    tfs-get-workspaces -server $sf.config.tfsServerName | % {
-        if ($_ -like "$($sf.config.idPrefix)*") {
-            tfs-delete-workspace -workspaceName $_ -server $sf.config.tfsServerName
-        }
-    }
-
     Describe "Creating the project from branch should" {
-        [SfProject[]]$projects = sf-project-getAll
-        foreach ($proj in $projects) {
-            sf-project-remove -context $proj
+        It "execute with correct initial state" {
+            tfs-get-workspaces -server $sf.config.tfsServerName | % {
+                if ($_ -like "$($sf.config.idPrefix)*") {
+                    tfs-delete-workspace -workspaceName $_ -server $sf.config.tfsServerName
+                }
+            }
+
+            [SfProject[]]$projects = sf-project-getAll
+            foreach ($proj in $projects) {
+                sf-project-remove -context $proj
+            }
+
+            sf-project-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
+
+            $sitefinities = @(sf-project-getAll) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
+            $sitefinities | Should -HaveCount 1
+            $Script:createdSf = [SfProject]$sitefinities[0]
+            $Script:id = $createdSf.id
         }
-
-        sf-project-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
-
-        $sitefinities = @(sf-project-getAll) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
-        $sitefinities | Should -HaveCount 1
-        $createdSf = [SfProject]$sitefinities[0]
-        $id = $createdSf.id
-
+        
         It "Set project data correctly" {
             $createdSf.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
             $createdSf.solutionPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}"
@@ -44,25 +46,27 @@ InModuleScope sf-posh {
     }
 
     Describe "Building should" {
-        sf-project-getAll | select -First 1 | sf-project-setCurrent
         It "succeed after at least 3 retries" {
+            sf-project-getAll | select -First 1 | sf-project-setCurrent
             sf-sol-build -retryCount 3
         }
     }
 
     Describe "Reinitializing should" -Tags ("reset") {
-        sf-project-getAll | select -First 1 | sf-project-setCurrent
-        [SfProject]$project = sf-project-getCurrent
-        sf-app-reinitialize
-        $url = sf-iisSite-getUrl
-        $result = _invokeNonTerminatingRequest $url
-        $result | Should -Be 200
+        It "has correct initial state" {
+            sf-project-getAll | select -First 1 | sf-project-setCurrent
+            [SfProject]$project = sf-project-getCurrent
+            sf-app-reinitialize
+            $url = sf-iisSite-getUrl
+            $result = _invokeNonTerminatingRequest $url
+            $result | Should -Be 200
 
-        $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
-        Test-Path $configsPath | Should -Be $true
-        $dbName = sf-db-getNameFromDataConfig
-        $dbName | Should -Not -BeNullOrEmpty
-        sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+            $Script:configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
+            Test-Path $configsPath | Should -Be $true
+            $Script:dbName = sf-db-getNameFromDataConfig
+            $dbName | Should -Not -BeNullOrEmpty
+            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+        }
 
         It "remove app data and keep database when uninitialize" {
             sf-app-uninitialize
@@ -78,10 +82,9 @@ InModuleScope sf-posh {
         }
     }
 
-    Describe "States should" -Tags ("states") {
-        sf-project-getAll | select -First 1 | sf-project-setCurrent
-
+    Describe "States should" -Tags ("states") {        
         It "save and then restore app_data folder and database" {
+            sf-project-getAll | select -First 1 | sf-project-setCurrent
             [SfProject]$project = sf-project-getCurrent
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             [string]$stateName = generateRandomName
@@ -120,35 +123,38 @@ InModuleScope sf-posh {
     }
 
     Describe "Cloning project should" -Tags ("clone") {
-        sf-project-getAll | select -First 1 | sf-project-setCurrent
+        It "has correct initial state" {
+            sf-project-getAll | select -First 1 | sf-project-setCurrent
 
-        $sourceProj = sf-project-getCurrent
+            $sourceProj = sf-project-getCurrent
 
-        $sourceName = $sourceProj.displayName
-        $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
+            $sourceName = $sourceProj.displayName
+            $Script:cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
-        sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            sf-project-remove -context $_
+            sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
+                sf-project-remove -context $_
+            }
+
+            sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
+
+            # edit a file in source project and mark as changed in TFS
+            $webConfigPath = "$($sourceProj.webAppPath)\web.config"
+            tfs-checkout-file $webConfigPath > $null
+            [xml]$xmlData = Get-Content $webConfigPath
+            [System.Xml.XmlElement]$appSettings = $xmlData.configuration.appSettings
+            $newElement = $xmlData.CreateElement("add")
+            $testKeyName = generateRandomName
+            $newElement.SetAttribute("key", $testKeyName)
+            $newElement.SetAttribute("value", "testing")
+            $appSettings.AppendChild($newElement) > $null
+            $xmlData.Save($webConfigPath) > $null
         }
 
-        sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
-
-        # edit a file in source project and mark as changed in TFS
-        $webConfigPath = "$($sourceProj.webAppPath)\web.config"
-        tfs-checkout-file $webConfigPath > $null
-        [xml]$xmlData = Get-Content $webConfigPath
-        [System.Xml.XmlElement]$appSettings = $xmlData.configuration.appSettings
-        $newElement = $xmlData.CreateElement("add")
-        $testKeyName = generateRandomName
-        $newElement.SetAttribute("key", $testKeyName)
-        $newElement.SetAttribute("value", "testing")
-        $appSettings.AppendChild($newElement) > $null
-        $xmlData.Save($webConfigPath) > $null
-
-        sf-project-clone
-
-        [SfProject]$project = sf-project-getCurrent
-        $cloneTestId = $project.id
+        It "not throw" {
+            sf-project-clone
+            [SfProject]$Script:project = sf-project-getCurrent
+            $Script:cloneTestId = $project.id
+        }
 
         It "set project displayName" {
             $project.displayName | Should -Be $cloneTestName
@@ -159,7 +165,7 @@ InModuleScope sf-posh {
         }
 
         It "set project solution path" {
-            $project.solutionPath.Contains($GLOBAL:sf.Config.projectsDirectory) | Should -Be $true
+            $project.solutionPath.ToLower().Contains($GLOBAL:sf.Config.projectsDirectory.ToLower()) | Should -Be $true
         }
 
         It "set project site" {
@@ -200,20 +206,24 @@ InModuleScope sf-posh {
     }
 
     Describe "Remove should" -Tags ("delete") {
-        sf-project-getAll | select -First 1 | sf-project-setCurrent
-        [SfProject]$proj = sf-project-getCurrent
-        $testId = $proj.id
+        It "has correct initial state" {
+            sf-project-getAll | select -First 1 | sf-project-setCurrent
+            [SfProject]$Script:proj = sf-project-getCurrent
+            $Script:testId = $proj.id
 
-        $sitefinities = @(sf-project-getAll) | Where-Object { $_.id -eq $testId }
-        $sitefinities | Should -HaveCount 1
-        Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\${testId}" | Should -Be $true
-        Test-Path "IIS:\AppPools\${testId}" | Should -Be $true
-        Test-Path "IIS:\Sites\${testId}" | Should -Be $true
-        sql-get-dbs | Where-Object { $_.Name.Contains($testId) } | Should -HaveCount 1
-        existsInHostsFile -searchParam $proj.id | Should -Be $true
-        tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName | Where-Object { $_ -like "*$testId*" } | Should -HaveCount 1
-
-        sf-project-remove
+            $sitefinities = @(sf-project-getAll) | Where-Object { $_.id -eq $testId }
+            $sitefinities | Should -HaveCount 1
+            Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\${testId}" | Should -Be $true
+            Test-Path "IIS:\AppPools\${testId}" | Should -Be $true
+            Test-Path "IIS:\Sites\${testId}" | Should -Be $true
+            sql-get-dbs | Where-Object { $_.Name.Contains($testId) } | Should -HaveCount 1
+            existsInHostsFile -searchParam $proj.id | Should -Be $true
+            tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName | Where-Object { $_ -like "*$testId*" } | Should -HaveCount 1
+        }
+        
+        It "not throw" {
+            sf-project-remove
+        }
 
         It "remove project from sf-posh" {
             $sitefinities = @(sf-project-getAll) | Where-Object { $_.id -eq $testId }
