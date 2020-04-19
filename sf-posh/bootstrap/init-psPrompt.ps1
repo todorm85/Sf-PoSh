@@ -31,7 +31,6 @@ function _setConsoleTitle {
     param($newContext)
 
     if ($newContext) {
-        $binding = sf-iisSite-getBinding
         if ($newContext.branch) {
             $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
         }

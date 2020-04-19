@@ -405,6 +405,7 @@ function sf-project-setCurrent {
         }
         finally {
             _update-prompt $Script:globalContext > $null
+            $Global:SfEvents_OnAfterProjectSet | % {& $_}
             if ($passthru) {
                 $Script:globalContext
             }
