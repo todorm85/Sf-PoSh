@@ -11,7 +11,7 @@ function _sd-nlb-serverCodeDeployHandler {
     _sf-serverCode-deployDirectory $src $trg
 }
 
-function sf-nlb-setup {
+function sf-nlb-newClusterFromCurrent {
     if (!(_nlb-isProjectValidForNlb)) { return }
     [SfProject]$firstNode = sf-project-getCurrent
     [SfProject]$secondNode = _nlb-createSecondProject -name "$($firstNode.displayName)_n2"
@@ -72,7 +72,7 @@ function sf-nlb-restoreAllToState {
     }
 }
 
-function sf-nlb-uninstall {
+function sf-nlb-removeCluster {
     $p = sf-project-getCurrent
     if (!$p) {
         throw 'No project selected.'
