@@ -6,7 +6,7 @@ Manage, provision and automate Sitefinity instances on local machine.
 
 ## Installation
 
-Download https://github.com/todorm85/Sf-PoSh/tree/release/sf-posh
+Get the release branch of this repo locally or pull changes to update.
 
 ## Requirements
 
