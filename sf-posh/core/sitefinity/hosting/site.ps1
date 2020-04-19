@@ -53,8 +53,10 @@ function sf-iisSite-new {
         $context = sf-project-getCurrent
     }
     
-    $siteExists = @(Get-Website | ? { $_.name -eq $context.id }).Count -gt 0
-    while ([string]::IsNullOrEmpty($context.id) -or $siteExists) {
+    $siteExists = Get-Website | ? name -eq $context.id
+    # do not use get-iisapppool - does not return latest
+    $poolExists = Get-ChildItem "IIS:\AppPools" | ? name -eq $context.id
+    if ([string]::IsNullOrEmpty($context.id) -or $siteExists -or $poolExists) {
         throw "Website with name $($context.id) already exists or no name provided:"
     }
 

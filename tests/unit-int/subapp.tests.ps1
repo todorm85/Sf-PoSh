@@ -1,10 +1,9 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
 
     Describe "Subapp functionality should" -Tags ("subapp") {
-        . "$PSScriptRoot\test-project-init.ps1"
+        InTestProjectScope {
 
         [SfProject]$project = sf-project-getCurrent
         $subApp = "subApp"
@@ -31,6 +30,6 @@ InModuleScope sf-posh {
             $res.EndsWith($subApp) | Should -Not -Be $true
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 }

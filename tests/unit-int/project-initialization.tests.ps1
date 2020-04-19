@@ -1,10 +1,9 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
 
     Describe "Project initialization should" {
-        . "$PSScriptRoot\test-project-init.ps1"
+        InTestProjectScope {
 
         [SfProject]$p = sf-project-getCurrent
         $oldWebsiteName = $p.websiteName
@@ -34,6 +33,6 @@ InModuleScope sf-posh {
             $p.solutionPath | Should -Be $oldSolPath
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 }

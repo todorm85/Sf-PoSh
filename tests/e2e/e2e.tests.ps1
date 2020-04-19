@@ -1,9 +1,5 @@
-if (!$Global:SfEvents_OnAfterConfigInit) { $Global:SfEvents_OnAfterConfigInit = @() }
-$Global:SfEvents_OnAfterConfigInit += {
-    $GLOBAL:sf.config.projectsDirectory = "e:\sf-posh-e2e-tests"
-    $path = "$($GLOBAL:sf.Config.projectsDirectory)\data-e2e-tests-db.xml"
-    $GLOBAL:sf.Config.dataPath = $path
-    $GLOBAL:sf.config.idPrefix = "sfe"
+$Global:SfEvents_OnAfterConfigInit = {
+    . "$PSScriptRoot\..\e2e-tests-config.ps1"
 }
 
 . "${PSScriptRoot}\..\utils\load-module.ps1"

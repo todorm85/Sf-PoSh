@@ -1,10 +1,9 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
 
     Describe "Use existing" {
-        . "$PSScriptRoot\test-project-init.ps1"
+        InTestProjectScope {
         [SfProject]$project = sf-project-getCurrent
         $sourceProjectDbName = _db-getNameFromDataConfig -appPath $project.webAppPath
 
@@ -35,6 +34,6 @@ InModuleScope sf-posh {
             $siteExists | Should -Be $true
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 }

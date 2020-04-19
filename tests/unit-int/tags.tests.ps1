@@ -1,10 +1,9 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
     
     Describe "Tags should" -Tags ("fluent") {
-        . "$PSScriptRoot\test-project-init.ps1"
+        InTestProjectScope {
 
         $testTag1 = 'test-sd-projectTags-1'
         $testTag2 = 'test-sd-projectTags-2'
@@ -92,7 +91,7 @@ InModuleScope sf-posh {
             { sf-projectTags-addToCurrent $null } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 
     # Describe "_tag-setNewProjectDefaultTags should" {
@@ -154,7 +153,7 @@ InModuleScope sf-posh {
     # }
 
     Describe "default tags operations" {
-        . "$PSScriptRoot\test-project-init.ps1"
+        InTestProjectScope {
 
         It "adds tag to default tag filter" {
             $filter = sf-projectTags-getDefaultFilter
@@ -187,6 +186,6 @@ InModuleScope sf-posh {
             (sf-projectTags-getDefaultFilter)[1] | Should -Be "t4"
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 }

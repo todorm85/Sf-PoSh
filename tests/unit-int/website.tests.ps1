@@ -3,7 +3,6 @@
 InModuleScope sf-posh {
 
     Mock execute-native { }
-    . "$PSScriptRoot\init.ps1"
 
     Describe "sf-iisSite-browse"  {
         It "do not open browser when no sitefinity selected" {

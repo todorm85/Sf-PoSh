@@ -1,10 +1,9 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
 
     Describe "Test multiple bindings" {
-        . "$PSScriptRoot\test-project-init.ps1"
+        InTestProjectScope {
         [SfProject]$sourceProj = sf-project-getCurrent
 
         It "Default site has not been set - returns the last binding" {
@@ -145,6 +144,6 @@ InModuleScope sf-posh {
             os-hosts-get | % { $_.Contains($binding.domain)} | select -First 1 | Should -Not -BeNullOrEmpty
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 }

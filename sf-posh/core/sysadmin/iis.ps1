@@ -7,21 +7,9 @@ function iis-website-create {
         [Parameter(Mandatory = $true)][string]$newAppPool
     )
 
-
-    $availablePools = @(Get-ChildItem -Path "IIS:\AppPools")
-    $found = $false
-    ForEach ($pool in $availablePools) {
-        if ($pool.name.ToLower() -eq $newAppPool) {
-            $found = $true
-            break;
-        }
-    }
-
-    if (-not $found) {
-        $poolPath = "IIS:\AppPools\$newAppPool"
-        New-Item $poolPath > $null
-        Set-ItemProperty $poolPath -Name "processModel.idleTimeout" -Value ([TimeSpan]::FromMinutes(0))
-    }
+    $poolPath = "IIS:\AppPools\$newAppPool"
+    New-Item $poolPath > $null
+    Set-ItemProperty $poolPath -Name "processModel.idleTimeout" -Value ([TimeSpan]::FromMinutes(0))
 
     # create website
     if (!$newPort) { $newPort = iis-getFreePort }
@@ -118,9 +106,13 @@ function iis-find-site {
 
 function iis-getFreePort {
     param(
-        $start = 2111
+        $start
     )
 
+    if (!$start) {
+        $start = Get-Random -Minimum 50000 -Maximum 70000
+    }
+    
     while (!(os-test-isPortFree $start) -or !(iis-isPortFree $start)) {
         $start++
     }

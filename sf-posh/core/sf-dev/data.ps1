@@ -53,7 +53,6 @@ function _data-getAllProjects {
         }
     }
 
-    $Script:sfsDataCache = $sitefinities
     return $sitefinities
 }
 

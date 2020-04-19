@@ -1,7 +1,6 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "${PSScriptRoot}\init.ps1"
     function get-project {
         param (
             [string]$tags

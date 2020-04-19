@@ -110,7 +110,7 @@ function _nginx-initializeConfig {
     $trg = _getNginxConfigDirPath
     if (!(_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $src $trg)) {
         Copy-Item "$src\*" $trg -Recurse -Force
-        $certificate = get-item "Cert:\LocalMachine\Root\7FCF4E2722E954357335E07D081D2A7953506991" -ErrorAction:SilentlyContinue
+        $certificate = get-item "Cert:\LocalMachine\Root\c993ecf08a781102da4936160849281d3d8e78ec" -ErrorAction:SilentlyContinue
         if (!$certificate) {
             Import-Certificate -FilePath "$src\sf-posh\sfdev.crt" -CertStoreLocation "Cert:\LocalMachine\Root" > $null
         }

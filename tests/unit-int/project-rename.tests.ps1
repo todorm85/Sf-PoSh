@@ -1,11 +1,10 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
 
     Describe "Rename should" -Tags ("rename") {
         It "change the display name and domain" {
-            . "$PSScriptRoot\test-project-init.ps1"
+            InTestProjectScope {
             [SfProject]$testProject = sf-project-getCurrent
             $id = $testProject.id
             $oldName = generateRandomName
@@ -33,6 +32,6 @@ InModuleScope sf-posh {
             sf-project-rename $oldName
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 }

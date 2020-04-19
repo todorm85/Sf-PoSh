@@ -1,4 +1,4 @@
-function existsInHostsFile {
+function global:existsInHostsFile {
     param (
         $searchParam
     )
@@ -17,7 +17,7 @@ function existsInHostsFile {
     return $found
 }
 
-function generateRandomName {
+function global:generateRandomName {
     [string]$random = [Guid]::NewGuid().ToString().Replace('-', '_')
     $random = $random.Substring(1)
     "a$random"

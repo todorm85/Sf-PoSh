@@ -1,13 +1,11 @@
-. "${PSScriptRoot}\load.ps1"
-
+. "$PSScriptRoot\load.ps1"
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
     Describe "test" {
-        . "$PSScriptRoot\test-project-init.ps1"
+        InTestProjectScope {
         It "case" {
 
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 }

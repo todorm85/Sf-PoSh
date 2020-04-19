@@ -1,7 +1,6 @@
-. "${PSScriptRoot}\load.ps1"
+. "$PSScriptRoot\load.ps1"
 
 InModuleScope sf-posh {
-    . "${PSScriptRoot}\init.ps1"
 
     Describe "sf-project-getAll" {
         Mock _proj-initialize { }

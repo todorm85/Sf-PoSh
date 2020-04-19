@@ -1,7 +1,6 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
 
     Describe "Creating project from ZIP should" {
         It "create site, add domain and set project properties correctly" {

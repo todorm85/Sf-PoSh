@@ -1,9 +1,8 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
     Describe "Reinitializing should" {
-        . "$PSScriptRoot\test-project-init.ps1"
+        InTestProjectScope {
         [SfProject]$project = sf-project-getCurrent
     
         $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
@@ -33,6 +32,6 @@ InModuleScope sf-posh {
             Get-Content "$configsPath\StartupConfig.config" -Raw | Should -BeLike "*$($project.id)*"
         }
 
-        . "$PSScriptRoot\test-project-teardown.ps1"
+        }
     }
 }

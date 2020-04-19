@@ -383,7 +383,8 @@ function sf-project-getCurrent {
 function sf-project-setCurrent {
     [CmdletBinding()]
     Param(
-        [Parameter(ValueFromPipeline)][SfProject]$newContext
+        [Parameter(ValueFromPipeline)][SfProject]$newContext,
+        [switch]$passthru
     )
 
     process {
@@ -396,15 +397,17 @@ function sf-project-setCurrent {
         $old = $Script:globalContext
         $Script:globalContext = $newContext
         try {
-            _proj-initialize -project $newContext
-            _validateProject $newContext
+            _proj-initialize -project $newContext > $null
         }
         catch {
             $Script:globalContext = $old
             Write-Error "$_"
         }
         finally {
-            _update-prompt $Script:globalContext
+            _update-prompt $Script:globalContext > $null
+            if ($passthru) {
+                $Script:globalContext
+            }
         }
     }
 }
@@ -559,51 +562,28 @@ function _validateProject {
     }
 }
 
-function _getIsIdDuplicate ($id) {
-    function _isDuplicate ($name) {
-        if ($name -and $name.Contains($id)) {
-            return $true
-        }
-        return $false
-    }
-
-    $sitefinities = [SfProject[]](sf-project-getAll)
-    $sitefinities | ForEach-Object {
-        $sitefinity = [SfProject]$_
-        if ($sitefinity.id -eq $id) {
-            return $true;
-        }
-    }
-
+function _getIsIdDuplicate ($id, $allIds) {
     if (Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id") { return $true }
 
-    $wss = tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName | Where-Object { _isDuplicate $_ }
-    if ($wss) { return $true }
-
-    Import-Module WebAdministration
-    $sites = Get-Item "IIS:\Sites"
-    if ($sites -and $sites.Children) {
-        $names = $sites.Children.Keys | Where-Object { _isDuplicate $_ }
-        if ($names) { return $true }
+    if ($allIds | ? { $_ -like "*$id*" }) {
+        $true
     }
-    $pools = Get-Item "IIS:\AppPools"
-    if ($pools -and $pools.Children) {
-        $names = $pools.Children.Keys | Where-Object { _isDuplicate $_ }
-        if ($names) { return $true }
-    }
-
-    $dbs = sql-get-dbs | Where-Object { _isDuplicate $_.name }
-    if ($dbs) { return $true }
 
     return $false;
 }
 
 function _generateId {
     $i = 0;
+    # for performance get all external items like sites dbs etc before loop
+    $sitefinities = sf-project-getAll | select -ExpandProperty displayName
+    $workspaces = tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName
+    # do not use get-iisapppool - does not return latest
+    $appPools = Get-ChildItem "IIS:\AppPools" | select -ExpandProperty name
+    $sites = Get-Website | select -ExpandProperty name
+    $dbs = sql-get-dbs | select -ExpandProperty name
     while ($true) {
         $name = "$($GLOBAL:sf.Config.idPrefix)$i"
-        $_isDuplicate = (_getIsIdDuplicate $name)
-        if (-not $_isDuplicate) {
+        if (!(_getIsIdDuplicate $name (@($sitefinities) + $workspaces + $appPools + $sites + $dbs))) {
             break;
         }
 
@@ -681,6 +661,8 @@ function _proj-initialize {
     sf-project-save -context $project
 
     $Global:SfEvents_OnAfterProjectInitialized | % { Invoke-Command -ScriptBlock $_ }
+    
+    _validateProject $project
 
     $project.isInitialized = $true
 }

@@ -1,7 +1,6 @@
 . "${PSScriptRoot}\load.ps1"
 
 InModuleScope sf-posh {
-    . "$PSScriptRoot\init.ps1"
 
     Describe "Comparing versions should" {
         It "return false when first is higher" {
