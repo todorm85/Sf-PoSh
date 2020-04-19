@@ -110,7 +110,7 @@ function iis-getFreePort {
     )
 
     if (!$start) {
-        $start = Get-Random -Minimum 50000 -Maximum 70000
+        $start = Get-Random -Minimum 49152 -Maximum 65535
     }
     
     while (!(os-test-isPortFree $start) -or !(iis-isPortFree $start)) {
