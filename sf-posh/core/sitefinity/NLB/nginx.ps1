@@ -19,21 +19,14 @@ function _nginx-createNewCluster {
         [SfProject]$secondNode
     )
 
-    _nginx-initializeConfig
-
-    $nlbTag = _nlbTags-create
+    _nginx-initializeConfig > $null
+    $nlbId = [Guid]::NewGuid().ToString().Split('-')[0]
     
-    os-hosts-add -hostname (_nlbTags-getDomain $nlbTag)
-
-    _nginx-createNlbClusterConfig $nlbTag $firstNode $secondNode
+    os-hosts-add -hostname (_nlb-getDomain $nlbId) > $null
+    _nginx-createNlbClusterConfig -nlbTag $nlbId -firstNode $firstNode -secondNode $secondNode > $null
+    sf-nginx-reset > $null
     
-    # update project tags
-    $firstNode.tags.Add($nlbTag)
-    sf-project-save $firstNode
-    $secondNode.tags.Add($nlbTag)
-    sf-project-save $secondNode
-
-    sf-nginx-reset
+    $nlbId
 }
 
 function _s-nginx-removeCluster {
@@ -41,11 +34,11 @@ function _s-nginx-removeCluster {
         $nlbTag
     )
     
-    $clusterId = _nlbTags-getClusterIdFromTag $nlbTag
-    $nlbPairConfigPath = "$(_get-toolsConfigDirPath)\$($clusterId).config"
+    $clusterId = $nlbTag
+    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($clusterId).config"
     Remove-Item -Path $nlbPairConfigPath -Force
 
-    $nlbDomain = _nlbTags-getDomain -tag $nlbTag
+    $nlbDomain = _nlb-getDomain -tag $nlbTag
     os-hosts-remove -hostname $nlbDomain
 }
 
@@ -56,12 +49,12 @@ function _nginx-createNlbClusterConfig {
         [SfProject]$secondNode
     )
 
-    $nlbClusterId = _nlbTags-getClusterIdFromTag -tag $nlbTag
+    $nlbClusterId = $nlbTag
     if (!$nlbClusterId) {
         throw "Invalid cluster id."
     }
 
-    $nlbDomain = _nlbTags-getDomain -tag $nlbTag
+    $nlbDomain = _nlb-getDomain -tag $nlbTag
 
     [SiteBinding]$firstNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $firstNode
     [SiteBinding]$secondNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $secondNode
@@ -93,7 +86,7 @@ server {
     }
 }"
 
-    $nlbPairConfigPath = "$(_get-toolsConfigDirPath)\$($nlbClusterId).config"
+    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($nlbClusterId).config"
     $nlbPairConfig | _nginx-writeConfig -path $nlbPairConfigPath
 }
 
@@ -107,7 +100,7 @@ function _nginx-escapePathForConfig {
 
 function _nginx-initializeConfig {
     $src = "$PSScriptRoot\resources\nginx"
-    $trg = _getNginxConfigDirPath
+    $trg = _nginx-getConfigDirPath
     if (!(_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $src $trg)) {
         Copy-Item "$src\*" $trg -Recurse -Force
         $certificate = get-item "Cert:\LocalMachine\Root\c993ecf08a781102da4936160849281d3d8e78ec" -ErrorAction:SilentlyContinue

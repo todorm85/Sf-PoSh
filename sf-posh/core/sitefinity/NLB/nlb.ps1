@@ -7,15 +7,16 @@ function sf-nlb-newCluster {
     _nlb-setupNode -node $firstNode -urls $nlbNodesUrls
     _nlb-setupNode -node $secondNode -urls $nlbNodesUrls
 
-    _nginx-createNewCluster $firstNode $secondNode
-    sf-project-setCurrent $firstNode
-    
-    $nlbTag = _nlbTags-filterNlbTag $firstNode.tags
-    if ($nlbTag) {
-        sf-appStates-save $nlbTag
-    }
+    $nlbId = _nginx-createNewCluster $firstNode $secondNode
+    $nlbEntry = [NlbEntity]::new($nlbId, $projectId)
+    sf-nlbData-add -entry $nlbEntry
+    $nlbEntry.ProjectId = $secondNode.id
+    sf-nlbData-add -entry $nlbEntry
 
-    sf-nginx-reset
+    sf-project-setCurrent $firstNode
+    if ($nlbId) {
+        sf-appStates-save (_nlb-getInitialStateName $nlbId)
+    }
 }
 
 function sf-nlb-removeCluster {
@@ -28,22 +29,25 @@ function sf-nlb-removeCluster {
         throw 'No NLB setup.'
     }
     
+    $nlbId = sf-nlbData-getNlbIds $p.id
+    sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $p.id))
     try {
-        sf-nlb-getOtherNodes | % { sf-project-remove -context $_ -keepDb }
+        sf-nlb-getOtherNodes | % { 
+            sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $_.id))
+            sf-project-remove -context $_ -keepDb
+        }
     }
     catch {
         Write-Warning "Erros while removing other nodes. $_"        
     }
 
-    $nlbTag = _nlbTags-filterNlbTag $p.tags
     try {
-        _s-nginx-removeCluster $nlbTag
+        _s-nginx-removeCluster $nlbId
     }
     catch {
         Write-Warning "Erros while removing cluster config from nginx configs. $_"        
     }
     
-    sf-projectTags-removeFromCurrent -tagName $nlbTag
     try {
         sf-configSystem-setSslOffload -flag $false
     }
@@ -59,7 +63,7 @@ function sf-nlb-removeCluster {
     }
 
     try {
-        sf-appStates-remove -stateName $nlbTag
+        sf-appStates-remove -stateName (_nlb-getInitialStateName $nlbId)
     }
     catch {
         Write-Warning "Error removing NLB initial state: $_"        
@@ -74,8 +78,8 @@ function sf-nlb-getStatus {
         throw "No project selected."
     }
 
-    $nlbTag = _nlbTags-filterNlbTag $p.tags
-    if ($nlbTag) {
+    $nlbId = sf-nlbData-getNlbIds $p.id
+    if ($nlbId) {
         try {
             $otherNode = sf-nlb-getOtherNodes
         }
@@ -121,7 +125,6 @@ function _nlb-setupNode ([SfProject]$node, $urls) {
 function _nlb-isProjectValidForNlb {
     if (!$global:sf.config.pathToNginxConfig -or !(Test-Path $global:sf.config.pathToNginxConfig)) {
         Write-Warning "Path to nginx config does not exist. Configure it in $($global:sf.config.userConfigPath)"
-        . "$($global:sf.config.userConfigPath)"
         return    
     }
 
@@ -156,4 +159,8 @@ function _nlb-getNlbClusterUrls {
     $firstNodeUrl = sf-bindings-getLocalhostUrl -websiteName $firstNode.websiteName
     $secondNodeUrl = sf-bindings-getLocalhostUrl -websiteName $secondNode.websiteName
     @($firstNodeUrl, $secondNodeUrl)
+}
+
+function _nlb-getInitialStateName ($nlbId) {
+    "nlb_new_$nlbId"
 }

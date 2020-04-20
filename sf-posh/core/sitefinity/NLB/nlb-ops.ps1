@@ -1,62 +1,16 @@
-
-function sf-nlb-restoreToInitialNlbState {
-    [SfProject]$p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project."
-    }
-
-    $nlbTag = _nlbTags-filterNlbTag $p.tags
-    if (!$nlbTag) {
-        throw "No NLB cluster."
-    }
-
-    sf-nlb-restoreAllToState $nlbTag
-}
-
-function sf-nlb-restoreAllToState {
-    param([Parameter(Mandatory=$true)]$stateName)
-    [SfProject]$p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project."
-    }
-
-    $nlbTag = _nlbTags-filterNlbTag $p.tags
-    if (!$nlbTag) {
-        throw "No NLB cluster."
-    }
-
-    try {
-        sf-appStates-restore -stateName $nlbTag
-    }
-    catch {
-        throw "Error restoring to initial nlb state. $_"        
-    }
-
-    if (sf-app-isInitialized) {
-        sf-nlb-overrideOtherNodeConfigs
-    }
-    else {
-        throw "Node did not initialize after state restore."
-    }
-}
-
 function sf-nlb-getOtherNodes {
     [SfProject]$p = sf-project-getCurrent
     if (!$p) {
         throw "No project selected."
     }
     
-    $tag = _nlbTags-filterNlbTag $p.tags
-    if (!$tag) {
+    $nlbId = sf-nlbData-getNlbIds -projectId $p.id
+    if (!$nlbId) {
         throw "Project not part of NLB cluster."
     }
 
-    $result = sf-project-getAll | ? tags -Contains $tag | ? id -ne $p.id
-    if (!$result) {
-        throw "No associated nodes"
-    }
-
-    $result
+    $projectIds = sf-nlbData-getProjectIds -nlbId $nlbId | ? { $_ -ne $p.id }
+    sf-project-getAll | ? $projectIds -Contains $tag
 }
 
 function sf-nlb-forAllNodes {
@@ -66,24 +20,24 @@ function sf-nlb-forAllNodes {
     )
 
     $p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project selected."
+    try {
+        $p, (sf-nlb-getOtherNodes) | % {
+            sf-project-setCurrent $_
+            try {
+                Invoke-Command -ScriptBlock $script
+            }
+            catch {
+                Write-Error "Error $($p.id). $_"                
+            }
+        }
     }
-
-    Invoke-Command -ScriptBlock $script
-    sf-nlb-getOtherNodes | % {
-        sf-project-setCurrent $_
-        Invoke-Command -ScriptBlock $script
+    finally {
+        sf-project-setCurrent $p
     }
-
-    sf-project-setCurrent $p
 }
 
 function sf-nlb-setSslOffloadForAll {
-    param (
-        [Parameter(Mandatory = $true)]
-        [bool]$flag
-    )
+    param ([bool]$flag)
     
     sf-nlb-forAllNodes {
         sf-configSystem-setSslOffload -flag $flag
@@ -132,16 +86,13 @@ function sf-nlb-resetAllNodes {
 
 function sf-nlb-getUrl {
     $p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project selected."
-    }
-
-    $nlbTag = _nlbTags-filterNlbTag $p.tags
-    if (!$nlbTag) {
+    $nlbId = sf-nlbData-getNlbIds $p.id
+    if (!$nlbId) {
         throw "No nlb configured for current project."
     }
     
-    _nlbTags-getUrlFromTag $nlbTag
+    $domain = _nlb-getDomain $nlbId
+    "https://$($domain)/"
 }
 
 function sf-nlb-openNlbSite {
@@ -151,4 +102,12 @@ function sf-nlb-openNlbSite {
 
     $url = sf-nlb-getUrl
     os-browseUrl -url $url -openInSameWindow:$openInSameWindow 
+}
+
+function _nlb-getDomain {
+    param (
+        $nlbId
+    )
+
+    "$nlbId.sfdev.com"
 }
