@@ -1,16 +1,3 @@
-$Script:nlbCodeDeployment_ResourcesPath = "$PSScriptRoot\resources\sf"
-$Script:nlbDeployment_ServerCodePath = "App_Code\sf-posh\nlb"
-
-$Global:SfEvents_OnAfterProjectInitialized += { _sd-nlb-serverCodeDeployHandler }
-
-function _sd-nlb-serverCodeDeployHandler {
-    [SfProject]$p = sf-project-getCurrent
-    $src = $Script:nlbCodeDeployment_ResourcesPath
-    $trg = "$($p.webAppPath)\$($Script:nlbDeployment_ServerCodePath)"
-
-    _sf-serverCode-deployDirectory $src $trg
-}
-
 function sf-nlb-newClusterFromCurrent {
     if (!(_nlb-isProjectValidForNlb)) { return }
     [SfProject]$firstNode = sf-project-getCurrent
@@ -29,47 +16,6 @@ function sf-nlb-newClusterFromCurrent {
     }
 
     sf-nginx-reset
-}
-
-function sf-nlb-restoreToInitialNlbState {
-    [SfProject]$p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project."
-    }
-
-    $nlbTag = _nlbTags-filterNlbTag $p.tags
-    if (!$nlbTag) {
-        throw "No NLB cluster."
-    }
-
-    sf-nlb-restoreAllToState $nlbTag
-}
-
-function sf-nlb-restoreAllToState {
-    param([Parameter(Mandatory=$true)]$stateName)
-    [SfProject]$p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project."
-    }
-
-    $nlbTag = _nlbTags-filterNlbTag $p.tags
-    if (!$nlbTag) {
-        throw "No NLB cluster."
-    }
-
-    try {
-        sf-appStates-restore -stateName $nlbTag
-    }
-    catch {
-        throw "Error restoring to initial nlb state. $_"        
-    }
-
-    if (sf-app-isInitialized) {
-        sf-nlb-overrideOtherNodeConfigs
-    }
-    else {
-        throw "Node did not initialize after state restore."
-    }
 }
 
 function sf-nlb-removeCluster {
@@ -100,7 +46,7 @@ function sf-nlb-removeCluster {
     sf-projectTags-removeFromCurrent -tagName $nlbTag
     if (sf-app-isInitialized) {
         try {
-            _s-nlb-setSslOffloadForCurrentNode -flag $false
+            sf-configSystem-setSslOffload -flag $false
         }
         catch {
             Write-Warning "Erros while setting ssl offload setting in Sitefinity. $_"            
@@ -120,121 +66,6 @@ function sf-nlb-removeCluster {
     catch {
         Write-Warning "Error removing NLB initial state: $_"        
     }
-}
-
-function sf-nlb-getOtherNodes {
-    [SfProject]$p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project selected."
-    }
-    
-    $tag = _nlbTags-filterNlbTag $p.tags
-    if (!$tag) {
-        throw "Project not part of NLB cluster."
-    }
-
-    $result = sf-project-getAll | ? tags -Contains $tag | ? id -ne $p.id
-    if (!$result) {
-        throw "No associated nodes"
-    }
-
-    $result
-}
-
-function sf-nlb-forAllNodes {
-    param (
-        [Parameter(Mandatory = $true)]
-        [ScriptBlock]$script
-    )
-
-    $p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project selected."
-    }
-
-    Invoke-Command -ScriptBlock $script
-    sf-nlb-getOtherNodes | % {
-        sf-project-setCurrent $_
-        Invoke-Command -ScriptBlock $script
-    }
-
-    sf-project-setCurrent $p
-}
-
-function sf-nlb-setSslOffloadForAll {
-    param (
-        [Parameter(Mandatory = $true)]
-        [bool]$flag
-    )
-    
-    sf-nlb-forAllNodes {
-        _s-nlb-setSslOffloadForCurrentNode -flag $flag
-    }
-}
-
-function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
-    [SfProject]$currentNode = sf-project-getCurrent
-    $srcConfigs = _sf-nlb-getConfigsPath $currentNode
-    if (!(Test-Path $srcConfigs)) {
-        throw "No source config files."
-    }
-
-    $srcWebConfig = _sf-nlb-getWebConfigPath $currentNode
-    sf-nlb-getOtherNodes | % {
-        sf-project-setCurrent $_
-        $trg = _sf-nlb-getConfigsPath $_
-        if (!(Test-Path $trg)) {
-            New-Item $trg -ItemType Directory
-        }
-
-        Remove-Item -Path "$trg\*" -Recurse -Force
-        Copy-Item "$srcConfigs\*" $trg
-        
-        $trgWebConfig = _sf-nlb-getWebConfigPath $_
-        Copy-Item $srcWebConfig $trgWebConfig -Force
-    }
-
-    sf-project-setCurrent $currentNode
-    if (!$skipWait) {
-        sf-nlb-forAllNodes {
-            sf-app-sendRequestAndEnsureInitialized
-        }
-    }
-}
-
-function sf-nlb-resetAllNodes {
-    param([switch]$skipWait)
-    sf-nlb-forAllNodes {
-        sf-iisAppPool-Reset
-        if (!$skipWait) {
-            sf-app-sendRequestAndEnsureInitialized
-        }
-    }
-}
-
-function _sf-nlb-getConfigsPath ([SfProject]$project) {
-    "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
-}
-
-function _sf-nlb-getWebConfigPath ([SfProject]$project) {
-    "$($project.webAppPath)\web.config"
-}
-function _s-nlb-setSslOffloadForCurrentNode ([bool]$flag = $false) {
-    sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "SetSslOffload" -parameters $flag.ToString() > $null
-}
-
-function sf-nlb-getUrl {
-    $p = sf-project-getCurrent
-    if (!$p) {
-        throw "No project selected."
-    }
-
-    $nlbTag = _nlbTags-filterNlbTag $p.tags
-    if (!$nlbTag) {
-        throw "No nlb configured for current project."
-    }
-    
-    _nlbTags-getUrlFromTag $nlbTag
 }
 
 function sf-nlb-getStatus {
@@ -272,52 +103,13 @@ function sf-nlb-getStatus {
     }
 }
 
-function sf-nlb-openNlbSite {
-    param(
-        [switch]$openInSameWindow
-    )
-
-    $url = sf-nlb-getUrl
-    os-browseUrl -url $url -openInSameWindow:$openInSameWindow 
-}
-
-function _s-app-setMachineKey {
-    Param(
-        $decryption = "AES",
-        $decryptionKey = "53847BC18AFFC19E5C1AC792A4733216DAEB54215529A854",
-        $validationKey = "DC38A2532B063784F23AEDBE821F733625AD1C05D4718D2E0D55D842DAC207FB8492043E2EE5861BB3C4B0C4742CF73BDA586A70BDDC4FD50209B465A6DBBB3D"
-    )
-
-    [SfProject]$project = sf-project-getCurrent
-    if (!$project) {
-        throw "You must select a project to work with first using sf-posh tool."
-    }
-
-    $webConfigPath = "$($project.webAppPath)/web.config"
-    Set-ItemProperty $webConfigPath -name IsReadOnly -value $false
-
-    [XML]$xmlDoc = Get-Content -Path $webConfigPath
-
-    $systemWeb = $xmlDoc.Configuration["system.web"]
-    $machineKey = $systemWeb.machineKey
-    if (!$machineKey) {
-        $machineKey = $xmlDoc.CreateElement("machineKey") 
-        $systemWeb.AppendChild($machineKey) > $null
-    }
-
-    $machineKey.SetAttribute("decryption", $decryption)
-    $machineKey.SetAttribute("decryptionKey", $decryptionKey)
-    $machineKey.SetAttribute("validationKey", $validationKey)
-    $xmlDoc.Save($webConfigPath) > $null
-}
-
 function _nlb-setupNode ([SfProject]$node, $urls) {
     $previous = sf-project-getCurrent
     try {
         sf-project-setCurrent $node
-        _s-app-setMachineKey
+        _sf-configWeb-setMachineKey
         sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "AddNode" -parameters $urls > $null
-        _s-nlb-setSslOffloadForCurrentNode -flag $true
+        sf-configSystem-setSslOffload -flag $true
     }
     finally {
         sf-project-setCurrent $previous
