@@ -1,4 +1,4 @@
-function sf-nlb-newClusterFromCurrent {
+function sf-nlb-newCluster {
     if (!(_nlb-isProjectValidForNlb)) { return }
     [SfProject]$firstNode = sf-project-getCurrent
     [SfProject]$secondNode = _nlb-createSecondProject -name "$($firstNode.displayName)_n2"
@@ -44,20 +44,18 @@ function sf-nlb-removeCluster {
     }
     
     sf-projectTags-removeFromCurrent -tagName $nlbTag
-    if (sf-app-isInitialized) {
-        try {
-            sf-configSystem-setSslOffload -flag $false
-        }
-        catch {
-            Write-Warning "Erros while setting ssl offload setting in Sitefinity. $_"            
-        }
+    try {
+        sf-configSystem-setSslOffload -flag $false
+    }
+    catch {
+        Write-Warning "Erros while setting ssl offload setting in Sitefinity. $_"            
+    }
 
-        try {
-            sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "RemoveAllNodes" > $null
-        }
-        catch {
-            Write-Warning "Errors removing configured NLB nodes from Sitefinity settings. $_"        
-        }
+    try {
+        sf-configSystem-setNlbUrls
+    }
+    catch {
+        Write-Warning "Errors removing configured NLB nodes from Sitefinity settings. $_"        
     }
 
     try {
@@ -66,6 +64,8 @@ function sf-nlb-removeCluster {
     catch {
         Write-Warning "Error removing NLB initial state: $_"        
     }
+
+    sf-configWeb-removeMachineKey
 }
 
 function sf-nlb-getStatus {
@@ -107,9 +107,11 @@ function _nlb-setupNode ([SfProject]$node, $urls) {
     $previous = sf-project-getCurrent
     try {
         sf-project-setCurrent $node
-        _sf-configWeb-setMachineKey
-        sf-serverCode-run -typeName "SitefinityWebApp.SfDev.Nlb.NlbSetup" -methodName "AddNode" -parameters $urls > $null
+        sf-configWeb-setMachineKey
+        sf-configSystem-setNlbUrls -urls $urls
         sf-configSystem-setSslOffload -flag $true
+        sf-iisAppPool-Reset
+        sf-app-sendRequestAndEnsureInitialized
     }
     finally {
         sf-project-setCurrent $previous
@@ -153,5 +155,5 @@ function _nlb-getNlbClusterUrls {
 
     $firstNodeUrl = sf-bindings-getLocalhostUrl -websiteName $firstNode.websiteName
     $secondNodeUrl = sf-bindings-getLocalhostUrl -websiteName $secondNode.websiteName
-    "$firstNodeUrl,$secondNodeUrl"
+    @($firstNodeUrl, $secondNodeUrl)
 }
