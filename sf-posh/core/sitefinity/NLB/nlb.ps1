@@ -30,7 +30,6 @@ function sf-nlb-removeCluster {
     }
     
     $nlbId = sf-nlbData-getNlbIds $p.id
-    sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $p.id))
     try {
         sf-nlb-getOtherNodes | % { 
             sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $_.id))
@@ -40,6 +39,8 @@ function sf-nlb-removeCluster {
     catch {
         Write-Warning "Erros while removing other nodes. $_"        
     }
+    
+    sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $p.id))
 
     try {
         _s-nginx-removeCluster $nlbId

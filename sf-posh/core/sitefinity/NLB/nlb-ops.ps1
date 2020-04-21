@@ -10,7 +10,7 @@ function sf-nlb-getOtherNodes {
     }
 
     $projectIds = sf-nlbData-getProjectIds -nlbId $nlbId | ? { $_ -ne $p.id }
-    sf-project-getAll | ? $projectIds -Contains $tag
+    sf-project-getAll | ? { $projectIds -Contains $_.id }
 }
 
 function sf-nlb-forAllNodes {

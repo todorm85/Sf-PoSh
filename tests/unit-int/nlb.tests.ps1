@@ -135,7 +135,7 @@ InModuleScope sf-posh {
                 }
 
                 sf-nlbData-add  -entry $newE
-                sf-nlbData-getNlbIds -projectId "project2" | Should -Be @("nlb2","nlb3")
+                sf-nlbData-getNlbIds -projectId "project2" | Should -Be @("nlb2", "nlb3")
             }
         }
     }
@@ -145,8 +145,11 @@ InModuleScope sf-posh {
             It "create a second project" {
                 [SfProject]$script:firstNode = sf-project-getCurrent
                 sf-nlb-newCluster
-                $script:secondNode = sf-project-getAll | ? id -ne $firstNode.id
+                [SfProject]$script:secondNode = sf-project-getAll | ? id -ne $firstNode.id
                 $secondNode | Should -HaveCount 1
+                Get-Website | ? name -eq $secondNode.websiteName | Should -Not -BeNullOrEmpty
+                Get-Item "IIS:\AppPools\$($secondNode.id)" | Should -Not -BeNullOrEmpty
+                Test-Path $secondNode.webAppPath | Should -BeTrue
             }
 
             It "both projects should use same db" {
@@ -155,7 +158,7 @@ InModuleScope sf-posh {
             }
 
             It "set same nlb id for both projects" {
-                $nlbId = sf-nlbData-getNlbIds -projectId $firstNode.id
+                $script:nlbId = sf-nlbData-getNlbIds -projectId $firstNode.id
                 $nlbId | Should -HaveCount 1
                 sf-nlbData-getNlbIds -projectId $secondNode.id | Should -Be $nlbId
             }
@@ -179,6 +182,57 @@ InModuleScope sf-posh {
                 $params[0].GetAttribute("value") | Should -BeLike "*$firstNodeUrl*"
                 $params[1].GetAttribute("value") | Should -BeLike "*$secondNodeUrl*"
                 $config.systemConfig.sslOffloadingSettings.GetAttribute("EnableSslOffloading") | Should -be "True"
+            }
+
+            It "add Nlb mapping for projects" {
+                sf-nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -HaveCount 1
+                sf-nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -HaveCount 1
+                sf-nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -HaveCount 2
+            }
+
+            It "add entry to hosts file" {
+                os-hosts-get | ? { $_ -like "*$nlbId*" } | Should -Not -BeNullOrEmpty
+            }
+
+            It "create the nginx config" { 
+                $nginxConfigs = _nginx-getToolsConfigDirPath
+                $path = "$nginxConfigs\$nlbId.$global:nlbClusterConfigExtension"
+                Test-Path $path | Should -BeTrue
+                Get-Content $path | ? { $_ -like "*$nlbId.sfdev.com*" } | Should -Not -BeNullOrEmpty
+            }
+
+            It "remove other project when removing cluster" {
+                sf-project-setCurrent $firstNode
+                sf-nlb-removeCluster
+                sf-project-getAll | ? id -eq $secondNode.id | Should -BeNullOrEmpty
+                Get-Website | ? name -eq $secondNode.websiteName | Should -BeNullOrEmpty
+                Test-Path "IIS:\AppPools\$($secondNode.id)" | Should -BeFalse
+                Test-Path $secondNode.webAppPath | Should -BeFalse
+                sql-get-dbs | ? name -eq (sf-db-getNameFromDataConfig) | Should -HaveCount 1
+            }
+
+            It "undo settings in systemConfig" { 
+                $fnConf = "$($script:firstNode.webAppPath)\App_Data\Sitefinity\Configuration\SystemConfig.config"
+                [xml]$config = Get-Content $fnConf
+                $params = $config.systemConfig.loadBalancingConfig.parameters.add
+                $params | Should -BeNullOrEmpty
+                $config.systemConfig.sslOffloadingSettings.GetAttribute("EnableSslOffloading") | Should -be "False"
+            }
+
+            It "removes nlb mapping" {
+                sf-nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -BeNullOrEmpty
+                sf-nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -BeNullOrEmpty
+                sf-nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -BeNullOrEmpty
+            }
+
+            It "remove the nginx config" { 
+                $nginxConfigs = _nginx-getToolsConfigDirPath
+                $path = "$nginxConfigs\$nlbId.$global:nlbClusterConfigExtension"
+                Test-Path $path | Should -BeFalse
+            }
+
+            It "remove the domain from hosts file" {
+                os-hosts-get | ? { $_ -like "*$nlbId*" } | Should -BeNullOrEmpty
             }
         }
     }
