@@ -14,7 +14,8 @@ function global:InTestProjectScope ([ScriptBlock]$its) {
 }
 
 function global:New-TestProject {
-    $appPath = (Get-PSDrive TestDrive).Root
+    $Global:appPath = "$env:TEMP\$([Guid]::NewGuid().ToString())"
+    New-Item $appPath -ItemType Directory
     $global:testProjectPreviousProjectsDirectory = $GLOBAL:sf.config.projectsDirectory
     $GLOBAL:sf.config.projectsDirectory = "$appPath\projects"
     $global:testProjectPreviousToolDataPath = $GLOBAL:sf.config.dataPath
@@ -23,7 +24,7 @@ function global:New-TestProject {
 
     $id = "$($sf.config.idPrefix)$([Guid]::NewGuid().ToString().Split('-')[0])"
     [SfProject]$sourceProj = _newSfProjectObject -id $id
-    $Global:solutionPath = "$($GLOBAL:sf.config.projectsDirectory)\$id"
+    $solutionPath = "$($GLOBAL:sf.config.projectsDirectory)\$id"
     $webAppPath = "$solutionPath\SitefinityWebApp"
 
     $sourceProj.displayName = "test-proj"
@@ -51,8 +52,8 @@ function global:Remove-TestProject {
     Set-Location $GLOBAL:PSHOME
     $idFilter = "$($global:sf.config.idPrefix)*"
 
-    if (Test-Path $Global:solutionPath) {
-        Remove-Item $Global:solutionPath -Recurse -Force
+    if (Test-Path $Global:appPath) {
+        Remove-Item $Global:appPath -Force -Recurse
     }
     
     Get-Website | ? Name -like $idFilter | Remove-Website
