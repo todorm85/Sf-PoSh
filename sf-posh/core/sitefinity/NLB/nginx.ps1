@@ -1,3 +1,4 @@
+$global:nlbClusterConfigExtension = "config"
 function sf-nginx-reset {
     # Get-Process -Name "nginx" -ErrorAction "SilentlyContinue" | Stop-Process -Force
     $nginxDirPath = (Get-Item $Global:sf.config.pathToNginxConfig).Directory.Parent.FullName
@@ -35,10 +36,10 @@ function _s-nginx-removeCluster {
     )
     
     $clusterId = $nlbTag
-    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($clusterId).config"
+    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($clusterId).$global:nlbClusterConfigExtension"
     Remove-Item -Path $nlbPairConfigPath -Force
 
-    $nlbDomain = _nlb-getDomain -tag $nlbTag
+    $nlbDomain = _nlb-getDomain $nlbTag
     os-hosts-remove -hostname $nlbDomain
 }
 
@@ -54,7 +55,7 @@ function _nginx-createNlbClusterConfig {
         throw "Invalid cluster id."
     }
 
-    $nlbDomain = _nlb-getDomain -tag $nlbTag
+    $nlbDomain = _nlb-getDomain $nlbTag
 
     [SiteBinding]$firstNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $firstNode
     [SiteBinding]$secondNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $secondNode
@@ -86,7 +87,7 @@ server {
     }
 }"
 
-    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($nlbClusterId).config"
+    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($nlbClusterId).$global:nlbClusterConfigExtension"
     $nlbPairConfig | _nginx-writeConfig -path $nlbPairConfigPath
 }
 

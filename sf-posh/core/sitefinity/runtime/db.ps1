@@ -1,6 +1,8 @@
-function sf-db-getNameFromDataConfig {
-    [SfProject]$context = sf-project-getCurrent
-
+function sf-db-getNameFromDataConfig ($context) {
+    if (!$context) {
+        [SfProject]$context = sf-project-getCurrent
+    }
+    
     _db-getNameFromDataConfig -appPath $context.webAppPath
 }
 

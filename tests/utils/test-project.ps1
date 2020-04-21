@@ -27,7 +27,7 @@ function global:New-TestProject {
     $solutionPath = "$($GLOBAL:sf.config.projectsDirectory)\$id"
     $webAppPath = "$solutionPath\SitefinityWebApp"
 
-    $sourceProj.displayName = "test-proj"
+    $sourceProj.displayName = "test_proj"
     $sourceProj.solutionPath = $solutionPath
     $sourceProj.webAppPath = $webAppPath
     $sourceProj.websiteName = $id
@@ -61,6 +61,8 @@ function global:Remove-TestProject {
     Get-ChildItem "IIS:\AppPools" | ? Name -like $idFilter | Remove-WebAppPool
     sql-get-dbs | ? name -like $idFilter | % { sql-delete-database $_.name }
     sql-delete-database -dbName $global:testProjectDbName
+    $path = (Get-Item $sf.config.pathToNginxConfig).Directory.FullName
+    Remove-Item "$(_nginx-getToolsConfigDirPath)\*.$global:nlbClusterConfigExtension"
 
     $GLOBAL:sf.config.projectsDirectory = $global:testProjectPreviousProjectsDirectory
     $GLOBAL:sf.config.dataPath = $global:testProjectPreviousToolDataPath

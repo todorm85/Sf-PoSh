@@ -8,7 +8,7 @@ function sf-nlb-newCluster {
     _nlb-setupNode -node $secondNode -urls $nlbNodesUrls
 
     $nlbId = _nginx-createNewCluster $firstNode $secondNode
-    $nlbEntry = [NlbEntity]::new($nlbId, $projectId)
+    $nlbEntry = [NlbEntity]::new($nlbId, $firstNode.id)
     sf-nlbData-add -entry $nlbEntry
     $nlbEntry.ProjectId = $secondNode.id
     sf-nlbData-add -entry $nlbEntry

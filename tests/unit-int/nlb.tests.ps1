@@ -139,4 +139,47 @@ InModuleScope sf-posh {
             }
         }
     }
+    Describe "Nlb new cluster should" {
+        Mock sf-app-sendRequestAndEnsureInitialized { }
+        InTestProjectScope {
+            It "create a second project" {
+                [SfProject]$script:firstNode = sf-project-getCurrent
+                sf-nlb-newCluster
+                $script:secondNode = sf-project-getAll | ? id -ne $firstNode.id
+                $secondNode | Should -HaveCount 1
+            }
+
+            It "both projects should use same db" {
+                sf-db-getNameFromDataConfig -context $firstNode | Should -Not -BeNullOrEmpty
+                sf-db-getNameFromDataConfig -context $firstNode | Should -Be (sf-db-getNameFromDataConfig -context $secondNode)
+            }
+
+            It "set same nlb id for both projects" {
+                $nlbId = sf-nlbData-getNlbIds -projectId $firstNode.id
+                $nlbId | Should -HaveCount 1
+                sf-nlbData-getNlbIds -projectId $secondNode.id | Should -Be $nlbId
+            }
+
+            It "configure nlb nodes in system config for both nodes" {
+                [SiteBinding]$firstNodeBinding = sf-bindings-getLocalhostBinding -websiteName $firstNode.websiteName
+                [SiteBinding]$secondNodeBinding = sf-bindings-getLocalhostBinding -websiteName $secondNode.websiteName
+                $firstNodeUrl = "$($firstNodeBinding.protocol)://localhost:$($firstNodeBinding.port)"
+                $secondNodeUrl = "$($secondNodeBinding.protocol)://localhost:$($secondNodeBinding.port)"
+                $fnConf = "$($script:firstNode.webAppPath)\App_Data\Sitefinity\Configuration\SystemConfig.config"
+                $snConf = "$($script:secondNode.webAppPath)\App_Data\Sitefinity\Configuration\SystemConfig.config"
+                [xml]$config = Get-Content $fnConf
+                $params = $config.systemConfig.loadBalancingConfig.parameters.add
+                $params | Should -HaveCount 2
+                $params[0].GetAttribute("value") | Should -BeLike "*$firstNodeUrl*"
+                $params[1].GetAttribute("value") | Should -BeLike "*$secondNodeUrl*"
+                $config.systemConfig.sslOffloadingSettings.GetAttribute("EnableSslOffloading") | Should -be "True"
+                [xml]$config = Get-Content $snConf
+                $params = $config.systemConfig.loadBalancingConfig.parameters.add
+                $params | Should -HaveCount 2
+                $params[0].GetAttribute("value") | Should -BeLike "*$firstNodeUrl*"
+                $params[1].GetAttribute("value") | Should -BeLike "*$secondNodeUrl*"
+                $config.systemConfig.sslOffloadingSettings.GetAttribute("EnableSslOffloading") | Should -be "True"
+            }
+        }
+    }
 }
