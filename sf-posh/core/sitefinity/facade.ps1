@@ -34,7 +34,7 @@ function sf {
             $newChangesDetected = $true
         }
         
-        if ($getLatest) {
+        if ($getLatestChanges) {
             $newChangesDetected = $false
             $getLatestOutput = sf-sourceControl-getLatestChanges -overwrite:$forceGetLatest
             if (!$getLatestOutput -or !($getLatestOutput.Contains('All files are up to date.'))) {
