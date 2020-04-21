@@ -23,7 +23,7 @@ function global:New-TestProject {
 
     $id = "$($sf.config.idPrefix)$([Guid]::NewGuid().ToString().Split('-')[0])"
     [SfProject]$sourceProj = _newSfProjectObject -id $id
-    $solutionPath = "$appPath\$id"
+    $Global:solutionPath = "$($GLOBAL:sf.config.projectsDirectory)\$id"
     $webAppPath = "$solutionPath\SitefinityWebApp"
 
     $sourceProj.displayName = "test-proj"
@@ -51,6 +51,10 @@ function global:Remove-TestProject {
     Set-Location $GLOBAL:PSHOME
     $idFilter = "$($global:sf.config.idPrefix)*"
 
+    if (Test-Path $Global:solutionPath) {
+        Remove-Item $Global:solutionPath -Recurse -Force
+    }
+    
     Get-Website | ? Name -like $idFilter | Remove-Website
     # do not use get-iisapppool - does not return latest
     Get-ChildItem "IIS:\AppPools" | ? Name -like $idFilter | Remove-WebAppPool
