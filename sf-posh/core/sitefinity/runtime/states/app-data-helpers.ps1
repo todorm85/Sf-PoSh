@@ -11,7 +11,7 @@ function _appData-restore ($src) {
     $webAppPath = $context.webAppPath
 
     _appData-remove
-    Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude $(_getSitefinityAppDataExcludeFilter) -ErrorVariable $errors -ErrorAction SilentlyContinue  # exclude is here for backward comaptibility
+    Copy-Item -Path $src -Destination "$webAppPath\App_Data" -Confirm:$false -Recurse -Force -Exclude (_getSitefinityAppDataExcludeFilter) -ErrorVariable $errors -ErrorAction SilentlyContinue  # exclude is here for backward comaptibility
     if ($errors) {
         Write-Information "Some files could not be cleaned in AppData, because they might be in use."
     }

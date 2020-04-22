@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Web;
 using Telerik.Sitefinity.Security;
-using Telerik.Sitefinity.TestIntegration.Helpers;
 
 namespace SitefinityWebApp.SfDev
 {
