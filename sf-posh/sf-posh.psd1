@@ -19,6 +19,8 @@
         PSData = @{
             ProjectUri   = 'https://github.com/todorm85/sitefinity-dev-orchestration'
             ReleaseNotes = @'
+            23.0.1
+                Bugfixes
             23.0.0
                 NLB feature complete
             21.1.1
