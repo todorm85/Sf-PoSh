@@ -20,17 +20,23 @@ function _appData-restore ($src) {
 function _appData-remove {
     [SfProject]$context = sf-project-getCurrent
     $webAppPath = $context.webAppPath
+    $originalLocation = Get-Location
+    try { 
+        Set-Location -Path $webAppPath
+        unlock-allFiles -path "${webAppPath}\App_Data"
+        $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude $(_getSitefinityAppDataExcludeFilter) -File
+        $errors
+        $toDelete | Remove-Item -Force -ErrorAction SilentlyContinue -ErrorVariable +errors
+        if ($errors) {
+            Write-Information "Some files in AppData folder could not be cleaned up, perhaps in use?"
+        }
 
-    unlock-allFiles -path "${webAppPath}\App_Data"
-    $toDelete = Get-ChildItem "${webAppPath}\App_Data" -Recurse -Force -Exclude $(_getSitefinityAppDataExcludeFilter) -File
-    $errors
-    $toDelete | Remove-Item -Force -ErrorAction SilentlyContinue -ErrorVariable +errors
-    if ($errors) {
-        Write-Information "Some files in AppData folder could not be cleaned up, perhaps in use?"
+        # clean empty dirs
+        _clean-emptyDirs -path "${webAppPath}\App_Data"
     }
-
-    # clean empty dirs
-    _clean-emptyDirs -path "${webAppPath}\App_Data"
+    finally {
+        Set-Location $originalLocation
+    }
 }
 
 function _getSitefinityAppDataExcludeFilter {

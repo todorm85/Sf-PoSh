@@ -68,6 +68,7 @@ function sf-sol-rebuild {
 }
 
 function sf-sol-clean {
+    [CmdletBinding()]
     Param(
         [bool]$cleanPackages = $false)
 
@@ -76,25 +77,17 @@ function sf-sol-clean {
 
     $solutionPath = $project.solutionPath
     if (!(Test-Path $solutionPath)) {
-        throw "invalid or no solution path"
+        throw "Invalid or no solution path."
     }
 
     sf-sol-unlockAllFiles
 
-    $errorMessage = ''
-    #delete all bin, obj and packages
     Write-Information "Deleting bins and objs..."
-    $dirs = Get-ChildItem -force -recurse $solutionPath | Where-Object { ($_.PSIsContainer -eq $true) -and (( $_.Name -like "bin") -or ($_.Name -like "obj")) }
-    try {
-        if ($dirs -and $dirs.Length -gt 0) {
-            $dirs | Remove-Item -Force -Recurse
-        }
-    }
-    catch {
-        $errorMessage = "$_`n"
-    }
+    Get-ChildItem -Path $solutionPath -Force -Recurse -Directory | `
+        Where-Object { $_.Name.ToLower() -eq "bin" -or $_.Name.ToLower() -eq "obj" } | `
+        Remove-Item -Force -Recurse -ErrorVariable +errorMessage -ErrorAction "Continue"
 
-    if ($errorMessage -ne '') {
+    if ($errorMessage) {
         $errorMessage = "Errors while deleting bins and objs:`n$errorMessage"
     }
 
@@ -107,8 +100,8 @@ function sf-sol-clean {
         }
     }
 
-    if ($errorMessage -ne '') {
-        throw $errorMessage
+    if ($errorMessage) {
+        Write-Error $errorMessage
     }
 }
 
