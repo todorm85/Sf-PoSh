@@ -67,9 +67,6 @@ function sf {
         if ($precompileTemplates) {
             sf-appPrecompiledTemplates-add
         }
-        else {
-            sf-appPrecompiledTemplates-remove
-        }
 
         if ($ensureSitefinityIsRunning) {
             sf-app-sendRequestAndEnsureInitialized
