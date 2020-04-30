@@ -372,9 +372,10 @@ function sf-project-rename {
 }
 
 function sf-project-getCurrent {
+    param([switch]$skipValidation)
     $p = $Script:globalContext
-    if (!$p) {
-        throw "No project selected!Call stack: $(Get-PSCallStack)"
+    if (!$p -and !$skipValidation) {
+        throw "No project selected! Call stack: $(Get-PSCallStack)"
     }
 
     $p
@@ -782,5 +783,25 @@ function _proj-detectSite ([Sfproject]$project) {
     }
     else {
         $project.websiteName = ''
+    }
+}
+
+function InProjectScope {
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [Sfproject]$project,
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [ScriptBlock]$script
+    )
+    
+    $previous = sf-project-getCurrent -skipValidation
+    sf-project-setCurrent $project
+    try {
+        & $script
+    }
+    finally {
+        sf-project-setCurrent $previous
     }
 }

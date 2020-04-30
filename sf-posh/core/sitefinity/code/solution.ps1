@@ -211,7 +211,7 @@ function sf-sol-resetSitefinityFolder {
     }
 
     $errorMessage = $errorMessage | ? {$_ -notlike "\Logs" }
-    if ($errorMessage {
+    if ($errorMessage) {
         throw $errorMessage
     }
 }
