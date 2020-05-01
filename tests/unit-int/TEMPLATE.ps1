@@ -2,10 +2,9 @@
 InModuleScope sf-posh {
     Describe "test" {
         InTestProjectScope {
-        It "case" {
+            It "case" {
 
-        }
-
+            }
         }
     }
 }

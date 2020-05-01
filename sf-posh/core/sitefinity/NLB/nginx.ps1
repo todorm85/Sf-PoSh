@@ -1,6 +1,5 @@
 $global:nlbClusterConfigExtension = "config"
 function sf-nginx-reset {
-    # Get-Process -Name "nginx" -ErrorAction "SilentlyContinue" | Stop-Process -Force
     $nginxDirPath = (Get-Item $Global:sf.config.pathToNginxConfig).Directory.Parent.FullName
     $nginxJob = Start-Job -ScriptBlock {
         param($nginxDirPath)
