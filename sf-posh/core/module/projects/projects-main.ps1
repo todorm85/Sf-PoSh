@@ -372,6 +372,7 @@ function sf-project-rename {
 }
 
 function sf-project-getCurrent {
+    [OutputType([SfProject])]
     param([switch]$skipValidation)
     $p = $Script:globalContext
     if (!$p -and !$skipValidation) {
@@ -406,7 +407,7 @@ function sf-project-setCurrent {
         }
         finally {
             _update-prompt $Script:globalContext > $null
-            $Global:SfEvents_OnAfterProjectSet | % {& $_}
+            $Global:SfEvents_OnAfterProjectSet | % { & $_ }
             if ($passthru) {
                 $Script:globalContext
             }
@@ -788,10 +789,10 @@ function _proj-detectSite ([Sfproject]$project) {
 
 function InProjectScope {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNull()]
         [Sfproject]$project,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
         [ScriptBlock]$script
     )

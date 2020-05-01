@@ -52,9 +52,9 @@ function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
     }
 
     $srcWebConfig = _sf-path-getWebConfigPath $currentNode
-    sf-nlb-getOtherNodes | % {
-        sf-project-setCurrent $_
-        $trg = _sf-path-getConfigBasePath $_
+    sf-nlb-getOtherNodes | InProjectScope -script {
+        $p = sf-project-getCurrent
+        $trg = _sf-path-getConfigBasePath $p
         if (!(Test-Path $trg)) {
             New-Item $trg -ItemType Directory
         }
@@ -62,11 +62,10 @@ function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
         Remove-Item -Path "$trg\*" -Recurse -Force
         Copy-Item "$srcConfigs\*" $trg
         
-        $trgWebConfig = _sf-path-getWebConfigPath $_
+        $trgWebConfig = _sf-path-getWebConfigPath $p
         Copy-Item $srcWebConfig $trgWebConfig -Force
     }
 
-    sf-project-setCurrent $currentNode
     if (!$skipWait) {
         sf-nlb-forAllNodes {
             sf-app-sendRequestAndEnsureInitialized
@@ -102,6 +101,10 @@ function sf-nlb-openNlbSite {
 
     $url = sf-nlb-getUrl
     os-browseUrl -url $url -openInSameWindow:$openInSameWindow 
+}
+
+function sf-nlb-getNlbId {
+    sf-project-getCurrent | % { sf-nlbData-getNlbIds -projectId $_.id }
 }
 
 function _nlb-getDomain {

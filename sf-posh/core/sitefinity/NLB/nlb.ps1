@@ -99,11 +99,16 @@ function sf-nlb-getStatus {
         catch {
             Write-Warning "No nlb url could be constructed."            
         }
-        
+
+        $nodeIds = @($p.id)
+        if ($otherNode) {
+            $nodeIds += $otherNode.id
+        }
+
         [PScustomObject]@{
             enabled = $true;
             url     = $url;
-            nodeIds = @($p.id, $otherNode.id)
+            nodeIds = $nodeIds
         }
     }
     else {
