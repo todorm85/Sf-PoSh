@@ -23,7 +23,7 @@ InModuleScope sf-posh {
 
         It "initialize when using select from the prompt" {
             [SfProject]$p = sf-project-getAll | select -First 1
-            Mock _promptProjectSelect {
+            Mock _proj-promptSelect {
                 $p
             }
 

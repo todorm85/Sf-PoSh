@@ -128,7 +128,7 @@ InModuleScope sf-posh {
             # check user prompted for binding and default binding is removed from sfdev project
             $project = sf-project-getCurrent
             $project.defaultBinding | Should -Not -BeNullOrEmpty
-            Mock _promptProjectSelect { $project }
+            Mock _proj-promptSelect { $project }
             Mock Read-Host { 'n' }
             sf-project-select
             $project = sf-project-getCurrent

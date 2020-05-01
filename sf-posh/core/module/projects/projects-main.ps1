@@ -159,7 +159,7 @@ function sf-project-removeBulk {
         return
     }
 
-    $sfsToDelete = _proj-promptSfsSelection $sitefinities
+    $sfsToDelete = _proj-promptSelectMany $sitefinities
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
@@ -788,6 +788,7 @@ function _proj-detectSite ([Sfproject]$project) {
 }
 
 function InProjectScope {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNull()]
@@ -797,12 +798,42 @@ function InProjectScope {
         [ScriptBlock]$script
     )
     
-    $previous = sf-project-getCurrent -skipValidation
-    sf-project-setCurrent $project
-    try {
-        & $script
+    process {
+        $previous = sf-project-getCurrent -skipValidation
+        sf-project-setCurrent $project
+        try {
+            & $script
+        }
+        finally {
+            sf-project-setCurrent $previous
+        }
     }
-    finally {
-        sf-project-setCurrent $previous
+}
+
+<#
+.SYNOPSIS
+    The global function wrapper for functions requiring project context.
+.DESCRIPTION
+    Checks and validates that the pipeline input received a valid project or if no pipeline was used sets the current global selected project to the input.
+    If no pipeline object is supplied writes error and continues pipeline execution.
+    If no valid project passed as aprameter and no currently selected project throws exception.
+.NOTES
+    IMPORTANT the project parameter of the wrapped function must be called 'project' in order to be properly modified by this wrapper.
+#>
+function RunWithValidatedProject {
+    param (
+        [ScriptBlock]$callback
+    )
+
+    $stack = Get-PSCallStack
+    $isFromPipeline = $stack[$stack.Count - 2].InvocationInfo.ExpectingInput
+    if (!$isFromPipeline -and !$project) {
+        $project = sf-project-getCurrent
     }
+    elseif (!$project) {
+        Write-Error "Invalid project received from pipeline!"
+        return
+    }
+
+    & $callback
 }

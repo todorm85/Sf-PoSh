@@ -18,133 +18,115 @@ function sf-project-select {
 
     [SfProject[]]$sitefinities = @(sf-project-getAll -tagsFilter $tagsFilter)
 
-    if (!$sitefinities[0]) {
+    if (!$sitefinities) {
         Write-Warning "No projects found. Check if not using default tag filter."
         return
     }
 
-    $selectedSitefinity = _promptProjectSelect -sitefinities $sitefinities
+    $selectedSitefinity = _proj-promptSelect -sitefinities $sitefinities
     
     sf-project-setCurrent $selectedSitefinity >> $null
     _verifyDefaultBinding
 }
 
-<#
-    .SYNOPSIS
-    Shows info for selected sitefinity.
-#>
-function sf-project-show {
-    [SfProject]$context = sf-project-getCurrent
+function sf-project-getInfo {
+    [OutputType([PSCustomObject])]
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline = $true)]
+        [SfProject]
+        $project,
+        [switch]$detail
+    )
 
-    if ($null -eq ($context)) {
-        Write-Warning "No project selected"
+    process {
+        RunWithValidatedProject {
+            $ports = if ($project.websiteName) {
+                iis-bindings-getAll -siteName $project.websiteName | Select-Object -ExpandProperty 'port' | Get-Unique
+            }
+
+            $result = [PSCustomObject]@{
+                Title   = "$($project.displayName)";
+                ID      = "$($project.id)";
+                Branch  = $project.branch;
+                LastGet = $project.GetDaysSinceLastGet();
+                Ports   = "$ports";
+                Tags    = $project.tags;
+                NlbId   = sf-nlbData-getNlbIds -projectId $project.id;
+            }
+
+            if ($detail) {
+                $result | `
+                    Add-Member -Name DbName -Value sf-db-getNameFromDataConfig -MemberType NoteProperty -PassThru | `
+                    Add-Member -Name SiteName -Value $project.websiteName -MemberType NoteProperty -PassThru | `
+                    Add-Member -Name AppPath -Value $project.webAppPath -MemberType NoteProperty
+            }
+
+            $result
+        }    
+    }
+}
+
+function _proj-promptSelect {
+    param (
+        [SfProject[]]$sitefinities
+    )
+
+    if (-not $sitefinities) {
+        Write-Warning "No sitefinities found. Check if not filtered with default tags."
         return
     }
 
-    $binding = sf-iisSite-getBinding
-    $url = ''
-    if ($binding) {
-        $url = "$($binding.domain):$($binding.port) | "
+    $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
+
+    _project-showAllIndexed -sitefinitie $sitefinities
+
+    while ($true) {
+        [int]$choice = Read-Host -Prompt 'Choose sitefinity'
+        $selectedSitefinity = $sortedSitefinities[$choice]
+        if ($null -ne $selectedSitefinity) {
+            break;
+        }
     }
 
-    try {
-        $workspaceName = tfs-get-workspaceName $context.webAppPath
-    }
-    catch {
-        Write-Information "Error getting some details from TFS: $_"
-    }
+    $selectedSitefinity
+}
 
-    try {
-        $appPool = (Get-Website -Name $context.websiteName).applicationPool
-    }
-    catch {
-        Write-Information "Error getting some details from IIS: $_"
-    }
+function _proj-promptSelectMany ([SfProject[]]$sitefinities) {
+    _project-showAllIndexed -sitefinitie $sitefinities
 
-    $bindingsLabel = ""
-    if ($context.websiteName) {
-        [SiteBinding[]]$bindings = iis-bindings-getAll $context.websiteName
-        $bindings | % { $bindingsLabel += " $(_sd-iisSite-buildUrlFromBinding -binding $_)" }
+    $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
+    $choices = $choices.Split(' ')
+    [System.Collections.Generic.List``1[object]]$sfsToDelete = New-Object System.Collections.Generic.List``1[object]
+    foreach ($choice in $choices) {
+        [SfProject]$selectedSitefinity = $sitefinities[$choice]
+        if ($null -eq $selectedSitefinity) {
+            Write-Error "Invalid selection $choice"
+        }
+
+        $sfsToDelete.Add($selectedSitefinity)
     }
 
-    $otherDetails = @(
-        [pscustomobject]@{id = 0; Parameter = "Title"; Value = $context.displayName; },
-        [pscustomobject]@{id = 0.5; Parameter = "Id"; Value = $context.id; },
-
-        [pscustomobject]@{id = 0.6; Parameter = " "; Value = " "; },
-
-        [pscustomobject]@{id = 1; Parameter = "Solution path"; Value = $context.solutionPath; },
-        [pscustomobject]@{id = 2; Parameter = "Web app path"; Value = $context.webAppPath; },
-
-        [pscustomobject]@{id = 2.5; Parameter = " "; Value = " "; },
-
-        [pscustomobject]@{id = 3; Parameter = "Database Name"; Value = sf-db-getNameFromDataConfig; },
-
-        [pscustomobject]@{id = 3.5; Parameter = " "; Value = " "; },
-
-        [pscustomobject]@{id = 4; Parameter = "Website Name in IIS"; Value = $context.websiteName; },
-        [pscustomobject]@{id = 5; Parameter = "Bindings"; Value = $bindingsLabel; },
-        [pscustomobject]@{id = 6; Parameter = "Application Pool Name"; Value = $appPool; },
-
-        [pscustomobject]@{id = 6.5; Parameter = " "; Value = " "; },
-
-        [pscustomobject]@{id = 7; Parameter = "TFS workspace name"; Value = $workspaceName; },
-        [pscustomobject]@{id = 8; Parameter = "Mapping"; Value = $context.branch; }
-        [pscustomobject]@{id = 9; Parameter = "Last get"; Value = $context.GetDaysSinceLastGet(); }
-        [pscustomobject]@{id = 10; Parameter = "Tags"; Value = $context.tags }
-    )
-
-    $details = $otherDetails | Sort-Object -Property id | Format-Table -Property Parameter, Value -AutoSize -Wrap -HideTableHeaders | Out-String
-    Write-Host $details
-    Write-Host "Description:`n$($context.description)`n"
+    return $sfsToDelete
 }
 
 <#
     .SYNOPSIS
     Shows info for all sitefinities managed by the script.
 #>
-function sf-project-showAll {
+function _project-showAllIndexed {
+    [CmdletBinding()]
     Param(
-        [SfProject[]]$sitefinities
+        [SfProject[]]$sitefinitie
     )
 
-    [System.Collections.ArrayList]$output = @()
-    foreach ($sitefinity in $sitefinities) {
-        $ports = if ($sitefinity.websiteName) {
-            iis-bindings-getAll -siteName $sitefinity.websiteName | Select-Object -ExpandProperty 'port' | Get-Unique
-        }
-        else {
-            ''
-        }
-
-        [SfProject]$sitefinity = $sitefinity
-        $index = [array]::IndexOf($sitefinities, $sitefinity)
-        $branch = if ($sitefinity.branch) { $sitefinity.branch.Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0] } else { '' }
-        $output.add([pscustomobject]@{
-                order   = $index;
-                ID      = "$($sitefinity.id)";
-                Title   = "$index : $($sitefinity.displayName)";
-                Branch  = $branch;
-                LastGet = $sitefinity.GetDaysSinceLastGet();
-                Ports   = "$ports";
-                Tags    = $sitefinity.tags
-            }) > $null
-    }
-
-    $output | Sort-Object -Property order | Format-Table -Property Title, Id, Branch, LastGet, Ports, Tags | Out-String | ForEach-Object { Write-Host $_ }
-}
-
-function _getDaysSinceDate {
-    Param(
-        [Nullable[DateTime]]$date
-    )
-
-    if (!$date) {
-        return $null
-    }
-
-    [System.TimeSpan]$days = [System.TimeSpan]([System.DateTime]::Today - $date.Date)
-    return [math]::Round($days.TotalDays, 0)
+    $i = 0
+    $sitefinitie | sf-project-getInfo | % {
+        $_.Title = "$i : $($_.Title)"
+        $i++
+        if ($_.branch) { $_.branch = $_.branch.Replace("$/CMS/Sitefinity 4.0", "") }
+        $_
+    } | ft | Out-String | Write-Host
 }
 
 function _promptPredefinedBranchSelect {
@@ -213,31 +195,6 @@ function _promptPredefinedBuildPathSelect {
     return $selectedPath
 }
 
-function _promptProjectSelect {
-    param (
-        [SfProject[]]$sitefinities
-    )
-
-    if (-not $sitefinities) {
-        Write-Warning "No sitefinities found. Check if not filtered with default tags."
-        return
-    }
-
-    $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
-
-    sf-project-showAll $sortedSitefinities
-
-    while ($true) {
-        [int]$choice = Read-Host -Prompt 'Choose sitefinity'
-        $selectedSitefinity = $sortedSitefinities[$choice]
-        if ($null -ne $selectedSitefinity) {
-            break;
-        }
-    }
-
-    $selectedSitefinity
-}
-
 function _proj-promptSourcePathSelect {
     while ($selectFrom -ne 1 -and $selectFrom -ne 2) {
         $selectFrom = Read-Host -Prompt "Create from?`n[1] Branch`n[2] Build`n"
@@ -249,22 +206,4 @@ function _proj-promptSourcePathSelect {
     else {
         _promptPredefinedBuildPathSelect
     }
-}
-
-function _proj-promptSfsSelection ([SfProject[]]$sitefinities) {
-    sf-project-showAll $sitefinities
-
-    $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
-    $choices = $choices.Split(' ')
-    [System.Collections.Generic.List``1[object]]$sfsToDelete = New-Object System.Collections.Generic.List``1[object]
-    foreach ($choice in $choices) {
-        [SfProject]$selectedSitefinity = $sitefinities[$choice]
-        if ($null -eq $selectedSitefinity) {
-            Write-Error "Invalid selection $choice"
-        }
-
-        $sfsToDelete.Add($selectedSitefinity)
-    }
-
-    return $sfsToDelete
 }
