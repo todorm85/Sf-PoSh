@@ -45,12 +45,17 @@ function sf-project-getInfo {
                 iis-bindings-getAll -siteName $project.websiteName | Select-Object -ExpandProperty 'port' | Get-Unique
             }
 
+            $branch = $project.branch
+            if (!$detail) {  
+                $branch = $branch.Replace("$/CMS/Sitefinity 4.0", "") 
+            }
+
             $result = [PSCustomObject]@{
-                Title   = "$($project.displayName)";
-                ID      = "$($project.id)";
+                Title   = $project.displayName;
+                ID      = $project.id;
                 Branch  = $project.branch;
                 LastGet = $project.GetDaysSinceLastGet();
-                Ports   = "$ports";
+                Ports   = $ports;
                 Tags    = $project.tags;
                 NlbId   = sf-nlbData-getNlbIds -projectId $project.id;
             }
@@ -69,64 +74,31 @@ function sf-project-getInfo {
 
 function _proj-promptSelect {
     param (
-        [SfProject[]]$sitefinities
+        [SfProject[]]$sitefinities,
+        [string[]]$propsToShow,
+        [string[]]$propsToOrderBy,
+        [switch]$multipleSelect
     )
 
-    if (-not $sitefinities) {
+    if (!$sitefinities) {
         Write-Warning "No sitefinities found. Check if not filtered with default tags."
         return
     }
 
-    $sortedSitefinities = $sitefinities | Sort-Object -Property tags, branch
-
-    _project-showAllIndexed -sitefinitie $sitefinities
-
-    while ($true) {
-        [int]$choice = Read-Host -Prompt 'Choose sitefinity'
-        $selectedSitefinity = $sortedSitefinities[$choice]
-        if ($null -ne $selectedSitefinity) {
-            break;
-        }
+    if (!$propsToShow) {
+        $propsToShow = @("Title", "ID", "Branch", "LastGet", "Ports", "Tags", "NlbId")
     }
 
-    $selectedSitefinity
-}
-
-function _proj-promptSelectMany ([SfProject[]]$sitefinities) {
-    _project-showAllIndexed -sitefinitie $sitefinities
-
-    $choices = Read-Host -Prompt 'Choose sitefinities (numbers delemeted by space)'
-    $choices = $choices.Split(' ')
-    [System.Collections.Generic.List``1[object]]$sfsToDelete = New-Object System.Collections.Generic.List``1[object]
-    foreach ($choice in $choices) {
-        [SfProject]$selectedSitefinity = $sitefinities[$choice]
-        if ($null -eq $selectedSitefinity) {
-            Write-Error "Invalid selection $choice"
-        }
-
-        $sfsToDelete.Add($selectedSitefinity)
+    if (!$propsToOrderBy) {
+        $propsToOrderBy = @("NlbId", "Branch", "Tags")
     }
 
-    return $sfsToDelete
-}
+    $sfInfos = $sitefinities | sf-project-getInfo
+    $selection = ui-promptItemSelect -items $sfInfos -propsToShow $propsToShow -propsToOrderBy $propsToOrderBy -multipleSelection:$multipleSelect
 
-<#
-    .SYNOPSIS
-    Shows info for all sitefinities managed by the script.
-#>
-function _project-showAllIndexed {
-    [CmdletBinding()]
-    Param(
-        [SfProject[]]$sitefinitie
-    )
-
-    $i = 0
-    $sitefinitie | sf-project-getInfo | % {
-        $_.Title = "$i : $($_.Title)"
-        $i++
-        if ($_.branch) { $_.branch = $_.branch.Replace("$/CMS/Sitefinity 4.0", "") }
-        $_
-    } | ft | Out-String | Write-Host
+    $selection | % {
+        $sitefinities | ? id -eq $_.ID
+    }
 }
 
 function _promptPredefinedBranchSelect {
@@ -137,29 +109,7 @@ function _promptPredefinedBranchSelect {
         return $selectedBranch
     }
 
-    $i = 0
-    foreach ($branch in $branches) {
-        $i++
-        Write-Host "[$i] : $branch"
-    }
-
-    $i++
-    Write-Host "[$i] : custom"
-
-    $selectedBranch = $null
-    while (!$selectedBranch) {
-        $userInput = Read-Host -Prompt "Select branch"
-        $userInput = $userInput -as [int]
-        $userInput--
-        if ($userInput -gt -1 -and $userInput -lt $branches.Count) {
-            $selectedBranch = $branches[$userInput]
-        }
-        else {
-            $selectedBranch = Read-Host -Prompt 'enter branch path: '
-        }
-    }
-
-    return $selectedBranch
+    ui-promptItemSelect -items $branches
 }
 
 function _promptPredefinedBuildPathSelect {
@@ -170,29 +120,7 @@ function _promptPredefinedBuildPathSelect {
         return $selectedPath
     }
 
-    $i = 0
-    foreach ($path in $paths) {
-        $i++
-        Write-Host "[$i] : $path"
-    }
-
-    $i++
-    Write-Host "[$i] : Custom"
-
-    $selectedPath = $null
-    while (!$selectedPath) {
-        $userInput = Read-Host -Prompt "Select path"
-        $userInput = $userInput -as [int]
-        $userInput--
-        if ($userInput -gt -1 -and $userInput -lt $paths.Length) {
-            $selectedPath = $paths[$userInput]
-        }
-        else {
-            $selectedPath = Read-Host -Prompt 'Enter build path (zip or existing web app):'
-        }
-    }
-
-    return $selectedPath
+    ui-promptItemSelect -items $paths
 }
 
 function _proj-promptSourcePathSelect {
@@ -205,5 +133,85 @@ function _proj-promptSourcePathSelect {
     }
     else {
         _promptPredefinedBuildPathSelect
+    }
+}
+
+function ui-promptItemSelect {
+    [OutputType([object])]
+    param (
+        [object[]]$items,
+        [string[]]$propsToShow,
+        [string[]]$propsToOrderBy,
+        [switch]$multipleSelection
+    )
+    
+    if (!$items) {
+        return
+    }
+
+    if ($propsToOrderBy) {
+        $items = $items | Sort-Object -Property $propsToOrderBy
+    }
+
+    _ui-showAllWithIndexedPrefix -datas $items -propsToShow $propsToShow
+    while ($true) {
+        if ($multipleSelection) {
+            $choices = Read-Host -Prompt 'Select items (numbers delemeted by space)'
+            $choices = $choices.Split(' ')
+            [System.Collections.Generic.List``1[object]]$selection = New-Object System.Collections.Generic.List``1[object]
+            foreach ($choice in $choices) {
+                $currentSelect = $items[$choice]
+                if ($null -eq $currentSelect) {
+                    Write-Error "Invalid selection $choice"
+                }
+                else {
+                    $selection.Add($currentSelect)
+                }
+            }
+
+            if ($null -ne $selection) {
+                break;
+            }
+        }
+        else {
+            [int]$choice = Read-Host -Prompt "Select"
+            $selection = $items[$choice]
+            if ($null -ne $selection) {
+                break;
+            }
+        }
+    }
+
+    $selection
+}
+
+function _ui-showAllWithIndexedPrefix {
+    param (
+        [object[]]$datas,
+        [string[]]$propsToShow
+    )
+    
+    if (!$datas) {
+        return
+    }
+
+    if ($datas[0].GetType().IsValueType -or $datas[0].GetType() -eq "".GetType()) {
+        $i = 0
+        $datas | % {
+            Write-Host "$i : $_"
+            $i++
+        }
+    }
+    else {
+        for ($i = 0; $i -lt $datas.Count; $i++) {
+            $datas[$i] | Add-Member -MemberType NoteProperty -Name "idx" -Value $i
+        }
+
+        if (!$propsToShow) {
+            $propsToShow = $datas[0] | Get-Member -MemberType Property | select -ExpandProperty Name
+        }
+    
+        $props = @("idx") + $propsToShow
+        $datas | ft -Property $props | Out-String | Write-Host
     }
 }

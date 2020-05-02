@@ -159,7 +159,7 @@ function sf-project-removeBulk {
         return
     }
 
-    $sfsToDelete = _proj-promptSelectMany $sitefinities
+    $sfsToDelete = _proj-promptSelect -sitefinities $sitefinities -multipleSelect
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {

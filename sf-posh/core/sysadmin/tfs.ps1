@@ -81,6 +81,7 @@ function tfs-create-mappings {
     #     throw "could not create directory $branchMapPath"
     # }
     try {
+        execute-native "& `"$(_get-tfPath)`" branches `"$branch`"" > $null
         execute-native "& `"$(_get-tfPath)`" workfold /map `"$branch`" `"$branchMapPath`" /workspace:$workspaceName /server:$server" > $null
     }
     catch {

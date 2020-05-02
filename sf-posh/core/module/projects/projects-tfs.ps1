@@ -17,6 +17,7 @@ function _createWorkspace ([SfProject]$context, $branch, [switch]$force) {
 
     try {
         Write-Information "Creating workspace mappings..."
+        
         tfs-create-mappings -branch $branch -branchMapPath $context.solutionPath -workspaceName $workspaceName -server $GLOBAL:sf.Config.tfsServerName
     }
     catch {
