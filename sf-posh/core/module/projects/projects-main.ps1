@@ -1,17 +1,5 @@
 $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Backlog Item ", "Bug ", "Task ", "Feature ") -MemberType NoteProperty
 
-function _newSfProjectObject ($id) {
-    [SfProject]$newProject = [SfProject]::new()
-    if (!$id) {
-        $newProject.id = _generateId
-    }
-    else {
-        $newProject.id = $id
-    }
-
-    return $newProject
-}
-
 <#
     .SYNOPSIS
     Provisions a new sitefinity instance project.
@@ -187,123 +175,127 @@ function sf-project-removeBulk {
 #>
 function sf-project-remove {
     Param(
-        [SfProject]$context,
+        [Parameter(ValueFromPipeline)]
+        [SfProject]$project,
         [switch]$keepDb,
         [switch]$keepWorkspace,
         [switch]$keepProjectFiles
     )
 
-    # DO NOT PIPE TO THIS FUNCTION AS IT MIGHT DELETE THE CURRENT SELECTED PROJECT IF ONE OF THE PIPED VALUES IS NULL
-    $clearCurrentSelectedProject = $false
-    [SfProject]$currentProject = $null
-    try {
-        $currentProject = sf-project-getCurrent
-    }
-    catch {
-        Write-Verbose "No current project."    
-    }
+    process {
+        RunWithValidatedProject {
+            $clearCurrentSelectedProject = $false
+            [SfProject]$currentProject = $null
+            try {
+                $currentProject = sf-project-getCurrent
+            }
+            catch {
+                Write-Verbose "No current project."    
+            }
 
-    if (!$context) { $context = $currentProject }
+            if (!$project) { $project = $currentProject }
 
-    if (!$context) { throw "No project parameter and no current project selected to delete." }
+            if (!$project) { throw "No project parameter and no current project selected to delete." }
         
-    if ($currentProject -and $currentProject.id -eq $context.id) {
-        $clearCurrentSelectedProject = $true
-    }
+            if ($currentProject -and $currentProject.id -eq $project.id) {
+                $clearCurrentSelectedProject = $true
+            }
 
-    sf-project-setCurrent -newContext $context > $null
+            sf-project-setCurrent -newContext $project > $null
 
-    # Del Website
-    Write-Information "Deleting website..."
-    $websiteName = $context.websiteName
-    $siteExists = @(Get-Website | ? { $_.name -eq $websiteName }).Count -gt 0
-    if ($websiteName -and $siteExists) {
-        try {
-            sf-iisAppPool-Stop
-        }
-        catch {
-            Write-Warning "Could not stop app pool: $_`n"
-        }
+            # Del Website
+            Write-Information "Deleting website..."
+            $websiteName = $project.websiteName
+            $siteExists = @(Get-Website | ? { $_.name -eq $websiteName }).Count -gt 0
+            if ($websiteName -and $siteExists) {
+                try {
+                    sf-iisAppPool-Stop
+                }
+                catch {
+                    Write-Warning "Could not stop app pool: $_`n"
+                }
 
-        try {
-            sf-iisSite-delete
-        }
-        catch {
-            Write-Warning "Errors deleting website ${websiteName}. $_`n"
-        }
-    }
+                try {
+                    sf-iisSite-delete
+                }
+                catch {
+                    Write-Warning "Errors deleting website ${websiteName}. $_`n"
+                }
+            }
 
-    # TFS
-    $workspaceName = $null
-    try {
-        Set-Location -Path $PSScriptRoot
-        $workspaceName = tfs-get-workspaceName $context.webAppPath
-    }
-    catch {
-        Write-Warning "No workspace to delete, no TFS mapping found."
-    }
+            # TFS
+            $workspaceName = $null
+            try {
+                Set-Location -Path $PSScriptRoot
+                $workspaceName = tfs-get-workspaceName $project.webAppPath
+            }
+            catch {
+                Write-Warning "No workspace to delete, no TFS mapping found."
+            }
 
-    if ($workspaceName -and !($keepWorkspace)) {
-        Write-Information "Deleting workspace..."
-        try {
-            tfs-delete-workspace $workspaceName $GLOBAL:sf.Config.tfsServerName
-        }
-        catch {
-            Write-Warning "Could not delete workspace $_"
-        }
-    }
+            if ($workspaceName -and !($keepWorkspace)) {
+                Write-Information "Deleting workspace..."
+                try {
+                    tfs-delete-workspace $workspaceName $GLOBAL:sf.Config.tfsServerName
+                }
+                catch {
+                    Write-Warning "Could not delete workspace $_"
+                }
+            }
         
-    # Del db
-    if (!$keepDb) {
-        Write-Information "Deleting sitefinity database..."
-        try {
-            $dbName = _db-getNameFromDataConfig -appPath $context.webAppPath
-            sql-delete-database -dbName $dbName
-            sql-delete-database -dbName $context.id
-        }
-        catch {
-            Write-Warning "Could not delete database: ${dbName}. $_"
-        }
-    }
+            # Del db
+            if (!$keepDb) {
+                Write-Information "Deleting sitefinity database..."
+                try {
+                    $dbName = _db-getNameFromDataConfig -appPath $project.webAppPath
+                    sql-delete-database -dbName $dbName
+                    sql-delete-database -dbName $project.id
+                }
+                catch {
+                    Write-Warning "Could not delete database: ${dbName}. $_"
+                }
+            }
 
-    # Del dir
-    if (!($keepProjectFiles)) {
-        try {
-            $solutionPath = $context.solutionPath
-            if ($solutionPath) {
-                $path = $solutionPath
+            # Del dir
+            if (!($keepProjectFiles)) {
+                try {
+                    $solutionPath = $project.solutionPath
+                    if ($solutionPath) {
+                        $path = $solutionPath
+                    }
+                    else {
+                        $path = $project.webAppPath
+                    }
+
+                    Write-Information "Unlocking all locked files in solution directory..."
+                    unlock-allFiles -path $path
+
+                    Write-Information "Deleting solution directory..."
+                    Remove-Item $path -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+                    if ($ProcessError) {
+                        throw $ProcessError
+                    }
+                }
+                catch {
+                    Write-Warning "Errors deleting sitefinity directory. $_"
+                }
+            }
+
+            Write-Information "Deleting data entry..."
+            try {
+                _removeProjectData $project
+            }
+            catch {
+                Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
+            }
+
+            if ($clearCurrentSelectedProject) {
+                sf-project-setCurrent $null > $null
             }
             else {
-                $path = $context.webAppPath
-            }
-
-            Write-Information "Unlocking all locked files in solution directory..."
-            unlock-allFiles -path $path
-
-            Write-Information "Deleting solution directory..."
-            Remove-Item $path -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
-            if ($ProcessError) {
-                throw $ProcessError
+                sf-project-setCurrent $currentProject > $null
             }
         }
-        catch {
-            Write-Warning "Errors deleting sitefinity directory. $_"
-        }
-    }
-
-    Write-Information "Deleting data entry..."
-    try {
-        _removeProjectData $context
-    }
-    catch {
-        Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
-    }
-
-    if ($clearCurrentSelectedProject) {
-        sf-project-setCurrent $null > $null
-    }
-    else {
-        sf-project-setCurrent $currentProject > $null
     }
 }
 
@@ -429,6 +421,20 @@ function sf-project-getAll {
     return $sitefinities
 }
 
+function sf-project-save {
+    Param($context)
+
+    if (!$context.id) {
+        throw "No project id."
+    }
+
+    if (-not ($context.webAppPath -and (Test-Path $context.webAppPath))) {
+        throw "No web app path set or it does not exist."
+    }
+
+    _setProjectData $context
+}
+
 function _proj-tryUseExisting {
     Param(
         [Parameter(Mandatory = $true)][SfProject]$project,
@@ -518,20 +524,6 @@ function _createUserFriendlySlnName ($context) {
     if (!(Test-Path $targetFilePath)) {
         Copy-Item -Path $solutionFilePath -Destination $targetFilePath
     }
-}
-
-function sf-project-save {
-    Param($context)
-
-    if (!$context.id) {
-        throw "No project id."
-    }
-
-    if (-not ($context.webAppPath -and (Test-Path $context.webAppPath))) {
-        throw "No web app path set or it does not exist."
-    }
-
-    _setProjectData $context
 }
 
 function _validateProject {
@@ -785,6 +777,18 @@ function _proj-detectSite ([Sfproject]$project) {
     else {
         $project.websiteName = ''
     }
+}
+
+function _newSfProjectObject ($id) {
+    [SfProject]$newProject = [SfProject]::new()
+    if (!$id) {
+        $newProject.id = _generateId
+    }
+    else {
+        $newProject.id = $id
+    }
+
+    return $newProject
 }
 
 function InProjectScope {

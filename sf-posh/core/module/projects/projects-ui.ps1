@@ -13,7 +13,7 @@ function sf-project-select {
     )
 
     if (!$tagsFilter) {
-        $tagsFilter = sf-projectTags-getDefaultFilter
+        $tagsFilter = sf-tags-getAllAvailableDefaultFilter
     }
 
     [SfProject[]]$sitefinities = @(sf-project-getAll -tagsFilter $tagsFilter)
@@ -33,7 +33,7 @@ function sf-project-getInfo {
     [OutputType([PSCustomObject])]
     [CmdletBinding()]
     param (
-        [Parameter(ValueFromPipeline = $true)]
+        [Parameter(ValueFromPipeline)]
         [SfProject]
         $project,
         [switch]$detail

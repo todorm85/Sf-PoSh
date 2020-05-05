@@ -1,42 +1,6 @@
 $Script:excludeTagPrefix = '_'
 
-$Script:tagFilterCompleter = {
-    param ( $commandName,
-        $parameterName,
-        $wordToComplete,
-        $commandAst,
-        $fakeBoundParameters
-    )
-
-    $prefixes = @($excludeTagPrefix)
-    $prefix = "$wordToComplete"[0]
-    if ($prefix -notin $prefixes) {
-        $prefix = ''
-    }
-
-    $possibleValues = @(Invoke-Command -ScriptBlock $Script:tagCompleter -ArgumentList $commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-
-    $possibleValues | % { "$prefix$_" }
-}
-
-$Script:selectFunctionTagCompleter = {
-    param ( $commandName,
-        $parameterName,
-        $wordToComplete,
-        $commandAst,
-        $fakeBoundParameters )
-
-    $values = @(Invoke-Command -ScriptBlock $tagFilterCompleter -ArgumentList $commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-    $values += @("+a")
-    $values += @("+u")
-    $values
-}
-
-Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock $selectFunctionTagCompleter
-
-function sf-projectTags-setDefaultFilter {
+function sf-tags-setDefaultFilter {
     param (
         [string[]]$filter
     )
@@ -44,7 +8,7 @@ function sf-projectTags-setDefaultFilter {
     _setDefaultTagsFilter -defaultTagsFilter $filter
 }
 
-function sf-projectTags-getDefaultFilter {
+function sf-tags-getAllAvailableDefaultFilter {
     [OutputType([string[]])]
     Param()
 
@@ -52,7 +16,7 @@ function sf-projectTags-getDefaultFilter {
     return ,$filter
 }
 
-function sf-projectTags-addToDefaultFilter {
+function sf-tags-addToDefaultFilter {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -60,14 +24,12 @@ function sf-projectTags-addToDefaultFilter {
         $tag
     )
 
-    $defaultFilter = sf-projectTags-getDefaultFilter
+    $defaultFilter = sf-tags-getAllAvailableDefaultFilter
     $defaultFilter += @($tag)
-    sf-projectTags-setDefaultFilter -filter $defaultFilter
+    sf-tags-setDefaultFilter -filter $defaultFilter
 }
 
-Register-ArgumentCompleter -CommandName sf-projectTags-addToDefaultFilter -ParameterName tag -ScriptBlock $Script:tagFilterCompleter
-
-function sf-projectTags-removeFromDefaultFilter {
+function sf-tags-removeFromDefaultFilter {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -75,12 +37,10 @@ function sf-projectTags-removeFromDefaultFilter {
         $tag
     )
 
-    [string[]]$defaultFilter = sf-projectTags-getDefaultFilter
+    [string[]]$defaultFilter = sf-tags-getAllAvailableDefaultFilter
     $defaultFilter = $defaultFilter -notlike $tag
-    sf-projectTags-setDefaultFilter -filter $defaultFilter
+    sf-tags-setDefaultFilter -filter $defaultFilter
 }
-
-Register-ArgumentCompleter -CommandName sf-projectTags-removeFromDefaultFilter -ParameterName tag -ScriptBlock $Script:tagFilterCompleter
 
 <#
     passing '+u' in include tags will take only untagged
