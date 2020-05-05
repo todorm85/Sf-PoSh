@@ -151,7 +151,7 @@ function sf-project-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sf-project-remove -context $selectedSitefinity
+            sf-project-remove -project $selectedSitefinity
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"

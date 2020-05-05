@@ -72,7 +72,7 @@ InModuleScope sf-posh {
     Describe "Project remove when context passed and same project is selected should" {
         InTestProjectScope {
         It "remove the current selected" {
-            sf-project-remove -context (sf-project-getCurrent)
+            sf-project-remove -project (sf-project-getCurrent)
             { sf-project-getCurrent } | Should -Throw -ExpectedMessage "No project selected!"
         }
         
@@ -89,7 +89,7 @@ InModuleScope sf-posh {
             New-Item $path -ItemType Directory
             $another.webAppPath = $path
             sf-project-setCurrent $another
-            sf-project-remove -context $toDelete
+            sf-project-remove -project $toDelete
             sf-project-getCurrent | Should -Be $another
         }
         

@@ -23,7 +23,7 @@ InModuleScope sf-posh {
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
             existsInHostsFile -searchParam $projName | Should -Be $true
 
-            sf-project-remove -context $createdSf
+            sf-project-remove -project $createdSf
 
             $suffix = generateRandomName
             $projName = $Global:fromZipProjectName + $suffix
@@ -36,7 +36,7 @@ InModuleScope sf-posh {
             Test-Path "$($createdSf.webAppPath)\App_Data\Sitefinity\Sitefinity.lic" | Should -BeTrue
             Remove-Item "$PSScriptRoot\..\utils\files\Build\Sitefinity.lic"
 
-            sf-project-remove -context $createdSf
+            sf-project-remove -project $createdSf
         }
     }
 }

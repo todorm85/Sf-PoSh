@@ -9,7 +9,7 @@ InModuleScope sf-posh {
             $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
             sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-                sf-project-remove -context $_
+                sf-project-remove -project $_
             }
 
             $dbName = sf-db-getNameFromDataConfig
@@ -85,7 +85,7 @@ InModuleScope sf-posh {
             }
 
             $projects | ForEach-Object {
-                sf-project-remove -context $_
+                sf-project-remove $_
             }
         }
     }

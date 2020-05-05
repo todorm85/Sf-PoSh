@@ -18,7 +18,7 @@ InModuleScope sf-posh {
 
             [SfProject[]]$projects = sf-project-getAll
             foreach ($proj in $projects) {
-                sf-project-remove -context $proj
+                sf-project-remove -project $proj
             }
 
             sf-project-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
@@ -132,7 +132,7 @@ InModuleScope sf-posh {
             $Script:cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
             sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-                sf-project-remove -context $_
+                sf-project-remove -project $_
             }
 
             sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
@@ -201,7 +201,7 @@ InModuleScope sf-posh {
         }
 
         sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            sf-project-remove -context $_
+            sf-project-remove -project $_
         }
     }
 

@@ -33,7 +33,7 @@ function sf-nlb-removeCluster {
     sf-nlb-getOtherNodes | % { 
         try {
             sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $_.id))
-            sf-project-remove -context $_ -keepDb
+            sf-project-remove -project $_ -keepDb
         }
         catch {
             Write-Warning "Erros while removing other nodes. $_"        
