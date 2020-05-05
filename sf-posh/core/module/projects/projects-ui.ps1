@@ -13,7 +13,7 @@ function sf-project-select {
     )
 
     if (!$tagsFilter) {
-        $tagsFilter = sf-tags-getAllAvailableDefaultFilter
+        $tagsFilter = sf-tags-DefaultFilter
     }
 
     [SfProject[]]$sitefinities = @(sf-project-getAll -tagsFilter $tagsFilter)

@@ -50,7 +50,7 @@ function sf-tags-remove {
     }
 }
 
-function sf-tags-getAllAvailableFromCurrent {
+function sf-tags-get {
     $project = sf-project-getCurrent
     return $project.tags
 }

@@ -8,7 +8,7 @@ function sf-tags-setDefaultFilter {
     _setDefaultTagsFilter -defaultTagsFilter $filter
 }
 
-function sf-tags-getAllAvailableDefaultFilter {
+function sf-tags-DefaultFilter {
     [OutputType([string[]])]
     Param()
 
@@ -24,7 +24,7 @@ function sf-tags-addToDefaultFilter {
         $tag
     )
 
-    $defaultFilter = sf-tags-getAllAvailableDefaultFilter
+    $defaultFilter = sf-tags-DefaultFilter
     $defaultFilter += @($tag)
     sf-tags-setDefaultFilter -filter $defaultFilter
 }
@@ -37,7 +37,7 @@ function sf-tags-removeFromDefaultFilter {
         $tag
     )
 
-    [string[]]$defaultFilter = sf-tags-getAllAvailableDefaultFilter
+    [string[]]$defaultFilter = sf-tags-DefaultFilter
     $defaultFilter = $defaultFilter -notlike $tag
     sf-tags-setDefaultFilter -filter $defaultFilter
 }
