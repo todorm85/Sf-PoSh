@@ -23,7 +23,7 @@ InModuleScope sf-posh {
 
         It "throw when no project selected" {
             sf-project-setCurrent $null
-            { sf-project-remove } | Should -Throw -ExpectedMessage "No project parameter and no current project selected to delete."
+            { sf-project-remove } | Should -Throw -ExpectedMessage "No project selected"
         }
 
         It "is correctly initialized after unsuccessful delete attempt" {
@@ -53,7 +53,7 @@ InModuleScope sf-posh {
         
         It "throw" {
             sf-project-setCurrent $null
-            { sf-project-remove } | Should -Throw -ExpectedMessage "No project parameter and no current project selected to delete."
+            { sf-project-remove } | Should -Throw -ExpectedMessage "No project selected"
         }
 
         }

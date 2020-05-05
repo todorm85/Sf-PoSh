@@ -20,8 +20,8 @@ InModuleScope sf-posh {
         }
         It "Add multiple tags to project" {
             $expectedTags = @($testTag1, $testTag2, $testTag3)
-            sf-tags-add $testTag2
-            sf-tags-add $testTag3
+            sf-tags-add -tagName $testTag2
+            sf-tags-add -tagName $testTag3
             [SfProject]$proj = (sf-project-getAll)[0]
             $proj.tags | Should -Be $expectedTags
             $result = sf-project-setCurrent $proj
@@ -32,7 +32,7 @@ InModuleScope sf-posh {
 
             [SfProject]$proj = (sf-project-getAll)[0]
             $result = sf-project-setCurrent $proj
-            sf-tags-remove $testTag2
+            sf-tags-remove -tagName $testTag2
 
             [SfProject]$proj = (sf-project-getAll)[0]
             $result = sf-project-setCurrent $proj
@@ -41,13 +41,13 @@ InModuleScope sf-posh {
         }
         It "Remove multiple tags from project" {
             $expectedTags = @($testTag1, $testTag4)
-            sf-tags-add $testTag2
-            sf-tags-add $testTag4
+            sf-tags-add -tagName $testTag2
+            sf-tags-add -tagName $testTag4
 
             [SfProject]$proj = (sf-project-getAll)[0]
             $result = sf-project-setCurrent $proj
-            sf-tags-remove $testTag2
-            sf-tags-remove $testTag3
+            sf-tags-remove -tagName $testTag2
+            sf-tags-remove -tagName $testTag3
 
             [SfProject]$proj = (sf-project-getAll)[0]
             $result = sf-project-setCurrent $proj
@@ -59,7 +59,7 @@ InModuleScope sf-posh {
 
             [SfProject]$proj = (sf-project-getAll)[0]
             $result = sf-project-setCurrent $proj
-            sf-tags-remove $testTag1
+            sf-tags-remove -tagName $testTag1
 
             [SfProject]$proj = (sf-project-getAll)[0]
             $result = sf-project-setCurrent $proj
@@ -68,11 +68,11 @@ InModuleScope sf-posh {
         }
         It "Remove last tag" {
             $expectedTags = @($testTag4)
-            sf-tags-add $testTag2
+            sf-tags-add -tagName $testTag2
 
             [SfProject]$proj = (sf-project-getAll)[0]
             $result = sf-project-setCurrent $proj
-            sf-tags-remove $testTag2
+            sf-tags-remove -tagName $testTag2
 
             [SfProject]$proj = (sf-project-getAll)[0]
             $result = sf-project-setCurrent $proj
@@ -80,15 +80,15 @@ InModuleScope sf-posh {
             sf-tags-getAllAvailableFromCurrent | Should -Be $expectedTags
         }
         It "Not accept tags starting with '-'" {
-            { sf-tags-add "_ffd" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-tags-add -tagName "_ffd" } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
         It "Not accept tags with spaces" {
-            { sf-tags-add "dffd dfds" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-tags-add -tagName "dffd dfds" } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
         It "Not accept Null or empty tags" {
-            { sf-tags-add "   " } | Should -Throw -ExpectedMessage "Invalid tag name."
-            { sf-tags-add "" } | Should -Throw -ExpectedMessage "Invalid tag name."
-            { sf-tags-add $null } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-tags-add -tagName "   " } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-tags-add -tagName "" } | Should -Throw -ExpectedMessage "Invalid tag name."
+            { sf-tags-add -tagName $null } | Should -Throw -ExpectedMessage "Invalid tag name."
         }
 
         }
