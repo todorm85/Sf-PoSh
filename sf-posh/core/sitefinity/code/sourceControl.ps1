@@ -1,10 +1,3 @@
-<#
-    .SYNOPSIS
-    .DESCRIPTION
-    .PARAMETER xxxx
-    .OUTPUTS
-    None
-#>
 function sf-sourceControl-undoPendingChanges {
 
     Param()
