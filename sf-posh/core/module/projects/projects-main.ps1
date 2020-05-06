@@ -12,13 +12,11 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
 #>
 function sf-project-new {
     Param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string]$sourcePath,
         [string]$displayName = 'Untitled'
     )
-
-    if (!$sourcePath) {
-        $sourcePath = _proj-promptSourcePathSelect
-    }
 
     [SfProject]$newContext = _newSfProjectObject
     $newContext.displayName = $displayName
@@ -35,6 +33,18 @@ function sf-project-new {
     sf-project-setCurrent $newContext
 
     return $newContext
+}
+
+Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath -ScriptBlock {
+    param ( $commandName,
+        $parameterName,
+        $wordToComplete,
+        $commandAst,
+        $fakeBoundParameters )
+
+    $values = $sf.config.predefinedBranches
+    $values += $sf.config.predefinedBuildPaths
+    $values
 }
 
 function sf-project-clone {

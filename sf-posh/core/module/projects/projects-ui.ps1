@@ -132,41 +132,6 @@ function _proj-promptSelect {
     }
 }
 
-function _promptPredefinedBranchSelect {
-    $branches = @($GLOBAL:sf.Config.predefinedBranches)
-
-    if ($branches.Count -eq 0) {
-        $selectedBranch = Read-Host -Prompt 'No predefined branches, enter branch path'
-        return $selectedBranch
-    }
-
-    ui-promptItemSelect -items $branches
-}
-
-function _promptPredefinedBuildPathSelect {
-    $paths = @($GLOBAL:sf.Config.predefinedBuildPaths)
-
-    if ($paths.Count -eq 0) {
-        $selectedPath = Read-Host -Prompt 'No predefined build paths, enter build path'
-        return $selectedPath
-    }
-
-    ui-promptItemSelect -items $paths
-}
-
-function _proj-promptSourcePathSelect {
-    while ($selectFrom -ne 1 -and $selectFrom -ne 2) {
-        $selectFrom = Read-Host -Prompt "Create from?`n[1] Branch`n[2] Build`n"
-    }
-
-    if ($selectFrom -eq 1) {
-        _promptPredefinedBranchSelect
-    }
-    else {
-        _promptPredefinedBuildPathSelect
-    }
-}
-
 function ui-promptItemSelect {
     [OutputType([object])]
     param (
