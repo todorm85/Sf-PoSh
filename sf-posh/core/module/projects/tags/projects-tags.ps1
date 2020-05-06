@@ -20,6 +20,8 @@ function sf-tags-add {
     }
 }
 
+Register-ArgumentCompleter -CommandName sf-tags-add -ParameterName tagName -ScriptBlock $Script:tagCompleter
+
 function sf-tags-remove {
     param (
         [Parameter(ValueFromPipeline)]
@@ -48,6 +50,24 @@ function sf-tags-remove {
             sf-project-save -context $project
         }
     }
+}
+
+Register-ArgumentCompleter -CommandName sf-tags-remove -ParameterName tagName -ScriptBlock {
+    param ( $commandName,
+        $parameterName,
+        $wordToComplete,
+        $commandAst,
+        $fakeBoundParameters )
+
+
+    $possibleValues = $(sf-project-get).tags
+    if ($wordToComplete) {
+        $possibleValues = $possibleValues | Where-Object {
+            $_ -like "$($wordToComplete.TrimStart($prefixes))*"
+        }
+    }
+
+    $possibleValues
 }
 
 function sf-tags-get {

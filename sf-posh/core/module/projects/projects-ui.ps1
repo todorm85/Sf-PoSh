@@ -42,6 +42,20 @@ function sf-project-select {
     _verifyDefaultBinding
 }
 
+Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock {
+    param ( $commandName,
+        $parameterName,
+        $wordToComplete,
+        $commandAst,
+        $fakeBoundParameters )
+
+    $values = @(Invoke-Command -ScriptBlock $Script:tagFilterCompleter -ArgumentList $commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+    $values += @("+a")
+    $values += @("+u")
+    $values
+}
+
 function sf-project-getInfo {
     [OutputType([PSCustomObject])]
     [CmdletBinding()]
