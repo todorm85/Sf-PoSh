@@ -9,6 +9,8 @@
 #>
 function sf-project-select {
     Param(
+        $branchFilter = $null, # DO NOT USE string type as it is converted to empty string not using null
+        $titleFilter = $null,
         [string[]]$tagsFilter
     )
 
@@ -19,6 +21,14 @@ function sf-project-select {
 
     if ($tagsFilter) {
         $sitefinities = _filterProjectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
+    }
+
+    if ($null -ne $branchFilter) {
+        $sitefinities = $sitefinities | ? branch -Like $branchFilter
+    }
+
+    if ($null -ne $titleFilter) {
+        $sitefinities = $sitefinities | ? displayName -Like $titleFilter
     }
 
     if (!$sitefinities) {
