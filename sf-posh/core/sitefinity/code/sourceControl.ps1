@@ -1,7 +1,4 @@
 function sf-sourceControl-undoPendingChanges {
-
-    Param()
-
     $context = sf-project-get
     if (!$context.branch) {
         return
@@ -14,13 +11,6 @@ function sf-sourceControl-undoPendingChanges {
     tfs-undo-PendingChanges $context.solutionPath
 }
 
-<#
-    .SYNOPSIS
-    .DESCRIPTION
-    .PARAMETER xxxx
-    .OUTPUTS
-    None
-#>
 function sf-sourceControl-showPendingChanges {
 
     Param(
@@ -55,13 +45,6 @@ function sf-sourceControl-hasPendingChanges {
     }
 }
 
-<#
-    .SYNOPSIS
-    .DESCRIPTION
-    .PARAMETER xxxx
-    .OUTPUTS
-    None
-#>
 function sf-sourceControl-getLatestChanges {
 
     Param(
@@ -89,7 +72,7 @@ function sf-sourceControl-getLatestChanges {
         tfs-get-latestChanges -branchMapPath $solutionPath
     }
 
-    $context.lastGetLatest = [System.DateTime]::Today
+    $context.lastGetLatest = [System.DateTime]::Now
     sf-project-save $context
 
     Write-Information "Getting latest changes complete."
