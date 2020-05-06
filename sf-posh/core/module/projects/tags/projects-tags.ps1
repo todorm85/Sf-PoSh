@@ -1,5 +1,5 @@
 function sf-tags-getAllAvailable {
-    sf-project-getAll | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
+    sf-project-get -all | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
 }
 
 function sf-tags-add {
@@ -13,7 +13,7 @@ function sf-tags-add {
     process {
         RunWithValidatedProject {
             _validateTag $tagName
-            [SfProject]$project = sf-project-getCurrent
+            [SfProject]$project = sf-project-get
             $project.tags.Add($tagName)
             sf-project-save -context $project
         }
@@ -51,6 +51,6 @@ function sf-tags-remove {
 }
 
 function sf-tags-get {
-    $project = sf-project-getCurrent
+    $project = sf-project-get
     return $project.tags
 }

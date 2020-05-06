@@ -8,7 +8,7 @@ InModuleScope sf-posh {
             $projName = $Global:fromZipProjectName + $suffix
             sf-project-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinityWebApp.zip"
 
-            $sitefinities = @(sf-project-getAll) | Where-Object { $_.displayName -eq $projName }
+            $sitefinities = @(sf-project-get -all) | Where-Object { $_.displayName -eq $projName }
             $sitefinities | Should -HaveCount 1
             $createdSf = [SfProject]$sitefinities[0]
             $id = $createdSf.id
@@ -29,7 +29,7 @@ InModuleScope sf-posh {
             $projName = $Global:fromZipProjectName + $suffix
             New-Item "$PSScriptRoot\..\utils\files\Build\Sitefinity.lic" -Force
             sf-project-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinitySource.zip"
-            $sitefinities = @(sf-project-getAll) | Where-Object { $_.displayName -eq $projName }
+            $sitefinities = @(sf-project-get -all) | Where-Object { $_.displayName -eq $projName }
             $createdSf = [SfProject]$sitefinities[0]
             $createdSf.solutionPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}"
             $createdSf.webAppPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}\SitefinityWebApp"

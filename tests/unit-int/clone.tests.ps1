@@ -3,12 +3,12 @@
 InModuleScope sf-posh {
     Describe "Cloning project should" {
         InTestProjectScope {
-            $sourceProj = sf-project-getCurrent
+            $sourceProj = sf-project-get
 
             $sourceName = $sourceProj.displayName
             $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
-            sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
+            sf-project-get -all | Where-Object displayName -eq $cloneTestName | ForEach-Object {
                 sf-project-remove -project $_
             }
 
@@ -19,7 +19,7 @@ InModuleScope sf-posh {
                 sf-project-clone
             }
 
-            [SfProject]$project = sf-project-getCurrent
+            [SfProject]$project = sf-project-get
             $cloneTestId = $project.id
 
             It "save the cloned project in sfdev db" {
@@ -71,11 +71,11 @@ InModuleScope sf-posh {
             }
 
             It "NOT create a copy of db when skipDb switch is passed" {
-                $old = sf-project-getCurrent
+                $old = sf-project-get
                 $old.tags.Add("test")
                 $oldDb = sf-db-getNameFromDataConfig
                 sf-project-clone -skipDatabaseClone
-                $p = sf-project-getCurrent
+                $p = sf-project-get
                 sql-get-dbs | Where-Object { $_.name -eq $p.id } | Should -HaveCount 0
                 sql-get-dbs | Where-Object { $_.name -eq $old.id } | Should -HaveCount 1
                 sf-db-getNameFromDataConfig | Should -Be $oldDb

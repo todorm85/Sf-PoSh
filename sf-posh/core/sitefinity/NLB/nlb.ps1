@@ -1,6 +1,6 @@
 function sf-nlb-newCluster {
     if (!(_nlb-isProjectValidForNlb)) { return }
-    [SfProject]$firstNode = sf-project-getCurrent
+    [SfProject]$firstNode = sf-project-get
     [SfProject]$secondNode = _nlb-createSecondProject -name "$($firstNode.displayName)_n2"
     
     $nlbNodesUrls = _nlb-getNlbClusterUrls $firstNode $secondNode
@@ -20,7 +20,7 @@ function sf-nlb-newCluster {
 }
 
 function sf-nlb-removeCluster {
-    $p = sf-project-getCurrent
+    $p = sf-project-get
     if (!$p) {
         throw 'No project selected.'
     }
@@ -79,7 +79,7 @@ function sf-nlb-removeCluster {
 }
 
 function sf-nlb-getStatus {
-    $p = sf-project-getCurrent
+    $p = sf-project-get
     if (!$p) {
         throw "No project selected."
     }
@@ -119,7 +119,7 @@ function sf-nlb-getStatus {
 }
 
 function _nlb-setupNode ([SfProject]$node, $urls) {
-    $previous = sf-project-getCurrent
+    $previous = sf-project-get
     try {
         sf-project-setCurrent $node
         sf-configWeb-setMachineKey
@@ -158,7 +158,7 @@ function _nlb-isProjectValidForNlb {
 function _nlb-createSecondProject ($name) {
     sf-project-clone -skipSourceControlMapping -skipDatabaseClone > $null
     sf-project-rename -newName $name > $null
-    sf-project-getCurrent
+    sf-project-get
 }
 
 function _nlb-getNlbClusterUrls {

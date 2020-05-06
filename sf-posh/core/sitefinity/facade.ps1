@@ -18,7 +18,7 @@ function sf {
     
     Process {
         if (!$project) {
-            $project = sf-project-getCurrent
+            $project = sf-project-get
         }
 
         InProjectScope -project $project {

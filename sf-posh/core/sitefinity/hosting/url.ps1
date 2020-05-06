@@ -1,5 +1,5 @@
 function sf-iisSite-getBinding {
-    [SfProject]$context = sf-project-getCurrent
+    [SfProject]$context = sf-project-get
     if (!$context) {
         throw "No project selected."
     }
@@ -24,7 +24,7 @@ function sf-iisSite-setBinding {
         [SiteBinding]$defBinding
     )
 
-    [SfProject]$project = sf-project-getCurrent
+    [SfProject]$project = sf-project-get
     if (!$defBinding) {
         $selectedBinding = _promptBindings
         $defBinding = @{
@@ -60,7 +60,7 @@ function sf-iisSite-changeDomain {
 
     [SiteBinding]$binding = sf-iisSite-getBinding
     if ($binding) {
-        [SfProject]$p = sf-project-getCurrent
+        [SfProject]$p = sf-project-get
         $websiteName = $p.websiteName
         try {
             Remove-WebBinding -Name $websiteName -Port $binding.port -HostHeader $binding.domain -Protocol $binding.protocol
@@ -86,7 +86,7 @@ function sf-iisSite-changeDomain {
 function _iisSite-appendSubAppPath {
     param($path)
 
-    $context = sf-project-getCurrent
+    $context = sf-project-get
     $subAppName = sf-iisSite-getSubAppName -websiteName $context.websiteName
     if ($null -ne $subAppName) {
         $path = "$path/${subAppName}"
@@ -106,7 +106,7 @@ function _generateDomainName {
 }
 
 function _promptBindings {
-    [SfProject]$project = sf-project-getCurrent
+    [SfProject]$project = sf-project-get
     if (!$project.websiteName) {
         Write-Warning "No website for project."
         return
@@ -137,7 +137,7 @@ function _promptBindings {
 }
 
 function _verifyDefaultBinding {
-    $selectedSitefinity = sf-project-getCurrent
+    $selectedSitefinity = sf-project-get
     if (!$selectedSitefinity.websiteName) { return }
     [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $selectedSitefinity.websiteName
     if (!$selectedSitefinity.defaultBinding -and $bindings) {
@@ -158,7 +158,7 @@ function _verifyDefaultBinding {
 }
 
 function _checkDefaultBindingIsWorking {
-    $selectedSitefinity = sf-project-getCurrent
+    $selectedSitefinity = sf-project-get
     if (!$selectedSitefinity.websiteName) {
         return 
     }

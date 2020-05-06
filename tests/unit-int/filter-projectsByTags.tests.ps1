@@ -11,7 +11,7 @@ InModuleScope sf-posh {
             $proj.tags = $null
         }
         else {
-            $proj.tags = [System.Collections.Generic.List``1[string]]($tags.Split(' '))
+            $proj.tags = [Collections.Generic.List[string]]($tags.Split(' '))
         }
 
         $proj

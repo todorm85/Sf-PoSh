@@ -8,7 +8,7 @@ function sf-bindings-add {
         $port
     )
 
-    [SfProject]$project = sf-project-getCurrent
+    [SfProject]$project = sf-project-get
     if (!$project) {
         throw 'no proj'
     }
@@ -21,7 +21,7 @@ function sf-bindings-add {
 }
 
 function sf-bindings-get {
-    [SfProject]$project = sf-project-getCurrent
+    [SfProject]$project = sf-project-get
     if (!$project) {
         throw 'no proj'
     }
@@ -41,7 +41,7 @@ function sf-bindings-remove {
         $port
     )
 
-    [SfProject]$project = sf-project-getCurrent
+    [SfProject]$project = sf-project-get
     if (!$project) {
         throw 'no proj'
     }
@@ -53,7 +53,7 @@ function sf-bindings-getOrCreateLocalhostBinding {
         [Parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]$project
     )
 
-    $previous = sf-project-getCurrent
+    $previous = sf-project-get
     try {
         $firstNodeBinding = sf-bindings-getLocalhostBinding $project.websiteName
         if (!$firstNodeBinding) {

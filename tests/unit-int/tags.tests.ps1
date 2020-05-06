@@ -12,7 +12,7 @@ InModuleScope sf-posh {
 
         It "Add single tag to project" {
             sf-tags-add -tagName $testTag1
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $proj.tags | Should -Contain $testTag1
             $result = sf-project-setCurrent $proj
             sf-tags-get | Should -Contain $testTag1
@@ -22,7 +22,7 @@ InModuleScope sf-posh {
             $expectedTags = @($testTag1, $testTag2, $testTag3)
             sf-tags-add -tagName $testTag2
             sf-tags-add -tagName $testTag3
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $proj.tags | Should -Be $expectedTags
             $result = sf-project-setCurrent $proj
             sf-tags-get | Should -Be $expectedTags
@@ -30,11 +30,11 @@ InModuleScope sf-posh {
         It "Remove tag from project" {
             $expectedTags = @($testTag1, $testTag3)
 
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $result = sf-project-setCurrent $proj
             sf-tags-remove -tagName $testTag2
 
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $result = sf-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             sf-tags-get | Should -Be $expectedTags
@@ -44,12 +44,12 @@ InModuleScope sf-posh {
             sf-tags-add -tagName $testTag2
             sf-tags-add -tagName $testTag4
 
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $result = sf-project-setCurrent $proj
             sf-tags-remove -tagName $testTag2
             sf-tags-remove -tagName $testTag3
 
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $result = sf-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             sf-tags-get | Should -Be $expectedTags
@@ -57,11 +57,11 @@ InModuleScope sf-posh {
         It "Remove first tag" {
             $expectedTags = @($testTag4)
 
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $result = sf-project-setCurrent $proj
             sf-tags-remove -tagName $testTag1
 
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $result = sf-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             sf-tags-get | Should -Be $expectedTags
@@ -70,11 +70,11 @@ InModuleScope sf-posh {
             $expectedTags = @($testTag4)
             sf-tags-add -tagName $testTag2
 
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $result = sf-project-setCurrent $proj
             sf-tags-remove -tagName $testTag2
 
-            [SfProject]$proj = (sf-project-getAll)[0]
+            [SfProject]$proj = (sf-project-get -all)[0]
             $result = sf-project-setCurrent $proj
             $proj.tags | Should -Be $expectedTags
             sf-tags-get | Should -Be $expectedTags
@@ -96,7 +96,7 @@ InModuleScope sf-posh {
 
     # Describe "_tag-setNewProjectDefaultTags should" {
     #     $Script:filter = $null
-    #     Mock sf-tags-DefaultFilter {
+    #     Mock sf-tags-getDefaultFilter {
     #         $Script:filter
     #     }
 
@@ -156,34 +156,34 @@ InModuleScope sf-posh {
         InTestProjectScope {
 
         It "adds tag to default tag filter" {
-            $filter = sf-tags-DefaultFilter
+            $filter = sf-tags-getDefaultFilter
             $filter += @("t1")
             sf-tags-setDefaultFilter $filter
-            sf-tags-DefaultFilter | Should -Be @("t1")
+            sf-tags-getDefaultFilter | Should -Be @("t1")
             $filter += @("t2")
             sf-tags-setDefaultFilter $filter
-            $filter = sf-tags-DefaultFilter
+            $filter = sf-tags-getDefaultFilter
             $filter[0] | Should -Be "t1"
             $filter[1] | Should -Be "t2"
         }
         It "removes tag from default tags filter" {
             sf-tags-removeFromDefaultFilter -tag "t1"
-            $filter = sf-tags-DefaultFilter
+            $filter = sf-tags-getDefaultFilter
             $filter[0] | Should -Be "t2"
         }
         It "removes nonexisting tag does nothing" {
             sf-tags-removeFromDefaultFilter -tag "t1"
-            $filter = sf-tags-DefaultFilter
+            $filter = sf-tags-getDefaultFilter
             $filter[0] | Should -Be "t2"
         }
         It "removes all tags then add tags again" {
             sf-tags-removeFromDefaultFilter -tag "t2"
-            $result = sf-tags-DefaultFilter
+            $result = sf-tags-getDefaultFilter
             $result | Should -Be @()
             sf-tags-addToDefaultFilter -tag "t3"
             sf-tags-addToDefaultFilter -tag "t4"
-            (sf-tags-DefaultFilter)[0] | Should -Be "t3"
-            (sf-tags-DefaultFilter)[1] | Should -Be "t4"
+            (sf-tags-getDefaultFilter)[0] | Should -Be "t3"
+            (sf-tags-getDefaultFilter)[1] | Should -Be "t4"
         }
 
         }

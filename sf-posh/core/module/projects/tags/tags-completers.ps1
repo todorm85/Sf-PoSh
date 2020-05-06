@@ -26,7 +26,7 @@ Register-ArgumentCompleter -CommandName sf-tags-remove -ParameterName tagName -S
         $fakeBoundParameters )
 
 
-    $possibleValues = $(sf-project-getCurrent).tags
+    $possibleValues = $(sf-project-get).tags
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
             $_ -like "$($wordToComplete.TrimStart($prefixes))*"

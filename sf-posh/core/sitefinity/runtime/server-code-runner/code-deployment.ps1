@@ -46,7 +46,7 @@ function sf-serverCode-run {
 }
 
 function _sf-serverCode-deployHandler {
-    [SfProject]$p = sf-project-getCurrent
+    [SfProject]$p = sf-project-get
     if (!$p) {
         throw "No project selected."
     }

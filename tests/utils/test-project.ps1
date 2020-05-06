@@ -41,7 +41,7 @@ function global:New-TestProject {
 
     sf-project-save -context $sourceProj
 
-    $sourceProj = (sf-project-getAll)[0]
+    $sourceProj = (sf-project-get -all)[0]
     # $sourceProj.isInitialized = $true
     sf-project-setCurrent $sourceProj
 

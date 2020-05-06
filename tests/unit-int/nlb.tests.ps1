@@ -143,9 +143,9 @@ InModuleScope sf-posh {
         Mock sf-app-sendRequestAndEnsureInitialized { }
         InTestProjectScope {
             It "create a second project" {
-                [SfProject]$script:firstNode = sf-project-getCurrent
+                [SfProject]$script:firstNode = sf-project-get
                 sf-nlb-newCluster
-                [SfProject]$script:secondNode = sf-project-getAll | ? id -ne $firstNode.id
+                [SfProject]$script:secondNode = sf-project-get -all | ? id -ne $firstNode.id
                 $secondNode | Should -HaveCount 1
                 Get-Website | ? name -eq $secondNode.websiteName | Should -Not -BeNullOrEmpty
                 Get-Item "IIS:\AppPools\$($secondNode.id)" | Should -Not -BeNullOrEmpty
@@ -204,7 +204,7 @@ InModuleScope sf-posh {
             It "remove other project when removing cluster" {
                 sf-project-setCurrent $firstNode
                 sf-nlb-removeCluster
-                sf-project-getAll | ? id -eq $secondNode.id | Should -BeNullOrEmpty
+                sf-project-get -all | ? id -eq $secondNode.id | Should -BeNullOrEmpty
                 Get-Website | ? name -eq $secondNode.websiteName | Should -BeNullOrEmpty
                 Test-Path "IIS:\AppPools\$($secondNode.id)" | Should -BeFalse
                 Test-Path $secondNode.webAppPath | Should -BeFalse

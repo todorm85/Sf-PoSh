@@ -84,7 +84,7 @@ InModuleScope sf-posh {
     Describe "Web config ops should" {
         InTestProjectScope {
             It "Set machine key correctly" {
-                [SfProject]$Script:p = sf-project-getCurrent
+                [SfProject]$Script:p = sf-project-get
                 $webConfigRaw = Get-Content "$($p.webAppPath)\web.config" -Raw
                 $webConfigRaw | Should -Not -BeNullOrEmpty
                 $webConfigRaw -match "machineKey" | Should -BeFalse

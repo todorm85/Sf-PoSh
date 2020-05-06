@@ -16,14 +16,14 @@ InModuleScope sf-posh {
                 }
             }
 
-            [SfProject[]]$projects = sf-project-getAll
+            [SfProject[]]$projects = sf-project-get -all
             foreach ($proj in $projects) {
                 sf-project-remove -project $proj
             }
 
             sf-project-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
 
-            $sitefinities = @(sf-project-getAll) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
+            $sitefinities = @(sf-project-get -all) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
             $sitefinities | Should -HaveCount 1
             $Script:createdSf = [SfProject]$sitefinities[0]
             $Script:id = $createdSf.id
@@ -47,15 +47,15 @@ InModuleScope sf-posh {
 
     Describe "Building should" {
         It "succeed after at least 3 retries" {
-            sf-project-getAll | select -First 1 | sf-project-setCurrent
+            sf-project-get -all | select -First 1 | sf-project-setCurrent
             sf-sol-build -retryCount 3
         }
     }
 
     Describe "Reinitializing should" -Tags ("reset") {
         It "has correct initial state" {
-            sf-project-getAll | select -First 1 | sf-project-setCurrent
-            [SfProject]$project = sf-project-getCurrent
+            sf-project-get -all | select -First 1 | sf-project-setCurrent
+            [SfProject]$project = sf-project-get
             sf-app-reinitialize
             $url = sf-iisSite-getUrl
             $result = _invokeNonTerminatingRequest $url
@@ -84,8 +84,8 @@ InModuleScope sf-posh {
 
     Describe "States should" -Tags ("states") {        
         It "save and then restore app_data folder and database" {
-            sf-project-getAll | select -First 1 | sf-project-setCurrent
-            [SfProject]$project = sf-project-getCurrent
+            sf-project-get -all | select -First 1 | sf-project-setCurrent
+            [SfProject]$project = sf-project-get
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             [string]$stateName = generateRandomName
             $stateName = $stateName.Replace('-', '_')
@@ -124,14 +124,14 @@ InModuleScope sf-posh {
 
     Describe "Cloning project should" -Tags ("clone") {
         It "has correct initial state" {
-            sf-project-getAll | select -First 1 | sf-project-setCurrent
+            sf-project-get -all | select -First 1 | sf-project-setCurrent
 
-            $sourceProj = sf-project-getCurrent
+            $sourceProj = sf-project-get
 
             $sourceName = $sourceProj.displayName
             $Script:cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
-            sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
+            sf-project-get -all | Where-Object displayName -eq $cloneTestName | ForEach-Object {
                 sf-project-remove -project $_
             }
 
@@ -152,7 +152,7 @@ InModuleScope sf-posh {
 
         It "not throw" {
             sf-project-clone
-            [SfProject]$Script:project = sf-project-getCurrent
+            [SfProject]$Script:project = sf-project-get
             $Script:cloneTestId = $project.id
         }
 
@@ -200,18 +200,18 @@ InModuleScope sf-posh {
             sql-get-dbs | Where-Object { $_.name -eq $cloneTestId } | Should -HaveCount 1
         }
 
-        sf-project-getAll | Where-Object displayName -eq $cloneTestName | ForEach-Object {
+        sf-project-get -all | Where-Object displayName -eq $cloneTestName | ForEach-Object {
             sf-project-remove -project $_
         }
     }
 
     Describe "Remove should" -Tags ("delete") {
         It "has correct initial state" {
-            sf-project-getAll | select -First 1 | sf-project-setCurrent
-            [SfProject]$Script:proj = sf-project-getCurrent
+            sf-project-get -all | select -First 1 | sf-project-setCurrent
+            [SfProject]$Script:proj = sf-project-get
             $Script:testId = $proj.id
 
-            $sitefinities = @(sf-project-getAll) | Where-Object { $_.id -eq $testId }
+            $sitefinities = @(sf-project-get -all) | Where-Object { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 1
             Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\${testId}" | Should -Be $true
             Test-Path "IIS:\AppPools\${testId}" | Should -Be $true
@@ -226,7 +226,7 @@ InModuleScope sf-posh {
         }
 
         It "remove project from sf-posh" {
-            $sitefinities = @(sf-project-getAll) | Where-Object { $_.id -eq $testId }
+            $sitefinities = @(sf-project-get -all) | Where-Object { $_.id -eq $testId }
             $sitefinities | Should -HaveCount 0
         }
 

@@ -14,7 +14,7 @@ InModuleScope sf-posh {
 
     Describe "Project remove should" {
         InTestProjectScope {
-        [SfProject]$p = sf-project-getCurrent
+        [SfProject]$p = sf-project-get
         $dbName = sf-db-getNameFromDataConfig
         
         It "is correctly initialized" {
@@ -63,7 +63,7 @@ InModuleScope sf-posh {
         InTestProjectScope {
         It "remove the current selected" {
             sf-project-remove
-            { sf-project-getCurrent } | Should -Throw -ExpectedMessage "No project selected!"
+            { sf-project-get } | Should -Throw -ExpectedMessage "No project selected!"
         }
         
         }
@@ -72,8 +72,8 @@ InModuleScope sf-posh {
     Describe "Project remove when context passed and same project is selected should" {
         InTestProjectScope {
         It "remove the current selected" {
-            sf-project-remove -project (sf-project-getCurrent)
-            { sf-project-getCurrent } | Should -Throw -ExpectedMessage "No project selected!"
+            sf-project-remove -project (sf-project-get)
+            { sf-project-get } | Should -Throw -ExpectedMessage "No project selected!"
         }
         
         }
@@ -82,7 +82,7 @@ InModuleScope sf-posh {
     Describe "Project remove when context passed and another project is selected should" {
         InTestProjectScope {
         It "NOT remove the current selected" {
-            $toDelete = sf-project-getCurrent
+            $toDelete = sf-project-get
             $another = [SfProject]::new()
             $another.id = "anotherId1"
             $path = "TestDrive:\project"
@@ -90,7 +90,7 @@ InModuleScope sf-posh {
             $another.webAppPath = $path
             sf-project-setCurrent $another
             sf-project-remove -project $toDelete
-            sf-project-getCurrent | Should -Be $another
+            sf-project-get | Should -Be $another
         }
         
         }

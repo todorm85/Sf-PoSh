@@ -43,7 +43,7 @@ function sf-project-clone {
         [switch]$skipDatabaseClone
     )
 
-    $context = sf-project-getCurrent
+    $context = sf-project-get
 
     $sourcePath = $context.solutionPath;
     $hasSolution = !([string]::IsNullOrEmpty($sourcePath));
@@ -141,7 +141,7 @@ function sf-project-clone {
 }
 
 function sf-project-removeBulk {
-    $sitefinities = @(sf-project-getAll)
+    $sitefinities = @(sf-project-get -all)
     if ($null -eq $sitefinities[0]) {
         Write-Warning "No projects found. Create one."
         return
@@ -187,7 +187,7 @@ function sf-project-remove {
             $clearCurrentSelectedProject = $false
             [SfProject]$currentProject = $null
             try {
-                $currentProject = sf-project-getCurrent
+                $currentProject = sf-project-get
             }
             catch {
                 Write-Verbose "No current project."    
@@ -305,7 +305,7 @@ function sf-project-rename {
         [switch]$setDescription
     )
 
-    $project = sf-project-getCurrent
+    $project = sf-project-get
     [SfProject]$context = $project
 
     if (-not $newName) {
@@ -363,15 +363,27 @@ function sf-project-rename {
     sf-project-save $context
 }
 
-function sf-project-getCurrent {
-    [OutputType([SfProject])]
-    param([switch]$skipValidation)
-    $p = $Script:globalContext
-    if (!$p -and !$skipValidation) {
-        throw "No project selected! Call stack: $(Get-PSCallStack)"
-    }
+function sf-project-get {
+    [OutputType([SfProject], ParameterSetName = "current")]
+    [OutputType([SfProject[]], ParameterSetName = "all")]
+    [CmdletBinding(DefaultParameterSetName = 'current')]
+    param(
+        [Parameter(ParameterSetName = "current")][switch]$skipValidation,
+        [Parameter(ParameterSetName = "all")][switch]$all
+    )
 
-    $p
+    if (!$all) {
+        $p = $Script:globalContext
+        if (!$p -and !$skipValidation) {
+            Write-Verbose "Call stack: $(Get-PSCallStack)"
+            throw "No project selected!"
+        }
+        
+        $p
+    }
+    else {
+        _data-getAllProjects
+    }
 }
 
 function sf-project-setCurrent {
@@ -405,20 +417,6 @@ function sf-project-setCurrent {
             }
         }
     }
-}
-
-function sf-project-getAll {
-    [OutputType([SfProject[]])]
-    param(
-        [string[]]$tagsFilter
-    )
-
-    $sitefinities = _data-getAllProjects
-    if ($tagsFilter) {
-        $sitefinities = _filterProjectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
-    }
-
-    return $sitefinities
 }
 
 function sf-project-save {
@@ -570,7 +568,7 @@ function _getIsIdDuplicate ($id, $allIds) {
 function _generateId {
     $i = 0;
     # for performance get all external items like sites dbs etc before loop
-    $sitefinities = sf-project-getAll | select -ExpandProperty displayName
+    $sitefinities = sf-project-get -all | select -ExpandProperty displayName
     $workspaces = tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName
     # do not use get-iisapppool - does not return latest
     $appPools = Get-ChildItem "IIS:\AppPools" | select -ExpandProperty name
@@ -598,7 +596,7 @@ function _generateSolutionFriendlyName {
     )
 
     if (-not ($context)) {
-        $context = sf-project-getCurrent
+        $context = sf-project-get
     }
 
     $solutionName = "$($context.displayName)($($context.id)).sln"
@@ -803,7 +801,7 @@ function InProjectScope {
     )
     
     process {
-        $previous = sf-project-getCurrent -skipValidation
+        $previous = sf-project-get -skipValidation
         sf-project-setCurrent $project
         try {
             & $script
@@ -832,7 +830,7 @@ function RunWithValidatedProject {
     $stack = Get-PSCallStack
     $isFromPipeline = $stack[$stack.Count - 2].InvocationInfo.ExpectingInput
     if (!$isFromPipeline -and !$project) {
-        $project = sf-project-getCurrent
+        $project = sf-project-get
     }
     elseif (!$project) {
         Write-Error "Invalid project received from pipeline!"

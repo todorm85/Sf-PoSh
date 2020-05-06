@@ -1,59 +1,59 @@
 function _data-getAllProjects {
+    [OutputType([SfProject[]])]
     $data = New-Object XML
     $data.Load($GLOBAL:sf.Config.dataPath)
     $sfs = $data.data.sitefinities.sitefinity
-    [System.Collections.Generic.List``1[SfProject]]$sitefinities = New-Object System.Collections.Generic.List``1[SfProject]
-    if ($sfs) {
-        $sfs | ForEach-Object {
-            [System.Collections.Generic.List``1[string]]$tags = New-Object System.Collections.Generic.List``1[string]
-            if ($_.tags) {
-                [System.Collections.Generic.List``1[string]]$tags = $_.tags.Split(' ')
-            }
-
-            $clone = [SfProject]::new()
-            $clone.id = $_.id;
-            $clone.description = $_.description;
-            $clone.displayName = $_.displayName;
-            $clone.webAppPath = $_.webAppPath;
-            if (($_.Attributes | ? { $_.Name -eq "branch" })) {
-                $clone.branch = $_.branch
-            }
-
-            if (($_.Attributes | ? { $_.Name -eq "websiteName" })) {
-                $clone.websiteName = $_.websiteName
-            }
-
-            if (($_.Attributes | ? { $_.Name -eq "solutionPath" })) {
-                $clone.solutionPath = $_.solutionPath
-            }
-
-            $lastGetLatest = $null
-            if ($_.lastGetLatest) {
-                $lastGetLatest = [System.DateTime]::Parse($_.lastGetLatest)
-            }
-
-            $clone.lastGetLatest = $lastGetLatest;
-
-            $clone.tags = [System.Collections.Generic.List``1[string]]$tags;
-
-            if ($_.defaultBinding) {
-                $parts = ([string]$_.defaultBinding).Split(':')
-                [SiteBinding]$defBinding = @{
-                    protocol = $parts[0]
-                    domain   = $parts[1]
-                    port     = $parts[2]
-                }
-
-                if ($defBinding.protocol -and $defBinding.port) {
-                    $clone.defaultBinding = $defBinding;
-                }
-            }
-
-            $sitefinities.Add($clone)
-        }
+    if (!$sfs) {
+        return
     }
 
-    return $sitefinities
+    $sfs | ForEach-Object {
+        [Collections.Generic.List[string]]$tags = @()
+        if ($_.tags) {
+            [Collections.Generic.List[string]]$tags = $_.tags.Split(' ')
+        }
+
+        $clone = [SfProject]::new()
+        $clone.id = $_.id;
+        $clone.description = $_.description;
+        $clone.displayName = $_.displayName;
+        $clone.webAppPath = $_.webAppPath;
+        if (($_.Attributes | ? { $_.Name -eq "branch" })) {
+            $clone.branch = $_.branch
+        }
+
+        if (($_.Attributes | ? { $_.Name -eq "websiteName" })) {
+            $clone.websiteName = $_.websiteName
+        }
+
+        if (($_.Attributes | ? { $_.Name -eq "solutionPath" })) {
+            $clone.solutionPath = $_.solutionPath
+        }
+
+        $lastGetLatest = $null
+        if ($_.lastGetLatest) {
+            $lastGetLatest = [System.DateTime]::Parse($_.lastGetLatest)
+        }
+
+        $clone.lastGetLatest = $lastGetLatest;
+
+        $clone.tags = [Collections.Generic.List[string]]$tags;
+
+        if ($_.defaultBinding) {
+            $parts = ([string]$_.defaultBinding).Split(':')
+            [SiteBinding]$defBinding = @{
+                protocol = $parts[0]
+                domain   = $parts[1]
+                port     = $parts[2]
+            }
+
+            if ($defBinding.protocol -and $defBinding.port) {
+                $clone.defaultBinding = $defBinding;
+            }
+        }
+
+        $clone
+    }
 }
 
 function _removeProjectData {

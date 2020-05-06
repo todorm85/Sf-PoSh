@@ -10,7 +10,7 @@ function sf-iisSubApp-set {
         [Parameter(Mandatory = $true)][string]$subAppName
     )
 
-    $project = sf-project-getCurrent
+    $project = sf-project-get
     $subApp = sf-iisSite-getSubAppName -websiteName $project.websiteName
     if ($subApp) {
         Write-Warning "Application already set up as subapp."
@@ -27,7 +27,7 @@ function sf-iisSubApp-set {
 }
 
 function sf-iisSubApp-remove {
-    $project = sf-project-getCurrent
+    $project = sf-project-get
 
     $subAppName = sf-iisSite-getSubAppName $project.websiteName
     if ($null -eq $subAppName) {

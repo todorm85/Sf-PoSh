@@ -12,11 +12,14 @@ function sf-project-select {
         [string[]]$tagsFilter
     )
 
+    [SfProject[]]$sitefinities = sf-project-get -all
     if (!$tagsFilter) {
-        $tagsFilter = sf-tags-DefaultFilter
+        $tagsFilter = sf-tags-getDefaultFilter
     }
 
-    [SfProject[]]$sitefinities = @(sf-project-getAll -tagsFilter $tagsFilter)
+    if ($tagsFilter) {
+        $sitefinities = _filterProjectsByTags -sitefinities $sitefinities -tagsFilter $tagsFilter
+    }
 
     if (!$sitefinities) {
         Write-Warning "No projects found. Check if not using default tag filter."
@@ -46,18 +49,22 @@ function sf-project-getInfo {
             }
 
             $branch = $project.branch
-            if (!$detail) {  
+            if (!$detail -and $branch) {  
                 $branch = $branch.Replace("$/CMS/Sitefinity 4.0", "") 
+            }
+
+            if ($project.id) {
+                $nlbId = sf-nlbData-getNlbIds -projectId $project.id
             }
 
             $result = [PSCustomObject]@{
                 Title   = $project.displayName;
                 ID      = $project.id;
-                Branch  = $project.branch;
+                Branch  = $branch;
                 LastGet = $project.GetDaysSinceLastGet();
                 Ports   = $ports;
                 Tags    = $project.tags;
-                NlbId   = sf-nlbData-getNlbIds -projectId $project.id;
+                NlbId   = $nlbId;
             }
 
             if ($detail) {
@@ -158,7 +165,7 @@ function ui-promptItemSelect {
         if ($multipleSelection) {
             $choices = Read-Host -Prompt 'Select items (numbers delemeted by space)'
             $choices = $choices.Split(' ')
-            [System.Collections.Generic.List``1[object]]$selection = New-Object System.Collections.Generic.List``1[object]
+            [Collections.Generic.List[object]]$selection = @()
             foreach ($choice in $choices) {
                 $currentSelect = $items[$choice]
                 if ($null -eq $currentSelect) {

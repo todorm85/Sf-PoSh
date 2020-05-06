@@ -4,7 +4,7 @@ InModuleScope sf-posh {
 
     Describe "Test multiple bindings" {
         InTestProjectScope {
-            [SfProject]$sourceProj = sf-project-getCurrent
+            [SfProject]$sourceProj = sf-project-get
 
             It "Default site has not been set - returns the last binding" {
                 1..2 | % {
@@ -100,14 +100,14 @@ InModuleScope sf-posh {
                 Mock _promptBindings { $binding }
                 sf-iisSite-setBinding
 
-                $defBinding = (sf-project-getCurrent).defaultBinding
+                $defBinding = (sf-project-get).defaultBinding
                 $defBinding.domain | Should -Be $binding.domain
                 $defBinding.protocol | Should -Be $binding.protocol
                 $defBinding.port | Should -Be $binding.port
 
                 $domain = "sfi$([GUID]::NewGuid().ToString()).com"
                 sf-iisSite-changeDomain -domainName $domain
-                $p = sf-project-getCurrent
+                $p = sf-project-get
 
                 $p.defaultBinding.domain | Should -Be $domain
                 $p.defaultBinding.protocol | Should -Be $binding.protocol
@@ -126,11 +126,11 @@ InModuleScope sf-posh {
                 Remove-WebBinding -Name $sourceProj.websiteName -Protocol $beforeLast.protocol -Port $beforeLast.port -HostHeader $beforeLast.domain
 
                 # check user not prompted for binding and default binding is removed from sfdev project
-                $project = sf-project-getCurrent
+                $project = sf-project-get
                 $project.defaultBinding | Should -Be $beforeLast
                 Mock _proj-promptSelect { $project }
                 sf-project-select
-                $project = sf-project-getCurrent
+                $project = sf-project-get
                 $project.defaultBinding | Should -Be $last
             }
 

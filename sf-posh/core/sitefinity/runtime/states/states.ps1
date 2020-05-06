@@ -22,7 +22,7 @@ function sf-appStates-save {
         $stateName
     )
 
-    $project = sf-project-getCurrent
+    $project = sf-project-get
 
     $dbName = sf-db-getNameFromDataConfig
     $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
@@ -68,7 +68,7 @@ function sf-appStates-restore {
     )
 
     process {
-        $project = sf-project-getCurrent
+        $project = sf-project-get
 
         if (!$stateName) {
             $stateName = _selectAppState -context $context
@@ -170,7 +170,7 @@ function _selectAppState {
 }
 
 function _getStatesPath {
-    $context = sf-project-getCurrent
+    $context = sf-project-get
     $path = "$($context.webAppPath)/dev-tool"
 
     if (!(Test-Path $path)) {

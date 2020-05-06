@@ -5,7 +5,7 @@ InModuleScope sf-posh {
     Describe "Rename should" -Tags ("rename") {
         It "change the display name and domain" {
             InTestProjectScope {
-            [SfProject]$testProject = sf-project-getCurrent
+            [SfProject]$testProject = sf-project-get
             $id = $testProject.id
             $oldName = generateRandomName
             sf-project-rename $oldName

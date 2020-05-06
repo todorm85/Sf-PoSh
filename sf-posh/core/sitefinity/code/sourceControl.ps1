@@ -9,7 +9,7 @@ function sf-sourceControl-undoPendingChanges {
 
     Param()
 
-    $context = sf-project-getCurrent
+    $context = sf-project-get
     if (!$context.branch) {
         return
     }
@@ -40,7 +40,7 @@ function sf-sourceControl-showPendingChanges {
         $format = "Brief"
     }
 
-    $context = sf-project-getCurrent
+    $context = sf-project-get
     if (!$context.branch) {
         return
     }
@@ -75,7 +75,7 @@ function sf-sourceControl-getLatestChanges {
         [switch]$overwrite
     )
 
-    [SfProject]$context = sf-project-getCurrent
+    [SfProject]$context = sf-project-get
     if (!$context.branch) {
         return
     }
