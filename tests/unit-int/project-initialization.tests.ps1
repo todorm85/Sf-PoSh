@@ -21,8 +21,11 @@ InModuleScope sf-posh {
             $p.solutionPath | Should -Be 'dummyPath'
         }
 
-        It "initialize when using select from the prompt" {
+        It "initialize when using select from the prompt and not in cache" {
             [SfProject]$p = sf-project-get -all | select -First 1
+            $p.websiteName = 'wrongName2'
+            $p.solutionPath = 'dummyPath2'
+
             Mock _proj-promptSelect {
                 $p
             }

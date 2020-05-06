@@ -28,4 +28,15 @@ public class SfProject
         var days = System.DateTime.Today - this.lastGetLatest.Value.Date;
         return (int)System.Math.Round(days.TotalDays, 0);
     }
+    
+    public override bool Equals(object obj)
+    {
+        var other = (SfProject)obj;
+        return this.id == other.id;
+    }
+    
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

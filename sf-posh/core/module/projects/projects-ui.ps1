@@ -99,7 +99,7 @@ function sf-project-getInfo {
             }
 
             $result
-        }    
+        } -skipCurrentProjectChange
     }
 }
 

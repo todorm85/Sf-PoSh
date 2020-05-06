@@ -304,7 +304,7 @@ function sf-project-remove {
             else {
                 sf-project-setCurrent $currentProject > $null
             }
-        }
+        } -skipCurrentProjectChange
     }
 }
 
@@ -675,16 +675,18 @@ function _proj-initialize {
 
     if ($detectedChanges) {
         sf-project-save -context $project
+        _validateProject $project
     }
 
     $Global:SfEvents_OnAfterProjectInitialized | % { Invoke-Command -ScriptBlock $_ }
     
-    _validateProject $project
     
-    if ($cachedProject) {
-        $script:projectsCache.Add($project) > $null
+    if ($script:projectsCache.Contains($project)) {
+        $script:projectsCache.Remove($project)
     }
-
+    
+    $script:projectsCache.Add($project) > $null
+    
     $project.isInitialized = $true
 }
 
@@ -852,7 +854,8 @@ function InProjectScope {
 #>
 function RunWithValidatedProject {
     param (
-        [ScriptBlock]$callback
+        [ScriptBlock]$callback,
+        [switch]$skipCurrentProjectChange
     )
 
     $stack = Get-PSCallStack
@@ -864,6 +867,13 @@ function RunWithValidatedProject {
         Write-Error "Invalid project received from pipeline!"
         return
     }
-
-    & $callback
+    
+    if ($skipCurrentProjectChange) {
+        & $callback
+    }
+    else {
+        InProjectScope -project $project {
+            & $callback
+        }
+    }
 }

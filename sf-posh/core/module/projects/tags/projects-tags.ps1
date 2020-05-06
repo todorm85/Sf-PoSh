@@ -12,11 +12,9 @@ function sf-tags-add {
     
     process {
         RunWithValidatedProject {
-            InProjectScope -project $project {
-                _validateTag $tagName
-                $project.tags.Add($tagName)
-                sf-project-save -context $project
-            }
+            _validateTag $tagName
+            $project.tags.Add($tagName)
+            sf-project-save -context $project
         }
     }
 }
