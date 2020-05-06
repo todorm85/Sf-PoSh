@@ -139,6 +139,7 @@ InModuleScope sf-posh {
             }
         }
     }
+    
     Describe "Nlb new cluster should" {
         Mock sf-app-sendRequestAndEnsureInitialized { }
         InTestProjectScope {

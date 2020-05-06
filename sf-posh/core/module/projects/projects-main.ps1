@@ -12,7 +12,7 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
 #>
 function sf-project-new {
     Param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$sourcePath,
         [string]$displayName = 'Untitled'
@@ -86,7 +86,6 @@ function sf-project-clone {
         }
     }
 
-    [SfProject]$newProject = $null
     [SfProject]$newProject = _newSfProjectObject
     $newProject.displayName = "$($context.displayName)-clone"
     if ($hasSolution) {
@@ -96,7 +95,7 @@ function sf-project-clone {
         $newProject.webAppPath = $targetPath
     }
 
-    sf-project-setCurrent -newContext $newProject >> $null
+    sf-project-setCurrent -newContext $newProject > $null
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
@@ -138,7 +137,7 @@ function sf-project-clone {
     }
 
     try {
-        sf-appStates-removeAll
+        sf-appStates-get | sf-appStates-remove
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"
@@ -618,6 +617,8 @@ function _validateNameSyntax ($name) {
     return $name -match "^[A-Za-z]\w+$" -and $name.Length -lt 75
 }
 
+[Collections.Generic.List[SfProject]]$script:projectsCache = @()
+
 function _proj-initialize {
     param (
         [Parameter(Mandatory = $true)][SfProject]$project
@@ -633,9 +634,14 @@ function _proj-initialize {
         return
     }
 
+    [SfProject]$cachedProject = $script:projectsCache | ? id -eq $project.id
     $errors = ''
+    $detectedChanges = $false
     try {
-        _proj-detectSolution -project $project
+        if (!$cachedProject -and !$project.solutionPath -or $project.solutionPath -ne $cachedProject.solutionPath) {
+            $detectedChanges = $true
+            _proj-detectSolution -project $project
+        }
     }
     catch {
         $errors += "`nSolution detection: $_."
@@ -644,14 +650,20 @@ function _proj-initialize {
     _createUserFriendlySlnName $project
 
     try {
-        _proj-detectTfs -project $project
+        if (!$cachedProject -and !$project.branch -or $project.branch -ne $cachedProject.branch) {
+            $detectedChanges = $true
+            _proj-detectTfs -project $project
+        }
     }
     catch {
         $errors += "`nSource control detection: $_."
     }
 
     try {
-        _proj-detectSite -project $project
+        if (!$cachedProject -and !$project.websiteName -or $project.websiteName -ne $cachedProject.websiteName) {
+            $detectedChanges = $true
+            _proj-detectSite -project $project
+        }
     }
     catch {
         $errors += "`nSite detection from IIS: $_."
@@ -661,11 +673,17 @@ function _proj-initialize {
         Write-Error "Some errors occurred during project detection. $errors"
     }
 
-    sf-project-save -context $project
+    if ($detectedChanges) {
+        sf-project-save -context $project
+    }
 
     $Global:SfEvents_OnAfterProjectInitialized | % { Invoke-Command -ScriptBlock $_ }
     
     _validateProject $project
+    
+    if ($cachedProject) {
+        $script:projectsCache.Add($project) > $null
+    }
 
     $project.isInitialized = $true
 }

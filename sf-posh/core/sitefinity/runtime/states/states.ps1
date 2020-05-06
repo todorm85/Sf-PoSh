@@ -30,7 +30,7 @@ function sf-appStates-save {
         throw "Current app is not initialized with a database. The configured database does not exist or no database is configured."
     }
 
-    $statePath = "$($project.webAppPath)\dev-tool\states\$stateName"
+    $statePath = "$(_getStatesPath)\$stateName"
     if (Test-Path $statePath) {
         unlock-allFiles -path $statePath
         Remove-Item -Force -Recurse -Path $statePath
@@ -58,7 +58,7 @@ function sf-appStates-save {
     _appData-copy -dest $appDataStatePath
 }
 
-Register-ArgumentCompleter -CommandName sf-appStates-save -ParameterName stateName -ScriptBlock $stateCompleter
+Register-ArgumentCompleter -CommandName sf-appStates-save -ParameterName stateName -ScriptBlock $Script:stateCompleter
 
 function sf-appStates-restore {
     [CmdletBinding()]
@@ -84,7 +84,7 @@ function sf-appStates-restore {
         }
 
         $statesPath = _getStatesPath
-        $statePath = "${statesPath}/$stateName"
+        $statePath = "${statesPath}\$stateName"
         $dbName = ([xml](Get-Content "$statePath\data.xml")).root.dbName
 
         sql-delete-database -dbName $dbName
@@ -97,40 +97,36 @@ function sf-appStates-restore {
             New-Item $appDataPath -ItemType Directory > $null
         }
 
-        _appData-restore "$appDataStatePath/*"
+        _appData-restore "$appDataStatePath\*"
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-appStates-restore -ParameterName stateName -ScriptBlock $stateCompleter
+Register-ArgumentCompleter -CommandName sf-appStates-restore -ParameterName stateName -ScriptBlock $Script:stateCompleter
 
 function sf-appStates-remove {
     [CmdletBinding()]
     param(
-        [Parameter(ValueFromPipeline)]$stateName
+        [Parameter(ValueFromPipelineByPropertyName)]$name
     )
         
     process {
-        if ([string]::IsNullOrEmpty($stateName)) {
-            $stateName = _selectAppState
+        if (!$name -and !(Get-PSCallStack).InvocationInfo.ExpectingInput) {
+            $name = _selectAppState
         }
 
-        if (-not $stateName) {
+        if (-not $name) {
             return
         }
 
         $statesPath = _getStatesPath
         if ($statesPath) {
-            $statePath = "${statesPath}/$stateName"
+            $statePath = "${statesPath}/$name"
             Remove-Item $statePath -Force -ErrorAction SilentlyContinue -Recurse
         }
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-appStates-remove -ParameterName stateName -ScriptBlock $stateCompleter
-
-function sf-appStates-removeAll {
-    sf-appStates-get | sf-appStates-remove
-}
+Register-ArgumentCompleter -CommandName sf-appStates-remove -ParameterName name -ScriptBlock $Script:stateCompleter
 
 # returns object with name and path
 function sf-appStates-get {
@@ -138,7 +134,7 @@ function sf-appStates-get {
     $result = Get-ChildItem $statesPath -Directory | % { 
         [PSCustomObject]@{
             name = $_.Name;
-            path = $_.FullName
+            date = $_.LastWriteTime;
         }
     }
 
@@ -152,34 +148,15 @@ function _selectAppState {
         return
     }
 
-    $i = 0
-    foreach ($state in $states) {
-        Write-Host :"$i : $($state.name)"
-        $i++
-    }
-
-    while ($true) {
-        [int]$choice = Read-Host -Prompt 'Choose state'
-        $stateName = $states[$choice].name
-        if ($null -ne $stateName) {
-            break;
-        }
-    }
-
-    return $stateName
+    (ui-promptItemSelect -items $states).name
 }
 
 function _getStatesPath {
     $context = sf-project-get
-    $path = "$($context.webAppPath)/dev-tool"
+    $path = "$($context.webAppPath)\sf-posh\states"
 
     if (!(Test-Path $path)) {
-        New-Item $path -ItemType Directory -ErrorAction Stop
-    }
-
-    $path = "$path\states"
-    if (-not (Test-Path $path)) {
-        New-Item $path -ItemType Directory -ErrorAction Stop
+        New-Item $path -ItemType Directory -ErrorAction Stop > $null
     }
 
     return $path
