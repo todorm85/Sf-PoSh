@@ -93,7 +93,7 @@ function sf-project-getInfo {
 
             if ($detail) {
                 $result | `
-                    Add-Member -Name DbName -Value sf-db-getNameFromDataConfig -MemberType NoteProperty -PassThru | `
+                    Add-Member -Name DbName -Value (sf-db-getNameFromDataConfig) -MemberType NoteProperty -PassThru | `
                     Add-Member -Name SiteName -Value $project.websiteName -MemberType NoteProperty -PassThru | `
                     Add-Member -Name AppPath -Value $project.webAppPath -MemberType NoteProperty
             }
