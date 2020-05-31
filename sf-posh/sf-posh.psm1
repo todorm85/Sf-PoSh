@@ -14,10 +14,13 @@ if (-not (Test-Path $Script:moduleUserDir)) {
 $current = _getLoadedModuleVersion
 $updatesPath = "\\tmitskov\sf-posh"
 $latestVersion = Get-ChildItem -Path $updatesPath -Directory | Sort-Object -Property CreationTime | Select -First 1
-if ($latestVersion _isFirstVersionLower $current $latestVersion.name) {
+if ($latestVersion -and (_isFirstVersionLower $current $latestVersion.name)) {
     $source = $latestVersion.FullName
     Remove-Item "$PSScriptRoot\*" -Force -Recurse
     Copy-Item "$source\*" $PSScriptRoot -Force -Recurse
+    Write-Warning "Module updated to latest version. Reloading..."
+    Remove-Module sf-posh -force
+    Import-Module "$PSScriptRoot\sf-posh.psd1"
 }
 
 Export-ModuleMember -Function *
