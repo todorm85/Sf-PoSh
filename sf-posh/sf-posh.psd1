@@ -11,7 +11,7 @@
     VariablesToExport = @()
     # !!! Performance issue with intellisense do not enable
     # AliasesToExport   = '*'
-    ModuleVersion     = '23.0.1'
+    ModuleVersion     = '24.0.0'
     RequiredModules   = @(
         @{ModuleName = 'SqlServer'; ModuleVersion = '21.1.18179'; MaximumVersion = '21.1.*' }
     )
