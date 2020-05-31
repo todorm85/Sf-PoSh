@@ -22,12 +22,12 @@ function _upgrade {
         [ScriptBlock[]]$upgradeScripts
     )
 
-    $oldVersion = _getExistingModuleVersion
+    $oldVersion = _getModuleVersionFromDb
     if (!$oldVersion) {
         $oldVersion = "0.0.0"
     }
 
-    $newVersion = _getNewModuleVersion
+    $newVersion = _getLoadedModuleVersion
     if (!$newVersion) {
         throw "Could not detect new version for upgrade in psd file"
     }
@@ -44,7 +44,7 @@ function _upgrade {
     _updateModuleVersionInSfDevData $newVersion
 }
 
-function _getExistingModuleVersion {
+function _getModuleVersionFromDb {
     $data = New-Object XML
     $data.Load($GLOBAL:sf.Config.dataPath) > $null
     $versionData = $data.data.GetAttribute("moduleVersion")

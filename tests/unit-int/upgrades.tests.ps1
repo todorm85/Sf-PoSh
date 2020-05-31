@@ -49,7 +49,7 @@ InModuleScope sf-posh {
     }
 
     Describe "When upgrading" {
-        Mock _getNewModuleVersion { "10.0.0" }
+        Mock _getLoadedModuleVersion { "10.0.0" }
         $root = (Get-PSDrive TestDrive).Root
         $GLOBAL:sf.Config.dataPath = "$root\db.xml"
         It "from undefined version should invoke all scripts" {
@@ -104,13 +104,13 @@ InModuleScope sf-posh {
             $Script:executionCount | Should -Be 1
         }
         It "failing to get the new module version should not execute any scripts and throw" {
-            Mock _getNewModuleVersion { }
+            Mock _getLoadedModuleVersion { }
             { _upgrade $scripts } | Should -Throw
         }
     }
 
     It "getting module version should return value" {
-        _getNewModuleVersion | Should -Match "^\d+\.\d+\.\d+$"
-        @(_getNewModuleVersion) | Should -HaveCount 1
+        _getLoadedModuleVersion | Should -Match "^\d+\.\d+\.\d+$"
+        @(_getLoadedModuleVersion) | Should -HaveCount 1
     }
 }

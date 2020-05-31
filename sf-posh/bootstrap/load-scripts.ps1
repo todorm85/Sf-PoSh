@@ -6,7 +6,7 @@ function Get-ScriptFiles {
     Get-ChildItem -Path "$PSScriptRoot\..\core" -Filter '*.ps1' -Recurse
 }
 
-function _getNewModuleVersion {
+function _getLoadedModuleVersion {
     Get-Content -Path "$PSScriptRoot/../sf-posh.psd1" | ForEach-Object {
         if ($_ -match "ModuleVersion\s*?=\s*?'(?<vrsn>.+?)'$") {
             $newVersion = $matches["vrsn"]
