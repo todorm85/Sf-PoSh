@@ -10,5 +10,6 @@ if (-not (Test-Path $Script:moduleUserDir)) {
 . "$PSScriptRoot\bootstrap\init-psPrompt.ps1"
 . "$PSScriptRoot\bootstrap\load-scripts.ps1"
 . "$PSScriptRoot\bootstrap\run-upgrades.ps1"
+. "$PSScriptRoot\bootstrap\update.ps1"
 
 Export-ModuleMember -Function *
