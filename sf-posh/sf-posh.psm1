@@ -15,7 +15,7 @@ Export-ModuleMember -Function *
 
 $current = _getLoadedModuleVersion
 $updatesPath = "\\tmitskov\sf-posh"
-$latestVersion = Get-ChildItem -Path $updatesPath -Directory | Sort-Object -Property CreationTime | Select -First 1
+$latestVersion = Get-ChildItem -Path $updatesPath -Directory | Sort-Object -Property CreationTime -Descending | Select -First 1
 if ($latestVersion -and (_isFirstVersionLower $current $latestVersion.name)) {
     Remove-Module sf-posh -Force
     $source = $latestVersion.FullName
