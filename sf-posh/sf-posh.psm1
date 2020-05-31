@@ -1,15 +1,8 @@
-$GLOBAL:sf = [PSCustomObject]@{ }
-
-$Script:moduleUserDir = "$Global:HOME\documents\sf-posh"
-if (-not (Test-Path $Script:moduleUserDir)) {
-    New-Item -Path $Script:moduleUserDir -ItemType Directory
+$latest = Get-ChildItem "$PSScriptRoot\dist" | Sort-Object -Property CreationTime -Descending | Select -First 1
+if ($latest) {
+    Import-Module "$($latest.FullName)\sf-posh.psd1" -Force
+} else {
+    . "$PSScriptRoot\load-module.ps1"
+    Export-ModuleMember -Function *
 }
 
-. "$PSScriptRoot\bootstrap\init-config.ps1"
-. "$PSScriptRoot\bootstrap\initialize-events.ps1"
-. "$PSScriptRoot\bootstrap\init-psPrompt.ps1"
-. "$PSScriptRoot\bootstrap\load-scripts.ps1"
-. "$PSScriptRoot\bootstrap\run-upgrades.ps1"
-. "$PSScriptRoot\bootstrap\update.ps1"
-
-Export-ModuleMember -Function *
