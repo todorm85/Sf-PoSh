@@ -11,6 +11,8 @@ if (-not (Test-Path $Script:moduleUserDir)) {
 . "$PSScriptRoot\bootstrap\load-scripts.ps1"
 . "$PSScriptRoot\bootstrap\run-upgrades.ps1"
 
+Export-ModuleMember -Function *
+
 $current = _getLoadedModuleVersion
 $updatesPath = "\\tmitskov\sf-posh"
 $latestVersion = Get-ChildItem -Path $updatesPath -Directory | Sort-Object -Property CreationTime | Select -First 1
@@ -21,5 +23,3 @@ if ($latestVersion -and (_isFirstVersionLower $current $latestVersion.name)) {
     Write-Warning "Module updated to latest version. Reloading..."
     Import-Module "$PSScriptRoot\sf-posh.psd1" -Force
 }
-
-Export-ModuleMember -Function *

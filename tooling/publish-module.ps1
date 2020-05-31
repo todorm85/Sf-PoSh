@@ -29,5 +29,5 @@ if ($res -and $res.ToString().Contains('fatal')) {
 # Copy-SfToLive
 $version = _getLoadedModuleVersion
 $destination = "$PSScriptRoot\..\..\dist\$version"
-New-Item $destination -Force -ItemType Directory
+New-Item $destination -Force -ItemType Directory > $null
 Copy-Item "$PSScriptRoot\..\sf-posh\*" $destination -Force -Recurse
