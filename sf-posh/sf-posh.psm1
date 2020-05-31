@@ -1,4 +1,27 @@
-$currentModulePath = "$PSScriptRoot\module"
+function _isFirstVersionLower {
+    param (
+        [ValidatePattern({^\d+\.\d+\.\d+$})]$first,
+        [ValidatePattern({^\d+\.\d+\.\d+$})]$second
+    )
+    
+    $firstParts = $first.Split('.')
+    $secondParts = $second.Split('.')
+    for ($i = 0; $i -lt 3; $i++) {
+        if ([int]::Parse($firstParts[$i]) -eq [int]::Parse($secondParts[$i])) {
+            continue
+        }
+
+        if ([int]::Parse($firstParts[$i]) -lt [int]::Parse($secondParts[$i])) {
+            return $true    
+        } else {
+            return $false
+        }
+    }
+
+    return $false
+}
+
+$currentModulePath = "$PSScriptRoot"
 $latestModulesRootPath = "$PSScriptRoot\latest"
 if (Test-Path $latestModulesRootPath) {
     $lastUpdatedVersionLoc = Get-ChildItem $latestModulesRootPath | Sort-Object -Property CreationTime -Descending | Select -First 1

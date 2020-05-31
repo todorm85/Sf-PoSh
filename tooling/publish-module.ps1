@@ -1,4 +1,4 @@
-$version = Get-Content "$PSScriptRoot\..\sf-posh\module\version.txt"
+$version = Get-Content "$PSScriptRoot\..\sf-posh\version.txt"
 
 if (!$version) {
     throw 'No module version found.'
@@ -22,6 +22,6 @@ if ($res -and $res.ToString().Contains('fatal')) {
 
 # Publish-Module -Name "sf-posh" -NuGetApiKey $Env:NuGetApiKey
 # Copy-SfToLive
-$destination = "$PSScriptRoot\..\..\dist\$version"
+$destination = "$PSScriptRoot\..\dist\$version"
 New-Item $destination -Force -ItemType Directory > $null
-Copy-Item "$PSScriptRoot\..\sf-posh\module\*" $destination -Force -Recurse
+Copy-Item "$PSScriptRoot\..\sf-posh\*" $destination -Force -Recurse
