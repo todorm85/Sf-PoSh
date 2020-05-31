@@ -40,8 +40,8 @@ if ($remoteLocation) {
         $remotePath = $remoteLocation.FullName
         $newModulePath = "$latestModulesRootPath\$($remoteLocation.Name)"
         New-Item $newModulePath -ItemType Directory -Force
-        Copy-Item "$remotePath\*" $newModulePath -Force -Recurse -ErrorVariable error
-        if ($error) {
+        Copy-Item "$remotePath\*" $newModulePath -Force -Recurse -ErrorVariable errorCopying
+        if ($errorCopying) {
             Write-Warning "Error updating module."
             Remove-Item $newModulePath -Force -Recurse
         }
