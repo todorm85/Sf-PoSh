@@ -23,7 +23,8 @@ function sf {
         RunWithValidatedProject {
             InProjectScope -project $project {
                 if ($sync) {
-                    sf -getLatest -abortNoNew -clean -build -precompile -save
+                    sf -getLatest -abortNoNew -build
+                    sf-app-sendRequestAndEnsureInitialized
                     return
                 }
 

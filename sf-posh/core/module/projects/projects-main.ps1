@@ -74,7 +74,7 @@ function sf-project-clone {
     try {
         Write-Information "Copying $sourcePath to $targetPath."
         New-Item $targetPath -ItemType Directory > $null
-        Copy-Item "${sourcePath}\*" $targetPath -Recurse
+        Copy-Item "$sourcePath\*" $targetPath -Recurse
     }
     catch {
         $errors = "Error copying source files.`n $_";
@@ -460,6 +460,8 @@ function _proj-tryUseExisting {
     Write-Information "Detected existing app..."
 
     $project.webAppPath = $path
+    
+    Remove-Item "$(_getStatesPath)\*" -Force -Recurse -ErrorAction SilentlyContinue
     _proj-detectSite -project $project
     return $true
 }
