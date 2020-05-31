@@ -17,6 +17,7 @@ $current = _getLoadedModuleVersion
 $updatesPath = "\\tmitskov\sf-posh"
 $latestVersion = Get-ChildItem -Path $updatesPath -Directory | Sort-Object -Property CreationTime | Select -First 1
 if ($latestVersion -and (_isFirstVersionLower $current $latestVersion.name)) {
+    Remove-Module sf-posh -Force
     $source = $latestVersion.FullName
     Remove-Item "$PSScriptRoot\*" -Force -Recurse
     Copy-Item "$source\*" $PSScriptRoot -Force -Recurse
