@@ -19,8 +19,7 @@ if ($latestVersion -and (_isFirstVersionLower $current $latestVersion.name)) {
     Remove-Item "$PSScriptRoot\*" -Force -Recurse
     Copy-Item "$source\*" $PSScriptRoot -Force -Recurse
     Write-Warning "Module updated to latest version. Reloading..."
-    Remove-Module sf-posh -force
-    Import-Module "$PSScriptRoot\sf-posh.psd1"
+    Import-Module "$PSScriptRoot\sf-posh.psd1" -Force
 }
 
 Export-ModuleMember -Function *
