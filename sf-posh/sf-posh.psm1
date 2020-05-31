@@ -39,7 +39,7 @@ if ($remoteLocation) {
         Write-Warning "New module version detected. Updating."
         $remotePath = $remoteLocation.FullName
         $newModulePath = "$latestModulesRootPath\$($remoteLocation.Name)"
-        New-Item $newModulePath -Force -Directory
+        New-Item $newModulePath -ItemType Directory -Force
         Copy-Item "$remotePath\*" $newModulePath -Force -Recurse -ErrorVariable error
         if ($error) {
             Write-Warning "Error updating module."
