@@ -40,8 +40,12 @@ function _updateLastGetLatest {
         [SfProject]$context
     )
 
-    $lastGetLatestTfs = _getLastWorkspaceChangesetDate $context.solutionPath
-    $context.lastGetLatest = $lastGetLatestTfs
+    $dateOfLastLocalWorkspaceChangeset = _getLastWorkspaceChangesetDate $context.solutionPath
+    if ($dateOfLastLocalWorkspaceChangeset) {
+        if (!$context.lastGetLatest -or $context.lastGetLatest -lt $dateOfLastLocalWorkspaceChangeset) {
+            $context.lastGetLatest = $dateOfLastLocalWorkspaceChangeset
+        }
+    }
 }
 
 function _getLastWorkspaceChangesetDate {

@@ -44,7 +44,7 @@ Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath
 
     $values = $sf.config.predefinedBranches
     $values += $sf.config.predefinedBuildPaths
-    $values
+    $values | % { "'$_'"}
 }
 
 function sf-project-clone {
@@ -377,8 +377,8 @@ function sf-project-get {
     [OutputType([SfProject[]], ParameterSetName = "all")]
     [CmdletBinding(DefaultParameterSetName = 'current')]
     param(
-        [Parameter(ParameterSetName = "current")][switch]$skipValidation,
-        [Parameter(ParameterSetName = "all")][switch]$all
+        [Parameter(ParameterSetName = "all")][switch]$all,
+        [Parameter(ParameterSetName = "current")][switch]$skipValidation
     )
 
     if (!$all) {

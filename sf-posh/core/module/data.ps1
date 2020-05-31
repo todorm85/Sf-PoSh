@@ -1,3 +1,5 @@
+$script:dateFormat = "MM/dd/yyyy HH:mm:ss"
+
 function _data-getAllProjects {
     [OutputType([SfProject[]])]
     $data = New-Object XML
@@ -32,7 +34,7 @@ function _data-getAllProjects {
 
         $lastGetLatest = $null
         if ($_.lastGetLatest) {
-            $lastGetLatest = [System.DateTime]::Parse($_.lastGetLatest)
+            $lastGetLatest = [System.DateTime]::ParseExact($_.lastGetLatest, $script:dateFormat, [System.Globalization.CultureInfo]::InvariantCulture)
         }
 
         $clone.lastGetLatest = $lastGetLatest;
@@ -112,7 +114,7 @@ function _setProjectData {
     $sitefinityEntry.SetAttribute("branch", $context.branch)
     $sitefinityEntry.SetAttribute("websiteName", $context.websiteName)
     $sitefinityEntry.SetAttribute("solutionPath", $context.solutionPath)
-    $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest)
+    $sitefinityEntry.SetAttribute("lastGetLatest", $context.lastGetLatest.ToString($dateFormat, [System.Globalization.CultureInfo]::InvariantCulture))
     $sitefinityEntry.SetAttribute("tags", $tags)
     if ($context.defaultBinding) {
         $sitefinityEntry.SetAttribute("defaultBinding", "$($context.defaultBinding.protocol):$($context.defaultBinding.domain):$($context.defaultBinding.port)")
