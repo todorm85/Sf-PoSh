@@ -13,9 +13,9 @@ if (-not (Test-Path $Script:moduleUserDir)) {
 
 $current = _getLoadedModuleVersion
 $updatesPath = "\\tmitskov\sf-posh"
-$vailableUpdates = Get-ChildItem -Path $updatesPath -Directory | Sort-Object -Property CreationTime | Select -First 1
-if (_isFirstVersionLower $current $vailableUpdates.name) {
-    $source = $vailableUpdates.FullName
+$latestVersion = Get-ChildItem -Path $updatesPath -Directory | Sort-Object -Property CreationTime | Select -First 1
+if ($latestVersion _isFirstVersionLower $current $latestVersion.name) {
+    $source = $latestVersion.FullName
     Remove-Item "$PSScriptRoot\*" -Force -Recurse
     Copy-Item "$source\*" $PSScriptRoot -Force -Recurse
 }
