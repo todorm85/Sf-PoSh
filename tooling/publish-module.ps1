@@ -26,4 +26,8 @@ if ($res -and $res.ToString().Contains('fatal')) {
 }
 
 # Publish-Module -Name "sf-posh" -NuGetApiKey $Env:NuGetApiKey
-Copy-SfToLive
+# Copy-SfToLive
+$version = _getLoadedModuleVersion
+$destination = "$PSScriptRoot\..\..\dist\$version"
+New-Item $destination
+Copy-Item "$PSScriptRoot\..\sf-posh\*" $destination
