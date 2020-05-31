@@ -7,9 +7,6 @@ if (!$version) {
 Set-Location "$PSScriptRoot"
 git commit --quiet -a -m "Update for publishing"
 
-. "./set-exportedFunctions.ps1"
-git commit --quiet -a -m "Update exported functions definition"
-
 $res = git tag $version 2>&1
 if ($res -and $res.ToString().Contains('fatal')) {
     $response = Read-Host -Prompt "Tag with this version already exists. Continue with publish?"
