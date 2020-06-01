@@ -17,8 +17,6 @@ if ($res -and $res.ToString().Contains('fatal')) {
     git push origin --tags
 }
 
-# Publish-Module -Name "sf-posh" -NuGetApiKey $Env:NuGetApiKey
-# Copy-SfToLive
 $destinationRoot = "\\filesrvbg01\Resources\Sitefinity\sf-posh"
 Remove-Item "$destinationRoot\*" -Recurse -Force
 $destination = "$destinationRoot\$version"
