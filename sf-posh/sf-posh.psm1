@@ -1,7 +1,7 @@
 function _isFirstVersionLower {
     param (
-        [ValidatePattern({^\d+\.\d+\.\d+$})]$first,
-        [ValidatePattern({^\d+\.\d+\.\d+$})]$second
+        [ValidatePattern( { ^\d+\.\d+\.\d+$ })]$first,
+        [ValidatePattern( { ^\d+\.\d+\.\d+$ })]$second
     )
     
     $firstParts = $first.Split('.')
@@ -13,7 +13,8 @@ function _isFirstVersionLower {
 
         if ([int]::Parse($firstParts[$i]) -lt [int]::Parse($secondParts[$i])) {
             return $true    
-        } else {
+        }
+        else {
             return $false
         }
     }
@@ -21,36 +22,33 @@ function _isFirstVersionLower {
     return $false
 }
 
-$currentModulePath = "$PSScriptRoot"
-$latestModulesRootPath = "$PSScriptRoot\latest"
-if (Test-Path $latestModulesRootPath) {
-    $lastUpdatedVersionLoc = Get-ChildItem $latestModulesRootPath | Sort-Object -Property CreationTime -Descending | Select -First 1
-    if ($lastUpdatedVersionLoc) {
-        $currentModulePath = $lastUpdatedVersionLoc.FullName
-    }
-}
-
+$lastUpdatedVersionLoc = Get-ChildItem $PSScriptRoot | Sort-Object -Property CreationTime -Descending | Select -First 1
+$currentModulePath = $lastUpdatedVersionLoc.FullName
 $remotesPath = "\\tmitskov\sf-posh"
-$remoteLocation = Get-ChildItem -Path $remotesPath -Directory | Sort-Object -Property CreationTime -Descending | Select -First 1
-if ($remoteLocation) {
-    $currentVn = Get-Content -Path "$currentModulePath\version.txt"
-    $remoteVn = Get-Content "$($remoteLocation.FullName)\version.txt"
-    if (_isFirstVersionLower $currentVn $remoteVn) {
-        Write-Warning "New module version detected. Updating."
+$remoteLocation = Get-ChildItem -Path $remotesPath -Directory -ErrorAction SilentlyContinue | Sort-Object -Property CreationTime -Descending | Select -First 1
+$currentVn = Get-Content -Path "$currentModulePath\version.txt" -ErrorAction SilentlyContinue
+$remoteVn = Get-Content "$($remoteLocation.FullName)\version.txt" -ErrorAction SilentlyContinue
+if ($remoteVn -and (!$currentVn -or (_isFirstVersionLower $currentVn $remoteVn))) {
+    $update = Read-Host -Prompt "New module version detected. Update? - y/n"
+    if ($update -eq 'y') {
         $remotePath = $remoteLocation.FullName
-        $newModulePath = "$latestModulesRootPath\$($remoteLocation.Name)"
+        $newModulePath = "$PSScriptRoot\$($remoteLocation.Name)"
         New-Item $newModulePath -ItemType Directory -Force
         Copy-Item "$remotePath\*" $newModulePath -Force -Recurse -ErrorVariable errorCopying
         if ($errorCopying) {
-            Write-Warning "Error updating module."
+            Write-Warning "Error updating module. Error copying files locally: $errorCopying"
             Remove-Item $newModulePath -Force -Recurse
         }
         else {
             $currentModulePath = $newModulePath
             Write-Warning "Module updated."
-            Get-ChildItem $latestModulesRootPath | ? Name -NE $remoteLocation.Name | Remove-Item -Force -Recurse
+            Get-ChildItem $PSScriptRoot | ? Name -ne $remoteLocation.Name | Remove-Item -Force -Recurse
         }
     }
+}
+
+if (!$currentModulePath) {
+    throw "No local module available and no access to $remotesPath to download latest version."
 }
 
 . "$currentModulePath\load-module.ps1"

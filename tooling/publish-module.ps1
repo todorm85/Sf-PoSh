@@ -1,4 +1,4 @@
-$version = Get-Content "$PSScriptRoot\..\sf-posh\version.txt"
+$version = Get-Content "$PSScriptRoot\..\sf-posh\module\version.txt"
 
 if (!$version) {
     throw 'No module version found.'
