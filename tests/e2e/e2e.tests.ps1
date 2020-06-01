@@ -55,7 +55,7 @@ InModuleScope sf-posh {
     Describe "Reinitializing should" -Tags ("reset") {
         It "has correct initial state" {
             sf-project-get -all | select -First 1 | sf-project-setCurrent
-            [SfProject]$project = sf-project-get
+            [SfProject]$Script:project = sf-project-get
             sf-app-reinitialize
             $url = sf-iisSite-getUrl
             $result = _invokeNonTerminatingRequest $url
