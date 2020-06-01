@@ -4,10 +4,10 @@ function sf-tags-getAllAvailable {
 
 function sf-tags-add {
     param (
+        [string]$tagName,
         [Parameter(ValueFromPipeline)]
         [SfProject]
-        $project,
-        [string]$tagName
+        $project
     )
     
     process {
@@ -23,11 +23,11 @@ Register-ArgumentCompleter -CommandName sf-tags-add -ParameterName tagName -Scri
 
 function sf-tags-remove {
     param (
+        [string]$tagName,
+        [switch]$all,
         [Parameter(ValueFromPipeline)]
         [SfProject]
-        $project,
-        [string]$tagName,
-        [switch]$all
+        $project
     )
 
     process {
