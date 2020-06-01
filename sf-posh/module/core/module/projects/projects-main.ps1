@@ -44,7 +44,7 @@ Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath
 
     $values = $sf.config.predefinedBranches
     $values += $sf.config.predefinedBuildPaths
-    $values | % { "'$_'"}
+    $values | % { "'$_'" }
 }
 
 function sf-project-clone {
@@ -311,65 +311,71 @@ function sf-project-remove {
 function sf-project-rename {
     Param(
         [string]$newName,
-        [switch]$setDescription
+        [switch]$setDescription,
+        [Parameter(ValueFromPipeline)]
+        [SfProject]
+        $project
     )
 
-    $project = sf-project-get
-    [SfProject]$context = $project
+    process {
+        RunWithValidatedProject {
+            [SfProject]$context = $project
 
-    if (-not $newName) {
-        while ([string]::IsNullOrEmpty($newName)) {
-            if ($newName) {
-                Write-Warning "Invalid name syntax."
+            if (-not $newName) {
+                while ([string]::IsNullOrEmpty($newName)) {
+                    if ($newName) {
+                        Write-Warning "Invalid name syntax."
+                    }
+
+                    $newName = $(Read-Host -Prompt "Enter new project name").ToString()
+                }
+
+                if ($setDescription) {
+                    $context.description = $(Read-Host -Prompt "Enter description:`n").ToString()
+                }
             }
 
-            $newName = $(Read-Host -Prompt "Enter new project name").ToString()
-        }
+            $azureDevOpsResult = _getNameParts $newName
+            $newName = $azureDevOpsResult.name
+            $context.description = $azureDevOpsResult.link
 
-        if ($setDescription) {
-            $context.description = $(Read-Host -Prompt "Enter description:`n").ToString()
-        }
-    }
-
-    $azureDevOpsResult = _getNameParts $newName
-    $newName = $azureDevOpsResult.name
-    $context.description = $azureDevOpsResult.link
-
-    if ($newName -and (-not (_validateNameSyntax $newName))) {
-        throw "Name syntax is not valid. Use only alphanumerics and underscores"
-    }
-
-    $oldSolutionName = _generateSolutionFriendlyName -context $context
-    $context.displayName = $newName
-
-    if ($context.solutionPath) {
-        if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
-            _createUserFriendlySlnName -context $context
-        }
-
-        $newSolutionName = _generateSolutionFriendlyName -context $context
-        $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
-        if (Test-Path $oldSolutionPath) {
-            Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
-
-            $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
-            $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
-            $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
-            if (Test-Path $oldSolutionCachePath) {
-                Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
-                unlock-allFiles -path $oldSolutionCachePath
-                Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+            if ($newName -and (-not (_validateNameSyntax $newName))) {
+                throw "Name syntax is not valid. Use only alphanumerics and underscores"
             }
 
-            unlock-allFiles -path $oldSolutionPath
-            Remove-Item -Path $oldSolutionPath -Force
+            $oldSolutionName = _generateSolutionFriendlyName -context $context
+            $context.displayName = $newName
+
+            if ($context.solutionPath) {
+                if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
+                    _createUserFriendlySlnName -context $context
+                }
+
+                $newSolutionName = _generateSolutionFriendlyName -context $context
+                $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
+                if (Test-Path $oldSolutionPath) {
+                    Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
+
+                    $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
+                    $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
+                    $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
+                    if (Test-Path $oldSolutionCachePath) {
+                        Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
+                        unlock-allFiles -path $oldSolutionCachePath
+                        Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+                    }
+
+                    unlock-allFiles -path $oldSolutionPath
+                    Remove-Item -Path $oldSolutionPath -Force
+                }
+            }
+
+            sf-iisSite-changeDomain -domainName "$($newName).$($context.id)"
+
+            _update-prompt $context
+            sf-project-save $context
         }
     }
-
-    sf-iisSite-changeDomain -domainName "$($newName).$($context.id)"
-
-    _update-prompt $context
-    sf-project-save $context
 }
 
 function sf-project-get {
