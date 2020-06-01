@@ -14,7 +14,7 @@ $scripts = @(
             $data.data.RemoveAttribute('version')
             $data.Save($GLOBAL:sf.Config.dataPath) > $null
         }
-        if ((_isFirstVersionLower $oldVersion "24.1.7")) {
+        if ((_isFirstVersionLower $oldVersion "24.2.1")) {
             $data = New-Object XML
             $data.Load($GLOBAL:sf.Config.dataPath)
             $data.data.sitefinities.sitefinity | % {
