@@ -1,7 +1,7 @@
 function _isFirstVersionLower {
     param (
-        [ValidatePattern( { ^\d+\.\d+\.\d+$ })]$first,
-        [ValidatePattern( { ^\d+\.\d+\.\d+$ })]$second
+        [ValidatePattern({^\d+\.\d+\.\d+$})]$first,
+        [ValidatePattern({^\d+\.\d+\.\d+$})]$second
     )
     
     $firstParts = $first.Split('.')
@@ -22,10 +22,10 @@ function _isFirstVersionLower {
     return $false
 }
 
-$lastUpdatedVersionLoc = Get-ChildItem $PSScriptRoot | Sort-Object -Property CreationTime -Descending | Select -First 1
+$lastUpdatedVersionLoc = Get-ChildItem $PSScriptRoot -Directory | Sort-Object -Property CreationTime -Descending | Select -First 1
 $currentModulePath = $lastUpdatedVersionLoc.FullName
 $remotesPath = "\\tmitskov\sf-posh"
-$remoteLocation = Get-ChildItem -Path $remotesPath -Directory -ErrorAction SilentlyContinue | Sort-Object -Property CreationTime -Descending | Select -First 1
+$remoteLocation = Get-ChildItem -Path $remotesPath -Directory | Sort-Object -Property CreationTime -Descending | Select -First 1
 $currentVn = Get-Content -Path "$currentModulePath\version.txt" -ErrorAction SilentlyContinue
 $remoteVn = Get-Content "$($remoteLocation.FullName)\version.txt" -ErrorAction SilentlyContinue
 if ($remoteVn -and (!$currentVn -or (_isFirstVersionLower $currentVn $remoteVn))) {
@@ -42,7 +42,7 @@ if ($remoteVn -and (!$currentVn -or (_isFirstVersionLower $currentVn $remoteVn))
         else {
             $currentModulePath = $newModulePath
             Write-Warning "Module updated."
-            Get-ChildItem $PSScriptRoot | ? Name -ne $remoteLocation.Name | Remove-Item -Force -Recurse
+            Get-ChildItem $PSScriptRoot -Directory | ? Name -ne $remoteLocation.Name | Remove-Item -Force -Recurse
         }
     }
 }
