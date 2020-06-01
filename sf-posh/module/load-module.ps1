@@ -16,11 +16,12 @@ if (-not (Test-Path $Script:moduleUserDir)) {
 . "$PSScriptRoot\bootstrap\run-upgrades.ps1"
 
 function _getFunctionNames {
+    $isDev = $Global:sfposhenv -eq 'dev'
     Get-ChildItem -Path "$PSScriptRoot\core" -File -Recurse | 
-    Where-Object { $_.Extension -eq '.ps1' -and $_.Name -notlike "*.init.ps1" -and $_.Name -notlike "*.tests.ps1" } | 
+    Where-Object { $_.Extension -eq '.ps1' -and ($isDev -or $_.Name -notlike "*.init.ps1") } | 
     Get-Content | Where-Object { $_.contains("function") } | 
     Where-Object { $_ -match "^\s*function\s+?(?<name>[\w-]+?)\s.*$" } | 
-    ForEach-Object { $Matches["name"] } | Where-Object { !$_.StartsWith("_") }
+    ForEach-Object { $Matches["name"] } | Where-Object { $isDev -or !$_.StartsWith("_") }
 }
 
 function _getLoadedModuleVersion {

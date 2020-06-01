@@ -156,11 +156,14 @@ function _updateData {
 
 function _serializeDate {
     param (
-        [DateTime]$date
+        [System.Nullable[DateTime]]$date
     )
     
     if ($date) {
         "$($date.Month)/$($date.Day)/$($date.Year)/$($date.Hour)/$($date.Minute)/$($date.Second)"
+    }
+    else {
+        ""
     }
 }
 
