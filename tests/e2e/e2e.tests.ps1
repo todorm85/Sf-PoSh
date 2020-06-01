@@ -77,8 +77,9 @@ InModuleScope sf-posh {
         It "start successfully after initialize" {
             sf-app-reinitialize
             Test-Path $configsPath | Should -Be $true
-            $dbName = _db-getNameFromDataConfig  $project.webAppPath
-            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+            $dbName = _db-getNameFromDataConfig $project.webAppPath
+            $dbName | Should -Not -BeNullOrEmpty
+            sql-get-dbs | Where-Object { $_.Name -eq $dbName } | Should -HaveCount 1
         }
     }
 
