@@ -19,6 +19,6 @@ if ($res -and $res.ToString().Contains('fatal')) {
 
 # Publish-Module -Name "sf-posh" -NuGetApiKey $Env:NuGetApiKey
 # Copy-SfToLive
-$destination = "$PSScriptRoot\..\dist\$version"
+$destination = "\\filesrvbg01\Resources\Sitefinity\sf-posh\$version"
 New-Item $destination -Force -ItemType Directory > $null
 Copy-Item "$PSScriptRoot\..\sf-posh\module\*" $destination -Force -Recurse

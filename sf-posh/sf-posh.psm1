@@ -24,8 +24,8 @@ function _isFirstVersionLower {
 
 $lastUpdatedVersionLoc = Get-ChildItem $PSScriptRoot -Directory | Sort-Object -Property CreationTime -Descending | Select -First 1
 $currentModulePath = $lastUpdatedVersionLoc.FullName
-$remotesPath = "\\tmitskov\sf-posh"
-$remoteLocation = Get-ChildItem -Path $remotesPath -Directory | Sort-Object -Property CreationTime -Descending | Select -First 1
+$remotesPath = "\\filesrvbg01\Resources\Sitefinity\sf-posh"
+$remoteLocation = Get-ChildItem -Path $remotesPath -Directory -ErrorAction SilentlyContinue | Sort-Object -Property CreationTime -Descending | Select -First 1
 $currentVn = Get-Content -Path "$currentModulePath\version.txt" -ErrorAction SilentlyContinue
 $remoteVn = Get-Content "$($remoteLocation.FullName)\version.txt" -ErrorAction SilentlyContinue
 if ($remoteVn -and (!$currentVn -or (_isFirstVersionLower $currentVn $remoteVn))) {
