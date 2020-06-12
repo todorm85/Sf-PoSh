@@ -383,7 +383,8 @@ function sf-project-get {
     [OutputType([SfProject[]], ParameterSetName = "all")]
     [CmdletBinding(DefaultParameterSetName = 'current')]
     param(
-        [Parameter(ParameterSetName = "all")][switch]$all,
+        [Parameter(ParameterSetName = "all", Position = 0)][switch]$all,
+        [Parameter(ParameterSetName = "all", Position = 1)]$tagsFilter = $null,
         [Parameter(ParameterSetName = "current")][switch]$skipValidation
     )
 
@@ -397,9 +398,17 @@ function sf-project-get {
         $p
     }
     else {
-        _data-getAllProjects
+        $p = _data-getAllProjects
+        if ($tagsFilter) {
+            _filterProjectsByTags -sitefinities $p -tagsFilter $tagsFilter
+        }
+        else {
+            $p
+        }
     }
 }
+
+Register-ArgumentCompleter -CommandName sf-project-get -ParameterName tagsFilter -ScriptBlock $Script:tagFilterCompleter
 
 function sf-project-setCurrent {
     [CmdletBinding()]

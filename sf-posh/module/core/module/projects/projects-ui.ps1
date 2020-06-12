@@ -9,9 +9,10 @@
 #>
 function sf-project-select {
     Param(
-        $branchFilter = $null, # DO NOT USE string type as it is converted to empty string not using null
+        # DO NOT USE string type as it is converted to empty string not using null
+        [string[]]$tagsFilter,
         $titleFilter = $null,
-        [string[]]$tagsFilter
+        $branchFilter = $null
     )
 
     [SfProject[]]$sitefinities = sf-project-get -all
@@ -93,7 +94,7 @@ function sf-project-getInfo {
 
             if ($detail) {
                 $result | `
-                    Add-Member -Name DbName -Value (sf-db-getNameFromDataConfig) -MemberType NoteProperty -PassThru | `
+                    Add-Member -Name DbName -Value (sf-db-getNameFromDataConfig -context $project) -MemberType NoteProperty -PassThru | `
                     Add-Member -Name SiteName -Value $project.websiteName -MemberType NoteProperty -PassThru | `
                     Add-Member -Name AppPath -Value $project.webAppPath -MemberType NoteProperty
             }
@@ -121,7 +122,7 @@ function _proj-promptSelect {
     }
 
     if (!$propsToOrderBy) {
-        $propsToOrderBy = @("NlbId", "Branch", "Tags")
+        $propsToOrderBy = @("NlbId", "Tags", "Branch", "Title")
     }
 
     $sfInfos = $sitefinities | sf-project-getInfo
