@@ -1,3 +1,7 @@
+param(
+    [bool]$exportPrivate
+)
+
 function _isFirstVersionLower {
     param (
         [ValidatePattern({^\d+\.\d+\.\d+$})]$first,
@@ -53,5 +57,5 @@ if (!$currentModulePath) {
 
 . "$currentModulePath\load-module.ps1"
 
-$public = _getFunctionNames
+$public = _getFunctionNames -exportPrivate $exportPrivate
 Export-ModuleMember -Function $public

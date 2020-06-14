@@ -6,10 +6,6 @@ function Get-ScriptFiles {
     Get-ChildItem -Path "$PSScriptRoot\..\core" -Filter '*.ps1' -Recurse
 }
 
-function _getLoadedModuleVersion {
-    Get-Content -Path "$PSScriptRoot\..\version.txt"
-}
-
 Import-Module WebAdministration -Force
 
 # Do not dot source in function scope it won`t be loaded inside the module
