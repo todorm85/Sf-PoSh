@@ -192,7 +192,7 @@ function sf-project-remove {
     )
 
     process {
-        RunWithValidatedProject {
+        SfPoshProcess {
             $clearCurrentSelectedProject = $false
             [SfProject]$currentProject = $null
             try {
@@ -304,7 +304,7 @@ function sf-project-remove {
             else {
                 sf-project-setCurrent $currentProject > $null
             }
-        } -skipCurrentProjectChange
+        } -keepCurrentSelectedProject
     }
 }
 
@@ -318,7 +318,7 @@ function sf-project-rename {
     )
 
     process {
-        RunWithValidatedProject {
+        SfPoshProcess {
             [SfProject]$context = $project
 
             if (-not $newName) {
@@ -869,10 +869,10 @@ function InProjectScope {
 .NOTES
     IMPORTANT the project parameter of the wrapped function must be called 'project' in order to be properly modified by this wrapper.
 #>
-function RunWithValidatedProject {
+function SfPoshProcess {
     param (
-        [ScriptBlock]$callback,
-        [switch]$skipCurrentProjectChange
+        [ScriptBlock]$script,
+        [switch]$keepCurrentSelectedProject
     )
 
     $stack = Get-PSCallStack
@@ -885,12 +885,12 @@ function RunWithValidatedProject {
         return
     }
     
-    if ($skipCurrentProjectChange) {
-        & $callback
+    if ($keepCurrentSelectedProject) {
+        & $script
     }
     else {
         InProjectScope -project $project {
-            & $callback
+            & $script
         }
     }
 }

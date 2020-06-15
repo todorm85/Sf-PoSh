@@ -1,4 +1,8 @@
-function sf-nlb-getOtherNodes {
+function sf-nlb-getNodes {
+    Param(
+        [switch]$excludeCurrent
+    )
+    
     [SfProject]$p = sf-project-get
     if (!$p) {
         throw "No project selected."
@@ -9,31 +13,18 @@ function sf-nlb-getOtherNodes {
         throw "Project not part of NLB cluster."
     }
 
-    $projectIds = sf-nlbData-getProjectIds -nlbId $nlbId | ? { $_ -ne $p.id }
+    $projectIds = sf-nlbData-getProjectIds -nlbId $nlbId | ? { $_ -ne $p.id -or !$excludeCurrent }
     sf-project-get -all | ? { $projectIds -Contains $_.id }
 }
 
 function sf-nlb-forAllNodes {
     param (
         [Parameter(Mandatory = $true)]
-        [ScriptBlock]$script
+        [ScriptBlock]$script,
+        [switch]$excludeCurrent
     )
 
-    $p = sf-project-get
-    try {
-        $p, (sf-nlb-getOtherNodes) | % {
-            sf-project-setCurrent $_
-            try {
-                Invoke-Command -ScriptBlock $script
-            }
-            catch {
-                Write-Error "Error $($p.id). $_"                
-            }
-        }
-    }
-    finally {
-        sf-project-setCurrent $p
-    }
+    sf-nlb-getNodes -excludeCurrent:$excludeCurrent | InProjectScope $script
 }
 
 function sf-nlb-setSslOffloadForAll {
@@ -52,7 +43,7 @@ function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
     }
 
     $srcWebConfig = _sf-path-getWebConfigPath $currentNode
-    sf-nlb-getOtherNodes | InProjectScope -script {
+    sf-nlb-getNodes -excludeCurrent | InProjectScope -script {
         $p = sf-project-get
         $trg = _sf-path-getConfigBasePath $p
         if (!(Test-Path $trg)) {

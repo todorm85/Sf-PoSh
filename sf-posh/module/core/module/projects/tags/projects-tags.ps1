@@ -11,7 +11,7 @@ function sf-tags-add {
     )
     
     process {
-        RunWithValidatedProject {
+        SfPoshProcess {
             _validateTag $tagName
             $project.tags.Add($tagName)
             sf-project-save -context $project
@@ -31,7 +31,7 @@ function sf-tags-remove {
     )
 
     process {
-        RunWithValidatedProject {
+        SfPoshProcess {
             if ($all) {
                 $project.tags.Clear()
             }

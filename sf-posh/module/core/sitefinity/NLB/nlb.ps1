@@ -30,7 +30,7 @@ function sf-nlb-removeCluster {
     }
     
     $nlbId = sf-nlbData-getNlbIds $p.id
-    sf-nlb-getOtherNodes | % { 
+    sf-nlb-getNodes -excludeCurrent | % { 
         try {
             sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $_.id))
             sf-project-remove -project $_ -keepDb
@@ -87,7 +87,7 @@ function sf-nlb-getStatus {
     $nlbId = sf-nlbData-getNlbIds $p.id
     if ($nlbId) {
         try {
-            $otherNode = sf-nlb-getOtherNodes
+            $otherNode = sf-nlb-getNodes -excludeCurrent
         }
         catch {
             Write-Warning "No other nodes."            

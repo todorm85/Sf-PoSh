@@ -191,14 +191,25 @@ function sf-appPrecompiledTemplates-remove {
 }
 
 function sf-app-isInitialized {
-    try {
-        sf-app-sendRequestAndEnsureInitialized > $null
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline)]
+        [SfProject]
+        $project
+    )
+    
+    process {
+        SfPoshProcess {
+            try {
+                sf-app-sendRequestAndEnsureInitialized > $null
+            }
+            catch {
+                return $false        
+            }
+        
+            return $true
+        }
     }
-    catch {
-        return $false        
-    }
-
-    return $true
 }
 
 function _sd-appPrecompiledTemplates-getCompilerPath() {

@@ -68,7 +68,7 @@ function sf-project-getInfo {
     )
 
     process {
-        RunWithValidatedProject {
+        SfPoshProcess {
             $ports = if ($project.websiteName) {
                 iis-bindings-getAll -siteName $project.websiteName | Select-Object -ExpandProperty 'port' | Get-Unique
             }
@@ -100,7 +100,7 @@ function sf-project-getInfo {
             }
 
             $result
-        } -skipCurrentProjectChange
+        } -keepCurrentSelectedProject
     }
 }
 
