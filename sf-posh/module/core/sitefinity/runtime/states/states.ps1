@@ -63,16 +63,14 @@ Register-ArgumentCompleter -CommandName sf-appStates-save -ParameterName stateNa
 function sf-appStates-restore {
     [CmdletBinding()]
     Param(
-        [Parameter(ValueFromPipeline)][string]$stateName,
+        [Parameter(ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
+        [string]$stateName,
         [bool]$force = $false
     )
 
     process {
         $project = sf-project-get
-
-        if (!$stateName) {
-            $stateName = _selectAppState -context $context
-        }
 
         if (!$stateName) {
             throw "Empty state name."
@@ -110,10 +108,6 @@ function sf-appStates-remove {
     )
         
     process {
-        if (!$name -and !(Get-PSCallStack).InvocationInfo.ExpectingInput) {
-            $name = _selectAppState
-        }
-
         if (-not $name) {
             return
         }
@@ -139,16 +133,6 @@ function sf-appStates-get {
     }
 
     $result
-}
-
-function _selectAppState {
-    $states = sf-appStates-get
-    if (-not $states) {
-        Write-Warning "No states."
-        return
-    }
-
-    (ui-promptItemSelect -items $states).name
 }
 
 function _getStatesPath {
