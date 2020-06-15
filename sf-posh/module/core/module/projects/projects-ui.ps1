@@ -100,7 +100,7 @@ function sf-project-getInfo {
             }
 
             $result
-        } -keepCurrentSelectedProject
+        } -sfPoshProcess_keepExistingProjectContext
     }
 }
 

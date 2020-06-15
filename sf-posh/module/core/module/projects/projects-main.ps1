@@ -304,7 +304,7 @@ function sf-project-remove {
             else {
                 sf-project-setCurrent $currentProject > $null
             }
-        } -keepCurrentSelectedProject
+        } -sfPoshProcess_keepExistingProjectContext
     }
 }
 
@@ -844,14 +844,14 @@ function InProjectScope {
         [Sfproject]$project,
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        [ScriptBlock]$script
+        [ScriptBlock]$InProjectScope_script
     )
     
     process {
-        $previous = sf-project-get -skipValidation
+        $private:previous = sf-project-get -skipValidation
         sf-project-setCurrent $project
         try {
-            & $script
+            & $InProjectScope_script
         }
         finally {
             sf-project-setCurrent $previous
@@ -871,12 +871,13 @@ function InProjectScope {
 #>
 function SfPoshProcess {
     param (
-        [ScriptBlock]$script,
-        [switch]$keepCurrentSelectedProject
+        # should keep unique names so the executed script does not mess up with calling scope variables, since the calling function will not use new closure for api simplicity
+        [ScriptBlock]$sfPoshProcess_script,
+        [switch]$sfPoshProcess_keepExistingProjectContext
     )
 
-    $stack = Get-PSCallStack
-    $isFromPipeline = $stack[$stack.Count - 2].InvocationInfo.ExpectingInput
+    $private:stack = Get-PSCallStack
+    $private:isFromPipeline = $stack[$stack.Count - 2].InvocationInfo.ExpectingInput
     if (!$isFromPipeline -and !$project) {
         $project = sf-project-get
     }
@@ -885,12 +886,31 @@ function SfPoshProcess {
         return
     }
     
-    if ($keepCurrentSelectedProject) {
-        & $script
+    if ($sfPoshProcess_keepExistingProjectContext) {
+        & $sfPoshProcess_script
     }
     else {
         InProjectScope -project $project {
+            & $sfPoshProcess_script
+        }
+    }
+}
+
+function sftest {
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline)]
+        [SfProject]
+        $project,
+        $script = { "test" },
+        $stack = "testStack"
+    )
+    
+    process {
+        SfPoshProcess {
+            $project
             & $script
+            $stack
         }
     }
 }
