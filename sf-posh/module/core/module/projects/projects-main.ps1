@@ -343,6 +343,10 @@ function sf-project-rename {
                 throw "Name syntax is not valid. Use only alphanumerics and underscores"
             }
 
+            if ($newName -eq $context.displayName) {
+                return
+            }
+
             $oldSolutionName = _generateSolutionFriendlyName -context $context
             $context.displayName = $newName
 
