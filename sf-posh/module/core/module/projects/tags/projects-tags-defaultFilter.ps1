@@ -29,7 +29,7 @@ function sf-tags-addToDefaultFilter {
     sf-tags-setDefaultFilter -filter $defaultFilter
 }
 
-Register-ArgumentCompleter -CommandName sf-tags-addToDefaultFilter -ParameterName tag -ScriptBlock $Script:tagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-tags-addToDefaultFilter -ParameterName tag -ScriptBlock $Global:SfTagFilterCompleter
 
 function sf-tags-removeFromDefaultFilter {
     param (
@@ -44,7 +44,7 @@ function sf-tags-removeFromDefaultFilter {
     sf-tags-setDefaultFilter -filter $defaultFilter
 }
 
-Register-ArgumentCompleter -CommandName sf-tags-removeFromDefaultFilter -ParameterName tag -ScriptBlock $Script:tagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-tags-removeFromDefaultFilter -ParameterName tag -ScriptBlock $Global:SfTagFilterCompleter
 
 <#
     passing '+u' in include tags will take only untagged

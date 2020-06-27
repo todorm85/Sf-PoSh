@@ -16,7 +16,7 @@ $Script:tagCompleter = {
     $possibleValues
 }
 
-$Script:tagFilterCompleter = {
+$Global:SfTagFilterCompleter = {
     param ( $commandName,
         $parameterName,
         $wordToComplete,
@@ -24,7 +24,7 @@ $Script:tagFilterCompleter = {
         $fakeBoundParameters
     )
 
-    $prefixes = @($excludeTagPrefix)
+    $prefixes = @($excludeTagPrefix, "+")
     $prefix = "$wordToComplete"[0]
     if ($prefix -notin $prefixes) {
         $prefix = ''

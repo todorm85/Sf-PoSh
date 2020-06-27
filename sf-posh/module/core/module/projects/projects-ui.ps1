@@ -9,10 +9,8 @@
 #>
 function sf-project-select {
     Param(
-        # DO NOT USE string type as it is converted to empty string not using null
+        # prefix with + for mandatory, prefix with _ to exclude, +u all untagged
         [string[]]$tagsFilter,
-        $titleFilter = $null,
-        $branchFilter = $null,
         [object[]]$propsToShow,
         [object[]]$propsToSort
     )
@@ -27,25 +25,13 @@ function sf-project-select {
     sf-project-setCurrent $selectedSitefinity
 }
 
-Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock {
-    param ( $commandName,
-        $parameterName,
-        $wordToComplete,
-        $commandAst,
-        $fakeBoundParameters )
-
-    $values = @(Invoke-Command -ScriptBlock $Script:tagFilterCompleter -ArgumentList $commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-    $values += @("+a")
-    $values += @("+u")
-    $values
-}
+Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
 
 function _proj-promptSelect {
     param (
         [SfProject[]]$sitefinities,
-        [string[]]$propsToShow,
-        [string[]]$propsToOrderBy,
+        [object[]]$propsToShow,
+        [object[]]$propsToOrderBy,
         [switch]$multipleSelect
     )
 

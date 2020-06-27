@@ -412,7 +412,7 @@ function sf-project-get {
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-project-get -ParameterName tagsFilter -ScriptBlock $Script:tagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-project-get -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
 
 function sf-project-setCurrent {
     [CmdletBinding()]
