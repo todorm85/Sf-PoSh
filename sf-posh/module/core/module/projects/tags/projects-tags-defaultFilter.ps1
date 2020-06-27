@@ -13,7 +13,7 @@ function sf-tags-getDefaultFilter {
     Param()
 
     $filter = _getDefaultTagsFilter
-    return ,$filter
+    return , $filter
 }
 
 function sf-tags-addToDefaultFilter {
@@ -51,34 +51,44 @@ Register-ArgumentCompleter -CommandName sf-tags-removeFromDefaultFilter -Paramet
     exclude tags take precedence
     exclude tags are prefixed with '-'
  #>
- function _filterProjectsByTags {
+function sf-tags-filter {
+    [CmdletBinding()]
     param (
-        [SfProject[]]$sitefinities,
+        [Parameter(ValueFromPipeline)]
+        $sitefinities,
         [string[]]$tagsFilter
     )
+    
+    process {
+        if ($tagsFilter -eq '+u') {
+            $sitefinities = $sitefinities | Where-Object { !$_.tags }
+        }
+        elseif ($tagsFilter) {
+            $includeTags = $tagsFilter | Where-Object { !$_.StartsWith($excludeTagPrefix) -and !$_.StartsWith('+') }
+            if ($includeTags.Count -gt 0) {
+                $sitefinities = $sitefinities | Where-Object { _checkIfTagged -sitefinity $_ -tags $includeTags }
+            }
 
-    if ($tagsFilter -eq '+u') {
-        $sitefinities = $sitefinities | Where-Object { !$_.tags }
-    }
-    elseif ($tagsFilter -and $tagsFilter -ne '+a') {
-        $includeTags = $tagsFilter | Where-Object { !$_.StartsWith($excludeTagPrefix) }
-        if ($includeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | Where-Object { _checkIfTagged -sitefinity $_ -tags $includeTags }
+            $mandatoryTags = $tagsFilter | Where-Object { $_.StartsWith('+') } | ForEach-Object { $_.Remove(0, 1) }
+            if ($mandatoryTags.Count -gt 0) {
+                $sitefinities = $sitefinities | Where-Object { _checkIfTagged -sitefinity $_ -tags $mandatoryTags -mustHaveAll }
+            }
+
+            $excludeTags = $tagsFilter | Where-Object { $_.StartsWith($excludeTagPrefix) } | ForEach-Object { $_.Remove(0, 1) }
+            if ($excludeTags.Count -gt 0) {
+                $sitefinities = $sitefinities | Where-Object { !(_checkIfTagged -sitefinity $_ -tags $excludeTags) }
+            }
         }
 
-        $excludeTags = $tagsFilter | Where-Object { $_.StartsWith($excludeTagPrefix) } | ForEach-Object { $_.Remove(0, 1) }
-        if ($excludeTags.Count -gt 0) {
-            $sitefinities = $sitefinities | Where-Object { !(_checkIfTagged -sitefinity $_ -tags $excludeTags) }
-        }
+        $sitefinities
     }
-
-    $sitefinities
 }
 
 function _checkIfTagged {
     param (
         [SfProject]$sitefinity,
-        [string[]]$tagsToCheck
+        [string[]]$tagsToCheck,
+        [switch]$mustHaveAll
     )
 
     if (!$sitefinity.tags) {
@@ -87,12 +97,16 @@ function _checkIfTagged {
 
     $sfTags = $sitefinity.tags
     foreach ($tagToCheck in $tagsToCheck) {
-        if ($sfTags.Contains($tagToCheck)) {
+        if (!$mustHaveAll -and $sfTags.Contains($tagToCheck)) {
             return $true
+        }
+
+        if ($mustHaveAll -and !$sfTags.Contains($tagToCheck)) {
+            return $false
         }
     }
 
-    return $false
+    return $mustHaveAll
 }
 
 function _validateTag {

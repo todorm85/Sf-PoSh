@@ -36,7 +36,7 @@ function sf-iisSite-setBinding {
 
     $project.defaultBinding = $defBinding
 
-    if ($binding.domain -and !(os-hosts-get | % { $_.Contains($binding.domain)})) {
+    if ($binding.domain -and !(os-hosts-get | % { $_.Contains($binding.domain) })) {
         os-hosts-add -hostname $binding.domain
     }
 
@@ -49,7 +49,7 @@ function sf-iisSite-getUrl {
 }
 
 function _sd-iisSite-buildUrlFromBinding ([SiteBinding]$binding) {
-    $hostname = if ($binding.domain) {$binding.domain} else {"localhost"}
+    $hostname = if ($binding.domain) { $binding.domain } else { "localhost" }
     return _iisSite-appendSubAppPath "$($binding.protocol)://$($hostname):$($binding.port)"
 }
 
@@ -136,24 +136,28 @@ function _promptBindings {
     }
 }
 
-function _verifyDefaultBinding {
-    $selectedSitefinity = sf-project-get
+function _checkAndUpdateBindings {
+    param([SfProject]$selectedSitefinity)
     if (!$selectedSitefinity.websiteName) { return }
-    [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $selectedSitefinity.websiteName
-    if (!$selectedSitefinity.defaultBinding -and $bindings) {
-        if ($bindings.Count -gt 2) {
-            $choice = Read-Host -Prompt "Site has several bindings and there is no default one set. Do you want to set a default binding to be used by the tool? y/n"
-            if ($choice -eq 'y') {
-                sf-iisSite-setBinding
-            }
-        } else {
+    if (!$selectedSitefinity.defaultBinding) {
+        [SiteBinding[]]$bindings = iis-bindings-getAll -siteName $selectedSitefinity.websiteName
+        # if ($bindings.Count -gt 2) {
+        #     $choice = Read-Host -Prompt "Site has several bindings and there is no default one set. Do you want to set a default binding to be used by the tool? y/n"
+        #     if ($choice -eq 'y') {
+        #         sf-iisSite-setBinding
+        #     }
+        # } else {
+        #   sf-iisSite-setBinding -defBinding ($bindings | select -Last 1)
+        # }
+        if ($bindings) {
             sf-iisSite-setBinding -defBinding ($bindings | select -Last 1)
+            return $true
         }
     }
     elseif ($selectedSitefinity.defaultBinding -and !(_checkDefaultBindingIsWorking)) {
         $selectedSitefinity.defaultBinding = $null
-        sf-project-save $selectedSitefinity
-        _verifyDefaultBinding
+        $changed = _checkAndUpdateBindings -selectedSitefinity $selectedSitefinity
+        return $true
     }
 }
 

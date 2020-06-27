@@ -16,11 +16,18 @@ InModuleScope sf-posh {
 
                 $allBindings = @(iis-bindings-getAll -siteName $sourceProj.websiteName)
                 [SiteBinding]$last = $allBindings | select -Last 1
+                $sourceProj.defaultBinding = $null
                 $sourceProj.defaultBinding | Should -BeNullOrEmpty
                 [SiteBinding]$binding = sf-iisSite-getBinding
                 $binding.domain | Should -Be $last.domain
                 $binding.protocol | Should -Be $last.protocol
                 $binding.port | Should -Be $last.port
+
+                # verify binding is updated when project is set
+                $sourceProj.defaultBinding = $null
+                $sourceProj.isInitialized = $false
+                sf-project-setCurrent $sourceProj
+                $sourceProj.defaultBinding | Should -Not -BeNullOrEmpty
             }
 
             It "Default site has been set - returns the binding with default site" {
@@ -128,6 +135,7 @@ InModuleScope sf-posh {
                 # check user not prompted for binding and default binding is removed from sfdev project
                 $project = sf-project-get
                 $project.defaultBinding | Should -Be $beforeLast
+                $project.isInitialized = $false
                 Mock _proj-promptSelect { $project }
                 sf-project-select
                 $project = sf-project-get

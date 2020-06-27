@@ -404,7 +404,7 @@ function sf-project-get {
     else {
         $p = _data-getAllProjects
         if ($tagsFilter) {
-            _filterProjectsByTags -sitefinities $p -tagsFilter $tagsFilter
+            sf-tags-filter -sitefinities $p -tagsFilter $tagsFilter
         }
         else {
             $p
@@ -690,6 +690,10 @@ function _proj-initialize {
         $errors += "`nSite detection from IIS: $_."
     }
 
+    if (_checkAndUpdateBindings $project) {
+        $detectedChanges = $true
+    }
+
     if ($errors) {
         Write-Error "Some errors occurred during project detection. $errors"
     }
@@ -701,11 +705,10 @@ function _proj-initialize {
 
     $Global:SfEvents_OnAfterProjectInitialized | % { Invoke-Command -ScriptBlock $_ }
     
-    
     if ($script:projectsCache.Contains($project)) {
         $script:projectsCache.Remove($project)
     }
-    
+
     $script:projectsCache.Add($project) > $null
     
     $project.isInitialized = $true
