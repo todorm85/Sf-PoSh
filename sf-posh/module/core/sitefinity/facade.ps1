@@ -20,7 +20,8 @@ function sf {
     )
     
     Process {
-        SfPoshProcess {
+        $project = Get-SfProjectFromPipeInput $project
+        InProjectScope $project {
             if ($sync) {
                 sf-appPrecompiledTemplates-remove
                 sf -getLatest -abortNoNew -build

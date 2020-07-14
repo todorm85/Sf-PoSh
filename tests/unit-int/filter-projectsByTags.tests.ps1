@@ -26,7 +26,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = sf-tags-filter -sitefinities $projects -tagsFilter "+u"
+            $result = $projects | sf-tags-filter -tagsFilter "+u"
             $result | Should -HaveCount 2
         }
         It "show all when passing none" {
@@ -38,7 +38,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another another'
             )
 
-            $result = sf-tags-filter -sitefinities $projects
+            $result = $projects | sf-tags-filter
             $result | Should -HaveCount 5
         }
         It "filter included tags correctly" {
@@ -50,7 +50,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = sf-tags-filter -sitefinities $projects -tagsFilter "another"
+            $result = $projects | sf-tags-filter -tagsFilter "another"
             $result | Should -HaveCount 2
         }
         It "filter excluded tags correctly" {
@@ -62,7 +62,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = sf-tags-filter -sitefinities $projects -tagsFilter "_another"
+            $result = $projects | sf-tags-filter -tagsFilter "_another"
             $result | Should -HaveCount 3
         }
         It "filter excluded multi tags correctly" {
@@ -75,7 +75,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = sf-tags-filter -sitefinities $projects -tagsFilter @("_another", "_test")
+            $result = $projects | sf-tags-filter -tagsFilter @("_another", "_test")
             $result | Should -HaveCount 3
         }
         It "filter multi tags correctly" {
@@ -89,7 +89,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = sf-tags-filter -sitefinities $projects -tagsFilter @("another", "_test")
+            $result = $projects | sf-tags-filter -tagsFilter @("another", "_test")
             $result | Should -HaveCount 2
         }
     }

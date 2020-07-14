@@ -65,7 +65,7 @@ function sf-project-clone {
         throw "Invalid app path";
     }
 
-    $targetDirectoryName = [Guid]::NewGuid()
+    $targetDirectoryName = [Guid]::NewGuid().ToString().Split('-')[0]
     $targetPath = $GLOBAL:sf.Config.projectsDirectory + "\$targetDirectoryName"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
@@ -192,119 +192,118 @@ function sf-project-remove {
     )
 
     process {
-        SfPoshProcess {
-            $clearCurrentSelectedProject = $false
-            [SfProject]$currentProject = $null
-            try {
-                $currentProject = sf-project-get
-            }
-            catch {
-                Write-Verbose "No current project."    
-            }
+        $project = Get-SfProjectFromPipeInput $project
+        $clearCurrentSelectedProject = $false
+        [SfProject]$currentProject = $null
+        try {
+            $currentProject = sf-project-get
+        }
+        catch {
+            Write-Verbose "No current project."    
+        }
 
-            if (!$project) { $project = $currentProject }
+        if (!$project) { $project = $currentProject }
 
-            if (!$project) { throw "No project parameter and no current project selected to delete." }
+        if (!$project) { throw "No project parameter and no current project selected to delete." }
         
-            if ($currentProject -and $currentProject.id -eq $project.id) {
-                $clearCurrentSelectedProject = $true
-            }
+        if ($currentProject -and $currentProject.id -eq $project.id) {
+            $clearCurrentSelectedProject = $true
+        }
 
-            sf-project-setCurrent -newContext $project > $null
+        sf-project-setCurrent -newContext $project > $null
 
-            # Del Website
-            Write-Information "Deleting website..."
-            $websiteName = $project.websiteName
-            $siteExists = @(Get-Website | ? { $_.name -eq $websiteName }).Count -gt 0
-            if ($websiteName -and $siteExists) {
-                try {
-                    sf-iisAppPool-Stop
-                }
-                catch {
-                    Write-Warning "Could not stop app pool: $_`n"
-                }
-
-                try {
-                    sf-iisSite-delete
-                }
-                catch {
-                    Write-Warning "Errors deleting website ${websiteName}. $_`n"
-                }
-            }
-
-            # TFS
-            $workspaceName = $null
+        # Del Website
+        Write-Information "Deleting website..."
+        $websiteName = $project.websiteName
+        $siteExists = @(Get-Website | ? { $_.name -eq $websiteName }).Count -gt 0
+        if ($websiteName -and $siteExists) {
             try {
-                Set-Location -Path $PSScriptRoot
-                $workspaceName = tfs-get-workspaceName $project.webAppPath
+                sf-iisAppPool-Stop
             }
             catch {
-                Write-Warning "No workspace to delete, no TFS mapping found."
+                Write-Warning "Could not stop app pool: $_`n"
             }
 
-            if ($workspaceName -and !($keepWorkspace)) {
-                Write-Information "Deleting workspace..."
-                try {
-                    tfs-delete-workspace $workspaceName $GLOBAL:sf.Config.tfsServerName
-                }
-                catch {
-                    Write-Warning "Could not delete workspace $_"
-                }
+            try {
+                sf-iisSite-delete
             }
+            catch {
+                Write-Warning "Errors deleting website ${websiteName}. $_`n"
+            }
+        }
+
+        # TFS
+        $workspaceName = $null
+        try {
+            Set-Location -Path $PSScriptRoot
+            $workspaceName = tfs-get-workspaceName $project.webAppPath
+        }
+        catch {
+            Write-Warning "No workspace to delete, no TFS mapping found."
+        }
+
+        if ($workspaceName -and !($keepWorkspace)) {
+            Write-Information "Deleting workspace..."
+            try {
+                tfs-delete-workspace $workspaceName $GLOBAL:sf.Config.tfsServerName
+            }
+            catch {
+                Write-Warning "Could not delete workspace $_"
+            }
+        }
         
-            # Del db
-            if (!$keepDb) {
-                Write-Information "Deleting sitefinity database..."
-                try {
-                    $dbName = _db-getNameFromDataConfig -appPath $project.webAppPath
-                    sql-delete-database -dbName $dbName
-                    sql-delete-database -dbName $project.id
-                }
-                catch {
-                    Write-Warning "Could not delete database: ${dbName}. $_"
-                }
-            }
-
-            # Del dir
-            if (!($keepProjectFiles)) {
-                try {
-                    $solutionPath = $project.solutionPath
-                    if ($solutionPath) {
-                        $path = $solutionPath
-                    }
-                    else {
-                        $path = $project.webAppPath
-                    }
-
-                    Write-Information "Unlocking all locked files in solution directory..."
-                    unlock-allFiles -path $path
-
-                    Write-Information "Deleting solution directory..."
-                    Remove-Item $path -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
-                    if ($ProcessError) {
-                        throw $ProcessError
-                    }
-                }
-                catch {
-                    Write-Warning "Errors deleting sitefinity directory. $_"
-                }
-            }
-
-            Write-Information "Deleting data entry..."
+        # Del db
+        if (!$keepDb) {
+            Write-Information "Deleting sitefinity database..."
             try {
-                _removeProjectData $project
+                $dbName = _db-getNameFromDataConfig -appPath $project.webAppPath
+                sql-delete-database -dbName $dbName
+                sql-delete-database -dbName $project.id
             }
             catch {
-                Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
+                Write-Warning "Could not delete database: ${dbName}. $_"
             }
+        }
 
-            if ($clearCurrentSelectedProject) {
-                sf-project-setCurrent $null > $null
+        # Del dir
+        if (!($keepProjectFiles)) {
+            try {
+                $solutionPath = $project.solutionPath
+                if ($solutionPath) {
+                    $path = $solutionPath
+                }
+                else {
+                    $path = $project.webAppPath
+                }
+
+                Write-Information "Unlocking all locked files in solution directory..."
+                unlock-allFiles -path $path
+
+                Write-Information "Deleting solution directory..."
+                Remove-Item $path -recurse -force -ErrorAction SilentlyContinue -ErrorVariable ProcessError
+                if ($ProcessError) {
+                    throw $ProcessError
+                }
             }
-            else {
-                sf-project-setCurrent $currentProject > $null
+            catch {
+                Write-Warning "Errors deleting sitefinity directory. $_"
             }
-        } -sfPoshProcess_keepExistingProjectContext
+        }
+
+        Write-Information "Deleting data entry..."
+        try {
+            _removeProjectData $project
+        }
+        catch {
+            Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
+        }
+
+        if ($clearCurrentSelectedProject) {
+            sf-project-setCurrent $null > $null
+        }
+        else {
+            sf-project-setCurrent $currentProject > $null
+        }
     }
 }
 
@@ -318,7 +317,8 @@ function sf-project-rename {
     )
 
     process {
-        SfPoshProcess {
+        $project = Get-SfProjectFromPipeInput $project
+        InProjectScope $project {
             [SfProject]$context = $project
 
             if (-not $newName) {
@@ -395,20 +395,13 @@ function sf-project-get {
     if (!$all) {
         $p = $Script:globalContext
         if (!$p -and !$skipValidation) {
-            Write-Verbose "Call stack: $(Get-PSCallStack)"
-            throw "No project selected!"
+            throw "No project selected! Call stack: $(Get-PSCallStack)"
         }
         
         $p
     }
     else {
-        $p = _data-getAllProjects
-        if ($tagsFilter) {
-            sf-tags-filter -sitefinities $p -tagsFilter $tagsFilter
-        }
-        else {
-            $p
-        }
+        _data-getAllProjects | sf-tags-filter -tagsFilter $tagsFilter
     }
 }
 
@@ -851,14 +844,14 @@ function InProjectScope {
         [Sfproject]$project,
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        [ScriptBlock]$InProjectScope_script
+        [ScriptBlock]$script
     )
     
     process {
-        $private:previous = sf-project-get -skipValidation
+        $previous = sf-project-get -skipValidation
         sf-project-setCurrent $project
         try {
-            & $InProjectScope_script
+            Invoke-Command -ScriptBlock $script
         }
         finally {
             sf-project-setCurrent $previous
@@ -866,40 +859,24 @@ function InProjectScope {
     }
 }
 
-<#
-.SYNOPSIS
-    The global function wrapper for functions requiring project context.
-.DESCRIPTION
-    Checks and validates that the pipeline input received a valid project or if no pipeline was used sets the current global selected project to the input.
-    If no pipeline object is supplied writes error and continues pipeline execution.
-    If no valid project passed as aprameter and no currently selected project throws exception.
-.NOTES
-    IMPORTANT the project parameter of the wrapped function must be called 'project' in order to be properly modified by this wrapper.
-#>
-function SfPoshProcess {
-    param (
-        # should keep unique names so the executed script does not mess up with calling scope variables, since the calling function will not use new closure for api simplicity
-        [ScriptBlock]$sfPoshProcess_script,
-        [switch]$sfPoshProcess_keepExistingProjectContext
+function Get-SfProjectFromPipeInput {
+    [OutputType([SfProject])]
+    Param (
+        [SfProject]$project
     )
 
-    $private:stack = Get-PSCallStack
-    $private:isFromPipeline = $stack[$stack.Count - 2].InvocationInfo.ExpectingInput
-    if (!$isFromPipeline -and !$project) {
-        $project = sf-project-get
-    }
-    elseif (!$project) {
-        Write-Error "Invalid project received from pipeline!"
-        return
-    }
-    
-    if ($sfPoshProcess_keepExistingProjectContext) {
-        & $sfPoshProcess_script
+    $stack = Get-PSCallStack
+    $isFromPipeline = $stack[1].InvocationInfo.ExpectingInput
+    if (!$project) {
+        if (!$isFromPipeline) {
+            sf-project-get
+        }
+        else {
+            throw "No project received from pipeline!"
+        }
     }
     else {
-        InProjectScope -project $project {
-            & $sfPoshProcess_script
-        }
+        $project
     }
 }
 
@@ -914,7 +891,8 @@ function sftest {
     )
     
     process {
-        SfPoshProcess {
+        $project = Get-SfProjectFromPipeInput $project
+        InProjectScope $project {
             $project
             & $script
             $stack

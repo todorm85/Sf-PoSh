@@ -14,7 +14,10 @@ function sf-app-sendRequestAndEnsureInitialized {
     }
 
     if (!(iis-site-isStarted $p.websiteName)) {
-        throw "Website $($p.websiteName) is stopped in IIS. Duplicate port?"
+        Start-Website -Name $p.websiteName
+        if (!(iis-site-isStarted $p.websiteName)) {
+            throw "Website $($p.websiteName) is stopped in IIS. Duplicate port?"
+        }    
     }
 
     $dbName = sf-db-getNameFromDataConfig
@@ -199,7 +202,8 @@ function sf-app-isInitialized {
     )
     
     process {
-        SfPoshProcess {
+        $project = Get-SfProjectFromPipeInput $project
+        InProjectScope $project {
             try {
                 sf-app-sendRequestAndEnsureInitialized > $null
             }

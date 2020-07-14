@@ -4,18 +4,15 @@ function sf-tags-getAllAvailable {
 
 function sf-tags-add {
     param (
-        [string]$tagName,
         [Parameter(ValueFromPipeline)]
-        [SfProject]
-        $project
+        [string]$tagName
     )
     
     process {
-        SfPoshProcess {
-            _validateTag $tagName
-            $project.tags.Add($tagName)
-            sf-project-save -context $project
-        }
+        $project = sf-project-get
+        _validateTag $tagName
+        $project.tags.Add($tagName)
+        sf-project-save -context $project
     }
 }
 
@@ -23,31 +20,28 @@ Register-ArgumentCompleter -CommandName sf-tags-add -ParameterName tagName -Scri
 
 function sf-tags-remove {
     param (
-        [string]$tagName,
-        [switch]$all,
         [Parameter(ValueFromPipeline)]
-        [SfProject]
-        $project
+        [string]$tagName,
+        [switch]$all
     )
 
     process {
-        SfPoshProcess {
-            if ($all) {
-                $project.tags.Clear()
-            }
-            else {
-                _validateTag $tagName
-                if (!$tagName) {
-                    throw "Invalid tag name to remove."
-                }
-                
-                if ($project.tags) {
-                    $project.tags.Remove($tagName) > $null
-                }
-            }
-
-            sf-project-save -context $project
+        $project = sf-project-get
+        if ($all) {
+            $project.tags.Clear()
         }
+        else {
+            _validateTag $tagName
+            if (!$tagName) {
+                throw "Invalid tag name to remove."
+            }
+                
+            if ($project.tags) {
+                $project.tags = $project.tags | ? { $_ -ne $tagName }
+            }
+        }
+
+        sf-project-save -context $project
     }
 }
 
@@ -70,6 +64,15 @@ Register-ArgumentCompleter -CommandName sf-tags-remove -ParameterName tagName -S
 }
 
 function sf-tags-get {
-    $project = sf-project-get
-    return $project.tags
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline)]
+        [SfProject]
+        $project
+    )
+    
+    process {
+        $project = Get-SfProjectFromPipeInput $project
+        $project.tags | % { $_ } # clone of the array or it throws when modified down the pipes
+    }    
 }

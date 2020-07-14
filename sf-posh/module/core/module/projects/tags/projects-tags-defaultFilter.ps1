@@ -49,38 +49,42 @@ Register-ArgumentCompleter -CommandName sf-tags-removeFromDefaultFilter -Paramet
 <#
     passing '+u' in include tags will take only untagged
     exclude tags take precedence
-    exclude tags are prefixed with '-'
+    exclude tags are prefixed with '_'
  #>
 function sf-tags-filter {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline)]
-        $sitefinities,
+        [SfProject]
+        $project,
         [string[]]$tagsFilter
     )
     
     process {
         if ($tagsFilter -eq '+u') {
-            $sitefinities = $sitefinities | Where-Object { !$_.tags }
+            $project = $project | Where-Object { !$_.tags }
         }
         elseif ($tagsFilter) {
             $includeTags = $tagsFilter | Where-Object { !$_.StartsWith($excludeTagPrefix) -and !$_.StartsWith('+') }
             if ($includeTags.Count -gt 0) {
-                $sitefinities = $sitefinities | Where-Object { _checkIfTagged -sitefinity $_ -tags $includeTags }
+                $project = $project | Where-Object { _checkIfTagged -sitefinity $_ -tags $includeTags }
             }
 
             $mandatoryTags = $tagsFilter | Where-Object { $_.StartsWith('+') } | ForEach-Object { $_.Remove(0, 1) }
             if ($mandatoryTags.Count -gt 0) {
-                $sitefinities = $sitefinities | Where-Object { _checkIfTagged -sitefinity $_ -tags $mandatoryTags -mustHaveAll }
+                $project = $project | Where-Object { _checkIfTagged -sitefinity $_ -tags $mandatoryTags -mustHaveAll }
             }
 
             $excludeTags = $tagsFilter | Where-Object { $_.StartsWith($excludeTagPrefix) } | ForEach-Object { $_.Remove(0, 1) }
             if ($excludeTags.Count -gt 0) {
-                $sitefinities = $sitefinities | Where-Object { !(_checkIfTagged -sitefinity $_ -tags $excludeTags) }
+                $project = $project | Where-Object { !(_checkIfTagged -sitefinity $_ -tags $excludeTags) }
             }
         }
 
-        $sitefinities
+        # check is necessary otherwise collection size is wrong
+        if ($project) {
+            $project
+        }
     }
 }
 

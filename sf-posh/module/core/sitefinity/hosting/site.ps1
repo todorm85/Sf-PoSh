@@ -23,7 +23,10 @@ function sf-iisSite-browse {
     if (!$project.websiteName) { throw "No site defined for project." }
 
     if (!(iis-site-isStarted $project.websiteName)) {
-        throw "Website is stopped in IIS."
+        Start-Website $project.websiteName
+        if (!(iis-site-isStarted $project.websiteName)) {
+            throw "Website is stopped in IIS."
+        }
     }
 
     $appUrl = sf-iisSite-getUrl
