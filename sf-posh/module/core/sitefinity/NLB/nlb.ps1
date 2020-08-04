@@ -69,7 +69,7 @@ function sf-nlb-removeCluster {
     }
 
     try {
-        sf-appStates-remove -stateName (_nlb-getInitialStateName $nlbId)
+        sf-appStates-remove -name (_nlb-getInitialStateName $nlbId)
     }
     catch {
         Write-Warning "Error removing NLB initial state: $_"        
@@ -156,7 +156,7 @@ function _nlb-isProjectValidForNlb {
 }
 
 function _nlb-createSecondProject ($name) {
-    sf-project-clone -skipSourceControlMapping -skipDatabaseClone > $null
+    sf-project-clone -skipSourceControlMapping -skipDatabaseClone -skipSolutionClone > $null
     sf-project-rename -newName $name > $null
     sf-project-get
 }
