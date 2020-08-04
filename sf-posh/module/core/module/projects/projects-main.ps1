@@ -50,14 +50,15 @@ Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath
 function sf-project-clone {
     Param(
         [switch]$skipSourceControlMapping,
-        [switch]$skipDatabaseClone
+        [switch]$skipDatabaseClone,
+        [switch]$skipSolutionClone
     )
 
     $context = sf-project-get
 
     $sourcePath = $context.solutionPath;
-    $hasSolution = !([string]::IsNullOrEmpty($sourcePath));
-    if (!$hasSolution) {
+    $useSolution = !([string]::IsNullOrEmpty($sourcePath) -or $skipSolutionClone);
+    if (!$useSolution) {
         $sourcePath = $context.webAppPath
     }
 
@@ -88,7 +89,7 @@ function sf-project-clone {
 
     [SfProject]$newProject = _newSfProjectObject
     $newProject.displayName = "$($context.displayName)-clone"
-    if ($hasSolution) {
+    if ($useSolution) {
         $newProject.webAppPath = "$targetPath\SitefinityWebApp"
     }
     else {
