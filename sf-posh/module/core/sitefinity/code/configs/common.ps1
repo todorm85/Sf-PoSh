@@ -25,7 +25,7 @@ function sf-config-save {
     )
 
     $i = 1
-    while($config.ChildNodes[$i].Name -eq "#comment") {
+    while ($config.ChildNodes[$i].Name -eq "#comment") {
         $i++
     }
 
@@ -43,47 +43,60 @@ function sf-config-save {
     $config.Save($path) > $null
 }
 
-function sf-config-getOrCreateElement {
-    [CmdletBinding()]
+function xml-getOrCreateElementPath {
     [OutputType([System.XML.XmlElement])]
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [System.XML.XmlElement]
-        $parent,
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$elementName
-    )
-    
-    process {
-        $el = $parent[$elementName]
-        if (!$el) {
-            $el = $parent.OwnerDocument.CreateElement($elementName)
-            $parent.AppendChild($el) > $null
-        }
-
-        [System.XML.XmlElement]$el
-    }
-}
-
-function sf-config-getOrCreateElementPath {
-    [OutputType([System.XML.XmlElement])]
-    param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-        [System.XML.XmlElement]
-        $parent,
+        $root,
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$elementPath
     )
     
-    $elements = $elementPath.Split(',')
-    for ($i = 0; $i -lt $elements.Count; $i++) {
-        $current = $elements[$i]
-        $parent = sf-config-getOrCreateElement -parent $parent -elementName $current
-    }
+    process {
+        $currentParentElement = $root
+        $elementQueryParts = $elementPath.Split('/', [stringsplitoptions]::RemoveEmptyEntries)
+        for ($i = 0; $i -lt $elementQueryParts.Count; $i++) {
+            $currentQueryPart = $elementQueryParts[$i]
+            if ($currentQueryPart.Contains("[@")) {
+                $elementName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[0]
+                $attributeName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[0]
+                $attrValue = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[1].Trim("]").Trim("'")
+                $currentElement = $currentParentElement.SelectSingleNode("//$elementName[@$attributeName='$attrValue']")
+                if (!$currentElement) {
+                    $currentElement = $currentParentElement.OwnerDocument.CreateElement($elementName)
+                    $currentElement.SetAttribute($attributeName, $attrValue)
+                    $currentParentElement.AppendChild($currentElement) > $null
+                }
+                
+                $currentParentElement = $currentElement
+            }
+            else {
+                $currentElement = $currentParentElement[$currentQueryPart]
+                if (!$currentElement) {
+                    $currentElement = $currentParentElement.OwnerDocument.CreateElement($currentQueryPart)
+                    $currentParentElement.AppendChild($currentElement) > $null
+                }
+    
+                $currentParentElement = $currentElement
+            }
+        }
 
-    [System.XML.XmlElement]$parent
+        [System.XML.XmlElement]$currentParentElement
+    }
+}
+
+function xml-removeElementIfExists {
+    param (
+        [System.Xml.XmlElement]$rootNode,
+        $xPath
+    )
+    
+    $element = $rootNode.SelectSingleNode($xPath)
+    if ($element) {
+        $element.ParentNode.RemoveChild($element)
+    }
 }
 
 function _config-ensureSitefinityConfigCreated {
