@@ -24,7 +24,7 @@ function sf-nlb-forAllNodes {
         [switch]$excludeCurrent
     )
 
-    sf-nlb-getNodes -excludeCurrent:$excludeCurrent | InProjectScope $script
+    sf-nlb-getNodes -excludeCurrent:$excludeCurrent | InProjectScope -script $script
 }
 
 function sf-nlb-setSslOffloadForAll {
