@@ -36,7 +36,7 @@ function _s-nginx-removeCluster {
     
     $clusterId = $nlbTag
     $nlbDomain = _nginx-getNlbClusterDomain $clusterId
-    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($clusterId).$global:nlbClusterConfigExtension"
+    $nlbPairConfigPath = _nginx-getClusterConfigPath $clusterId
     Remove-Item -Path $nlbPairConfigPath -Force
     os-hosts-remove -hostname $nlbDomain
 }
@@ -46,7 +46,7 @@ function _nginx-getNlbClusterDomain {
         [string]$nlbClusterId
     )
     
-    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($nlbClusterId).$global:nlbClusterConfigExtension"
+    $nlbPairConfigPath = _nginx-getClusterConfigPath $nlbClusterId
     $result = ''
     Get-Content -Path $nlbPairConfigPath | % {
         if ($_ -Match " *?server_name (?<host>.*);") {
@@ -63,7 +63,7 @@ function _nginx-renameNlbClusterDomain {
         [string]$newHostName
     )
     
-    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($nlbClusterId).$global:nlbClusterConfigExtension"
+    $nlbPairConfigPath = _nginx-getClusterConfigPath $nlbClusterId
     $nlbPairConfig = ""
     Get-Content -Path $nlbPairConfigPath | % {
         $line = $_
@@ -89,7 +89,7 @@ function _nginx-createNlbClusterConfig {
         throw "Invalid cluster id."
     }
 
-    $nlbDomain = _nlb-generateDomain $nlbTag
+    $nlbDomain = _nlb-generateDomain $nlbClusterId
 
     [SiteBinding]$firstNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $firstNode
     [SiteBinding]$secondNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $secondNode
@@ -121,7 +121,7 @@ server {
     }
 }"
 
-    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($nlbClusterId).$global:nlbClusterConfigExtension"
+    $nlbPairConfigPath = _nginx-getClusterConfigPath $nlbClusterId
     $nlbPairConfig | _nginx-writeConfig -path $nlbPairConfigPath
 }
 

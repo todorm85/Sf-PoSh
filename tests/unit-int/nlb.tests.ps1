@@ -196,10 +196,20 @@ InModuleScope sf-posh {
             }
 
             It "create the nginx config" { 
-                $nginxConfigs = _nginx-getToolsConfigDirPath
-                $path = "$nginxConfigs\$nlbId.$global:nlbClusterConfigExtension"
+                $path = _nginx-getClusterConfigPath $nlbId
                 Test-Path $path | Should -BeTrue
                 Get-Content $path | ? { $_ -like "*$nlbId.sfdev.com*" } | Should -Not -BeNullOrEmpty
+            }
+
+            It "change name in config when renaming the cluster" { 
+                $path = _nginx-getClusterConfigPath $nlbId
+                sf-nlb-changeUrl -hostname "newname.com"
+                Get-Content $path | ? { $_ -like "*newname.com*" } | Should -Not -BeNullOrEmpty
+            }
+
+            It "remove old entry from hosts file after rename and add new" {
+                os-hosts-get | ? { $_ -like "*$nlbId*" } | Should -BeNullOrEmpty
+                os-hosts-get | ? { $_ -like "*newname*" } | Should -Not -BeNullOrEmpty
             }
 
             It "remove other project when removing cluster" {
@@ -227,13 +237,12 @@ InModuleScope sf-posh {
             }
 
             It "remove the nginx config" { 
-                $nginxConfigs = _nginx-getToolsConfigDirPath
-                $path = "$nginxConfigs\$nlbId.$global:nlbClusterConfigExtension"
+                $path = _nginx-getClusterConfigPath $nlbId
                 Test-Path $path | Should -BeFalse
             }
 
             It "remove the domain from hosts file" {
-                os-hosts-get | ? { $_ -like "*$nlbId*" } | Should -BeNullOrEmpty
+                os-hosts-get | ? { $_ -like "*newname*" } | Should -BeNullOrEmpty
             }
         }
     }
