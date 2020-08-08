@@ -81,8 +81,28 @@ function sf-nlb-getUrl {
         throw "No nlb configured for current project."
     }
     
-    $domain = _nlb-getDomain $nlbId
+    $domain = _nginx-getNlbClusterDomain $nlbId
     "https://$($domain)/"
+}
+
+function sf-nlb-changeUrl {
+    param($hostname)
+    $p = sf-project-get
+    $nlbId = sf-nlbData-getNlbIds $p.id
+    if (!$nlbId) {
+        throw "No nlb configured for current project."
+    }
+    
+    $domain = _nginx-getNlbClusterDomain $nlbId
+    try {
+        os-hosts-remove -hostname $domain
+    }
+    catch {
+        Write-Warning "Domain not found in hosts file."    
+    }
+    
+    os-hosts-add $hostname
+    _nginx-renameNlbClusterDomain $nlbId $hostname
 }
 
 function sf-nlb-openNlbSite {
@@ -98,7 +118,7 @@ function sf-nlb-getNlbId {
     sf-project-get | % { sf-nlbData-getNlbIds -projectId $_.id }
 }
 
-function _nlb-getDomain {
+function _nlb-generateDomain {
     param (
         $nlbId
     )

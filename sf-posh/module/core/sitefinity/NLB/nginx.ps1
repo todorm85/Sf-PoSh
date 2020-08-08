@@ -22,8 +22,8 @@ function _nginx-createNewCluster {
     _nginx-initializeConfig > $null
     $nlbId = [Guid]::NewGuid().ToString().Split('-')[0]
     
-    os-hosts-add -hostname (_nlb-getDomain $nlbId) > $null
-    _nginx-createNlbClusterConfig -nlbTag $nlbId -firstNode $firstNode -secondNode $secondNode > $null
+    os-hosts-add -hostname (_nlb-generateDomain $nlbId) > $null
+    _nginx-createNlbClusterConfig -nlbClusterId $nlbId -firstNode $firstNode -secondNode $secondNode > $null
     sf-nginx-reset > $null
     
     $nlbId
@@ -35,26 +35,61 @@ function _s-nginx-removeCluster {
     )
     
     $clusterId = $nlbTag
+    $nlbDomain = _nginx-getNlbClusterDomain $clusterId
     $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($clusterId).$global:nlbClusterConfigExtension"
     Remove-Item -Path $nlbPairConfigPath -Force
-
-    $nlbDomain = _nlb-getDomain $nlbTag
     os-hosts-remove -hostname $nlbDomain
+}
+
+function _nginx-getNlbClusterDomain {
+    param (
+        [string]$nlbClusterId
+    )
+    
+    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($nlbClusterId).$global:nlbClusterConfigExtension"
+    $result = ''
+    Get-Content -Path $nlbPairConfigPath | % {
+        if ($_ -Match " *?server_name (?<host>.*);") {
+            $result = $Matches.host
+        }
+    }
+
+    $result
+}
+
+function _nginx-renameNlbClusterDomain {
+    param (
+        [string]$nlbClusterId,
+        [string]$newHostName
+    )
+    
+    $nlbPairConfigPath = "$(_nginx-getToolsConfigDirPath)\$($nlbClusterId).$global:nlbClusterConfigExtension"
+    $nlbPairConfig = ""
+    Get-Content -Path $nlbPairConfigPath | % {
+        $line = $_
+        if ($_ -Match " *?server_name (?<host>.*);") {
+            $line = $_.Replace($Matches.host, $newHostName)
+        }
+
+        $nlbPairConfig += $line
+        $nlbPairConfig += [System.Environment]::NewLine
+    }
+
+    $nlbPairConfig | _nginx-writeConfig -path $nlbPairConfigPath
 }
 
 function _nginx-createNlbClusterConfig {
     param (
-        [string]$nlbTag,
+        [string]$nlbClusterId,
         [SfProject]$firstNode,
         [SfProject]$secondNode
     )
 
-    $nlbClusterId = $nlbTag
     if (!$nlbClusterId) {
         throw "Invalid cluster id."
     }
 
-    $nlbDomain = _nlb-getDomain $nlbTag
+    $nlbDomain = _nlb-generateDomain $nlbTag
 
     [SiteBinding]$firstNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $firstNode
     [SiteBinding]$secondNodeBinding = sf-bindings-getOrCreateLocalhostBinding -project $secondNode
