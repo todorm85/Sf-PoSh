@@ -57,11 +57,7 @@ function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
         Copy-Item $srcWebConfig $trgWebConfig -Force
     }
 
-    if (!$skipWait) {
-        sf-nlb-forAllNodes {
-            sf-app-sendRequestAndEnsureInitialized
-        }
-    }
+    sf-nlb-resetAllNodes -skipWait:$skipWait
 }
 
 function sf-nlb-resetAllNodes {
@@ -103,6 +99,7 @@ function sf-nlb-changeUrl {
     
     os-hosts-add $hostname
     _nginx-renameNlbClusterDomain $nlbId $hostname
+    sf-nginx-reset
 }
 
 function sf-nlb-openNlbSite {
