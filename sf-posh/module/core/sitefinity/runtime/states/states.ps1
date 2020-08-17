@@ -136,7 +136,11 @@ function sf-appStates-get {
 }
 
 function _getStatesPath {
-    $context = sf-project-get
+    Param([SfProject]$context)
+    if (!$context) {
+        $context = sf-project-get
+    }
+
     $path = "$($context.webAppPath)\sf-posh\states"
 
     if (!(Test-Path $path)) {

@@ -474,7 +474,7 @@ function _proj-tryUseExisting {
 
     $project.webAppPath = $path
     
-    Remove-Item "$(_getStatesPath)\*" -Force -Recurse -ErrorAction SilentlyContinue
+    Remove-Item "$(_getStatesPath -context $project)\*" -Force -Recurse -ErrorAction SilentlyContinue
     _proj-detectSite -project $project
     return $true
 }
