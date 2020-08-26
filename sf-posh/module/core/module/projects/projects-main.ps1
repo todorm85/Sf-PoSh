@@ -193,7 +193,7 @@ function sf-project-remove {
     )
 
     process {
-        $project = Get-SfProjectFromPipeInput $project
+        $project = Get-ValidatedSfProjectFromPipelineParameter $project
         $clearCurrentSelectedProject = $false
         [SfProject]$currentProject = $null
         try {
@@ -318,8 +318,8 @@ function sf-project-rename {
     )
 
     process {
-        $project = Get-SfProjectFromPipeInput $project
-        InProjectScope $project {
+        $project = Get-ValidatedSfProjectFromPipelineParameter $project
+        Run-InProjectScope $project {
             [SfProject]$context = $project
 
             if (-not $newName) {
@@ -835,68 +835,4 @@ function _newSfProjectObject ($id) {
     }
 
     return $newProject
-}
-
-function InProjectScope {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-        [ValidateNotNull()]
-        [Sfproject]$project,
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNull()]
-        [ScriptBlock]$script
-    )
-    
-    process {
-        $previous = sf-project-get -skipValidation
-        sf-project-setCurrent $project
-        try {
-            Invoke-Command -ScriptBlock $script
-        }
-        finally {
-            sf-project-setCurrent $previous
-        }
-    }
-}
-
-function Get-SfProjectFromPipeInput {
-    [OutputType([SfProject])]
-    Param (
-        [SfProject]$project
-    )
-
-    $stack = Get-PSCallStack
-    $isFromPipeline = $stack[1].InvocationInfo.ExpectingInput
-    if (!$project) {
-        if (!$isFromPipeline) {
-            sf-project-get
-        }
-        else {
-            throw "No project received from pipeline!"
-        }
-    }
-    else {
-        $project
-    }
-}
-
-function sftest {
-    [CmdletBinding()]
-    param (
-        [Parameter(ValueFromPipeline)]
-        [SfProject]
-        $project,
-        $script = { "test" },
-        $stack = "testStack"
-    )
-    
-    process {
-        $project = Get-SfProjectFromPipeInput $project
-        InProjectScope $project {
-            $project
-            & $script
-            $stack
-        }
-    }
 }

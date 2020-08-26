@@ -72,7 +72,7 @@ function sf-tags-get {
     )
     
     process {
-        $project = Get-SfProjectFromPipeInput $project
+        $project = Get-ValidatedSfProjectFromPipelineParameter $project
         $project.tags | % { $_ } # clone of the array or it throws when modified down the pipes
     }    
 }

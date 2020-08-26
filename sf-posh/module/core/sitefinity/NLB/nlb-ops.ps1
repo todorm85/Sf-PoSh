@@ -24,7 +24,7 @@ function sf-nlb-forAllNodes {
         [switch]$excludeCurrent
     )
 
-    sf-nlb-getNodes -excludeCurrent:$excludeCurrent | InProjectScope -script $script
+    sf-nlb-getNodes -excludeCurrent:$excludeCurrent | Run-InProjectScope -script $script
 }
 
 function sf-nlb-setSslOffloadForAll {
@@ -43,7 +43,7 @@ function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
     }
 
     $srcWebConfig = _sf-path-getWebConfigPath $currentNode
-    sf-nlb-getNodes -excludeCurrent | InProjectScope -script {
+    sf-nlb-getNodes -excludeCurrent | Run-InProjectScope -script {
         $p = sf-project-get
         $trg = _sf-path-getConfigBasePath $p
         if (!(Test-Path $trg)) {
