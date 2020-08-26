@@ -49,7 +49,7 @@ function _data-getAllProjects {
 
         $clone | `
             Add-Member -Name nlbId -MemberType ScriptProperty -Force -PassThru -Value {
-            sf-nlbData-getNlbIds -projectId $this.id
+            _nlbData-getNlbIds -projectId $this.id
         } | `
             Add-Member -Name dbName -MemberType ScriptProperty -PassThru -Force -Value { 
             sf-db-getNameFromDataConfig -context $this

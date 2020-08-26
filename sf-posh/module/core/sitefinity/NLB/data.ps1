@@ -71,7 +71,7 @@ function sf-nlbData-getProjectIds {
     sf-nlbData-get | ? { $_.NlbId -eq $nlbId } | select -ExpandProperty ProjectId
 }
 
-function sf-nlbData-getNlbIds {
+function _nlbData-getNlbIds {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]

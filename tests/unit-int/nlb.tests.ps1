@@ -126,21 +126,21 @@ InModuleScope sf-posh {
                 $ids | Should -BeNullOrEmpty
             }
             It "get nlbIds get when many entries" {
-                sf-nlbData-getNlbIds -projectId "project2" | Should -Be "nlb2"
-                sf-nlbData-getNlbIds -projectId "project1" | Should -Be "nlb1"
-                sf-nlbData-getNlbIds -projectId "project3" | Should -Be "nlb1"
+                _nlbData-getNlbIds -projectId "project2" | Should -Be "nlb2"
+                _nlbData-getNlbIds -projectId "project1" | Should -Be "nlb1"
+                _nlbData-getNlbIds -projectId "project3" | Should -Be "nlb1"
                 $newE = [NlbEntity]@{
                     NlbId     = "nlb3";
                     ProjectId = "project2"
                 }
 
                 sf-nlbData-add  -entry $newE
-                sf-nlbData-getNlbIds -projectId "project2" | Should -Be @("nlb2", "nlb3")
+                _nlbData-getNlbIds -projectId "project2" | Should -Be @("nlb2", "nlb3")
             }
         }
     }
     
-    Describe "Nlb new cluster should" {
+    Describe "Nlb cluster ops should" {
         Mock sf-app-sendRequestAndEnsureInitialized { }
         InTestProjectScope {
             It "create a second project" {
@@ -159,9 +159,9 @@ InModuleScope sf-posh {
             }
 
             It "set same nlb id for both projects" {
-                $script:nlbId = sf-nlbData-getNlbIds -projectId $firstNode.id
+                $script:nlbId = $firstNode.nlbId
                 $nlbId | Should -HaveCount 1
-                sf-nlbData-getNlbIds -projectId $secondNode.id | Should -Be $nlbId
+                $secondNode.nlbId | Should -Be $nlbId
             }
 
             It "configure nlb nodes in system config for both nodes" {
@@ -234,6 +234,52 @@ InModuleScope sf-posh {
                 sf-nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -BeNullOrEmpty
                 sf-nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -BeNullOrEmpty
                 sf-nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -BeNullOrEmpty
+            }
+
+            It "remove the nginx config" { 
+                $path = _nginx-getClusterConfigPath $nlbId
+                Test-Path $path | Should -BeFalse
+            }
+
+            It "remove the domain from hosts file" {
+                os-hosts-get | ? { $_ -like "*newname*" } | Should -BeNullOrEmpty
+            }
+        }
+    }
+
+    Describe "removing one porject should" {
+        Mock sf-app-sendRequestAndEnsureInitialized { }
+        InTestProjectScope {
+            It "Remove nlb cluster config" {
+                [SfProject]$script:firstNode = sf-project-get
+                sf-nlb-newCluster
+                [SfProject]$script:secondNode = sf-project-get -all | ? id -ne $firstNode.id
+                $secondNode | Should -HaveCount 1
+                Get-Website | ? name -eq $secondNode.websiteName | Should -Not -BeNullOrEmpty
+                Get-Item "IIS:\AppPools\$($secondNode.id)" | Should -Not -BeNullOrEmpty
+                Test-Path $secondNode.webAppPath | Should -BeTrue
+                $script:nlbId = $firstNode.nlbId
+                sf-project-remove -project $secondNode
+            }
+
+            It "do not remove other node" {
+                [SfProject]$p = sf-project-get -all | ? id -eq $script:firstNode.id
+                $p | Should -HaveCount 1
+            }
+                
+            It "undo settings in systemConfig" { 
+                $fnConf = "$($script:firstNode.webAppPath)\App_Data\Sitefinity\Configuration\SystemConfig.config"
+                [xml]$config = Get-Content $fnConf
+                $params = $config.systemConfig.loadBalancingConfig.parameters.add
+                $params | Should -BeNullOrEmpty
+                $config.systemConfig.sslOffloadingSettings.GetAttribute("EnableSslOffloading") | Should -be "False"
+            }
+
+            It "removes nlb mapping" {
+                sf-nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -BeNullOrEmpty
+                sf-nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -BeNullOrEmpty
+                sf-nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -BeNullOrEmpty
+                $firstNode.nlbId | Should -BeNullOrEmpty
             }
 
             It "remove the nginx config" { 

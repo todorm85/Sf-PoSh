@@ -213,6 +213,8 @@ function sf-project-remove {
 
         sf-project-setCurrent -newContext $project > $null
 
+        $Global:SfEvents_OnProjectRemoving | % { Invoke-Command -ScriptBlock $_ }
+
         # Del Website
         Write-Information "Deleting website..."
         $websiteName = $project.websiteName

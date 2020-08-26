@@ -8,7 +8,7 @@ function sf-nlb-getNodes {
         throw "No project selected."
     }
     
-    $nlbId = sf-nlbData-getNlbIds -projectId $p.id
+    $nlbId = $p.nlbId
     if (!$nlbId) {
         throw "Project not part of NLB cluster."
     }
@@ -72,7 +72,7 @@ function sf-nlb-resetAllNodes {
 
 function sf-nlb-getUrl {
     $p = sf-project-get
-    $nlbId = sf-nlbData-getNlbIds $p.id
+    $nlbId = $p.nlbId
     if (!$nlbId) {
         throw "No nlb configured for current project."
     }
@@ -84,7 +84,7 @@ function sf-nlb-getUrl {
 function sf-nlb-changeUrl {
     param($hostname)
     $p = sf-project-get
-    $nlbId = sf-nlbData-getNlbIds $p.id
+    $nlbId = $p.nlbId
     if (!$nlbId) {
         throw "No nlb configured for current project."
     }
@@ -112,7 +112,7 @@ function sf-nlb-openNlbSite {
 }
 
 function sf-nlb-getNlbId {
-    sf-project-get | % { sf-nlbData-getNlbIds -projectId $_.id }
+    sf-project-get | % { $_.nlbId }
 }
 
 function _nlb-generateDomain {

@@ -20,6 +20,10 @@ function sf-nlb-newCluster {
 }
 
 function sf-nlb-removeCluster {
+    param(
+        [switch]$skipDeleteOtherNodes
+    )
+
     $p = sf-project-get
     if (!$p) {
         throw 'No project selected.'
@@ -29,17 +33,31 @@ function sf-nlb-removeCluster {
         throw 'No NLB setup.'
     }
     
-    $nlbId = sf-nlbData-getNlbIds $p.id
+    $nlbId = $p.nlbId
     sf-nlb-getNodes -excludeCurrent | % { 
         try {
-            sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $_.id))
-            sf-project-remove -project $_ -keepDb
+            Run-InProjectScope -project $_ -script { _nlb-unconfigureNlbForProject }
+            if (!$skipDeleteOtherNodes) {
+                sf-project-remove -project $_ -keepDb
+            }
         }
         catch {
             Write-Warning "Erros while removing other nodes. $_"        
         }
     }
-    
+
+    _nlb-unconfigureNlbForProject
+    try {
+        _s-nginx-removeCluster $nlbId
+    }
+    catch {
+        Write-Warning "Erros while removing cluster config from nginx configs. $_"        
+    }
+}
+
+function _nlb-unconfigureNlbForProject {
+    $p = sf-project-get
+    $nlbId = $p.nlbId
     try {
         sf-nlbData-remove -entry ([NlbEntity]::new($nlbId, $p.id))
     }
@@ -47,13 +65,6 @@ function sf-nlb-removeCluster {
         Write-Warning "Erros while removing nlbId from data file. $_"
     }
 
-    try {
-        _s-nginx-removeCluster $nlbId
-    }
-    catch {
-        Write-Warning "Erros while removing cluster config from nginx configs. $_"        
-    }
-    
     try {
         sf-configSystem-setSslOffload -flag $false
     }
@@ -84,7 +95,7 @@ function sf-nlb-getStatus {
         throw "No project selected."
     }
 
-    $nlbId = sf-nlbData-getNlbIds $p.id
+    $nlbId = $p.nlbId
     if ($nlbId) {
         try {
             $otherNode = sf-nlb-getNodes -excludeCurrent
@@ -115,6 +126,13 @@ function sf-nlb-getStatus {
         [PScustomObject]@{
             enabled = $false;
         }
+    }
+}
+
+$Global:SfEvents_OnProjectRemoving += {
+    $project = sf-project-get -skipValidation
+    if ($project.nlbId) {
+        Run-InProjectScope $project { sf-nlb-removeCluster -skipDeleteOtherNodes }
     }
 }
 
