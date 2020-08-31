@@ -37,7 +37,7 @@ function sf-tags-remove {
             }
                 
             if ($project.tags) {
-                $project.tags = $project.tags | ? { $_ -ne $tagName }
+                $project.tags.Remove($tagName) > $null
             }
         }
 
