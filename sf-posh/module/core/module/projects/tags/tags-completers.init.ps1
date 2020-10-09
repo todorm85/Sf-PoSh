@@ -6,7 +6,7 @@ $Script:tagCompleter = {
         $fakeBoundParameters )
 
 
-    $possibleValues = sf-project-get -all | sf-tags-get | Sort-Object | Get-Unique | Where-Object { $_ }
+    $possibleValues = sf-project-get -all | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
 
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
