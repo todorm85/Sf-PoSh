@@ -4,15 +4,17 @@ function sf-tags-getAllAvailable {
 
 function sf-tags-add {
     param (
+        [string]$tagName,
         [Parameter(ValueFromPipeline)]
-        [string]$tagName
+        [SfProject]$project
     )
     
     process {
-        $project = sf-project-get
-        _validateTag $tagName
-        $project.tags.Add($tagName)
-        sf-project-save -context $project
+        Run-InFunctionAcceptingProjectFromPipeline {
+            _validateTag $tagName
+            $project.tags.Add($tagName)
+            sf-project-save -context $project
+        }
     }
 }
 
@@ -21,27 +23,29 @@ Register-ArgumentCompleter -CommandName sf-tags-add -ParameterName tagName -Scri
 function sf-tags-remove {
     param (
         [Parameter(ValueFromPipeline)]
+        [SfProject]$project,
         [string]$tagName,
         [switch]$all
     )
 
     process {
-        $project = sf-project-get
-        if ($all) {
-            $project.tags.Clear()
-        }
-        else {
-            _validateTag $tagName
-            if (!$tagName) {
-                throw "Invalid tag name to remove."
+        Run-InFunctionAcceptingProjectFromPipeline {
+            if ($all) {
+                $project.tags.Clear()
             }
+            else {
+                _validateTag $tagName
+                if (!$tagName) {
+                    throw "Invalid tag name to remove."
+                }
                 
-            if ($project.tags) {
-                $project.tags.Remove($tagName) > $null
+                if ($project.tags) {
+                    $project.tags.Remove($tagName) > $null
+                }
             }
-        }
 
-        sf-project-save -context $project
+            sf-project-save -context $project
+        }
     }
 }
 
@@ -72,7 +76,8 @@ function sf-tags-get {
     )
     
     process {
-        $project = Get-ValidatedSfProjectFromPipelineParameter $project
-        $project.tags | % { $_ } # clone of the array or it throws when modified down the pipes
+        Run-InFunctionAcceptingProjectFromPipeline {
+            $project.tags | % { $_ } # clone of the array or it throws when modified down the pipes
+        }
     }    
 }

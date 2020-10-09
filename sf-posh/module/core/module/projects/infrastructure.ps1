@@ -1,3 +1,7 @@
+<#
+ Executes the passed script block in the context of the passed project.
+ Sets the last argument passed to the script to the $project.
+ #>
 function Run-InProjectScope {
     [CmdletBinding()]
     param (
@@ -6,14 +10,15 @@ function Run-InProjectScope {
         [Sfproject]$project,
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        [ScriptBlock]$script
+        [ScriptBlock]$script,
+        [object[]]$scriptArguments
     )
     
     process {
         $previous = sf-project-get -skipValidation
         sf-project-setCurrent $project
         try {
-            Invoke-Command -ScriptBlock $script
+            Invoke-Command -ScriptBlock $script -ArgumentList ($scriptArguments + @($project))
         }
         finally {
             sf-project-setCurrent $previous
@@ -21,23 +26,30 @@ function Run-InProjectScope {
     }
 }
 
-function Get-ValidatedSfProjectFromPipelineParameter {
-    [OutputType([SfProject])]
-    Param (
-        [SfProject]$project
+<#
+ Allows the function to be used both in pipeline expressions and as standalone function that takes into account the current selected project.
+ Sets the last argument passed to the script to the evaluated $project.
+ The calling function must have a parameter named [SfProject]$projectthat is received from the pipeline.
+ #>
+function Run-InFunctionAcceptingProjectFromPipeline {
+    param (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNull()]
+        [ScriptBlock]$script,
+        [object[]]$scriptArguments
     )
-
-    $stack = Get-PSCallStack
-    $isFromPipeline = $stack[1].InvocationInfo.ExpectingInput
+        
+    [SfProject]$project = (Get-Variable -Scope 1 | ? Name -eq project).Value
     if (!$project) {
-        if (!$isFromPipeline) {
-            sf-project-get
-        }
-        else {
+        $isFromPipeline = (Get-PSCallStack)[1].InvocationInfo.ExpectingInput
+        if ($isFromPipeline) {
             throw "No project received from pipeline!"
         }
+
+        $project = sf-project-get
+        Invoke-Command -ScriptBlock $script -ArgumentList ($scriptArguments + @($project))
     }
     else {
-        $project
+        Run-InProjectScope -project $project -script $script -scriptArguments $scriptArguments
     }
 }

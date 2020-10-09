@@ -20,8 +20,7 @@ function sf {
     )
     
     Process {
-        $project = Get-ValidatedSfProjectFromPipelineParameter $project
-        Run-InProjectScope $project {
+        Run-InFunctionAcceptingProjectFromPipeline {
             if ($sync) {
                 sf-appPrecompiledTemplates-remove
                 sf -getLatest -abortNoNew -build

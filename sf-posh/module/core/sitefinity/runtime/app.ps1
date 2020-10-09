@@ -202,8 +202,7 @@ function sf-app-isInitialized {
     )
     
     process {
-        $project = Get-ValidatedSfProjectFromPipelineParameter $project
-        Run-InProjectScope $project {
+        Run-InFunctionAcceptingProjectFromPipeline {
             try {
                 sf-app-sendRequestAndEnsureInitialized > $null
             }
