@@ -15,6 +15,10 @@ function sf-project-select {
         [object[]]$propsToSort
     )
 
+    if (!$tagsFilter) {
+        $tagsFilter = sf-tags-getDefaultFilter
+    }
+    
     [SfProject[]]$sitefinities = sf-project-get -all | sf-tags-filter -tagsFilter $tagsFilter
     if (!$sitefinities) {
         Write-Warning "No projects found. Check if not using default tag filter."

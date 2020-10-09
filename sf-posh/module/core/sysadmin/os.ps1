@@ -155,7 +155,7 @@ function os-browseUrl {
     $browserPath = $GLOBAL:sf.config.browserPath
     if (!$openInSameWindow) {
         execute-native "& Start-Process `"$browserPath`"" -successCodes @(100)
-        Start-Sleep -Seconds 2
+        Start-Sleep -Seconds 1
     }
 
     execute-native "& `"$browserPath`" `"$url`" -noframemerging" -successCodes @(100)

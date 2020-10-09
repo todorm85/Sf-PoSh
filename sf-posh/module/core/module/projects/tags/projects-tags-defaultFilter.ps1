@@ -64,7 +64,7 @@ function sf-tags-filter {
         if ($tagsFilter -eq '+u') {
             $project = $project | Where-Object { !$_.tags }
         }
-        elseif ($tagsFilter) {
+        elseif ($tagsFilter -and $tagsFilter -ne '+a') {
             $includeTags = $tagsFilter | Where-Object { !$_.StartsWith($excludeTagPrefix) -and !$_.StartsWith('+') }
             if ($includeTags.Count -gt 0) {
                 $project = $project | Where-Object { _checkIfTagged -sitefinity $_ -tags $includeTags }
