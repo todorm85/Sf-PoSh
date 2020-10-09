@@ -51,5 +51,9 @@ function Run-InFunctionAcceptingProjectFromPipeline {
     }
     else {
         Run-InProjectScope -project $project -script $script -scriptArguments $scriptArguments
+        $passThru = (Get-Variable -Scope 1 | ? Name -eq passThru).Value
+        if ($passThru) {
+            $project
+        }
     }
 }

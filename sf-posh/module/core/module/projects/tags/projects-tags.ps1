@@ -6,7 +6,8 @@ function sf-tags-add {
     param (
         [string]$tagName,
         [Parameter(ValueFromPipeline)]
-        [SfProject]$project
+        [SfProject]$project,
+        [switch]$passThru
     )
     
     process {
