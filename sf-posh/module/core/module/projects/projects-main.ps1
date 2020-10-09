@@ -193,22 +193,18 @@ function sf-project-remove {
     )
 
     process {
-        Run-InFunctionAcceptingProjectFromPipeline {
-            $clearCurrentSelectedProject = $false
-            [SfProject]$currentProject = $null
-            try {
-                $currentProject = sf-project-get
-            }
-            catch {
-                Write-Verbose "No current project."    
-            }
-
-            if (!$project) { $project = $currentProject }
-
-            if (!$project) { throw "No project parameter and no current project selected to delete." }
+        $Script:clearCurrentSelectedProject = $false
+        [SfProject]$currentProject = $null
+        try {
+            $currentProject = sf-project-get
+        }
+        catch {
+            Write-Verbose "No current project."    
+        }
         
+        Run-InFunctionAcceptingProjectFromPipeline {
             if ($currentProject -and $currentProject.id -eq $project.id) {
-                $clearCurrentSelectedProject = $true
+                $Script:clearCurrentSelectedProject = $true
             }
 
             sf-project-setCurrent -newContext $project > $null
@@ -300,13 +296,10 @@ function sf-project-remove {
             catch {
                 Write-Warning "Could not remove the project entry from the tool. You can manually remove it at $($GLOBAL:sf.Config.dataPath)"
             }
-
-            if ($clearCurrentSelectedProject) {
-                sf-project-setCurrent $null > $null
-            }
-            else {
-                sf-project-setCurrent $currentProject > $null
-            }
+        }
+        
+        if ($Script:clearCurrentSelectedProject) {
+            sf-project-setCurrent $null > $null
         }
     }
 }

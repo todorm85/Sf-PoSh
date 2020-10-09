@@ -39,7 +39,9 @@ function _setConsoleTitle {
         }
 
         [System.Console]::Title = "$($newContext.id)|$($newContext.displayName)|$branch"
-        Set-Location $newContext.webAppPath
+        if ($newContext -and (Test-Path -Path $newContext.webAppPath)) {
+            Set-Location $newContext.webAppPath
+        }
     }
     else {
         [System.Console]::Title = ""
