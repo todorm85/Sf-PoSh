@@ -6,7 +6,8 @@ $Script:tagCompleter = {
         $fakeBoundParameters )
 
 
-    $possibleValues = sf-tags-getAllAvailable
+    $possibleValues = sf-project-get -all | sf-tags-get | Sort-Object | Get-Unique | Where-Object { $_ }
+
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
             $_ -like "$($wordToComplete.TrimStart($prefixes))*"

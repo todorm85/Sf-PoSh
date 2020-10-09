@@ -1,7 +1,3 @@
-function sf-tags-getAllAvailable {
-    sf-project-get -all | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
-}
-
 function sf-tags-add {
     param (
         [string]$tagName,
@@ -26,7 +22,8 @@ function sf-tags-remove {
         [Parameter(ValueFromPipeline)]
         [SfProject]$project,
         [string]$tagName,
-        [switch]$all
+        [switch]$all,
+        [switch]$passThru
     )
 
     process {
@@ -73,7 +70,8 @@ function sf-tags-get {
     param (
         [Parameter(ValueFromPipeline)]
         [SfProject]
-        $project
+        $project,
+        [switch]$passThru
     )
     
     process {
