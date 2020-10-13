@@ -2,8 +2,7 @@ function sf-tags-add {
     param (
         [string]$tagName,
         [Parameter(ValueFromPipeline)]
-        [SfProject]$project,
-        [switch]$passThru
+        [SfProject]$project
     )
     
     process {
@@ -22,8 +21,7 @@ function sf-tags-remove {
         [Parameter(ValueFromPipeline)]
         [SfProject]$project,
         [string]$tagName,
-        [switch]$all,
-        [switch]$passThru
+        [switch]$all
     )
 
     process {
@@ -70,8 +68,7 @@ function sf-tags-get {
     param (
         [Parameter(ValueFromPipeline)]
         [SfProject]
-        $project,
-        [switch]$passThru
+        $project
     )
     
     process {

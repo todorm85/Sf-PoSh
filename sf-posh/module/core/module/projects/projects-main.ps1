@@ -406,8 +406,7 @@ Register-ArgumentCompleter -CommandName sf-project-get -ParameterName tagsFilter
 function sf-project-setCurrent {
     [CmdletBinding()]
     Param(
-        [Parameter(ValueFromPipeline)][SfProject]$newContext,
-        [switch]$passthru
+        [Parameter(ValueFromPipeline)][SfProject]$newContext
     )
 
     process {

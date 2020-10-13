@@ -39,9 +39,9 @@ function Run-InFunctionAcceptingProjectFromPipeline {
         [object[]]$scriptArguments
     )
         
+    $isFromPipeline = (Get-PSCallStack)[1].InvocationInfo.ExpectingInput
     [SfProject]$project = (Get-Variable -Scope 1 | ? Name -eq project).Value
     if (!$project) {
-        $isFromPipeline = (Get-PSCallStack)[1].InvocationInfo.ExpectingInput
         if ($isFromPipeline) {
             throw "No project received from pipeline!"
         }
@@ -51,8 +51,7 @@ function Run-InFunctionAcceptingProjectFromPipeline {
     }
     else {
         Run-InProjectScope -project $project -script $script -scriptArguments $scriptArguments
-        $passThru = (Get-Variable -Scope 1 | ? Name -eq passThru).Value
-        if ($passThru) {
+        if ($isFromPipeline) {
             $project
         }
     }
