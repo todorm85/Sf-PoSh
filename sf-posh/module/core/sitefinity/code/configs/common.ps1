@@ -112,7 +112,7 @@ function _config-ensureSitefinityConfigCreated {
 function _config-getVersion ($configName = "Data") {
     $configPath = _sf-path-getSitefinityConfigPath $configName
     if (!(Test-Path $configPath)) {
-        throw "Config $configPath does not exist."
+        throw "Trying to extract Sitefinity version from config $configPath, but it does not exist."
     }
 
     [xml]$xml = Get-Content $configPath

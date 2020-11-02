@@ -51,9 +51,9 @@ function _sf-serverCode-deployHandler {
         throw "No project selected."
     }
 
-    _sf-serverCode-deployDirectory "$($Script:codeDeployment_ResourcesPath)\code" "$($p.webAppPath)\$($Script:codeDeployment_ServerCodePath)" 
+    sf-serverCode-deployDirectory "$($Script:codeDeployment_ResourcesPath)\code" $Script:codeDeployment_ServerCodePath
 
-    _sf-serverCode-deployDirectory "$($Script:codeDeployment_ResourcesPath)\services" "$($p.webAppPath)\$Script:codeDeployment_ServicePath"
+    sf-serverCode-deployDirectory "$($Script:codeDeployment_ResourcesPath)\services" $Script:codeDeployment_ServicePath
 }
 
 function _sf-serverCode-areSourceAndTargetSfDevVersionsEqual {
@@ -68,27 +68,29 @@ function _sf-serverCode-areSourceAndTargetSfDevVersionsEqual {
 
     $trgSign = Get-ChildItem $trg -Filter "*.sfdevversion"
     $srcSign = Get-ChildItem $src -Filter "*.sfdevversion"
-    if ($trgSign.BaseName -eq $srcSign.BaseName) {
+    if ($trgSign -and $srcSign -and $trgSign.BaseName -eq $srcSign.BaseName) {
         return $true
     }
 
     return $false
 }
 
-function _sf-serverCode-deployDirectory {
+function sf-serverCode-deployDirectory {
     param (
-        [Parameter(Mandatory=$true)]$src,
-        [Parameter(Mandatory=$true)]$dest
+        [Parameter(Mandatory=$true)]$sourcePath,
+        [Parameter(Mandatory=$true)]$appRelativeTargetPath
     )
 
-    if (!(Test-Path $dest)) {
-        New-Item -Path $dest -ItemType Directory > $null
+    $p = sf-project-get
+    $trg = "$($p.webAppPath)\$appRelativeTargetPath"
+    if (!(Test-Path $trg)) {
+        New-Item -Path $trg -ItemType Directory > $null
     }
     
-    if ((_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $src $dest)) {
+    if ((_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $sourcePath $trg)) {
         return
     }    
 
-    Remove-Item "$dest\*" -Recurse -Force
-    Copy-Item -Path "$src\*" -Destination $dest -Recurse
+    Remove-Item "$trg\*" -Recurse -Force
+    Copy-Item -Path "$sourcePath\*" -Destination $trg -Recurse
 }
