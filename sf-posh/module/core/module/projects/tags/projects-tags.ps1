@@ -64,7 +64,6 @@ Register-ArgumentCompleter -CommandName sf-tags-remove -ParameterName tagName -S
 }
 
 function sf-tags-get {
-    [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline)]
         [SfProject]

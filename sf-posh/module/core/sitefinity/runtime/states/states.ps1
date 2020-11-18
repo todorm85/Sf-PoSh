@@ -61,7 +61,6 @@ function sf-appStates-save {
 Register-ArgumentCompleter -CommandName sf-appStates-save -ParameterName stateName -ScriptBlock $Script:stateCompleter
 
 function sf-appStates-restore {
-    [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
@@ -102,7 +101,6 @@ function sf-appStates-restore {
 Register-ArgumentCompleter -CommandName sf-appStates-restore -ParameterName stateName -ScriptBlock $Script:stateCompleter
 
 function sf-appStates-remove {
-    [CmdletBinding()]
     param(
         [Parameter(ValueFromPipelineByPropertyName)]$name
     )

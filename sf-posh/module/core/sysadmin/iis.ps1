@@ -68,7 +68,6 @@ function iis-set-sitePath {
 }
 
 function iis-bindings-getAll {
-    [CmdletBinding()]
     [OutputType([SiteBinding[]])]
     Param(
         [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()]$siteName

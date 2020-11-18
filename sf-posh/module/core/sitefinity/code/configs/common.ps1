@@ -63,7 +63,7 @@ function xml-getOrCreateElementPath {
                 $elementName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[0]
                 $attributeName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[0]
                 $attrValue = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[1].Trim("]").Trim("'")
-                $currentElement = $currentParentElement.SelectSingleNode("//$elementName[@$attributeName='$attrValue']")
+                $currentElement = $currentParentElement.SelectSingleNode("$elementName[@$attributeName='$attrValue']")
                 if (!$currentElement) {
                     $currentElement = $currentParentElement.OwnerDocument.CreateElement($elementName)
                     $currentElement.SetAttribute($attributeName, $attrValue)

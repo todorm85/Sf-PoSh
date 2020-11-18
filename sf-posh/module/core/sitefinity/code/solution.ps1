@@ -68,7 +68,6 @@ function sf-sol-rebuild {
 }
 
 function sf-sol-clean {
-    [CmdletBinding()]
     Param(
         [bool]$cleanPackages = $false)
 

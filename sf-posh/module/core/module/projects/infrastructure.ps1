@@ -3,7 +3,6 @@
  Sets the last argument passed to the script to the $project.
  #>
 function Run-InProjectScope {
-    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNull()]

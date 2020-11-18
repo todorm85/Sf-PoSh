@@ -52,7 +52,6 @@ Register-ArgumentCompleter -CommandName sf-tags-removeFromDefaultFilter -Paramet
     exclude tags are prefixed with '_'
  #>
 function sf-tags-filter {
-    [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline)]
         [SfProject]

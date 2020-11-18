@@ -147,7 +147,6 @@ function _nginx-initializeConfig {
 }
 
 function _nginx-writeConfig {
-    [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline)]
         $content,
