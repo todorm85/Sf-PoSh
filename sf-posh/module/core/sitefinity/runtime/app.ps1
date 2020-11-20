@@ -1,4 +1,4 @@
-function sf-app-sendRequestAndEnsureInitialized {
+function sf-app-ensureRunning {
     param(
         [Int32]$totalWaitSeconds = $GLOBAL:sf.config.app.startupMaxWait
     )
@@ -107,7 +107,7 @@ function sf-app-initialize {
     
     try {
         if (-not $skipSendRequestAndEnsureInitialized) {
-            sf-app-sendRequestAndEnsureInitialized
+            sf-app-ensureRunning
         }
     }
     catch {
@@ -201,8 +201,9 @@ function sf-app-isInitialized {
     
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
+            param($project)
             try {
-                sf-app-sendRequestAndEnsureInitialized > $null
+                sf-app-ensureRunning > $null
             }
             catch {
                 return $false        

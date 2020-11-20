@@ -26,6 +26,7 @@ function sf-tags-remove {
 
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
+            param($project)
             if ($all) {
                 $project.tags.Clear()
             }
@@ -72,6 +73,7 @@ function sf-tags-get {
     
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
+            param($project)
             $project.tags | % { $_ } # clone of the array or it throws when modified down the pipes
         }
     }    

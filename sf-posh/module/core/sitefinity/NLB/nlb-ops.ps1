@@ -65,7 +65,7 @@ function sf-nlb-resetAllNodes {
     sf-nlb-forAllNodes {
         sf-iisAppPool-Reset
         if (!$skipWait) {
-            sf-app-sendRequestAndEnsureInitialized
+            sf-app-ensureRunning
         }
     }
 }

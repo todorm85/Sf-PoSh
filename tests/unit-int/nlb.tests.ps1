@@ -141,7 +141,7 @@ InModuleScope sf-posh {
     }
     
     Describe "Nlb cluster ops should" {
-        Mock sf-app-sendRequestAndEnsureInitialized { }
+        Mock sf-app-ensureRunning { }
         InTestProjectScope {
             It "create a second project" {
                 [SfProject]$script:firstNode = sf-project-get
@@ -248,7 +248,7 @@ InModuleScope sf-posh {
     }
 
     Describe "removing one porject should" {
-        Mock sf-app-sendRequestAndEnsureInitialized { }
+        Mock sf-app-ensureRunning { }
         InTestProjectScope {
             It "Remove nlb cluster config" {
                 [SfProject]$script:firstNode = sf-project-get

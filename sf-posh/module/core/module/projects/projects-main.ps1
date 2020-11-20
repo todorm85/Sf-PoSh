@@ -203,6 +203,8 @@ function sf-project-remove {
         }
         
         Run-InFunctionAcceptingProjectFromPipeline {
+            param($project)
+
             if ($currentProject -and $currentProject.id -eq $project.id) {
                 $Script:clearCurrentSelectedProject = $true
             }
@@ -315,6 +317,8 @@ function sf-project-rename {
 
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
+            param($project)
+
             [SfProject]$context = $project
 
             if (-not $newName) {

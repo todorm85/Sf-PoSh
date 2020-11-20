@@ -144,7 +144,7 @@ function _nlb-setupNode ([SfProject]$node, $urls) {
         sf-configSystem-setNlbUrls -urls $urls
         sf-configSystem-setSslOffload -flag $true
         sf-iisAppPool-Reset
-        sf-app-sendRequestAndEnsureInitialized
+        sf-app-ensureRunning
     }
     finally {
         sf-project-setCurrent $previous

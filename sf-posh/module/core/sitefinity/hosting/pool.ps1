@@ -17,7 +17,7 @@ function sf-iisAppPool-ResetThread {
 
     if ($start) {
         Start-Sleep -s 1
-        sf-app-sendRequestAndEnsureInitialized
+        sf-app-ensureRunning
     }
 }
 
@@ -44,7 +44,7 @@ function sf-iisAppPool-Reset {
     Restart-WebItem ("IIS:\AppPools\" + $appPool)
     if ($start) {
         Start-Sleep -s 1
-        sf-app-sendRequestAndEnsureInitialized
+        sf-app-ensureRunning
     }
 }
 

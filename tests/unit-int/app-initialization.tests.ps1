@@ -22,7 +22,7 @@ InModuleScope sf-posh {
             }
     
             It "create startup config successfully when reinitialize" {
-                Mock sf-app-sendRequestAndEnsureInitialized { }
+                Mock sf-app-ensureRunning { }
                 sf-app-reinitialize
                 Test-Path "$configsPath\StartupConfig.config" | Should -Be $true
             }

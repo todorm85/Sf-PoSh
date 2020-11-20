@@ -17,28 +17,33 @@ function sf {
     
     Process {
         Run-InFunctionAcceptingProjectFromPipeline {
-            $newChangesDetected = $forceGetChanges # force will always get new changes
-            if ($discardExistingChanges -and (sf-sourceControl-hasPendingChanges)) {
-                $output = sf-sourceControl-undoPendingChanges
-                $newChangesDetected = $output.Exception -and !($output.Exception -notlike "*No pending changes*")
-            }
+            param($project)
+            if ($project.branch) {
+                $newChangesDetected = $forceGetChanges # force will always get new changes
+                if ($discardExistingChanges -and (sf-sourceControl-hasPendingChanges)) {
+                    $output = sf-sourceControl-undoPendingChanges
+                    $newChangesDetected = $output.Exception -and !($output.Exception -notlike "*No pending changes*")
+                }
         
-            if ($getLatestChanges) {
-                $getLatestOutput = sf-sourceControl-getLatestChanges -overwrite:$forceGet
-                $newChangesDetected = !$getLatestOutput -or !($getLatestOutput.Contains('All files are up to date.'))
-            }
+                if ($getLatestChanges) {
+                    $getLatestOutput = sf-sourceControl-getLatestChanges -overwrite:$forceGet
+                    $newChangesDetected = !$getLatestOutput -or !($getLatestOutput.Contains('All files are up to date.'))
+                }
         
-            if (!$newChangesDetected -and $stopWhenNoNewChanges) {
-                Write-Information "No new changes detected, stopping."
-                return
+                if (!$newChangesDetected -and $stopWhenNoNewChanges) {
+                    Write-Information "No new changes detected, stopping."
+                    return
+                }
             }
 
-            if ($cleanSolution) {
-                sf-sol-clean -cleanPackages $true
-            }
-
-            if ($build) {
-                sf-sol-build -retryCount 3
+            if ($project.solutionPath) {
+                if ($cleanSolution) {
+                    sf-sol-clean -cleanPackages $true
+                }
+                
+                if ($build) {
+                    sf-sol-build -retryCount 3
+                }
             }
 
             if ($resetPool) {
@@ -51,11 +56,11 @@ function sf {
 
             if ($precompile) {
                 sf-appPrecompiledTemplates-add
-                sf-app-sendRequestAndEnsureInitialized
+                sf-app-ensureRunning
             }
 
             if ($ensureRunning) {
-                sf-app-sendRequestAndEnsureInitialized
+                sf-app-ensureRunning
             }
 
             if ($saveInitialState) {
