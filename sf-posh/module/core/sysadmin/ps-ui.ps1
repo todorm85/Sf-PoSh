@@ -3,49 +3,61 @@ function ui-promptItemSelect {
     [OutputType([object])]
     param (
         [object[]]$items,
+        [Parameter(ValueFromPipeline = $true)]
+        [object]$item,
         [object[]]$propsToShow,
         [string[]]$propsToOrderBy,
         [switch]$multipleSelection
     )
+
+    begin {
+        $items = @($items)
+    }
+
+    process {
+        $items += @($item)
+    }
     
-    if (!$items) {
-        return
-    }
+    end {
+        if (!$items) {
+            return
+        }
 
-    if ($propsToOrderBy) {
-        $items = $items | Sort-Object -Property $propsToOrderBy
-    }
+        if ($propsToOrderBy) {
+            $items = $items | Sort-Object -Property $propsToOrderBy
+        }
 
-    _ui-showAllWithIndexedPrefix -datas $items -propsToShow $propsToShow
-    while ($true) {
-        if ($multipleSelection) {
-            $choices = Read-Host -Prompt 'Select items (numbers delemeted by space)'
-            $choices = $choices.Split(' ')
-            [Collections.Generic.List[object]]$selection = @()
-            foreach ($choice in $choices) {
-                $currentSelect = $items[$choice]
-                if ($null -eq $currentSelect) {
-                    Write-Error "Invalid selection $choice"
+        _ui-showAllWithIndexedPrefix -datas $items -propsToShow $propsToShow
+        while ($true) {
+            if ($multipleSelection) {
+                $choices = Read-Host -Prompt 'Select items (numbers delemeted by space)'
+                $choices = $choices.Split(' ')
+                [Collections.Generic.List[object]]$selection = @()
+                foreach ($choice in $choices) {
+                    $currentSelect = $items[$choice]
+                    if ($null -eq $currentSelect) {
+                        Write-Error "Invalid selection $choice"
+                    }
+                    else {
+                        $selection.Add($currentSelect)
+                    }
                 }
-                else {
-                    $selection.Add($currentSelect)
+
+                if ($null -ne $selection) {
+                    break;
                 }
             }
-
-            if ($null -ne $selection) {
-                break;
+            else {
+                [int]$choice = Read-Host -Prompt "Select"
+                $selection = $items[$choice]
+                if ($null -ne $selection) {
+                    break;
+                }
             }
         }
-        else {
-            [int]$choice = Read-Host -Prompt "Select"
-            $selection = $items[$choice]
-            if ($null -ne $selection) {
-                break;
-            }
-        }
-    }
 
-    $selection
+        $selection
+    }
 }
 
 function _ui-showAllWithIndexedPrefix {
@@ -66,18 +78,16 @@ function _ui-showAllWithIndexedPrefix {
         }
     }
     else {
-        for ($i = 0; $i -lt $datas.Count; $i++) {
-            $datas[$i] | Add-Member -MemberType NoteProperty -Name "idx" -Value $i -Force
-        }
-
         if (!$propsToShow) {
             $propsToShow = $datas[0] | Get-Member -MemberType Property | select -ExpandProperty Name
         }
     
-        $props = @("idx") + $propsToShow
+        $global:i = -1
+        $props = @(@{Label = "idx"; Expression = {
+                    $global:i
+                    $global:i++
+                } 
+            }) + $propsToShow
         $datas | ft -Property $props | Out-String | Write-Host
-        for ($i = 0; $i -lt $datas.Count; $i++) {
-            $datas[$i].PSObject.Properties.Remove('idx')
-        }
     }
 }
