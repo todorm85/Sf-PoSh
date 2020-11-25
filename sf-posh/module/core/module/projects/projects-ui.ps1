@@ -12,21 +12,37 @@ function sf-project-select {
         # prefix with + for mandatory, prefix with _ to exclude, +u all untagged
         [string[]]$tagsFilter,
         [object[]]$propsToShow,
-        [object[]]$propsToSort
+        [object[]]$propsToSort,
+        [Parameter(ValueFromPipeline)]
+        [SfProject]
+        $project
     )
 
-    if (!$tagsFilter) {
-        $tagsFilter = sf-tags-getDefaultFilter
-    }
-    
-    [SfProject[]]$sitefinities = sf-project-get -all | sf-tags-filter -tagsFilter $tagsFilter
-    if (!$sitefinities) {
-        Write-Warning "No projects found. Check if not using default tag filter."
-        return
+    begin {
+        $projects = @()
     }
 
-    $selectedSitefinity = _proj-promptSelect -sitefinities $sitefinities -propsToShow $propsToShow -propsToOrderBy $propsToSort
-    sf-project-setCurrent $selectedSitefinity
+    process {
+        $projects += $project
+    }
+
+    end {
+        if (!$tagsFilter) {
+            $tagsFilter = sf-tags-getDefaultFilter
+        }
+        
+        if (!$projects) {
+            $projects = sf-project-get -all | sf-tags-filter -tagsFilter $tagsFilter
+        }
+
+        if (!$projects) {
+            Write-Warning "No projects found. Check if not using default tag filter."
+            return
+        }
+        
+        $selectedSitefinity = _proj-promptSelect -sitefinities $projects -propsToShow $propsToShow -propsToOrderBy $propsToSort
+        sf-project-setCurrent $selectedSitefinity
+    }
 }
 
 Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
