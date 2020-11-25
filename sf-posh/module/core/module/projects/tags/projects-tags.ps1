@@ -24,9 +24,9 @@ Register-ArgumentCompleter -CommandName sf-tags-add -ParameterName tagName -Scri
 function sf-tags-remove {
     param (
         [Parameter(ValueFromPipeline)]
-        [SfProject]$project,
-        [Parameter(ValueFromPipeline)]
         [string]$tagName,
+        [Parameter(ValueFromPipeline)]
+        [SfProject]$project,
         [switch]$all
     )
 
