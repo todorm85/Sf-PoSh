@@ -1,11 +1,16 @@
 function sf-tags-add {
     param (
+        [Parameter(ValueFromPipeline)]
         [string]$tagName,
         [Parameter(ValueFromPipeline)]
         [SfProject]$project
     )
     
     process {
+        if (!$project -and $tagName) {
+            $project = sf-project-get
+        }
+        
         Run-InFunctionAcceptingProjectFromPipeline {
             _validateTag $tagName
             $project.tags.Add($tagName)
@@ -20,11 +25,16 @@ function sf-tags-remove {
     param (
         [Parameter(ValueFromPipeline)]
         [SfProject]$project,
+        [Parameter(ValueFromPipeline)]
         [string]$tagName,
         [switch]$all
     )
 
     process {
+        if (!$project -and $tagName) {
+            $project = sf-project-get
+        }
+
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
             if ($all) {
@@ -74,7 +84,9 @@ function sf-tags-get {
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
-            $project.tags | % { $_ } # clone of the array or it throws when modified down the pipes
+            $all = @()
+            $project.tags | % { $all += $_ } # clone of the array or it throws when modified down the pipes
+            $all
         }
     }    
 }
