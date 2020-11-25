@@ -6,7 +6,7 @@ function ui-promptItemSelect {
         [Parameter(ValueFromPipeline = $true)]
         [object]$item,
         [object[]]$propsToShow,
-        [string[]]$propsToOrderBy,
+        [object[]]$propsToOrderBy,
         [switch]$multipleSelection
     )
 
