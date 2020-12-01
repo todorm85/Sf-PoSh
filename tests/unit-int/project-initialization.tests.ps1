@@ -25,9 +25,9 @@ InModuleScope sf-posh {
                 [SfProject]$p = sf-project-get -all | select -First 1
                 $p.websiteName = 'wrongName2'
                 $p.solutionPath = 'dummyPath2'
-
+                $Global:mockedProject = $p
                 Mock _proj-promptSelect {
-                    $p
+                    $Global:mockedProject
                 }
 
                 sf-project-select

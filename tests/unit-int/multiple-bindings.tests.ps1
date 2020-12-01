@@ -133,10 +133,10 @@ InModuleScope sf-posh {
                 Remove-WebBinding -Name $sourceProj.websiteName -Protocol $beforeLast.protocol -Port $beforeLast.port -HostHeader $beforeLast.domain
 
                 # check user not prompted for binding and default binding is removed from sfdev project
-                $project = sf-project-get
+                $Global:project = sf-project-get
                 $project.defaultBinding | Should -Be $beforeLast
                 $project.isInitialized = $false
-                Mock _proj-promptSelect { $project }
+                Mock _proj-promptSelect { $Global:project }
                 sf-project-select
                 $project = sf-project-get
                 $project.defaultBinding | Should -Be $last

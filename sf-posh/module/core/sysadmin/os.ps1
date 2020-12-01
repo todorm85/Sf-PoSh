@@ -112,6 +112,7 @@ function os-hosts-add ($hostname, $address = '127.0.0.1') {
         return
     }
 
+    unlock-allFiles -path $Script:hostsPath
     If ((Get-Content $Script:hostsPath) -notcontains "$address $hostname") {
         Add-Content -Encoding utf8 $Script:hostsPath "$address $hostname" -ErrorAction Stop
     }
