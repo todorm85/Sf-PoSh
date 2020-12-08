@@ -133,6 +133,11 @@ function sf-app-uninitialize {
             sf-sol-unlockAllFiles
         }
 
+        $dbName = sf-db-getNameFromDataConfig
+        if ($dbName) {
+            sql-delete-database $dbName
+        }
+        
         sf-sol-resetSitefinityFolder
     }
     catch {
