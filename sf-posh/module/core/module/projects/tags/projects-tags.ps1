@@ -38,7 +38,7 @@ function sf-tags-remove {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
             if ($all) {
-                $project.tags.Clear()
+                $project.tags.Clear() > $null
             }
             else {
                 _validateTag $tagName
@@ -52,7 +52,7 @@ function sf-tags-remove {
             }
 
             sf-project-save -context $project
-        }
+        } -project $project
     }
 }
 
