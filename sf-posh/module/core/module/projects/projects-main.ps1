@@ -309,7 +309,9 @@ function sf-project-remove {
 function sf-project-rename {
     Param(
         [string]$newName,
-        [switch]$setDescription,
+        # [switch]$renameAll,
+        # [switch]$renameSolution,
+        # [switch]$renameWebsite,
         [Parameter(ValueFromPipeline)]
         [SfProject]
         $project
@@ -329,52 +331,52 @@ function sf-project-rename {
 
                     $newName = $(Read-Host -Prompt "Enter new project name").ToString()
                 }
-
-                if ($setDescription) {
-                    $context.description = $(Read-Host -Prompt "Enter description:`n").ToString()
-                }
             }
 
             $azureDevOpsResult = _getNameParts $newName
             $newName = $azureDevOpsResult.name
             $context.description = $azureDevOpsResult.link
 
-            if ($newName -and (-not (_validateNameSyntax $newName))) {
-                throw "Name syntax is not valid. Use only alphanumerics and underscores"
+            if (!$newName) {
+                throw "Name is null or empty."
             }
 
             if ($newName -eq $context.displayName) {
                 return
             }
-
-            $oldSolutionName = _generateSolutionFriendlyName -context $context
+            
             $context.displayName = $newName
+            # if ($renameSolution -or $renameAll) {
+            #     $oldSolutionName = _generateCustomSolutionName -context $context
 
-            if ($context.solutionPath) {
-                if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
-                    _createUserFriendlySlnName -context $context
-                }
+            #     if ($context.solutionPath) {
+            #         if (-not (Test-Path "$($context.solutionPath)\$oldSolutionName")) {
+            #             _createCustomSolutionName -context $context
+            #         }
 
-                $newSolutionName = _generateSolutionFriendlyName -context $context
-                $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
-                if (Test-Path $oldSolutionPath) {
-                    Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
+            #         $newSolutionName = _generateCustomSolutionName -context $context
+            #         $oldSolutionPath = "$($context.solutionPath)\$oldSolutionName"
+            #         if (Test-Path $oldSolutionPath) {
+            #             Copy-Item -Path $oldSolutionPath -Destination "$($context.solutionPath)\$newSolutionName" -Force
 
-                    $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
-                    $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
-                    $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
-                    if (Test-Path $oldSolutionCachePath) {
-                        Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
-                        unlock-allFiles -path $oldSolutionCachePath
-                        Remove-Item -Path $oldSolutionCachePath -Force -Recurse
-                    }
+            #             $newSlnCacheName = ([string]$newSolutionName).Replace(".sln", "")
+            #             $oldSlnCacheName = ([string]$oldSolutionName).Replace(".sln", "")
+            #             $oldSolutionCachePath = "$($context.solutionPath)\.vs\$oldSlnCacheName"
+            #             if (Test-Path $oldSolutionCachePath) {
+            #                 Copy-Item -Path $oldSolutionCachePath -Destination "$($context.solutionPath)\.vs\$newSlnCacheName" -Force -Recurse -ErrorAction SilentlyContinue
+            #                 unlock-allFiles -path $oldSolutionCachePath
+            #                 Remove-Item -Path $oldSolutionCachePath -Force -Recurse
+            #             }
 
-                    unlock-allFiles -path $oldSolutionPath
-                    Remove-Item -Path $oldSolutionPath -Force
-                }
-            }
+            #             unlock-allFiles -path $oldSolutionPath
+            #             Remove-Item -Path $oldSolutionPath -Force
+            #         }
+            #     }
+            # }
 
-            sf-iisSite-changeDomain -domainName "$($newName).$($context.id)"
+            # if ($renameWebsite) {
+            #     sf-iisSite-changeDomain -domainName "$($newName)"
+            # }
 
             _update-prompt $context
             sf-project-save $context
@@ -492,7 +494,7 @@ function _getNameParts {
             }
 
             $title = $title.Trim();
-            $title = _getValidTitle $title
+            # $title = _getValidTitle $title
 
             $description = "https://prgs-sitefinity.visualstudio.com/sitefinity/_workitems/edit/$itemId"
         }
@@ -533,13 +535,13 @@ function _getValidTitle {
     return $resultTitle;
 }
 
-function _createUserFriendlySlnName ($context) {
+function _createCustomSolutionName ($context) {
     $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
     if (!(Test-Path $solutionFilePath)) {
         return
     }
 
-    $targetFilePath = "$($context.solutionPath)\$(_generateSolutionFriendlyName $context)"
+    $targetFilePath = "$($context.solutionPath)\$(_generateCustomSolutionName $context)"
     if (!(Test-Path $targetFilePath)) {
         Copy-Item -Path $solutionFilePath -Destination $targetFilePath
     }
@@ -604,14 +606,14 @@ function _generateId {
         $i++
     }
 
-    if ([string]::IsNullOrEmpty($name) -or (-not (_validateNameSyntax $name))) {
+    if ([string]::IsNullOrEmpty($name) -or (-not (_validateIdSyntax $name))) {
         throw "Invalid id $name"
     }
 
     return $name
 }
 
-function _generateSolutionFriendlyName {
+function _generateCustomSolutionName {
     Param(
         [SfProject]$context
     )
@@ -620,12 +622,12 @@ function _generateSolutionFriendlyName {
         $context = sf-project-get
     }
 
-    $solutionName = "$($context.displayName)($($context.id)).sln"
+    $solutionName = "$($context.id).sln"
 
     return $solutionName
 }
 
-function _validateNameSyntax ($name) {
+function _validateIdSyntax ($name) {
     return $name -match "^[A-Za-z]\w+$" -and $name.Length -lt 75
 }
 
@@ -659,7 +661,7 @@ function _proj-initialize {
         $errors += "`nSolution detection: $_."
     }
 
-    _createUserFriendlySlnName $project
+    _createCustomSolutionName $project
 
     try {
         if (!$cachedProject -and !$project.branch -or $project.branch -ne $cachedProject.branch) {
@@ -737,7 +739,7 @@ function _proj-createProjectDirectory {
 function _proj-detectSolution ([SfProject]$project) {
     if (_proj-isSolution -project $project) {
         $project.solutionPath = (Get-Item "$($project.webAppPath)\..\").Target
-        _createUserFriendlySlnName $project
+        _createCustomSolutionName $project
     }
     else {
         $project.solutionPath = ''

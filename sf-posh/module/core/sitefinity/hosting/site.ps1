@@ -69,7 +69,7 @@ function sf-iisSite-new {
 
     $newAppPath = $context.webAppPath
     $newAppPool = $context.id
-    $domain = _generateDomainName -context $context
+    $domain = $context.id
     try {
         iis-website-create -newWebsiteName $context.websiteName -domain $domain -newAppPath $newAppPath -newAppPool $newAppPool > $null
     }

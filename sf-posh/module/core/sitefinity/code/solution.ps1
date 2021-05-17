@@ -129,7 +129,7 @@ function sf-sol-clearPackages {
 #>
 function sf-sol-open {
     Param(
-        [switch]$useDefault
+        [switch]$useDefaultName
     )
 
     $project = sf-project-get
@@ -145,11 +145,11 @@ function sf-sol-open {
         $projectName = "SitefinityWebApp.csproj"
     }
     else {
-        if ($useDefault) {
+        if ($useDefaultName) {
             $projectName = "Telerik.Sitefinity.sln"
         }
         else {
-            $projectName = _generateSolutionFriendlyName
+            $projectName = _generateCustomSolutionName
         }
     }
 

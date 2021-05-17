@@ -95,16 +95,6 @@ function _iisSite-appendSubAppPath {
     return $path
 }
 
-function _generateDomainName {
-    Param(
-        [Parameter(Mandatory = $true)]
-        [SfProject]
-        $context
-    )
-
-    return "$($context.displayName)_$($context.id).com"
-}
-
 function _promptBindings {
     [SfProject]$project = sf-project-get
     if (!$project.websiteName) {

@@ -83,11 +83,15 @@ function _ui-showAllWithIndexedPrefix {
         }
     
         $global:i = -1
-        $props = @(@{Label = "idx"; Expression = {
+        $props = @(
+            @{
+                Label = "idx"; 
+                Expression = {
                     $global:i
                     $global:i++
-                } 
+                }
+                Width = 3
             }) + $propsToShow
-        $datas | ft -Property $props | Out-String | Write-Host
+        $datas | ft -Property $props -Wrap | Out-String | Write-Host
     }
 }
