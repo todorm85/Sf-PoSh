@@ -1,5 +1,5 @@
-function sf-iisSite-getBinding {
-    [SfProject]$context = sf-project-get
+function sf-iis-site-getBinding {
+    [SfProject]$context = sf-PSproject-get
     if (!$context) {
         throw "No project selected."
     }
@@ -19,12 +19,12 @@ function sf-iisSite-getBinding {
     return $binding
 }
 
-function sf-iisSite-setBinding {
+function sf-iis-site-setBinding {
     Param(
         [SiteBinding]$defBinding
     )
 
-    [SfProject]$project = sf-project-get
+    [SfProject]$project = sf-PSproject-get
     if (!$defBinding) {
         $selectedBinding = _promptBindings
         $defBinding = @{
@@ -40,11 +40,11 @@ function sf-iisSite-setBinding {
         os-hosts-add -hostname $binding.domain
     }
 
-    sf-project-save -context $project
+    sf-PSproject-save -context $project
 }
 
-function sf-iisSite-getUrl {
-    [SiteBinding]$binding = sf-iisSite-getBinding
+function sf-iis-site-getUrl {
+    [SiteBinding]$binding = sf-iis-site-getBinding
     _sd-iisSite-buildUrlFromBinding -binding $binding
 }
 
@@ -53,14 +53,14 @@ function _sd-iisSite-buildUrlFromBinding ([SiteBinding]$binding) {
     return _iisSite-appendSubAppPath "$($binding.protocol)://$($hostname):$($binding.port)"
 }
 
-function sf-iisSite-changeDomain {
+function sf-iis-site-changeDomain {
     param (
         $domainName
     )
 
-    [SiteBinding]$binding = sf-iisSite-getBinding
+    [SiteBinding]$binding = sf-iis-site-getBinding
     if ($binding) {
-        [SfProject]$p = sf-project-get
+        [SfProject]$p = sf-PSproject-get
         $websiteName = $p.websiteName
         try {
             Remove-WebBinding -Name $websiteName -Port $binding.port -HostHeader $binding.domain -Protocol $binding.protocol
@@ -75,7 +75,7 @@ function sf-iisSite-changeDomain {
 
         if ($p.defaultBinding) {
             $p.defaultBinding.domain = $domainName
-            sf-project-save -context $p
+            sf-PSproject-save -context $p
         }
     }
     else {
@@ -86,8 +86,8 @@ function sf-iisSite-changeDomain {
 function _iisSite-appendSubAppPath {
     param($path)
 
-    $context = sf-project-get
-    $subAppName = sf-iisSite-getSubAppName -websiteName $context.websiteName
+    $context = sf-PSproject-get
+    $subAppName = sf-iis-site-getSubAppName -websiteName $context.websiteName
     if ($null -ne $subAppName) {
         $path = "$path/${subAppName}"
     }
@@ -96,7 +96,7 @@ function _iisSite-appendSubAppPath {
 }
 
 function _promptBindings {
-    [SfProject]$project = sf-project-get
+    [SfProject]$project = sf-PSproject-get
     if (!$project.websiteName) {
         Write-Warning "No website for project."
         return
@@ -134,13 +134,13 @@ function _checkAndUpdateBindings {
         # if ($bindings.Count -gt 2) {
         #     $choice = Read-Host -Prompt "Site has several bindings and there is no default one set. Do you want to set a default binding to be used by the tool? y/n"
         #     if ($choice -eq 'y') {
-        #         sf-iisSite-setBinding
+        #         sf-iis-site-setBinding
         #     }
         # } else {
-        #   sf-iisSite-setBinding -defBinding ($bindings | select -Last 1)
+        #   sf-iis-site-setBinding -defBinding ($bindings | select -Last 1)
         # }
         if ($bindings) {
-            sf-iisSite-setBinding -defBinding ($bindings | select -Last 1)
+            sf-iis-site-setBinding -defBinding ($bindings | select -Last 1)
             return $true
         }
     }
@@ -152,7 +152,7 @@ function _checkAndUpdateBindings {
 }
 
 function _checkDefaultBindingIsWorking {
-    $selectedSitefinity = sf-project-get
+    $selectedSitefinity = sf-PSproject-get
     if (!$selectedSitefinity.websiteName) {
         return 
     }

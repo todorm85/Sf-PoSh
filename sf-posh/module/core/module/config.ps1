@@ -1,3 +1,3 @@
-function sf-module-openConfig {
+function sf-PSmodule-openConfig {
     & $Script:userConfigPath
 }

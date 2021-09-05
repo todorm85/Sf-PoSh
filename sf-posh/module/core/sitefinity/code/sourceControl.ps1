@@ -1,5 +1,5 @@
-function sf-sourceControl-undoPendingChanges {
-    $context = sf-project-get
+function sf-source-undoPendingChanges {
+    $context = sf-PSproject-get
     if (!$context.branch) {
         return
     }
@@ -11,7 +11,7 @@ function sf-sourceControl-undoPendingChanges {
     tfs-undo-PendingChanges $context.solutionPath
 }
 
-function sf-sourceControl-showPendingChanges {
+function sf-source-showPendingChanges {
 
     Param(
         [switch]$detailed
@@ -24,7 +24,7 @@ function sf-sourceControl-showPendingChanges {
         $format = "Brief"
     }
 
-    $context = sf-project-get
+    $context = sf-PSproject-get
     if (!$context.branch) {
         return
     }
@@ -37,7 +37,7 @@ function sf-sourceControl-showPendingChanges {
     tfs-show-PendingChanges $workspaceName $format
 }
 
-function sf-sourceControl-hasPendingChanges {
+function sf-source-hasPendingChanges {
     param(
         [Parameter(ValueFromPipeline)]
         [SfProject]
@@ -48,7 +48,7 @@ function sf-sourceControl-hasPendingChanges {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
 
-            $pendingResult = sf-sourceControl-showPendingChanges
+            $pendingResult = sf-source-showPendingChanges
             if ($pendingResult -eq 'There are no pending changes.') {
                 return $false
             }
@@ -59,13 +59,13 @@ function sf-sourceControl-hasPendingChanges {
     }
 }
 
-function sf-sourceControl-getLatestChanges {
+function sf-source-getLatestChanges {
 
     Param(
         [switch]$overwrite
     )
 
-    [SfProject]$context = sf-project-get
+    [SfProject]$context = sf-PSproject-get
     if (!$context.branch) {
         return
     }
@@ -88,7 +88,7 @@ function sf-sourceControl-getLatestChanges {
     }
 
     $context.lastGetLatest = [System.DateTime]::Now
-    sf-project-save $context
+    sf-PSproject-save $context
 
     Write-Information "Getting latest changes complete."
 }

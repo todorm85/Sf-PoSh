@@ -9,13 +9,13 @@
     .OUTPUTS
     None
 #>
-function sf-iisSite-browse {
+function sf-iis-site-browse {
     Param(
         [switch]$useExistingBrowser
     )
 
     $browserPath = $GLOBAL:sf.Config.browserPath;
-    [SfProject]$project = sf-project-get
+    [SfProject]$project = sf-PSproject-get
     if (!$project) {
         throw "No project selected."
     }
@@ -29,7 +29,7 @@ function sf-iisSite-browse {
         }
     }
 
-    $appUrl = sf-iisSite-getUrl
+    $appUrl = sf-iis-site-getUrl
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $($global:sf.config.userConfigPath). -> browserPath"
     }
@@ -47,13 +47,13 @@ The project for which to create a website.
 .NOTES
 General notes
 #>
-function sf-iisSite-new {
+function sf-iis-site-new {
     param(
         [SfProject]$context
     )
 
     if (!$context) {
-        $context = sf-project-get
+        $context = sf-PSproject-get
     }
     
     $siteExists = Get-Website | ? name -eq $context.id
@@ -87,8 +87,8 @@ function sf-iisSite-new {
     }
 }
 
-function sf-iisSite-delete {
-    $proj = sf-project-get
+function sf-iis-site-delete {
+    $proj = sf-PSproject-get
     if (!$proj) {
         throw "No project!"
     }
@@ -129,8 +129,8 @@ function sf-iisSite-delete {
     }
 }
 
-function sf-iisSite-getSubAppName {
-    $proj = sf-project-get
-    [SfProject]$proj = sf-project-get
+function sf-iis-site-getSubAppName {
+    $proj = sf-PSproject-get
+    [SfProject]$proj = sf-PSproject-get
     Get-WebApplication -Site $proj.websiteName | ? { $_.PhysicalPath.ToLower() -eq $proj.webAppPath } | % { $_.path.TrimStart('/') }
 }

@@ -1,6 +1,6 @@
 $Script:excludeTagPrefix = '_'
 
-function sf-tags-setDefaultFilter {
+function sf-PSproject-tags-setDefaultFilter {
     param (
         [string[]]$filter
     )
@@ -8,7 +8,7 @@ function sf-tags-setDefaultFilter {
     _setDefaultTagsFilter -defaultTagsFilter $filter
 }
 
-function sf-tags-getDefaultFilter {
+function sf-PSproject-tags-getDefaultFilter {
     [OutputType([string[]])]
     Param()
 
@@ -16,7 +16,7 @@ function sf-tags-getDefaultFilter {
     return , $filter
 }
 
-function sf-tags-addToDefaultFilter {
+function sf-PSproject-tags-addToDefaultFilter {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -24,14 +24,14 @@ function sf-tags-addToDefaultFilter {
         $tag
     )
 
-    $defaultFilter = sf-tags-getDefaultFilter
+    $defaultFilter = sf-PSproject-tags-getDefaultFilter
     $defaultFilter += @($tag)
-    sf-tags-setDefaultFilter -filter $defaultFilter
+    sf-PSproject-tags-setDefaultFilter -filter $defaultFilter
 }
 
-Register-ArgumentCompleter -CommandName sf-tags-addToDefaultFilter -ParameterName tag -ScriptBlock $Global:SfTagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-PSproject-tags-addToDefaultFilter -ParameterName tag -ScriptBlock $Global:SfTagFilterCompleter
 
-function sf-tags-removeFromDefaultFilter {
+function sf-PSproject-tags-removeFromDefaultFilter {
     param (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -39,19 +39,19 @@ function sf-tags-removeFromDefaultFilter {
         $tag
     )
 
-    [string[]]$defaultFilter = sf-tags-getDefaultFilter
+    [string[]]$defaultFilter = sf-PSproject-tags-getDefaultFilter
     $defaultFilter = $defaultFilter -notlike $tag
-    sf-tags-setDefaultFilter -filter $defaultFilter
+    sf-PSproject-tags-setDefaultFilter -filter $defaultFilter
 }
 
-Register-ArgumentCompleter -CommandName sf-tags-removeFromDefaultFilter -ParameterName tag -ScriptBlock $Global:SfTagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-PSproject-tags-removeFromDefaultFilter -ParameterName tag -ScriptBlock $Global:SfTagFilterCompleter
 
 <#
     passing '+u' in include tags will take only untagged
     exclude tags take precedence
     exclude tags are prefixed with '_'
  #>
-function sf-tags-filter {
+function sf-PSproject-tags-filter {
     param (
         [Parameter(ValueFromPipeline)]
         [SfProject]

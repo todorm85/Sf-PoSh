@@ -1,4 +1,4 @@
-function sf-tags-add {
+function sf-PSproject-tags-add {
     param (
         [Parameter(ValueFromPipeline)]
         [string]$tagName,
@@ -8,20 +8,20 @@ function sf-tags-add {
     
     process {
         if (!$project -and $tagName) {
-            $project = sf-project-get
+            $project = sf-PSproject-get
         }
         
         Run-InFunctionAcceptingProjectFromPipeline {
             _validateTag $tagName
             $project.tags.Add($tagName)
-            sf-project-save -context $project
+            sf-PSproject-save -context $project
         }
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-tags-add -ParameterName tagName -ScriptBlock $Script:tagCompleter
+Register-ArgumentCompleter -CommandName sf-PSproject-tags-add -ParameterName tagName -ScriptBlock $Script:tagCompleter
 
-function sf-tags-remove {
+function sf-PSproject-tags-remove {
     param (
         [Parameter(ValueFromPipeline)]
         [string]$tagName,
@@ -32,7 +32,7 @@ function sf-tags-remove {
 
     process {
         if (!$project -and $tagName) {
-            $project = sf-project-get
+            $project = sf-PSproject-get
         }
 
         Run-InFunctionAcceptingProjectFromPipeline {
@@ -51,12 +51,12 @@ function sf-tags-remove {
                 }
             }
 
-            sf-project-save -context $project
+            sf-PSproject-save -context $project
         } -project $project
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-tags-remove -ParameterName tagName -ScriptBlock {
+Register-ArgumentCompleter -CommandName sf-PSproject-tags-remove -ParameterName tagName -ScriptBlock {
     param ( $commandName,
         $parameterName,
         $wordToComplete,
@@ -64,7 +64,7 @@ Register-ArgumentCompleter -CommandName sf-tags-remove -ParameterName tagName -S
         $fakeBoundParameters )
 
 
-    $possibleValues = $(sf-project-get).tags
+    $possibleValues = $(sf-PSproject-get).tags
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
             $_ -like "$($wordToComplete.TrimStart($prefixes))*"
@@ -74,7 +74,7 @@ Register-ArgumentCompleter -CommandName sf-tags-remove -ParameterName tagName -S
     $possibleValues
 }
 
-function sf-tags-get {
+function sf-PSproject-tags-get {
     param (
         [Parameter(ValueFromPipeline)]
         [SfProject]

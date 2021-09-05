@@ -3,7 +3,7 @@
 InModuleScope sf-posh {
     Describe "Reinitializing should" {
         InTestProjectScope {
-            [SfProject]$project = sf-project-get
+            [SfProject]$project = sf-PSproject-get
     
             $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
             Test-Path $configsPath | Should -Be $true

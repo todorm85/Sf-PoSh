@@ -5,7 +5,7 @@ InModuleScope sf-posh {
         InTestProjectScope {
 
             It "save and then restore app_data folder and database" {
-                [SfProject]$project = sf-project-get
+                [SfProject]$project = sf-PSproject-get
                 $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
                 [string]$stateName = generateRandomName
                 $stateName = $stateName.Replace('-', '_')
@@ -22,7 +22,7 @@ InModuleScope sf-posh {
                 $values = "'testVal1'"
                 sql-insert-items -dbName $dbName -tableName $table -columns $columns -values $values
 
-                sf-appStates-save -stateName $stateName
+                sf-states-save -stateName $stateName
 
                 # Test-Path "$statePath\$dbName.bak" | Should -BeTrue
                 $afterSaveFilePath = "$configsPath\after_$stateName"
@@ -44,7 +44,7 @@ InModuleScope sf-posh {
                 $config = sql-get-items -dbName $dbName -tableName $table -whereFilter $where -selectFilter $select
                 $config | Should -Not -BeNullOrEmpty
 
-                sf-appStates-restore -stateName $stateName
+                sf-states-restore -stateName $stateName
 
                 $select = 'test'
                 $where = "test = 'testVal1'"

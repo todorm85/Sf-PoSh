@@ -9,7 +9,7 @@ function sf-sol-build {
         $retryCount = 0
     )
 
-    $project = sf-project-get
+    $project = sf-PSproject-get
 
     $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
 
@@ -72,7 +72,7 @@ function sf-sol-clean {
         [bool]$cleanPackages = $false)
 
     Write-Information "Cleaning solution..."
-    $project = sf-project-get
+    $project = sf-PSproject-get
 
     $solutionPath = $project.solutionPath
     if (!(Test-Path $solutionPath)) {
@@ -105,7 +105,7 @@ function sf-sol-clean {
 }
 
 function sf-sol-clearPackages {
-    [SfProject]$project = sf-project-get
+    [SfProject]$project = sf-PSproject-get
     $solutionPath = $project.solutionPath
     if (!(Test-Path "${solutionPath}\packages")) {
         Write-Information "No packages to delete"
@@ -132,7 +132,7 @@ function sf-sol-open {
         [switch]$useDefaultName
     )
 
-    $project = sf-project-get
+    $project = sf-PSproject-get
 
     if (!$project.solutionPath -and !$project.webAppPath) {
         throw "invalid or no solution path and webApp path"
@@ -168,7 +168,7 @@ function sf-sol-open {
     None
 #>
 function sf-sol-buildWebAppProj () {
-    $context = sf-project-get
+    $context = sf-PSproject-get
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"
@@ -178,7 +178,7 @@ function sf-sol-buildWebAppProj () {
 }
 
 function sf-sol-unlockAllFiles {
-    $project = sf-project-get
+    $project = sf-PSproject-get
 
     if ($project.solutionPath -ne "") {
         $path = $project.solutionPath
@@ -193,7 +193,7 @@ function sf-sol-unlockAllFiles {
 }
 
 function sf-sol-resetSitefinityFolder {
-    [SfProject]$context = sf-project-get
+    [SfProject]$context = sf-PSproject-get
     $webAppPath = $context.webAppPath
     $errorMessage = ''
     Set-Location $context.webAppPath
@@ -250,7 +250,7 @@ function _switchStyleCop {
         [switch]$enable
     )
 
-    $context = sf-project-get
+    $context = sf-PSproject-get
 
     $styleCopTaskPath = "$($context.solutionPath)\Builds\StyleCop\StyleCop.Targets"
     $content = Get-Content -Path $styleCopTaskPath

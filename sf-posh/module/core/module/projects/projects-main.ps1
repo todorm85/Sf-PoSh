@@ -10,7 +10,7 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
     .PARAMETER displayName
     The name of the project that the tool will use to present it in the CLI
 #>
-function sf-project-new {
+function sf-PSproject-new {
     Param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -27,15 +27,15 @@ function sf-project-new {
     }
 
     if (!$newContext.websiteName) {
-        sf-iisSite-new -context $newContext
+        sf-iis-site-new -context $newContext
     }
     
-    sf-project-setCurrent $newContext
+    sf-PSproject-setCurrent $newContext
 
     return $newContext
 }
 
-Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath -ScriptBlock {
+Register-ArgumentCompleter -CommandName sf-PSproject-new -ParameterName sourcePath -ScriptBlock {
     param ( $commandName,
         $parameterName,
         $wordToComplete,
@@ -47,14 +47,14 @@ Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath
     $values | % { "'$_'" }
 }
 
-function sf-project-clone {
+function sf-PSproject-clone {
     Param(
         [switch]$skipSourceControlMapping,
         [switch]$skipDatabaseClone,
         [switch]$skipSolutionClone
     )
 
-    $context = sf-project-get
+    $context = sf-PSproject-get
 
     $sourcePath = $context.solutionPath;
     $useSolution = !([string]::IsNullOrEmpty($sourcePath) -or $skipSolutionClone);
@@ -96,7 +96,7 @@ function sf-project-clone {
         $newProject.webAppPath = $targetPath
     }
 
-    sf-project-setCurrent -newContext $newProject > $null
+    sf-PSproject-setCurrent -newContext $newProject > $null
 
     try {
         if (!$skipSourceControlMapping -and $context.branch) {
@@ -110,7 +110,7 @@ function sf-project-clone {
 
     try {
         Write-Information "Creating website..."
-        sf-iisSite-new
+        sf-iis-site-new
     }
     catch {
         Write-Warning "Error during website creation. Message: $_"
@@ -138,7 +138,7 @@ function sf-project-clone {
     }
 
     try {
-        sf-appStates-get | sf-appStates-remove
+        sf-states-get | sf-states-remove
     }
     catch {
         Write-Error "Error deleting app states for $($newProject.displayName). Inner error:`n $_"
@@ -146,12 +146,12 @@ function sf-project-clone {
 
     $newProject.tags.AddRange($oldProject.tags) 
 
-    sf-project-save -context $newProject
-    sf-project-setCurrent $newProject
+    sf-PSproject-save -context $newProject
+    sf-PSproject-setCurrent $newProject
 }
 
-function sf-project-removeBulk {
-    $sitefinities = @(sf-project-get -all)
+function sf-PSproject-removeBulk {
+    $sitefinities = @(sf-PSproject-get -all)
     if ($null -eq $sitefinities[0]) {
         Write-Warning "No projects found. Create one."
         return
@@ -161,7 +161,7 @@ function sf-project-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sf-project-remove -project $selectedSitefinity
+            sf-PSproject-remove -project $selectedSitefinity
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"
@@ -183,7 +183,7 @@ function sf-project-removeBulk {
     .OUTPUTS
     None
 #>
-function sf-project-remove {
+function sf-PSproject-remove {
     Param(
         [Parameter(ValueFromPipeline)]
         [SfProject]$project,
@@ -196,7 +196,7 @@ function sf-project-remove {
         $Script:clearCurrentSelectedProject = $false
         [SfProject]$currentProject = $null
         try {
-            $currentProject = sf-project-get
+            $currentProject = sf-PSproject-get
         }
         catch {
             Write-Verbose "No current project."    
@@ -209,7 +209,7 @@ function sf-project-remove {
                 $Script:clearCurrentSelectedProject = $true
             }
 
-            sf-project-setCurrent -newContext $project > $null
+            sf-PSproject-setCurrent -newContext $project > $null
 
             $Global:SfEvents_OnProjectRemoving | % { Invoke-Command -ScriptBlock $_ }
 
@@ -219,14 +219,14 @@ function sf-project-remove {
             $siteExists = @(Get-Website | ? { $_.name -eq $websiteName }).Count -gt 0
             if ($websiteName -and $siteExists) {
                 try {
-                    sf-iisAppPool-Stop
+                    sf-iis-appPool-Stop
                 }
                 catch {
                     Write-Warning "Could not stop app pool: $_`n"
                 }
 
                 try {
-                    sf-iisSite-delete
+                    sf-iis-site-delete
                 }
                 catch {
                     Write-Warning "Errors deleting website ${websiteName}. $_`n"
@@ -301,12 +301,12 @@ function sf-project-remove {
         }
         
         if ($Script:clearCurrentSelectedProject) {
-            sf-project-setCurrent $null > $null
+            sf-PSproject-setCurrent $null > $null
         }
     }
 }
 
-function sf-project-rename {
+function sf-PSproject-rename {
     Param(
         [string]$newName,
         # [switch]$renameAll,
@@ -375,16 +375,16 @@ function sf-project-rename {
             # }
 
             # if ($renameWebsite) {
-            #     sf-iisSite-changeDomain -domainName "$($newName)"
+            #     sf-iis-site-changeDomain -domainName "$($newName)"
             # }
 
             _update-prompt $context
-            sf-project-save $context
+            sf-PSproject-save $context
         }
     }
 }
 
-function sf-project-get {
+function sf-PSproject-get {
     [OutputType([SfProject], ParameterSetName = "current")]
     [OutputType([SfProject[]], ParameterSetName = "all")]
     [CmdletBinding(DefaultParameterSetName = 'current')]
@@ -403,13 +403,13 @@ function sf-project-get {
         $p
     }
     else {
-        _data-getAllProjects | sf-tags-filter -tagsFilter $tagsFilter
+        _data-getAllProjects | sf-PSproject-tags-filter -tagsFilter $tagsFilter
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-project-get -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-PSproject-get -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
 
-function sf-project-setCurrent {
+function sf-PSproject-setCurrent {
     Param(
         [Parameter(ValueFromPipeline)][SfProject]$newContext
     )
@@ -440,7 +440,7 @@ function sf-project-setCurrent {
     }
 }
 
-function sf-project-save {
+function sf-PSproject-save {
     Param($context)
 
     if (!$context.id) {
@@ -591,7 +591,7 @@ function _getIsIdDuplicate ($id, $allIds) {
 function _generateId {
     $i = 0;
     # for performance get all external items like sites dbs etc before loop
-    $sitefinities = sf-project-get -all | select -ExpandProperty displayName
+    $sitefinities = sf-PSproject-get -all | select -ExpandProperty displayName
     $workspaces = tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName
     # do not use get-iisapppool - does not return latest
     $appPools = Get-ChildItem "IIS:\AppPools" | select -ExpandProperty name
@@ -619,7 +619,7 @@ function _generateCustomSolutionName {
     )
 
     if (-not ($context)) {
-        $context = sf-project-get
+        $context = sf-PSproject-get
     }
 
     $solutionName = "$($context.id).sln"
@@ -692,7 +692,7 @@ function _proj-initialize {
     }
 
     if ($detectedChanges) {
-        sf-project-save -context $project
+        sf-PSproject-save -context $project
         _validateProject $project
     }
 

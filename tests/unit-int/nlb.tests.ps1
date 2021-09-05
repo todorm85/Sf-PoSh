@@ -19,7 +19,7 @@ InModuleScope sf-posh {
                 )
 
                 _nlbData-set -data $d
-                $result = sf-nlbData-get
+                $result = _nlbData-get
                 $result | Should -HaveCount 3
                 $result[0].NlbId | Should -Be "nlb1"
                 $result[0].ProjectId | Should -Be "project1"
@@ -37,7 +37,7 @@ InModuleScope sf-posh {
                 )
                 
                 _nlbData-set -data $d
-                $result = sf-nlbData-get
+                $result = _nlbData-get
                 $result | Should -HaveCount 1
                 $result[0].NlbId | Should -Be "nlb1"
                 $result[0].ProjectId | Should -Be "project1"
@@ -45,7 +45,7 @@ InModuleScope sf-posh {
             It "persist zero object" {
                 $d = @()
                 _nlbData-set -data $d
-                $result = sf-nlbData-get
+                $result = _nlbData-get
                 $result | Should -BeNullOrEmpty
             }
             It "add one object" {
@@ -54,8 +54,8 @@ InModuleScope sf-posh {
                     ProjectId = "project1"
                 }
 
-                sf-nlbData-add -entry $e
-                $res = sf-nlbData-get
+                _nlbData-add -entry $e
+                $res = _nlbData-get
                 $res | Should -HaveCount 1
             }
             It "add duplicate object do nothing" {
@@ -64,8 +64,8 @@ InModuleScope sf-posh {
                     ProjectId = "project1"
                 }
 
-                sf-nlbData-add -entry $e
-                sf-nlbData-get | ? { $_ -eq $e } | Should -HaveCount 1
+                _nlbData-add -entry $e
+                _nlbData-get | ? { $_ -eq $e } | Should -HaveCount 1
             }
             It "remove one object when only one" {
                 $e = [NlbEntity]@{
@@ -73,8 +73,8 @@ InModuleScope sf-posh {
                     ProjectId = "project1"
                 }
 
-                sf-nlbData-remove -entry $e
-                sf-nlbData-get | ? { $_ -eq $e } | Should -BeNullOrEmpty
+                _nlbData-remove -entry $e
+                _nlbData-get | ? { $_ -eq $e } | Should -BeNullOrEmpty
             }
             It "remove one object when many" {
                 for ($i = 0; $i -lt 5; $i++) {
@@ -83,7 +83,7 @@ InModuleScope sf-posh {
                         ProjectId = "project$i"
                     }
                     
-                    sf-nlbData-add $e
+                    _nlbData-add $e
                 }
 
                 $e = [NlbEntity]@{
@@ -91,13 +91,13 @@ InModuleScope sf-posh {
                     ProjectId = "project2"
                 }
 
-                sf-nlbData-remove $e
-                sf-nlbData-get | Should -Not -Contain $e
-                sf-nlbData-get | Should -HaveCount 4
-                (sf-nlbData-get)[0] | Should -Be ([NlbEntity]@{ NlbId = "nlb0"; ProjectId = "project0" })
-                (sf-nlbData-get)[1] | Should -Be ([NlbEntity]@{ NlbId = "nlb1"; ProjectId = "project1" })
-                (sf-nlbData-get)[2] | Should -Be ([NlbEntity]@{ NlbId = "nlb3"; ProjectId = "project3" })
-                (sf-nlbData-get)[3] | Should -Be ([NlbEntity]@{ NlbId = "nlb4"; ProjectId = "project4" })
+                _nlbData-remove $e
+                _nlbData-get | Should -Not -Contain $e
+                _nlbData-get | Should -HaveCount 4
+                (_nlbData-get)[0] | Should -Be ([NlbEntity]@{ NlbId = "nlb0"; ProjectId = "project0" })
+                (_nlbData-get)[1] | Should -Be ([NlbEntity]@{ NlbId = "nlb1"; ProjectId = "project1" })
+                (_nlbData-get)[2] | Should -Be ([NlbEntity]@{ NlbId = "nlb3"; ProjectId = "project3" })
+                (_nlbData-get)[3] | Should -Be ([NlbEntity]@{ NlbId = "nlb4"; ProjectId = "project4" })
             }
             It "get projectIds when many" {
                 $d = @(
@@ -116,13 +116,13 @@ InModuleScope sf-posh {
                 )
 
                 _nlbData-set -data $d
-                $ids = sf-nlbData-getProjectIds -nlbId "nlb1"
+                $ids = _nlbData-getProjectIds -nlbId "nlb1"
                 $ids | Should -HaveCount 2
                 $ids | Should -Contain "project1"
                 $ids | Should -Contain "project3"
             }
             It "get projectIds get none when wrong id" {
-                $ids = sf-nlbData-getProjectIds -nlbId "sdfsdf"
+                $ids = _nlbData-getProjectIds -nlbId "sdfsdf"
                 $ids | Should -BeNullOrEmpty
             }
             It "get nlbIds get when many entries" {
@@ -134,7 +134,7 @@ InModuleScope sf-posh {
                     ProjectId = "project2"
                 }
 
-                sf-nlbData-add  -entry $newE
+                _nlbData-add  -entry $newE
                 _nlbData-getNlbIds -projectId "project2" | Should -Be @("nlb2", "nlb3")
             }
         }
@@ -144,9 +144,9 @@ InModuleScope sf-posh {
         Mock sf-app-ensureRunning { }
         InTestProjectScope {
             It "create a second project" {
-                [SfProject]$script:firstNode = sf-project-get
+                [SfProject]$script:firstNode = sf-PSproject-get
                 sf-nlb-newCluster
-                [SfProject]$script:secondNode = sf-project-get -all | ? id -ne $firstNode.id
+                [SfProject]$script:secondNode = sf-PSproject-get -all | ? id -ne $firstNode.id
                 $secondNode | Should -HaveCount 1
                 Get-Website | ? name -eq $secondNode.websiteName | Should -Not -BeNullOrEmpty
                 Get-Item "IIS:\AppPools\$($secondNode.id)" | Should -Not -BeNullOrEmpty
@@ -186,9 +186,9 @@ InModuleScope sf-posh {
             }
 
             It "add Nlb mapping for projects" {
-                sf-nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -HaveCount 1
-                sf-nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -HaveCount 1
-                sf-nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -HaveCount 2
+                _nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -HaveCount 1
+                _nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -HaveCount 1
+                _nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -HaveCount 2
             }
 
             It "add entry to hosts file" {
@@ -213,9 +213,9 @@ InModuleScope sf-posh {
             }
 
             It "remove other project when removing cluster" {
-                sf-project-setCurrent $firstNode
+                sf-PSproject-setCurrent $firstNode
                 sf-nlb-removeCluster
-                sf-project-get -all | ? id -eq $secondNode.id | Should -BeNullOrEmpty
+                sf-PSproject-get -all | ? id -eq $secondNode.id | Should -BeNullOrEmpty
                 Get-Website | ? name -eq $secondNode.websiteName | Should -BeNullOrEmpty
                 Test-Path "IIS:\AppPools\$($secondNode.id)" | Should -BeFalse
                 Test-Path $secondNode.webAppPath | Should -BeFalse
@@ -231,9 +231,9 @@ InModuleScope sf-posh {
             }
 
             It "removes nlb mapping" {
-                sf-nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -BeNullOrEmpty
-                sf-nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -BeNullOrEmpty
-                sf-nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -BeNullOrEmpty
+                _nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -BeNullOrEmpty
+                _nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -BeNullOrEmpty
+                _nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -BeNullOrEmpty
             }
 
             It "remove the nginx config" { 
@@ -251,19 +251,19 @@ InModuleScope sf-posh {
         Mock sf-app-ensureRunning { }
         InTestProjectScope {
             It "Remove nlb cluster config" {
-                [SfProject]$script:firstNode = sf-project-get
+                [SfProject]$script:firstNode = sf-PSproject-get
                 sf-nlb-newCluster
-                [SfProject]$script:secondNode = sf-project-get -all | ? id -ne $firstNode.id
+                [SfProject]$script:secondNode = sf-PSproject-get -all | ? id -ne $firstNode.id
                 $secondNode | Should -HaveCount 1
                 Get-Website | ? name -eq $secondNode.websiteName | Should -Not -BeNullOrEmpty
                 Get-Item "IIS:\AppPools\$($secondNode.id)" | Should -Not -BeNullOrEmpty
                 Test-Path $secondNode.webAppPath | Should -BeTrue
                 $script:nlbId = $firstNode.nlbId
-                sf-project-remove -project $secondNode
+                sf-PSproject-remove -project $secondNode
             }
 
             It "do not remove other node" {
-                [SfProject]$p = sf-project-get -all | ? id -eq $script:firstNode.id
+                [SfProject]$p = sf-PSproject-get -all | ? id -eq $script:firstNode.id
                 $p | Should -HaveCount 1
             }
                 
@@ -276,9 +276,9 @@ InModuleScope sf-posh {
             }
 
             It "removes nlb mapping" {
-                sf-nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -BeNullOrEmpty
-                sf-nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -BeNullOrEmpty
-                sf-nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -BeNullOrEmpty
+                _nlbData-get | ? { $_.ProjectId -eq $firstNode.id } | Should -BeNullOrEmpty
+                _nlbData-get | ? { $_.ProjectId -eq $secondNode.id } | Should -BeNullOrEmpty
+                _nlbData-get | ? { $_.NlbId -eq $nlbId } | Should -BeNullOrEmpty
                 $firstNode.nlbId | Should -BeNullOrEmpty
             }
 

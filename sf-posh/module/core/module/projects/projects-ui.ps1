@@ -7,7 +7,7 @@
     tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
     If tagsFilter is equal to '+' only untagged projects are shown.
 #>
-function sf-project-select {
+function sf-PSproject-select {
     Param(
         # prefix with + for mandatory, prefix with _ to exclude, +u all untagged
         [string[]]$tagsFilter,
@@ -28,11 +28,11 @@ function sf-project-select {
 
     end {
         if (!$tagsFilter) {
-            $tagsFilter = sf-tags-getDefaultFilter
+            $tagsFilter = sf-PSproject-tags-getDefaultFilter
         }
         
         if (!$projects) {
-            $projects = sf-project-get -all | sf-tags-filter -tagsFilter $tagsFilter
+            $projects = sf-PSproject-get -all | sf-PSproject-tags-filter -tagsFilter $tagsFilter
         }
 
         if (!$projects) {
@@ -41,11 +41,11 @@ function sf-project-select {
         }
         
         $selectedSitefinity = _proj-promptSelect -sitefinities $projects -propsToShow $propsToShow -propsToOrderBy $propsToSort
-        sf-project-setCurrent $selectedSitefinity
+        sf-PSproject-setCurrent $selectedSitefinity
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-PSproject-select -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
 
 function _proj-promptSelect {
     param (

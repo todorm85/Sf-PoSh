@@ -47,10 +47,10 @@ InModuleScope sf-posh {
             It "Set ssl offloading correctly" {
                 $conf = sf-config-open "System"
                 $conf.systemConfig.sslOffloadingSettings | Should -BeNullOrEmpty
-                sf-configSystem-setSslOffload $true
+                sf-config-System-setSslOffload $true
                 $conf = sf-config-open "System"
                 $conf.systemConfig.sslOffloadingSettings.GetAttribute("EnableSslOffloading") | Should -Be "True"
-                sf-configSystem-setSslOffload $false
+                sf-config-System-setSslOffload $false
                 $conf = sf-config-open "System"
                 $conf.systemConfig.sslOffloadingSettings.GetAttribute("EnableSslOffloading") | Should -Be "False"
             }
@@ -58,7 +58,7 @@ InModuleScope sf-posh {
             It "Set nlb nodes correctly and not destroy other config settings" {
                 $conf = sf-config-open "System"
                 $conf.systemConfig.loadBalancingConfig | Should -BeNullOrEmpty
-                sf-configSystem-setNlbUrls @("uno", "dos", "tr")
+                sf-config-System-setNlbUrls @("uno", "dos", "tr")
                 $conf = sf-config-open "System"
                 $entries = $conf.systemConfig.loadBalancingConfig.parameters.add
                 $entries | Should -HaveCount 3
@@ -71,12 +71,12 @@ InModuleScope sf-posh {
             It "Clear nlb nodes then add new nodes correctly" {
                 $conf = sf-config-open "System"
                 $conf.systemConfig.loadBalancingConfig.parameters.add | Should -HaveCount 3
-                sf-configSystem-setNlbUrls
+                sf-config-System-setNlbUrls
                 $conf = sf-config-open "System"
                 $entries = @($conf.systemConfig.loadBalancingConfig.parameters.add)
                 $entries | Should -BeNullOrEmpty
                 $conf.systemConfig.sslOffloadingSettings | Should -Not -BeNullOrEmpty
-                sf-configSystem-setNlbUrls @("uno")
+                sf-config-System-setNlbUrls @("uno")
                 $conf = sf-config-open "System"
                 $entries = @($conf.systemConfig.loadBalancingConfig.parameters.add)
                 $entries | Should -HaveCount 1
@@ -88,22 +88,22 @@ InModuleScope sf-posh {
     Describe "Web config ops should" {
         InTestProjectScope {
             It "Set machine key correctly" {
-                [SfProject]$Script:p = sf-project-get
+                [SfProject]$Script:p = sf-PSproject-get
                 $webConfigRaw = Get-Content "$($p.webAppPath)\web.config" -Raw
                 $webConfigRaw | Should -Not -BeNullOrEmpty
                 $webConfigRaw -match "machineKey" | Should -BeFalse
-                sf-configWeb-setMachineKey
+                sf-config-Web-setMachineKey
                 $webConfigRaw = Get-Content "$($p.webAppPath)\web.config" -Raw
                 $webConfigRaw -match "machineKey" | Should -BeTrue
             }
             It "Remove machine key correctly" {
-                sf-configWeb-removeMachineKey
+                sf-config-Web-removeMachineKey
                 $webConfigRaw = Get-Content "$($p.webAppPath)\web.config" -Raw
                 $webConfigRaw | Should -Not -BeNullOrEmpty
                 $webConfigRaw -match "machineKey" | Should -BeFalse
             }
             It "Remove machine do nothing when no machine key" {
-                sf-configWeb-removeMachineKey
+                sf-config-Web-removeMachineKey
                 $webConfigRaw = Get-Content "$($p.webAppPath)\web.config" -Raw
                 $webConfigRaw | Should -Not -BeNullOrEmpty
                 $webConfigRaw -match "machineKey" | Should -BeFalse

@@ -1,11 +1,11 @@
-function sf-configSystem-setSslOffload ([bool]$flag = $false) {
+function sf-config-System-setSslOffload ([bool]$flag = $false) {
     [xml]$sysConf = sf-config-open -name "System"
     $sslOffloadSettings = xml-getOrCreateElementPath $sysConf.systemConfig "sslOffloadingSettings"
     $sslOffloadSettings.SetAttribute("EnableSslOffloading", $flag.ToString())
     sf-config-save $sysConf
 }
 
-function sf-configSystem-setNlbUrls {
+function sf-config-System-setNlbUrls {
     param (
         [string[]]$urls
     )

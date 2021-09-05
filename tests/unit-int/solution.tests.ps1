@@ -29,7 +29,7 @@ InModuleScope sf-posh {
             $Script:result = $content
         }
 
-        Mock sf-project-get { }
+        Mock sf-PSproject-get { }
 
         it "disables style cop task correctly" {
             Mock Get-Content {

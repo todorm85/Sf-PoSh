@@ -39,11 +39,11 @@ function global:New-TestProject {
     $port = iis-getFreePort
     New-Website -Name $sourceProj.websiteName -PhysicalPath $sourceProj.webAppPath -Port $port -ApplicationPool $sourceProj.websiteName
 
-    sf-project-save -context $sourceProj
+    sf-PSproject-save -context $sourceProj
 
-    $sourceProj = (sf-project-get -all)[0]
+    $sourceProj = (sf-PSproject-get -all)[0]
     # $sourceProj.isInitialized = $true
-    sf-project-setCurrent $sourceProj
+    sf-PSproject-setCurrent $sourceProj
 
     sql-createDb -dbName $global:testProjectDbName
 }

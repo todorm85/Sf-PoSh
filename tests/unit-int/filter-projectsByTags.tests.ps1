@@ -17,7 +17,7 @@ InModuleScope sf-posh {
         $proj
     }
 
-    Describe "sf-tags-filter should" {
+    Describe "sf-PSproject-tags-filter should" {
         It "show only untagged when passing '+u'" {
             $projects = @(
                 get-project -tags 'test'
@@ -26,7 +26,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = $projects | sf-tags-filter -tagsFilter "+u"
+            $result = $projects | sf-PSproject-tags-filter -tagsFilter "+u"
             $result | Should -HaveCount 2
         }
         It "show all when passing none" {
@@ -38,7 +38,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another another'
             )
 
-            $result = $projects | sf-tags-filter
+            $result = $projects | sf-PSproject-tags-filter
             $result | Should -HaveCount 5
         }
         It "filter included tags correctly" {
@@ -50,7 +50,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = $projects | sf-tags-filter -tagsFilter "another"
+            $result = $projects | sf-PSproject-tags-filter -tagsFilter "another"
             $result | Should -HaveCount 2
         }
         It "filter excluded tags correctly" {
@@ -62,7 +62,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = $projects | sf-tags-filter -tagsFilter "_another"
+            $result = $projects | sf-PSproject-tags-filter -tagsFilter "_another"
             $result | Should -HaveCount 3
         }
         It "filter excluded multi tags correctly" {
@@ -75,7 +75,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = $projects | sf-tags-filter -tagsFilter @("_another", "_test")
+            $result = $projects | sf-PSproject-tags-filter -tagsFilter @("_another", "_test")
             $result | Should -HaveCount 3
         }
         It "filter multi tags correctly" {
@@ -89,7 +89,7 @@ InModuleScope sf-posh {
                 get-project -tags 'another'
             )
 
-            $result = $projects | sf-tags-filter -tagsFilter @("another", "_test")
+            $result = $projects | sf-PSproject-tags-filter -tagsFilter @("another", "_test")
             $result | Should -HaveCount 2
         }
     }

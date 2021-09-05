@@ -201,6 +201,6 @@ function _deserializeDate {
     }
 }
 
-function sf-module-openDatabaseFile {
+function sf-PSmodule-openDatabaseFile {
     & "$($sf.config.dataPath)"    
 }
