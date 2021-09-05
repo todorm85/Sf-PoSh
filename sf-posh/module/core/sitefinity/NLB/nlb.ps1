@@ -13,6 +13,7 @@ function sf-nlb-newCluster {
     $nlbEntry.ProjectId = $secondNode.id
     sf-nlbData-add -entry $nlbEntry
 
+    $firstNode.isInitialized = $false
     sf-project-setCurrent $firstNode
     if ($nlbId) {
         sf-appStates-save (_nlb-getInitialStateName $nlbId)

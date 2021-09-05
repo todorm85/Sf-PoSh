@@ -15,11 +15,12 @@ function sf-sourceControl-showPendingChanges {
 
     Param(
         [switch]$detailed
-        )
+    )
 
     if ($detailed) {
         $format = "Detailed"
-    } else {
+    }
+    else {
         $format = "Brief"
     }
 
@@ -37,11 +38,24 @@ function sf-sourceControl-showPendingChanges {
 }
 
 function sf-sourceControl-hasPendingChanges {
-    $pendingResult = sf-sourceControl-showPendingChanges
-    if ($pendingResult -eq 'There are no pending changes.') {
-        return $false
-    } else {
-        return $true
+    param(
+        [Parameter(ValueFromPipeline)]
+        [SfProject]
+        $project
+    )
+    
+    process {
+        Run-InFunctionAcceptingProjectFromPipeline {
+            param($project)
+
+            $pendingResult = sf-sourceControl-showPendingChanges
+            if ($pendingResult -eq 'There are no pending changes.') {
+                return $false
+            }
+            else {
+                return $true
+            }
+        }
     }
 }
 
@@ -68,7 +82,8 @@ function sf-sourceControl-getLatestChanges {
     Write-Information "Getting latest changes for path ${solutionPath}."
     if ($overwrite) {
         tfs-get-latestChanges -branchMapPath $solutionPath -overwrite
-    } else {
+    }
+    else {
         tfs-get-latestChanges -branchMapPath $solutionPath
     }
 
