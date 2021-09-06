@@ -21,9 +21,9 @@ InModuleScope sf-posh {
             Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\${id}\SitefinityWebApp.csproj" | Should -Be $true
             Test-Path "IIS:\AppPools\${id}" | Should -Be $true
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
-            existsInHostsFile -searchParam $projName | Should -Be $true
+            existsInHostsFile -searchParam $id | Should -Be $true
 
-            sf-PSproject-remove -project $createdSf
+            sf-PSproject-remove -project $createdSf -noPrompt
 
             $suffix = generateRandomName
             $projName = $Global:fromZipProjectName + $suffix
@@ -31,12 +31,13 @@ InModuleScope sf-posh {
             sf-PSproject-new -displayName $projName -sourcePath "$PSScriptRoot\..\utils\files\Build\SitefinitySource.zip"
             $sitefinities = @(sf-PSproject-get -all) | Where-Object { $_.displayName -eq $projName }
             $createdSf = [SfProject]$sitefinities[0]
+            $id = $createdSf.id
             $createdSf.solutionPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}"
             $createdSf.webAppPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}\SitefinityWebApp"
             Test-Path "$($createdSf.webAppPath)\App_Data\Sitefinity\Sitefinity.lic" | Should -BeTrue
             Remove-Item "$PSScriptRoot\..\utils\files\Build\Sitefinity.lic"
 
-            sf-PSproject-remove -project $createdSf
+            sf-PSproject-remove -project $createdSf -noPrompt
         }
     }
 }

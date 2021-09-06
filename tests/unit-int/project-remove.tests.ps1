@@ -23,7 +23,7 @@ InModuleScope sf-posh {
 
         It "throw when no project selected" {
             sf-PSproject-setCurrent $null
-            { sf-PSproject-remove } | Should -Throw -ExpectedMessage "No project selected"
+            { sf-PSproject-remove -noPrompt } | Should -Throw -ExpectedMessage "No project selected"
         }
 
         It "is correctly initialized after unsuccessful delete attempt" {
@@ -32,7 +32,7 @@ InModuleScope sf-posh {
 
         It "not throw when one is selected" {
             sf-PSproject-setCurrent $p
-            { sf-PSproject-remove } | Should -Not -Throw
+            { sf-PSproject-remove -noPrompt } | Should -Not -Throw
         }
 
         It "remove website" {
@@ -53,7 +53,7 @@ InModuleScope sf-posh {
         
         It "throw" {
             sf-PSproject-setCurrent $null
-            { sf-PSproject-remove } | Should -Throw -ExpectedMessage "No project selected"
+            { sf-PSproject-remove -noPrompt } | Should -Throw -ExpectedMessage "No project selected"
         }
 
         }
@@ -62,7 +62,7 @@ InModuleScope sf-posh {
     Describe "Project remove when no context passed and a project is selected should" {
         InTestProjectScope {
         It "remove the current selected" {
-            sf-PSproject-remove
+            sf-PSproject-remove -noPrompt
             { sf-PSproject-get } | Should -Throw -ExpectedMessage "No project selected!"
         }
         
@@ -72,7 +72,7 @@ InModuleScope sf-posh {
     Describe "Project remove when context passed and same project is selected should" {
         InTestProjectScope {
         It "remove the current selected" {
-            sf-PSproject-remove -project (sf-PSproject-get)
+            sf-PSproject-remove -project (sf-PSproject-get) -noPrompt
             { sf-PSproject-get } | Should -Throw -ExpectedMessage "No project selected!"
         }
         
@@ -89,7 +89,7 @@ InModuleScope sf-posh {
             New-Item $path -ItemType Directory
             $another.webAppPath = $path
             sf-PSproject-setCurrent $another
-            sf-PSproject-remove -project $toDelete
+            sf-PSproject-remove -project $toDelete -noPrompt
             sf-PSproject-get | Should -Be $another
         }
         

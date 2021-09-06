@@ -259,7 +259,7 @@ InModuleScope sf-posh {
                 Get-Item "IIS:\AppPools\$($secondNode.id)" | Should -Not -BeNullOrEmpty
                 Test-Path $secondNode.webAppPath | Should -BeTrue
                 $script:nlbId = $firstNode.nlbId
-                sf-PSproject-remove -project $secondNode
+                sf-PSproject-remove -project $secondNode -noPrompt
             }
 
             It "do not remove other node" {

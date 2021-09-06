@@ -18,7 +18,7 @@ InModuleScope sf-posh {
 
             [SfProject[]]$projects = sf-PSproject-get -all
             foreach ($proj in $projects) {
-                sf-PSproject-remove -project $proj
+                sf-PSproject-remove -project $proj -noPrompt
             }
 
             sf-PSproject-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
@@ -37,11 +37,11 @@ InModuleScope sf-posh {
         }
 
         It "Create project artefacts correctly" {
-            Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id\$($createdSf.displayName)($id).sln" | Should -Be $true
+            Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id\$id.sln" | Should -Be $true
             Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id\Telerik.Sitefinity.sln" | Should -Be $true
             Test-Path "IIS:\AppPools\${id}" | Should -Be $true
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
-            existsInHostsFile -searchParam $Global:testProjectDisplayName | Should -Be $true
+            existsInHostsFile -searchParam $id | Should -Be $true
         }
     }
 
@@ -68,9 +68,9 @@ InModuleScope sf-posh {
             sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
         }
 
-        It "remove app data and keep database when uninitialize" {
+        It "remove app data and database when uninitialize" {
             sf-app-uninitialize
-            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+            sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
             Test-Path $configsPath | Should -Be $false
         }
 
@@ -133,7 +133,7 @@ InModuleScope sf-posh {
             $Script:cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
             sf-PSproject-get -all | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-                sf-PSproject-remove -project $_
+                sf-PSproject-remove -project $_ -noPrompt
             }
 
             sql-get-dbs | Where-Object { $_.name -eq $sourceProj.id } | Should -HaveCount 1
@@ -178,11 +178,11 @@ InModuleScope sf-posh {
         }
 
         It "create a hosts file entry" {
-            existsInHostsFile -searchParam $project.displayName | Should -Be $true
+            existsInHostsFile -searchParam $project.id | Should -Be $true
         }
 
         It "create a user friendly solution name" {
-            Test-Path "$($project.solutionPath)\$($project.displayName)($($project.id)).sln" | Should -Be $true
+            Test-Path "$($project.solutionPath)\$($project.id).sln" | Should -Be $true
         }
 
         It "copy the original solution file" {
@@ -202,7 +202,7 @@ InModuleScope sf-posh {
         }
 
         sf-PSproject-get -all | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-            sf-PSproject-remove -project $_
+            sf-PSproject-remove -project $_ -noPrompt
         }
     }
 
@@ -223,7 +223,7 @@ InModuleScope sf-posh {
         }
         
         It "not throw" {
-            sf-PSproject-remove
+            sf-PSproject-remove -noPrompt
         }
 
         It "remove project from sf-posh" {

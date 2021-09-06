@@ -15,9 +15,9 @@ InModuleScope sf-posh {
                 { sf-app-initialize } | Should -Throw -ExpectedMessage "Already initialized. Uninitialize first."
             }
 
-            It "remove app data and keep database when uninitialize" {
+            It "remove app data and database when uninitialize" {
                 sf-app-uninitialize
-                sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+                sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
                 Test-Path $configsPath | Should -Be $false
             }
     
@@ -27,8 +27,8 @@ InModuleScope sf-posh {
                 Test-Path "$configsPath\StartupConfig.config" | Should -Be $true
             }
 
-            It "use the project id for the database and keep the old database when it had different name than the id" {
-                sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 1
+            It "use the project id for the database and remove the old database when it had different name than the id" {
+                sql-get-dbs | Where-Object { $_.Name.Contains($dbName) } | Should -HaveCount 0
                 Get-Content "$configsPath\StartupConfig.config" -Raw | Should -BeLike "*$($project.id)*"
             }
 

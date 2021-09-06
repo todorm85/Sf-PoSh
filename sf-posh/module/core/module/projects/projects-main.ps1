@@ -161,7 +161,7 @@ function sf-PSproject-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sf-PSproject-remove -project $selectedSitefinity
+            sf-PSproject-remove -project $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"
@@ -189,7 +189,8 @@ function sf-PSproject-remove {
         [SfProject]$project,
         [switch]$keepDb,
         [switch]$keepWorkspace,
-        [switch]$keepProjectFiles
+        [switch]$keepProjectFiles,
+        [switch]$noPrompt
     )
 
     process {
@@ -202,6 +203,13 @@ function sf-PSproject-remove {
             Write-Verbose "No current project."    
         }
         
+        if (!$noPrompt) {
+            $result = Read-Host "Are you sure you want to remove the current project $($currentProject.displayName)? y/n: ";
+            if ($result -ne "y") {
+                return
+            }    
+        }
+
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
 

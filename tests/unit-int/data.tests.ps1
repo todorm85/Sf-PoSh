@@ -36,7 +36,7 @@ InModuleScope sf-posh {
         }
 
         It "persists defaultBinding correctly" {
-            sf-PSproject-get -all | % { sf-PSproject-remove $_ }
+            sf-PSproject-get -all | % { sf-PSproject-remove $_ -noPrompt }
             $proj1 = New-Object SfProject -Property @{
                 id             = "idsb";
                 defaultBinding = [SiteBinding]@{

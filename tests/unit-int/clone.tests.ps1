@@ -9,7 +9,7 @@ InModuleScope sf-posh {
             $cloneTestName = "$sourceName-clone" # TODO: stop using hardcoded convention here
 
             sf-PSproject-get -all | Where-Object displayName -eq $cloneTestName | ForEach-Object {
-                sf-PSproject-remove -project $_
+                sf-PSproject-remove -project $_ -noPrompt
             }
 
             $dbName = sf-db-getNameFromDataConfig
@@ -47,11 +47,11 @@ InModuleScope sf-posh {
             }
 
             It "create a hosts file entry" {
-                existsInHostsFile -searchParam $project.displayName | Should -Be $true
+                existsInHostsFile -searchParam $project.id | Should -Be $true
             }
 
             It "create a user friendly solution name" {
-                Test-Path "$($project.solutionPath)\$($project.displayName)($($project.id)).sln" | Should -Be $true
+                Test-Path "$($project.solutionPath)\$($project.id).sln" | Should -Be $true
             }
 
             It "copy the original solution file" {
@@ -85,7 +85,7 @@ InModuleScope sf-posh {
             }
 
             $projects | ForEach-Object {
-                sf-PSproject-remove $_
+                sf-PSproject-remove $_ -noPrompt
             }
         }
     }

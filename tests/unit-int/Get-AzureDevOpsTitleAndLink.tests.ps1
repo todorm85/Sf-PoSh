@@ -14,30 +14,30 @@ InModuleScope sf-posh {
             $testName = "Product Backlog Item 337271: 1 All classifications: screen_ *4448 55bs"
             $testName = $testName + ("a" * 50)
             $res = _getNameParts -name $testName
-            $res.name | Should -BeLike "All_classifications_screen__4448_55bs*"
-            $res.name.Length | Should -BeLessThan 51
+            $res.name | Should -BeLike "1 All classifications screen_ *4448 55bs*"
+            # $res.name.Length | Should -BeLessThan 51
             $res.link | Should -Be "$($linkRoute)337271"
         }
         It "return correct title for valid azure dev ops BUG title" {
             $testName = "Bug 337271: 1 All classifications: screen_ *4448 55bs"
             $res = _getNameParts -name $testName
-            $res.name | Should -BeLike "All_classifications_screen__4448_55bs"
+            $res.name | Should -BeLike "1 All classifications screen_ *4448 55bs"
         }
         It "return correct title for valid azure dev ops Task title" {
             $testName = "Task 337271: 1 All classifications: screen_ *4448 55bs"
             $res = _getNameParts -name $testName
-            $res.name | Should -BeLike "All_classifications_screen__4448_55bs"
+            $res.name | Should -BeLike "1 All classifications screen_ *4448 55bs"
         }
         It "return correct title for valid azure dev ops BUG title that ends with invalid character" {
             $testName = "Bug 343346: Audit should not log the event when a frontend user signs in using frontend login widget."
             $res = _getNameParts -name $testName
-            $res.name | Should -BeLike "Audit_should_not_log_the_event_when_a_frontend_use"
+            $res.name | Should -BeLike "Audit should not log the event when a frontend user signs in using frontend login widget."
         }
         It "return correct title for valid azure dev ops CUSTOM title" {
             $GLOBAL:sf.config.azureDevOpsItemTypes += @("Custom title")
             $testName = "Custom title 343346: Audit should not log the event when a frontend user signs in using frontend login widget."
             $res = _getNameParts -name $testName
-            $res.name | Should -BeLike "Audit_should_not_log_the_event_when_a_frontend_use"
+            $res.name | Should -BeLike "Audit should not log the event when a frontend user signs in using frontend login widget."
         }
     }
 }

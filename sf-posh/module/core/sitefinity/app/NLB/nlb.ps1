@@ -39,7 +39,7 @@ function sf-nlb-removeCluster {
         try {
             Run-InProjectScope -project $_ -script { _nlb-unconfigureNlbForProject }
             if (!$skipDeleteOtherNodes) {
-                sf-PSproject-remove -project $_ -keepDb
+                sf-PSproject-remove -project $_ -keepDb -noPrompt
             }
         }
         catch {
