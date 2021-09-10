@@ -1,5 +1,5 @@
 $Global:SfEvents_OnAfterProjectSet += {
-    sf-serverCode-deployDirectory "$PSScriptRoot\serverCode" "$($Global:sfe.appRelativeServerCodeRootPath)\sites"
+    sf-serverCode-deployDirectory "$PSScriptRoot\serverCode" "$($Global:sf.appRelativeServerCodeRootPath)\sites"
 }
 
 function sf-seed-Sites-create {

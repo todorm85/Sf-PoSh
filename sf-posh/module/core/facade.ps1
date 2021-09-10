@@ -1,7 +1,7 @@
 function sf {
     param (
-        [Parameter(ParameterSetName = "new")][string]$newSourcePath,
         [Parameter(ParameterSetName = "new")][string]$newName = 'Untitled',
+        [Parameter(ParameterSetName = "new")][string]$newSourcePath,
         [Parameter(ParameterSetName = "recreate")][switch]$recreate,
         [Parameter(ParameterSetName = "discardAndSync")][switch]$discardChangesGetLatestBuildAndRun,
         [Parameter(ParameterSetName = "sync")][switch]$getLatestBuildAndRun,
@@ -10,8 +10,14 @@ function sf {
     )
     
     Process {
-        if ($newSourcePath) {
-            $project = sf-PSproject-new -sourcePath $newSourcePath -displayName $newName
+        if ($newName) {
+            $project = $null
+            if ($newSourcePath) {
+                $project = sf-PSproject-new -sourcePath $newSourcePath -displayName $newName
+            } else {
+                $project = sf-PSproject-new -displayName $newName
+            }
+
             if (!(Test-Path "$($project.webAppPath)/bin/Telerik.Sitefinity.dll")) {
                 sf-sol-build -retryCount 3
             }
@@ -83,20 +89,20 @@ function _facade-source-getLatest {
         [switch]$discardExisting
     )
     
-    if ($project.branch) {
-        $newChangesDetected = $force # force will always get new changes
-        if ($discardExisting -and (sf-source-hasPendingChanges)) {
-            $output = sf-source-undoPendingChanges
-            $newChangesDetected = $output.Exception -and !($output.Exception -notlike "*No pending changes*")
-        }
+    # if ($project.branch) {
+    #     $newChangesDetected = $force # force will always get new changes
+    #     if ($discardExisting -and (sf-source-hasPendingChanges)) {
+    #         $output = sf-source-undoPendingChanges
+    #         $newChangesDetected = $output.Exception -and !($output.Exception -notlike "*No pending changes*")
+    #     }
 
-        if ($getLatestChanges) {
-            $getLatestOutput = sf-source-getLatestChanges -overwrite:$force
-            $newChangesDetected = !$getLatestOutput -or !($getLatestOutput.Contains('All files are up to date.'))
-        }
+    #     if ($getLatestChanges) {
+    #         # $getLatestOutput = sf-source-getLatestChanges -overwrite:$force
+    #         # $newChangesDetected = !$getLatestOutput -or !($getLatestOutput.Contains('All files are up to date.'))
+    #     }
 
-        return $newChangesDetected
-    }
+    #     return $newChangesDetected
+    # }
 
     return $false
 }

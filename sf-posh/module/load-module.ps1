@@ -4,6 +4,8 @@
 
 $GLOBAL:sf = [PSCustomObject]@{ }
 
+Add-Member -InputObject $GLOBAL:sf -MemberType NoteProperty -Name appRelativeServerCodeRootPath -Value "App_Code\sf-posh-extensions"
+
 $Script:moduleUserDir = "$Global:HOME\documents\sf-posh"
 if (-not (Test-Path $Script:moduleUserDir)) {
     New-Item -Path $Script:moduleUserDir -ItemType Directory

@@ -261,7 +261,7 @@ function _switchStyleCop {
         $foundSourceAnalysisEnabled = $line -match "^.*?\<StyleCopEnabled\>\`$\(SourceAnalysisEnabled\)\<\/StyleCopEnabled\>" -or $line -match "^.*?\<!-- source analysis prop line --\>"
         if ($foundStyleCopEnabledProperty) {
             if ($enable) {
-                $newContent += "<StyleCopEnabled>true</StyleCopEnabled>"
+                $newContent += "<StyleCopEnabled>`$(SourceAnalysisEnabled)</StyleCopEnabled>"
             }
             else {
                 $newContent += "<StyleCopEnabled>false</StyleCopEnabled>"

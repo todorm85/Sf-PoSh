@@ -8,7 +8,8 @@ function sf-source-undoPendingChanges {
         throw "invalid or no solution path"
     }
 
-    tfs-undo-PendingChanges $context.solutionPath
+    # tfs-undo-PendingChanges $context.solutionPath
+    throw "Not implemented for git yet!"
 }
 
 function sf-source-showPendingChanges {
@@ -33,8 +34,7 @@ function sf-source-showPendingChanges {
         throw "invalid or no solution path"
     }
 
-    $workspaceName = tfs-get-workspaceName $context.solutionPath
-    tfs-show-PendingChanges $workspaceName $format
+    throw "Not implemented for git yet!"
 }
 
 function sf-source-hasPendingChanges {
@@ -47,14 +47,7 @@ function sf-source-hasPendingChanges {
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
-
-            $pendingResult = sf-source-showPendingChanges
-            if ($pendingResult -eq 'There are no pending changes.') {
-                return $false
-            }
-            else {
-                return $true
-            }
+            throw "Not implemented for git yet!"
         }
     }
 }
@@ -64,6 +57,8 @@ function sf-source-getLatestChanges {
     Param(
         [switch]$overwrite
     )
+
+    throw "Not implemented for git yet!"
 
     [SfProject]$context = sf-PSproject-get
     if (!$context.branch) {
@@ -81,14 +76,45 @@ function sf-source-getLatestChanges {
 
     Write-Information "Getting latest changes for path ${solutionPath}."
     if ($overwrite) {
-        tfs-get-latestChanges -branchMapPath $solutionPath -overwrite
     }
     else {
-        tfs-get-latestChanges -branchMapPath $solutionPath
     }
 
     $context.lastGetLatest = [System.DateTime]::Now
     sf-PSproject-save $context
 
     Write-Information "Getting latest changes complete."
+}
+
+function sf-source-new {
+    param (
+        $remotePath,
+        $localPath,
+        $directoryName
+    )
+
+    InLocationScope $localPath {
+        Invoke-Expression -Command "git clone $remotePath $directoryName"
+    }
+}
+
+function InLocationScope {
+    param (
+        $location,
+        $script
+    )
+    
+    if (!(Test-Path $location)) {
+        throw "Invalid local path."
+    }
+
+    $originalLocation = Get-Location
+    Set-Location $location
+    try {
+        Invoke-Command -ScriptBlock $script
+    }
+    finally {
+        Set-Location $originalLocation
+    }
+
 }

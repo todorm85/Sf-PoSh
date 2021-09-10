@@ -1,5 +1,5 @@
 $Global:SfEvents_OnAfterProjectSet += {
-    sf-serverCode-deployDirectory "$PSScriptRoot\serverCode" "$($Global:sfe.appRelativeServerCodeRootPath)\localization"
+    sf-serverCode-deployDirectory "$PSScriptRoot\serverCode" "$($Global:sf.appRelativeServerCodeRootPath)\localization"
 }
 
 function sf-localization-addCultures {

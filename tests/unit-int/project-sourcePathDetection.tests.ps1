@@ -30,15 +30,14 @@ InModuleScope sf-posh {
             [SfProject]$project = _newSfProjectObject -id $id
             { _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath "$TestDrive/nonexisting" } | Should -Throw -ExpectedMessage "Source path does not exist"
         }
-        It "create from source when branch supplied" {
+        It "create from source when supplied" {
             $id = generateRandomName
             [SfProject]$project = _newSfProjectObject -id "$id"
-            $branchPath = "$/CMS/dummy"
-            Mock _createWorkspace {
-                $branch | Should -Be $branchPath
+            Mock sf-source-new {
+                New-Item -Path "$localPath\$directoryName" -ItemType Directory -Force
             }
 
-            _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath $branchPath
+            _createAndDetectProjectArtifactsFromSourcePath -project $project -sourcePath "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity"
             $project.solutionPath | Should -Be "$($TestDrive)\$id"
             $project.webAppPath | Should -Be "$($TestDrive)\$id\SitefinityWebApp"
         }

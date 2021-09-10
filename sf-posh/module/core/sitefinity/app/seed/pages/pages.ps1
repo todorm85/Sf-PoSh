@@ -1,6 +1,6 @@
 $Global:SfEvents_OnAfterProjectSet += {
     # remove dependencies to tests
-    # sf-serverCode-deployDirectory "$PSScriptRoot\serverCode" "$($Global:sfe.appRelativeServerCodeRootPath)\pages"
+    # sf-serverCode-deployDirectory "$PSScriptRoot\serverCode" "$($Global:sf.appRelativeServerCodeRootPath)\pages"
 }
 
 <#

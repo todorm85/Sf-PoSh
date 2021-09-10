@@ -10,18 +10,12 @@ $Global:fromZipProjectName = 'created_from_zip'
 InModuleScope sf-posh {
     Describe "Creating the project from branch should" {
         It "execute with correct initial state" {
-            tfs-get-workspaces -server $sf.config.tfsServerName | % {
-                if ($_ -like "$($sf.config.idPrefix)*") {
-                    tfs-delete-workspace -workspaceName $_ -server $sf.config.tfsServerName
-                }
-            }
-
             [SfProject[]]$projects = sf-PSproject-get -all
             foreach ($proj in $projects) {
                 sf-PSproject-remove -project $proj -noPrompt
             }
 
-            sf-PSproject-new -displayName $Global:testProjectDisplayName -sourcePath '$/CMS/Sitefinity 4.0/Code Base'
+            sf-PSproject-new -displayName $Global:testProjectDisplayName -sourcePath 'https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity'
 
             $sitefinities = @(sf-PSproject-get -all) | Where-Object { $_.displayName -eq $Global:testProjectDisplayName }
             $sitefinities | Should -HaveCount 1
@@ -30,7 +24,7 @@ InModuleScope sf-posh {
         }
         
         It "Set project data correctly" {
-            $createdSf.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
+            $createdSf.branch | Should -Be ''
             $createdSf.solutionPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}"
             $createdSf.webAppPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}\SitefinityWebApp"
             $createdSf.websiteName | Should -Be $id
@@ -140,7 +134,6 @@ InModuleScope sf-posh {
 
             # edit a file in source project and mark as changed in TFS
             $webConfigPath = "$($sourceProj.webAppPath)\web.config"
-            tfs-checkout-file $webConfigPath > $null
             [xml]$xmlData = Get-Content $webConfigPath
             [System.Xml.XmlElement]$appSettings = $xmlData.configuration.appSettings
             $newElement = $xmlData.CreateElement("add")
@@ -162,7 +155,7 @@ InModuleScope sf-posh {
         }
 
         It "set project branch" {
-            $project.branch | Should -Be '$/CMS/Sitefinity 4.0/Code Base'
+            $project.branch | Should -Be ''
         }
 
         It "set project solution path" {
@@ -219,7 +212,6 @@ InModuleScope sf-posh {
             Test-Path "IIS:\Sites\${testId}" | Should -Be $true
             sql-get-dbs | Where-Object { $_.Name.Contains($testId) } | Should -HaveCount 1
             existsInHostsFile -searchParam $proj.id | Should -Be $true
-            tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName | Where-Object { $_ -like "*$testId*" } | Should -HaveCount 1
         }
         
         It "not throw" {
@@ -249,10 +241,6 @@ InModuleScope sf-posh {
 
         It "Remove entry from hosts file" {
             existsInHostsFile -searchParam $proj.id | Should -Be $false
-        }
-
-        It "Remove workspace" {
-            tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName | Where-Object { $_ -like "*$testId*" } | Should -HaveCount 0
         }
     }
 }

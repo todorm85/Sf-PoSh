@@ -12,10 +12,8 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
 #>
 function sf-PSproject-new {
     Param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$sourcePath,
-        [string]$displayName = 'Untitled'
+        [string]$displayName = 'Untitled',
+        [string]$sourcePath = "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity"
     )
 
     [SfProject]$newContext = _newSfProjectObject
@@ -97,16 +95,6 @@ function sf-PSproject-clone {
     }
 
     sf-PSproject-setCurrent -newContext $newProject > $null
-
-    try {
-        if (!$skipSourceControlMapping -and $context.branch) {
-            Write-Information "Creating the workspace."
-            _createWorkspace -context $newProject -branch $context.branch
-        }
-    }
-    catch {
-        Write-Error "Clone project error. Error binding to TFS.`n$_"
-    }
 
     try {
         Write-Information "Creating website..."
@@ -241,26 +229,6 @@ function sf-PSproject-remove {
                 }
             }
 
-            # TFS
-            $workspaceName = $null
-            try {
-                Set-Location -Path $PSScriptRoot
-                $workspaceName = tfs-get-workspaceName $project.webAppPath
-            }
-            catch {
-                Write-Warning "No workspace to delete, no TFS mapping found."
-            }
-
-            if ($workspaceName -and !($keepWorkspace)) {
-                Write-Information "Deleting workspace..."
-                try {
-                    tfs-delete-workspace $workspaceName $GLOBAL:sf.Config.tfsServerName
-                }
-                catch {
-                    Write-Warning "Could not delete workspace $_"
-                }
-            }
-        
             # Del db
             if (!$keepDb) {
                 Write-Information "Deleting sitefinity database..."
@@ -286,6 +254,7 @@ function sf-PSproject-remove {
                     }
 
                     Write-Information "Unlocking all locked files in solution directory..."
+                    Set-Location $GLOBAL:sf.config.projectsDirectory
                     unlock-allFiles -path $path
 
                     Write-Information "Deleting solution directory..."
@@ -600,14 +569,13 @@ function _generateId {
     $i = 0;
     # for performance get all external items like sites dbs etc before loop
     $sitefinities = sf-PSproject-get -all | select -ExpandProperty displayName
-    $workspaces = tfs-get-workspaces $GLOBAL:sf.Config.tfsServerName
     # do not use get-iisapppool - does not return latest
     $appPools = Get-ChildItem "IIS:\AppPools" | select -ExpandProperty name
     $sites = Get-Website | select -ExpandProperty name
     $dbs = sql-get-dbs | select -ExpandProperty name
     while ($true) {
         $name = "$($GLOBAL:sf.Config.idPrefix)$i"
-        if (!(_getIsIdDuplicate $name (@($sitefinities) + $workspaces + $appPools + $sites + $dbs))) {
+        if (!(_getIsIdDuplicate $name (@($sitefinities) + $appPools + $sites + $dbs))) {
             break;
         }
 
@@ -670,16 +638,6 @@ function _proj-initialize {
     }
 
     _createCustomSolutionName $project
-
-    try {
-        if (!$cachedProject -and !$project.branch -or $project.branch -ne $cachedProject.branch) {
-            $detectedChanges = $true
-            _proj-detectTfs -project $project
-        }
-    }
-    catch {
-        $errors += "`nSource control detection: $_."
-    }
 
     try {
         if (!$cachedProject -and !$project.websiteName -or $project.websiteName -ne $cachedProject.websiteName) {
@@ -760,13 +718,21 @@ function _proj-tryCreateFromBranch {
         [Parameter(Mandatory = $true)][string]$sourcePath
     )
 
-    if ($sourcePath.StartsWith("$/CMS/")) {
-        $projectDirectory = _proj-createProjectDirectory -project $project
-        $project.solutionPath = $projectDirectory;
-        $project.webAppPath = "$projectDirectory\SitefinityWebApp";
-        _createWorkspace -context $project -branch $sourcePath -force
-        return $true
+
+    if ($sourcePath -eq "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity") {
+        $projectsDir = $($GLOBAL:sf.Config.projectsDirectory)
+        sf-source-new -remotePath $sourcePath -localPath $projectsDir -directoryName $project.id
+        if (Test-Path "$projectsDir\$($project.id)") {
+            $project.solutionPath = "$projectsDir\$($project.id)";
+            $project.webAppPath = "$($project.solutionPath)\SitefinityWebApp";
+            return $true
+        }
+        else {
+            throw "Error cloning remote repository."
+        }
     }
+
+    return $false
 }
 
 function _proj-tryCreateFromZip {
@@ -800,21 +766,6 @@ function _proj-tryCreateFromZip {
         }
 
         return $true
-    }
-}
-
-function _proj-detectTfs ([SfProject]$project) {
-    if (!(_proj-isSolution -project $project)) {
-        return
-    }
-
-    $branch = tfs-get-branchPath -path $project.solutionPath
-    if ($branch) {
-        $project.branch = $branch
-        _updateLastGetLatest -context $project
-    }
-    else {
-        $project.branch = '';
     }
 }
 
