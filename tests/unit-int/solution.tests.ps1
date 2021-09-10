@@ -10,7 +10,7 @@ InModuleScope sf-posh {
                 "    <StyleCopEnabled>`$(SourceAnalysisEnabled)</StyleCopEnabled>",
                 "  </PropertyGroup>",
                 "  <PropertyGroup Condition=""'`$(StyleCopEnabled)' == ''"">",
-                "    <StyleCopEnabled>`$(SourceAnalysisEnabled)</StyleCopEnabled>",
+                "    <StyleCopEnabled>true</StyleCopEnabled>",
                 "  </PropertyGroup>"
         )
 
@@ -20,7 +20,7 @@ InModuleScope sf-posh {
                 "    <StyleCopEnabled>false</StyleCopEnabled><!-- source analysis prop line -->",
                 "  </PropertyGroup>",
                 "  <PropertyGroup Condition=""'`$(StyleCopEnabled)' == ''"">",
-                "    <StyleCopEnabled>false</StyleCopEnabled><!-- source analysis prop line -->",
+                "    <StyleCopEnabled>false</StyleCopEnabled>",
                 "  </PropertyGroup>"
         )
 

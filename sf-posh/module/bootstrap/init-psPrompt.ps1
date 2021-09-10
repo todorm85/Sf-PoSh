@@ -32,10 +32,10 @@ function _setConsoleTitle {
 
     if ($newContext) {
         if ($newContext.branch) {
-            $branch = ($newContext.branch).Split([string[]]("$/CMS/Sitefinity 4.0"), [System.StringSplitOptions]::RemoveEmptyEntries)[0]
+            $branch = $newContext.branch
         }
         else {
-            $branch = 'No TFS'
+            $branch = 'No source'
         }
 
         [System.Console]::Title = "$($newContext.id)|$($newContext.displayName)|$branch"

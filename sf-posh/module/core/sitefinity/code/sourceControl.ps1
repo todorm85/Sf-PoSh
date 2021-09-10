@@ -1,40 +1,8 @@
 function sf-source-undoPendingChanges {
-    $context = sf-PSproject-get
-    if (!$context.branch) {
-        return
+    $context = _source-getValidatedProject
+    InLocationScope $context.solutionPath {
+        Invoke-Expression -Command "git restore *"
     }
-
-    if (!(Test-Path $context.solutionPath)) {
-        throw "invalid or no solution path"
-    }
-
-    # tfs-undo-PendingChanges $context.solutionPath
-    throw "Not implemented for git yet!"
-}
-
-function sf-source-showPendingChanges {
-
-    Param(
-        [switch]$detailed
-    )
-
-    if ($detailed) {
-        $format = "Detailed"
-    }
-    else {
-        $format = "Brief"
-    }
-
-    $context = sf-PSproject-get
-    if (!$context.branch) {
-        return
-    }
-
-    if (-not $context -or -not $context.solutionPath -or -not (Test-Path $context.solutionPath)) {
-        throw "invalid or no solution path"
-    }
-
-    throw "Not implemented for git yet!"
 }
 
 function sf-source-hasPendingChanges {
@@ -47,43 +15,36 @@ function sf-source-hasPendingChanges {
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
-            throw "Not implemented for git yet!"
+            InLocationScope $project.solutionPath {
+                !(!(Invoke-Expression -Command "git status" | ? { $_ -contains "nothing to commit, working tree clean"}))
+            }
         }
     }
 }
 
-function sf-source-getLatestChanges {
-
-    Param(
-        [switch]$overwrite
-    )
-
-    throw "Not implemented for git yet!"
+function _source-getValidatedProject {
+    [OutputType([SfProject])]
+    param()
 
     [SfProject]$context = sf-PSproject-get
-    if (!$context.branch) {
-        return
-    }
-
     $solutionPath = $context.solutionPath
     if (!(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
     }
 
-    if ($solutionPath -eq '') {
-        throw "Solution path is not set."
-    }
+    $context
+}
 
-    Write-Information "Getting latest changes for path ${solutionPath}."
-    if ($overwrite) {
-    }
-    else {
+function sf-source-getLatestChanges {
+
+    $context = _source-getValidatedProject
+    $solutionPath = $context.solutionPath
+    InLocationScope $solutionPath {
+        Invoke-Expression -Command "git pull"
     }
 
     $context.lastGetLatest = [System.DateTime]::Now
     sf-PSproject-save $context
-
-    Write-Information "Getting latest changes complete."
 }
 
 function sf-source-new {
@@ -117,4 +78,16 @@ function InLocationScope {
         Set-Location $originalLocation
     }
 
+}
+
+function sf-source-getCurrentBranch {
+    $context = _source-getValidatedProject
+    InLocationScope $context.solutionPath {
+        & git branch | ? {$_.StartsWith("*")} | % {$_.Split(' ')[1]}
+    }
+}
+
+function sf-source-hasSourceControl {
+    $context = _source-getValidatedProject
+    Test-Path "$($context.solutionPath)\.git"
 }

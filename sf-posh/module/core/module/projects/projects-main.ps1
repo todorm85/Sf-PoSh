@@ -73,7 +73,11 @@ function sf-PSproject-clone {
     try {
         Write-Information "Copying $sourcePath to $targetPath."
         New-Item $targetPath -ItemType Directory > $null
-        Copy-Item "$sourcePath\*" $targetPath -Recurse
+        if ($skipSourceControlMapping) {
+            Copy-Item "$sourcePath\*" $targetPath -Recurse -Exclude ".git"
+        } else {
+            Copy-Item "$sourcePath\*" $targetPath -Recurse
+        }
     }
     catch {
         $errors = "Error copying source files.`n $_";
@@ -638,6 +642,18 @@ function _proj-initialize {
     }
 
     _createCustomSolutionName $project
+
+    try {
+        if (!$cachedProject -and !$project.branch -or $project.branch -ne $cachedProject.branch) {
+            if (sf-source-hasSourceControl) {
+                $detectedChanges = $true
+                $project.branch = sf-source-getCurrentBranch
+            }
+        }
+    }
+    catch {
+        $errors += "`nSource control detection: $_."
+    }
 
     try {
         if (!$cachedProject -and !$project.websiteName -or $project.websiteName -ne $cachedProject.websiteName) {
