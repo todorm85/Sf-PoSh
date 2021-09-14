@@ -2,7 +2,6 @@ function sf {
     param (
         [Parameter(ParameterSetName = "new")][string]$newName = 'Untitled',
         [Parameter(ParameterSetName = "new")][string]$newSourcePath,
-        [Parameter(ParameterSetName = "recreate")][switch]$recreate,
         [Parameter(ParameterSetName = "discardAndSync")][switch]$discardChangesGetLatestBuildAndRun,
         [Parameter(ParameterSetName = "sync")][switch]$getLatestBuildAndRun,
         [Parameter(ValueFromPipeline)]
@@ -14,7 +13,8 @@ function sf {
             $project = $null
             if ($newSourcePath) {
                 $project = sf-PSproject-new -sourcePath $newSourcePath -displayName $newName
-            } else {
+            }
+            else {
                 $project = sf-PSproject-new -displayName $newName
             }
 
@@ -41,18 +41,6 @@ function sf {
                     sf-app-ensureRunning
                 }
 
-                return
-            }
-
-            if ($recreate) {
-                _facade-source-getLatest -project $project -force -discardExisting
-                sf-sol-clean
-                sf-sol-build -retryCount 3
-                sf-app-reinitialize
-                Start-Sleep -Seconds 1
-                sf-app-ensureRunning
-                Start-Sleep -Seconds 1
-                sf-states-save -stateName init
                 return
             }
 
@@ -85,24 +73,22 @@ Register-ArgumentCompleter -CommandName sf -ParameterName newSourcePath -ScriptB
 function _facade-source-getLatest {
     param (
         [SfProject]$project,
-        [switch]$force,
         [switch]$discardExisting
     )
     
-    # if ($project.branch) {
-    #     $newChangesDetected = $force # force will always get new changes
-    #     if ($discardExisting -and (sf-source-hasPendingChanges)) {
-    #         $output = sf-source-undoPendingChanges
-    #         $newChangesDetected = $output.Exception -and !($output.Exception -notlike "*No pending changes*")
-    #     }
+    if ($project.branch) {
+        if ($discardExisting -and (sf-source-hasPendingChanges)) {
+            sf-source-undoPendingChanges
+            $newChangesDetected = $true
+        }
 
-    #     if ($getLatestChanges) {
-    #         # $getLatestOutput = sf-source-getLatestChanges -overwrite:$force
-    #         # $newChangesDetected = !$getLatestOutput -or !($getLatestOutput.Contains('All files are up to date.'))
-    #     }
+        $newChangesDetected = !(!(!(& git status | ? { $_ -contains "Your branch is up to date" })))
+        if ($newChangesDetected) {
+            sf-source-getLatestChanges
+        }
 
-    #     return $newChangesDetected
-    # }
+        return $newChangesDetected
+    }
 
     return $false
 }
