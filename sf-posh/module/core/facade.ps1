@@ -1,6 +1,6 @@
 function sf {
     param (
-        [Parameter(ParameterSetName = "new")][string]$newName = 'Untitled',
+        [Parameter(ParameterSetName = "new")][string]$newName,
         [Parameter(ParameterSetName = "new")][string]$newSourcePath,
         [Parameter(ParameterSetName = "discardAndSync")][switch]$discardChangesGetLatestBuildAndRun,
         [Parameter(ParameterSetName = "sync")][switch]$getLatestBuildAndRun,
