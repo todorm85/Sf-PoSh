@@ -163,8 +163,8 @@ function sf-auth-basic {
     if (!$existingValue -or ($existingValue.ToLower() -ne $configVal.ToLower())) {
         $relyingPartySettings.SetAttribute("enableBasicAuthenticationForBackendServices", $configVal)
         sf-config-save -config $config
-        sf -resetPool
-        sf -ensureRunning
+        sf-iis-appPool-Reset
+        sf-app-ensureRunning
         if (!$disable) {
             sf-seed-Users -mail "wcf@test.test" -roles "Administrators,BackendUsers"
         }

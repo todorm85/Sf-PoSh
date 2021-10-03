@@ -28,7 +28,7 @@ function _source-getValidatedProject {
 
     [SfProject]$context = sf-PSproject-get
     $solutionPath = $context.solutionPath
-    if (!(Test-Path $solutionPath)) {
+    if (!$solutionPath -or !(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
     }
 
@@ -88,6 +88,12 @@ function sf-source-getCurrentBranch {
 }
 
 function sf-source-hasSourceControl {
-    $context = _source-getValidatedProject
+    try {
+        $context = _source-getValidatedProject
+    }
+    catch {
+        return $false        
+    }
+    
     Test-Path "$($context.solutionPath)\.git"
 }
