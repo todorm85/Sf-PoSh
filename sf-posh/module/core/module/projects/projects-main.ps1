@@ -643,17 +643,17 @@ function _proj-initialize {
 
     _createCustomSolutionName $project
 
-    try {
-        if (!$cachedProject -and !$project.branch -or $project.branch -ne $cachedProject.branch) {
-            if (sf-source-hasSourceControl) {
-                $detectedChanges = $true
-                $project.branch = sf-source-getCurrentBranch
-            }
-        }
-    }
-    catch {
-        $errors += "`nSource control detection: $_."
-    }
+    # try {
+    #     if (!$cachedProject -and !$project.branch -or $project.branch -ne $cachedProject.branch) {
+    #         if (sf-source-hasSourceControl) {
+    #             $detectedChanges = $true
+    #             $project.branch = sf-source-getCurrentBranch
+    #         }
+    #     }
+    # }
+    # catch {
+    #     $errors += "`nSource control detection: $_."
+    # }
 
     try {
         if (!$cachedProject -and !$project.websiteName -or $project.websiteName -ne $cachedProject.websiteName) {

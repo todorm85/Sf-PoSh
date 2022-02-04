@@ -11,21 +11,21 @@ public class SfProject
     public string webAppPath { get; set; }
     public string websiteName { get; set; }
 
-    public string branch { get; set; }
-    public string branchDisplayName
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(this.branch))
-            {
-                return "";
-            }
-            else
-            {
-                return this.branch.Replace("$/CMS/Sitefinity 4.0/", "").Replace("OfficialReleases/", "");
-            }
-        }
-    }
+    // public string branch { get; set; }
+    // public string branchDisplayName
+    // {
+    //     get
+    //     {
+    //         if (string.IsNullOrEmpty(this.branch))
+    //         {
+    //             return "";
+    //         }
+    //         else
+    //         {
+    //             return this.branch.Replace("$/CMS/Sitefinity 4.0/", "").Replace("OfficialReleases/", "");
+    //         }
+    //     }
+    // }
     public string description { get; set; }
     public System.Nullable<System.DateTime> lastGetLatest { get; set; }
     public bool isInitialized { get; set; }

@@ -1,18 +1,13 @@
-<#
-    .SYNOPSIS
-    Displays a list of available sitefinities to select from.
-    .DESCRIPTION
-    Sitefinities that are displayed are displayed by their names. These are sitefinities that were either provisioned or imported by this script.
-    .INPUTS
-    tagsFilter - Tags in tag filter are delimited by space. If a tag is prefixed with '-' projects tagged with it are excluded. Excluded tags take precedense over included ones.
-    If tagsFilter is equal to '+' only untagged projects are shown.
-#>
+$script:defaultProjectPropsToShow = @("id", "version", "branch", "title")
+ 
+$script:defaultProjectPropsToOrderBy = @("nlbId", "tags")
+
 function sf-PSproject-select {
     Param(
         # prefix with + for mandatory, prefix with _ to exclude, +u all untagged
         [string[]]$tagsFilter,
-        [object[]]$propsToShow,
-        [object[]]$propsToSort,
+        [object[]]$additionalProps,
+        [object[]]$orderProps,
         [Parameter(ValueFromPipeline)]
         [SfProject]
         $project
@@ -27,6 +22,18 @@ function sf-PSproject-select {
     }
 
     end {
+        $props = $script:defaultProjectPropsToShow
+        if ($additionalProps) {
+            $props = $additionalProps + $props
+        }
+
+        if (!$orderProps) {
+            $orderProps = $script:defaultProjectPropsToOrderBy
+        }
+
+        $props = _project-mapProperties -props $props -forDisplay
+        $orderProps = _project-mapProperties -props $orderProps -forSort
+
         if (!$tagsFilter) {
             $tagsFilter = sf-PSproject-tags-getDefaultFilter
         }
@@ -40,7 +47,7 @@ function sf-PSproject-select {
             return
         }
         
-        $selectedSitefinity = _proj-promptSelect -sitefinities $projects -propsToShow $propsToShow -propsToOrderBy $propsToSort
+        $selectedSitefinity = _proj-promptSelect -sitefinities $projects -propsToShow $props -propsToOrderBy $orderProps
         sf-PSproject-setCurrent $selectedSitefinity
     }
 }

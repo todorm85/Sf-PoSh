@@ -13,8 +13,9 @@ function _update-prompt {
         _setConsoleTitle $project
 
         $projectName = if ($project) { $project.displayName } else { '' }
+        $gitBranch = $project.branch
         if ($projectName) {
-            $prompt = " [$projectName]"
+            $prompt = " [$projectName : $gitBranch]"
         }
         else {
             $prompt = ""

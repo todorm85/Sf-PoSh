@@ -18,9 +18,9 @@ function _data-getAllProjects {
         $clone.description = $_.description;
         $clone.displayName = $_.displayName;
         $clone.webAppPath = $_.webAppPath;
-        if (($_.Attributes | ? { $_.Name -eq "branch" })) {
-            $clone.branch = $_.branch
-        }
+        # if (($_.Attributes | ? { $_.Name -eq "branch" })) {
+        #     $clone.branch = $_.branch
+        # }
 
         if (($_.Attributes | ? { $_.Name -eq "websiteName" })) {
             $clone.websiteName = $_.websiteName
@@ -47,6 +47,9 @@ function _data-getAllProjects {
             }
         }
 
+        Set-Location -Path $_.webAppPath
+        $branch = git branch | ? { $_.Trim().StartsWith('*') } | % { $_.Trim().Trim('*').Trim() }
+
         $clone | Add-Member -Name nlbId -MemberType ScriptProperty -Force -PassThru -Value {
             _nlbData-getNlbIds -projectId $this.id
         } | Add-Member -Name dbName -MemberType ScriptProperty -PassThru -Force -Value { 
@@ -67,7 +70,7 @@ function _data-getAllProjects {
             }
 
             $version
-        }
+        } | Add-Member -Name branch -MemberType NoteProperty -PassThru -Force -Value $branch
     }
 }
 

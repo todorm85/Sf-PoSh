@@ -4,10 +4,11 @@ function sf-auth-ldap {
         [switch]$disable
     )
 
-    $config = sf-config-open -name "Security"
+    # $config = sf-config-open -name "Security"
     $root = $config["securityConfig"]
     if ($enable) {
-        $ldapConnection = xml-getOrCreateElementPath $root -elementPath "//LdapConnections/connections/LdapConnection[@name=DefaultLdapConnection]"
+        sf-auth-ldap -enable
+        $ldapConnection = Xml-GetOrCreateElementPath $root -elementPath "//LdapConnections/connections/LdapConnection[@name=DefaultLdapConnection]"
         $ldapConnection.SetAttribute("serverName", "NTSOFDCBED02.bedford.progress.com")
         $ldapConnection.SetAttribute("connectionDomain", "bedford.progress.com")
         $ldapConnection.SetAttribute("connectionUsername", "SitefinityLdapReader")
@@ -49,8 +50,8 @@ function sf-auth-aspsql {
     $p = sf-PSproject-get
     $dbName = $p.id + "_aspMembership"
     if ($enable) {
-        $RelocateData = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity", "d:\$dbName.mdf")
-        $RelocateLog = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity_Log", "d:\$dbName.ldf")
+        $RelocateData = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity", "c:\$dbName.mdf")
+        $RelocateLog = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity_Log", "c:\$dbName.ldf")
         Restore-SqlDatabase -ServerInstance "." -Database $dbName -BackupFile "$PSScriptRoot\Sitefinity.bak" -Credential $credential -ReplaceDatabase -RelocateFile @($RelocateData, $RelocateLog)
 
         $connectionString = xml-getOrCreateElementPath $root -elementPath "//connectionStrings/add[@name=AspNetMembership]"
