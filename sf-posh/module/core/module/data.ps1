@@ -47,8 +47,10 @@ function _data-getAllProjects {
             }
         }
 
+        $oldLocation = Get-Location
         Set-Location -Path $_.webAppPath
         $branch = git branch | ? { $_.Trim().StartsWith('*') } | % { $_.Trim().Trim('*').Trim() }
+        Set-Location -Path $oldLocation.Path
 
         $clone | Add-Member -Name nlbId -MemberType ScriptProperty -Force -PassThru -Value {
             _nlbData-getNlbIds -projectId $this.id
