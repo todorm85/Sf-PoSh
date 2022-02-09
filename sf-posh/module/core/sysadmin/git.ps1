@@ -4,8 +4,8 @@ $Script:branchCompleter = {
         $wordToComplete,
         $commandAst,
         $fakeBoundParameters )
-
-    
+        
+    _git-ensureLocation
     $possibleValues = git branch | % {$_.Trim().Trim('*').Trim()}
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {
@@ -21,6 +21,7 @@ function sf-git-checkout {
         $branch
     )
 
+    _git-ensureLocation
     $branchExists = git branch | % {$_.Trim().Trim('*').Trim()} | ? {$_ -eq $branch}
     if ($branchExists) {
         $res = git checkout $branch 2>&1
@@ -43,10 +44,24 @@ function sf-git-getAllLocalBranches {
     param(
         [switch]$skipDefaults
     )
+    _git-ensureLocation
     $res = git branch | % {$_.Trim('*').Trim()}
     if ($skipDefaults) {
         $res = $res | ? {$_ -ne 'master' -and $_ -ne "patches"}
     }
 
     $res
+}
+
+function _git-ensureLocation {
+    $loc = Get-Location
+    $p = sf-PSproject-get
+    $projRoot = $p.webAppPath
+    if ($p.solutionPath) {
+        $projRoot = $p.solutionPath
+    }
+
+    if (-not $loc.Path.Contains($projRoot)) {
+        throw "You must be in project directory to execute git commands."
+    }
 }
