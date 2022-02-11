@@ -25,7 +25,7 @@ In powershell console window type:
 Import-Module $path # where $path is your local path to https://github.com/todorm85/Sf-PoSh/blob/release/sf-posh/sf-posh.psm1
 sf-PSmodule-openConfig # opens the configuration file with its default settings and paths (set for VS2017 tools) after editing you must restart the powershell session
 sf- #then press (ctrl + space), which should list all commands
-sf-PSproj #then ctrl+space, would list all related to module`s projects commands etc.
+sf-proj #then ctrl+space, would list all related to module`s projects commands etc.
 sf-project-new -displayName test -sourcePath "any path to sitefinity web app zip or tfs branch" # this creates a new project, in case of tfs branch a separate workspace. It is automatically selected for the current session. All commands that are executed in the powershell session are modifying the currently selected project - it should be displayed on the prompt and on the console status bar.
 sf-project-select # to select a different project previously created etc.
 sf-project-get # returns the currently selected project object

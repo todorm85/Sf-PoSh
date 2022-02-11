@@ -1,5 +1,5 @@
 function sf-tests-startWebTestRunner {
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     if ($p) {
         $testRunnerPath = "C:\work\sitefinity-webtestrunner\Telerik.WebTestRunner.Client\bin\Release\app.publish"
         $testRunnerConfigPath = "$testRunnerPath\Telerik.WebTestRunner.Client.exe.Config"
@@ -20,12 +20,12 @@ function sf-tests-startWebTestRunner {
 }
 
 function sf-uitests-openSolution {
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     . "$($p.solutionPath)\Telerik.Sitefinity.MS.TestUI.sln"
 }
 
 function sf-uitests-setup {
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     if (!$p) {
         throw "no project"
     }
@@ -37,7 +37,7 @@ function sf-uitests-setup {
 }
 
 function _updateProjectData {
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     $xmlPath = $p.solutionPath + "\Telerik.Sitefinity.MS.TestUI.TestCases\Data\ProjectData.xml"
     $projectPath = $p.solutionPath + "\Telerik.Sitefinity.MS.TestUI.TestCases"
     [XML]$xml = Get-Content $xmlPath
@@ -46,7 +46,7 @@ function _updateProjectData {
 }
 
 function _update_testCasesAppConfig {
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     $appConfigPath = $p.solutionPath + "\Telerik.Sitefinity.MS.TestUI.TestCases\app.config"
     
     [XML]$appConfigContent = Get-Content $appConfigPath
@@ -63,7 +63,7 @@ function _update_testCasesAppConfig {
 }
 
 function _updateWebConfig {
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     $webConfigPath = "$($p.webAppPath)\web.config"
     [XML]$webConfig = Get-Content $webConfigPath
     $appSettings = $webConfig.SelectSingleNode("/configuration/appSettings")
