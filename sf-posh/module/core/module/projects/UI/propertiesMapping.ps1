@@ -13,7 +13,7 @@ $Script:projectPropertiesFormatMapping = @(
             # "$($_.branchDisplayName) ($($_.daysOld))" 
             "$($_.branch)" 
         }
-        Width = 30
+        Width = 40
     },
     @{
         Name       = "version";
@@ -22,7 +22,7 @@ $Script:projectPropertiesFormatMapping = @(
             if ($_.version) {
                 $versionPart = $_.version.Split('.')
                 $version = "$($versionPart[0]).$($versionPart[1]).$($versionPart[2])"
-                "$version$(if ($_.solutionPath) { 's' })"
+                "$version$(if ($_.solutionPath) { 'S' })"
             }
         }
         Width = 10

@@ -4,10 +4,9 @@ function sf-auth-ldap {
         [switch]$disable
     )
 
-    # $config = sf-config-open -name "Security"
+    $config = sf-config-open -name "Security"
     $root = $config["securityConfig"]
     if ($enable) {
-        sf-auth-ldap -enable
         $ldapConnection = Xml-GetOrCreateElementPath $root -elementPath "//LdapConnections/connections/LdapConnection[@name=DefaultLdapConnection]"
         $ldapConnection.SetAttribute("serverName", "NTSOFDCBED02.bedford.progress.com")
         $ldapConnection.SetAttribute("connectionDomain", "bedford.progress.com")

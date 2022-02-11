@@ -1,6 +1,6 @@
 function sf-source-undoPendingChanges {
     $context = _source-getValidatedProject
-    InLocationScope $context.solutionPath {
+    _runInRootLocation {
         Invoke-Expression -Command "git restore *"
     }
 }
@@ -15,7 +15,7 @@ function sf-source-hasPendingChanges {
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
-            InLocationScope $project.solutionPath {
+            _runInRootLocation {
                 !(!(Invoke-Expression -Command "git status" | ? { $_ -contains "nothing to commit, working tree clean"}))
             }
         }
@@ -38,8 +38,7 @@ function _source-getValidatedProject {
 function sf-source-getLatestChanges {
 
     $context = _source-getValidatedProject
-    $solutionPath = $context.solutionPath
-    InLocationScope $solutionPath {
+    _runInRootLocation {
         Invoke-Expression -Command "git pull"
     }
 
@@ -54,35 +53,14 @@ function sf-source-new {
         $directoryName
     )
 
-    InLocationScope $localPath {
+    _runInRootLocation {
         Invoke-Expression -Command "git clone $remotePath $directoryName"
     }
 }
 
-function InLocationScope {
-    param (
-        $location,
-        $script
-    )
-    
-    if (!(Test-Path $location)) {
-        throw "Invalid local path."
-    }
-
-    $originalLocation = Get-Location
-    Set-Location $location
-    try {
-        Invoke-Command -ScriptBlock $script
-    }
-    finally {
-        Set-Location $originalLocation
-    }
-
-}
-
 function sf-source-getCurrentBranch {
     $context = _source-getValidatedProject
-    InLocationScope $context.solutionPath {
+    _runInRootLocation {
         & git branch | ? {$_.StartsWith("*")} | % {$_.Split(' ')[1]}
     }
 }
@@ -97,3 +75,4 @@ function sf-source-hasSourceControl {
     
     Test-Path "$($context.solutionPath)\.git"
 }
+

@@ -92,6 +92,6 @@ function _ui-showAllWithIndexedPrefix {
                 }
                 Width = 3
             }) + $propsToShow
-        $datas | ft -Property $props -Wrap | Out-String | Write-Host
+        $datas | ft -Property $props -AutoSize | Out-String | Write-Host
     }
 }

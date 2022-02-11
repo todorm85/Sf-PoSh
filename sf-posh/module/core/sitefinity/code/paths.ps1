@@ -1,3 +1,62 @@
+function sf-goto {
+    param (
+        [switch]$logs,
+        [switch]$configs,
+        [switch]$app,
+        [switch]$root
+    )
+
+    $p = sf-PSproject-get
+    if ($logs) {
+        Set-Location -Path "$($p.webAppPath)\App_Data\Sitefinity\Logs"
+    }
+
+    if ($configs) {
+        Set-Location -Path "$($p.webAppPath)\App_Data\Sitefinity\Configuration"
+    }
+
+    if ($app) {
+        if (-not (_paths-validatePath $p.webAppPath)) {
+            throw "No valid web app path for current project."
+        }
+
+        Set-Location -Path "$($p.webAppPath)"
+    }
+
+    if ($root) {
+        if (_paths-validatePath $p.solutionPath) {
+            Set-Location -Path "$($p.solutionPath)"
+        } elseif (_paths-validatePath $p.webAppPath) {
+            Set-Location -Path "$($p.webAppPath)"
+        } else {
+            throw "No valid web app path for current project."
+        }
+    }
+}
+
+function _paths-validatePath {
+    param (
+        $path
+    )
+    
+    return $path -and (Test-Path $path)
+}
+
+function _runInRootLocation {
+    param (
+        $script
+    )
+    
+    $originalLocation = Get-Location
+    sf-goto -root
+    try {
+        Invoke-Command -ScriptBlock $script
+    }
+    finally {
+        Set-Location $originalLocation
+    }
+
+}
 
 function _sf-path-getConfigBasePath ([SfProject]$project) {
     if (!$project) {
