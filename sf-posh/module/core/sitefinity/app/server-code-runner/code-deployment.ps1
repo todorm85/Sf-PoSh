@@ -46,7 +46,7 @@ function sf-serverCode-run {
 }
 
 function _sf-serverCode-deployHandler {
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     if (!$p) {
         throw "No project selected."
     }
@@ -81,7 +81,7 @@ function sf-serverCode-deployDirectory {
         [Parameter(Mandatory=$true)]$appRelativeTargetPath
     )
 
-    $p = sf-PSproject-get
+    $p = sf-project-get
     $trg = "$($p.webAppPath)\$appRelativeTargetPath"
     if (!(Test-Path $trg)) {
         New-Item -Path $trg -ItemType Directory > $null

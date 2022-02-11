@@ -5,7 +5,7 @@ InModuleScope sf-posh {
     Describe "Subapp functionality should" -Tags ("subapp") {
         InTestProjectScope {
 
-        [SfProject]$project = sf-PSproject-get
+        [SfProject]$project = sf-project-get
         $subApp = "subApp"
         $site = $project.websiteName
         $pool = (Get-Website -Name $site).applicationPool

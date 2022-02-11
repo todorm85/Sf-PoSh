@@ -3,10 +3,10 @@ $scripts = @(
     { 
         param($oldVersion)
         if ((_isFirstVersionLower $oldVersion "15.5.0")) {
-            sf-PSproject-get -all | % { _proj-initialize $_; }
+            sf-project-get -all | % { _proj-initialize $_; }
         }
         if ((_isFirstVersionLower $oldVersion "15.5.1")) {
-            sf-PSproject-get -all | % { _proj-initialize $_; }
+            sf-project-get -all | % { _proj-initialize $_; }
         }
         if ((_isFirstVersionLower $oldVersion "16.0.3")) {
             $data = New-Object XML

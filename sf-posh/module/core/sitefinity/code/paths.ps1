@@ -6,7 +6,7 @@ function sf-goto {
         [switch]$root
     )
 
-    $p = sf-PSproject-get
+    $p = sf-project-get
     if ($logs) {
         Set-Location -Path "$($p.webAppPath)\App_Data\Sitefinity\Logs"
     }
@@ -60,7 +60,7 @@ function _runInRootLocation {
 
 function _sf-path-getConfigBasePath ([SfProject]$project) {
     if (!$project) {
-        $project = sf-PSproject-get
+        $project = sf-project-get
     }
 
     "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
@@ -68,7 +68,7 @@ function _sf-path-getConfigBasePath ([SfProject]$project) {
 
 function _sf-path-getWebConfigPath ([SfProject]$project) {
     if (!$project) {
-        $project = sf-PSproject-get
+        $project = sf-project-get
     }
 
     "$($project.webAppPath)\web.config"

@@ -144,9 +144,9 @@ InModuleScope sf-posh {
         Mock sf-app-ensureRunning { }
         InTestProjectScope {
             It "create a second project" {
-                [SfProject]$script:firstNode = sf-PSproject-get
+                [SfProject]$script:firstNode = sf-project-get
                 sf-nlb-newCluster
-                [SfProject]$script:secondNode = sf-PSproject-get -all | ? id -ne $firstNode.id
+                [SfProject]$script:secondNode = sf-project-get -all | ? id -ne $firstNode.id
                 $secondNode | Should -HaveCount 1
                 Get-Website | ? name -eq $secondNode.websiteName | Should -Not -BeNullOrEmpty
                 Get-Item "IIS:\AppPools\$($secondNode.id)" | Should -Not -BeNullOrEmpty
@@ -213,9 +213,9 @@ InModuleScope sf-posh {
             }
 
             It "remove other project when removing cluster" {
-                sf-PSproject-setCurrent $firstNode
+                sf-project-setCurrent $firstNode
                 sf-nlb-removeCluster
-                sf-PSproject-get -all | ? id -eq $secondNode.id | Should -BeNullOrEmpty
+                sf-project-get -all | ? id -eq $secondNode.id | Should -BeNullOrEmpty
                 Get-Website | ? name -eq $secondNode.websiteName | Should -BeNullOrEmpty
                 Test-Path "IIS:\AppPools\$($secondNode.id)" | Should -BeFalse
                 Test-Path $secondNode.webAppPath | Should -BeFalse
@@ -251,19 +251,19 @@ InModuleScope sf-posh {
         Mock sf-app-ensureRunning { }
         InTestProjectScope {
             It "Remove nlb cluster config" {
-                [SfProject]$script:firstNode = sf-PSproject-get
+                [SfProject]$script:firstNode = sf-project-get
                 sf-nlb-newCluster
-                [SfProject]$script:secondNode = sf-PSproject-get -all | ? id -ne $firstNode.id
+                [SfProject]$script:secondNode = sf-project-get -all | ? id -ne $firstNode.id
                 $secondNode | Should -HaveCount 1
                 Get-Website | ? name -eq $secondNode.websiteName | Should -Not -BeNullOrEmpty
                 Get-Item "IIS:\AppPools\$($secondNode.id)" | Should -Not -BeNullOrEmpty
                 Test-Path $secondNode.webAppPath | Should -BeTrue
                 $script:nlbId = $firstNode.nlbId
-                sf-PSproject-remove -project $secondNode -noPrompt
+                sf-project-remove -project $secondNode -noPrompt
             }
 
             It "do not remove other node" {
-                [SfProject]$p = sf-PSproject-get -all | ? id -eq $script:firstNode.id
+                [SfProject]$p = sf-project-get -all | ? id -eq $script:firstNode.id
                 $p | Should -HaveCount 1
             }
                 

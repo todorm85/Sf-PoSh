@@ -14,13 +14,13 @@ function Run-InProjectScope {
     )
     
     process {
-        $previous = sf-PSproject-get -skipValidation
-        sf-PSproject-setCurrent $project
+        $previous = sf-project-get -skipValidation
+        sf-project-setCurrent $project
         try {
             Invoke-Command -ScriptBlock $script -ArgumentList ($scriptArguments + @($project))
         }
         finally {
-            sf-PSproject-setCurrent $previous
+            sf-project-setCurrent $previous
         }
     }
 }
@@ -49,7 +49,7 @@ function Run-InFunctionAcceptingProjectFromPipeline {
             throw "No project received from pipeline!"
         }
 
-        $project = sf-PSproject-get
+        $project = sf-project-get
         Invoke-Command -ScriptBlock $script -ArgumentList ($scriptArguments + @($project))
     }
     else {

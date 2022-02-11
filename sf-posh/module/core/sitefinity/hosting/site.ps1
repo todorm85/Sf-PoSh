@@ -15,7 +15,7 @@ function sf-iis-site-browse {
     )
 
     $browserPath = $GLOBAL:sf.Config.browserPath;
-    [SfProject]$project = sf-PSproject-get
+    [SfProject]$project = sf-project-get
     if (!$project) {
         throw "No project selected."
     }
@@ -53,7 +53,7 @@ function sf-iis-site-new {
     )
 
     if (!$context) {
-        $context = sf-PSproject-get
+        $context = sf-project-get
     }
     
     $siteExists = Get-Website | ? name -eq $context.id
@@ -88,7 +88,7 @@ function sf-iis-site-new {
 }
 
 function sf-iis-site-delete {
-    $proj = sf-PSproject-get
+    $proj = sf-project-get
     if (!$proj) {
         throw "No project!"
     }
@@ -130,7 +130,7 @@ function sf-iis-site-delete {
 }
 
 function sf-iis-site-getSubAppName {
-    $proj = sf-PSproject-get
-    [SfProject]$proj = sf-PSproject-get
+    $proj = sf-project-get
+    [SfProject]$proj = sf-project-get
     Get-WebApplication -Site $proj.websiteName | ? { $_.PhysicalPath.ToLower() -eq $proj.webAppPath } | % { $_.path.TrimStart('/') }
 }

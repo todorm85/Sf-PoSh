@@ -46,7 +46,7 @@ function sf-auth-aspsql {
     $root = $config["configuration"]
     $password = ConvertTo-SecureString "admin@2admin@2" -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential("sa", $password)
-    $p = sf-PSproject-get
+    $p = sf-project-get
     $dbName = $p.id + "_aspMembership"
     if ($enable) {
         $RelocateData = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity", "c:\$dbName.mdf")

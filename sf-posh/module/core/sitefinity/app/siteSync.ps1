@@ -4,7 +4,7 @@ function sf-siteSync-install {
         [switch]$skipSolutionClone
     )
 
-    [SfProject]$source = sf-PSproject-get
+    [SfProject]$source = sf-project-get
     $sourceName = $source.displayName
 
     # check if project is initialized
@@ -16,20 +16,20 @@ function sf-siteSync-install {
     }
 
     # clone with database clone
-    sf-PSproject-clone -skipSourceControlMapping:$skipSourceControlMapping -skipSolutionClone:$skipSolutionClone
+    sf-project-clone -skipSourceControlMapping:$skipSourceControlMapping -skipSolutionClone:$skipSolutionClone
     
     # setup the target
-    sf-PSproject-rename -newName "$($sourceName)_trg"
+    sf-project-rename -newName "$($sourceName)_trg"
     _sitesync-setupTarget
     $siteSyncSuffix = "sitesync-$([Guid]::NewGuid().ToString().Split('-')[0].Substring(0,3))"
-    sf-PSproject-tags-add -tagName $siteSyncSuffix
+    sf-project-tags-add -tagName $siteSyncSuffix
     sf-states-save -stateName $siteSyncSuffix
     $targetUrl = sf-iis-site-getUrl
     
     # setup the source
-    sf-PSproject-setCurrent -newContext $source
-    sf-PSproject-rename -newName "$($sourceName)_src"
-    sf-PSproject-tags-add -tagName $siteSyncSuffix
+    sf-project-setCurrent -newContext $source
+    sf-project-rename -newName "$($sourceName)_src"
+    sf-project-tags-add -tagName $siteSyncSuffix
     _sitesync-setupSource -targetUrl $targetUrl
     sf-states-save -stateName $siteSyncSuffix
 }
@@ -48,11 +48,11 @@ function sf-siteSync-uninstall {
             param($project)
             sf-serverCode-run "SitefinityWebApp.SfDev.SiteSync" -methodName "Uninstall" > $null
             # TODO remove all counterparts with relevant tags
-            sf-PSproject-tags-get | ? { $_ -like "sitesync-*" } | % { sf-PSproject-tags-remove -tagName $_ }
+            sf-project-tags-get | ? { $_ -like "sitesync-*" } | % { sf-project-tags-remove -tagName $_ }
             sf-states-get | ? name -Like "sitesync-*" | sf-states-remove
             $name = $project.displayName.Replace("_src", "").Replace("_trg", "")
             if ($name -ne $project.displayName) {
-                sf-PSproject-rename $name
+                sf-project-rename $name
             }
         }
     }

@@ -2,11 +2,11 @@
 
 InModuleScope sf-posh {
 
-    Describe "sf-PSproject-getAll" {
+    Describe "sf-project-getAll" {
         Mock _proj-initialize { }
 
         It "return empty collection when no projects" {
-            sf-PSproject-get -all | Should -HaveCount 0
+            sf-project-get -all | Should -HaveCount 0
         }
 
         It "return correct count of projects" {
@@ -15,7 +15,7 @@ InModuleScope sf-posh {
             }
 
             _setProjectData -context $proj1
-            [SfProject[]]$projects = sf-PSproject-get -all
+            [SfProject[]]$projects = sf-project-get -all
             $projects | Should -HaveCount 1
             $projects[0].id | Should -Be "id1"
         }
@@ -29,14 +29,14 @@ InModuleScope sf-posh {
             $proj1.id = 'id2'
             _setProjectData -context $proj1
 
-            [SfProject[]]$projects = sf-PSproject-get -all
+            [SfProject[]]$projects = sf-project-get -all
             $projects | Should -HaveCount 2
             $projects[0].id | Should -Be "id1"
             $projects[1].id | Should -Be "id2"
         }
 
         It "persists defaultBinding correctly" {
-            sf-PSproject-get -all | % { sf-PSproject-remove $_ -noPrompt }
+            sf-project-get -all | % { sf-project-remove $_ -noPrompt }
             $proj1 = New-Object SfProject -Property @{
                 id             = "idsb";
                 defaultBinding = [SiteBinding]@{
@@ -48,7 +48,7 @@ InModuleScope sf-posh {
 
             _setProjectData -context $proj1
 
-            [SfProject[]]$projects = sf-PSproject-get -all
+            [SfProject[]]$projects = sf-project-get -all
             $projects | Should -HaveCount 1
             $projects[0].defaultBinding.domain | Should -Be "test"
             $projects[0].defaultBinding.port | Should -Be "55"

@@ -4,7 +4,7 @@ function _getSqlBackupStateName {
         [Parameter(Mandatory = $true)]$stateName
     )
 
-    [SfProject]$context = sf-PSproject-get
+    [SfProject]$context = sf-project-get
     return "$($context.id)_$stateName.bak"
 }
 

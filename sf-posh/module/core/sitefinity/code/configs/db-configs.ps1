@@ -96,7 +96,7 @@ function sf-config-exportAllFromDb {
     )
 
     if (!$dbName) {
-        $p = sf-PSproject-get
+        $p = sf-project-get
         $dbName = $p.dbName
         if (!$dbName) {
             throw "No db set."

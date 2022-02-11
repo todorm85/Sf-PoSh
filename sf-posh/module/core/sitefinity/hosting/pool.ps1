@@ -9,7 +9,7 @@
 function sf-iis-appPool-ResetThread {
     Param([switch]$start)
 
-    $project = sf-PSproject-get
+    $project = sf-project-get
 
     $binPath = "$($project.webAppPath)\bin\dummy.sf"
     New-Item -ItemType file -Path $binPath > $null
@@ -34,7 +34,7 @@ function sf-iis-appPool-Reset {
         [switch]$start
     )
 
-    $project = sf-PSproject-get
+    $project = sf-project-get
 
     $appPool = (Get-Website -Name $project.websiteName).applicationPool
     if ($appPool -eq '') {
@@ -49,7 +49,7 @@ function sf-iis-appPool-Reset {
 }
 
 function sf-iis-appPool-Stop {
-    $websiteName = (sf-PSproject-get).websiteName
+    $websiteName = (sf-project-get).websiteName
     $errors = ''
     try {
         $appPool = (Get-Website -Name $websiteName).applicationPool

@@ -26,7 +26,7 @@ function _source-getValidatedProject {
     [OutputType([SfProject])]
     param()
 
-    [SfProject]$context = sf-PSproject-get
+    [SfProject]$context = sf-project-get
     $solutionPath = $context.solutionPath
     if (!$solutionPath -or !(Test-Path $solutionPath)) {
         throw "invalid or no solution path"
@@ -43,7 +43,7 @@ function sf-source-getLatestChanges {
     }
 
     $context.lastGetLatest = [System.DateTime]::Now
-    sf-PSproject-save $context
+    sf-project-save $context
 }
 
 function sf-source-new {

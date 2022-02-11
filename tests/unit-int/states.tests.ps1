@@ -5,7 +5,7 @@ InModuleScope sf-posh {
         InTestProjectScope {
 
             It "save and then restore app_data folder and database" {
-                [SfProject]$project = sf-PSproject-get
+                [SfProject]$project = sf-project-get
                 $configsPath = "$($project.webAppPath)\App_Data\Sitefinity\Configuration"
                 [string]$stateName = generateRandomName
                 $stateName = $stateName.Replace('-', '_')

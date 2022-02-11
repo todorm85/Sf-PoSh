@@ -1,13 +1,13 @@
 function sf-db-getNameFromDataConfig ($context) {
     if (!$context) {
-        [SfProject]$context = sf-PSproject-get
+        [SfProject]$context = sf-project-get
     }
     
     _db-getNameFromDataConfig -appPath $context.webAppPath
 }
 
 function sf-db-setNameInDataConfig ($newName) {
-    $context = sf-PSproject-get
+    $context = sf-project-get
 
     $dbName = sf-db-getNameFromDataConfig -context $context
     if (-not $dbName) {

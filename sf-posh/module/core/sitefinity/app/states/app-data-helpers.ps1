@@ -1,13 +1,13 @@
 
 function _appData-copy ($dest) {
-    [SfProject]$project = sf-PSproject-get
+    [SfProject]$project = sf-project-get
 
     $src = "$($project.webAppPath)\App_Data\*"
     Copy-Item -Path $src -Destination $dest -Recurse -Force -Confirm:$false -Exclude $(_getSitefinityAppDataExcludeFilter)
 }
 
 function _appData-restore ($src) {
-    [SfProject]$context = sf-PSproject-get
+    [SfProject]$context = sf-project-get
     $webAppPath = $context.webAppPath
 
     _appData-remove
@@ -18,7 +18,7 @@ function _appData-restore ($src) {
 }
 
 function _appData-remove {
-    [SfProject]$context = sf-PSproject-get
+    [SfProject]$context = sf-project-get
     $webAppPath = $context.webAppPath
     $originalLocation = Get-Location
     try { 

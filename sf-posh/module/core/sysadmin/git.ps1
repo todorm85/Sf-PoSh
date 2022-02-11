@@ -32,7 +32,7 @@ function sf-git-checkout {
         }
         
         if ($res | ? { $_.Exception -and $_.Exception.Message.StartsWith("Switched to") }) {
-            $p = sf-PSproject-get
+            $p = sf-project-get
             $p.branch = $branch
             _update-prompt $p
         }

@@ -22,7 +22,7 @@ function sf-states-save {
         $stateName
     )
 
-    $project = sf-PSproject-get
+    $project = sf-project-get
 
     $dbName = sf-db-getNameFromDataConfig
     $db = sql-get-dbs | Where-Object { $_.Name -eq $dbName }
@@ -69,7 +69,7 @@ function sf-states-restore {
     )
 
     process {
-        $project = sf-PSproject-get
+        $project = sf-project-get
 
         if (!$stateName) {
             throw "Empty state name."
@@ -136,7 +136,7 @@ function sf-states-get {
 function _getStatesPath {
     Param([SfProject]$context)
     if (!$context) {
-        $context = sf-PSproject-get
+        $context = sf-project-get
     }
 
     $path = "$($context.webAppPath)\sf-posh\states"

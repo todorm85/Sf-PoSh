@@ -12,10 +12,10 @@ function sf {
         if ($newName) {
             $project = $null
             if ($newSourcePath) {
-                $project = sf-PSproject-new -sourcePath $newSourcePath -displayName $newName
+                $project = sf-project-new -sourcePath $newSourcePath -displayName $newName
             }
             else {
-                $project = sf-PSproject-new -displayName $newName
+                $project = sf-project-new -displayName $newName
             }
 
             if (!(Test-Path "$($project.webAppPath)/bin/Telerik.Sitefinity.dll")) {

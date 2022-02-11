@@ -4,12 +4,12 @@ InModuleScope sf-posh {
 
     Describe "Use existing" {
         InTestProjectScope {
-        [SfProject]$project = sf-PSproject-get
+        [SfProject]$project = sf-project-get
         $sourceProjectDbName = _db-getNameFromDataConfig -appPath $project.webAppPath
 
-        sf-PSproject-new -displayName "test-use-existing" -sourcePath $project.webAppPath
+        sf-project-new -displayName "test-use-existing" -sourcePath $project.webAppPath
 
-        [SfProject]$importedProject = sf-PSproject-get
+        [SfProject]$importedProject = sf-project-get
 
         It "save the new project in sfdev db" {
             _data-getAllProjects | Should -HaveCount 2

@@ -10,7 +10,7 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
     .PARAMETER displayName
     The name of the project that the tool will use to present it in the CLI
 #>
-function sf-PSproject-new {
+function sf-project-new {
     Param(
         [string]$displayName = 'Untitled',
         [string]$sourcePath = "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity"
@@ -28,12 +28,12 @@ function sf-PSproject-new {
         sf-iis-site-new -context $newContext
     }
     
-    sf-PSproject-setCurrent $newContext
+    sf-project-setCurrent $newContext
 
     return $newContext
 }
 
-Register-ArgumentCompleter -CommandName sf-PSproject-new -ParameterName sourcePath -ScriptBlock {
+Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath -ScriptBlock {
     param ( $commandName,
         $parameterName,
         $wordToComplete,
@@ -45,14 +45,14 @@ Register-ArgumentCompleter -CommandName sf-PSproject-new -ParameterName sourcePa
     $values | % { "'$_'" }
 }
 
-function sf-PSproject-clone {
+function sf-project-clone {
     Param(
         [switch]$skipSourceControlMapping,
         [switch]$skipDatabaseClone,
         [switch]$skipSolutionClone
     )
 
-    $context = sf-PSproject-get
+    $context = sf-project-get
 
     $sourcePath = $context.solutionPath;
     $useSolution = !([string]::IsNullOrEmpty($sourcePath) -or $skipSolutionClone);
@@ -98,7 +98,7 @@ function sf-PSproject-clone {
         $newProject.webAppPath = $targetPath
     }
 
-    sf-PSproject-setCurrent -newContext $newProject > $null
+    sf-project-setCurrent -newContext $newProject > $null
 
     try {
         Write-Information "Creating website..."
@@ -138,12 +138,12 @@ function sf-PSproject-clone {
 
     $newProject.tags.AddRange($oldProject.tags) 
 
-    sf-PSproject-save -context $newProject
-    sf-PSproject-setCurrent $newProject
+    sf-project-save -context $newProject
+    sf-project-setCurrent $newProject
 }
 
-function sf-PSproject-removeBulk {
-    $sitefinities = @(sf-PSproject-get -all)
+function sf-project-removeBulk {
+    $sitefinities = @(sf-project-get -all)
     if ($null -eq $sitefinities[0]) {
         Write-Warning "No projects found. Create one."
         return
@@ -153,7 +153,7 @@ function sf-PSproject-removeBulk {
 
     foreach ($selectedSitefinity in $sfsToDelete) {
         try {
-            sf-PSproject-remove -project $selectedSitefinity -noPrompt
+            sf-project-remove -project $selectedSitefinity -noPrompt
         }
         catch {
             Write-Error "Error deleting project with id = $($selectedSitefinity.id): $_"
@@ -175,7 +175,7 @@ function sf-PSproject-removeBulk {
     .OUTPUTS
     None
 #>
-function sf-PSproject-remove {
+function sf-project-remove {
     Param(
         [Parameter(ValueFromPipeline)]
         [SfProject]$project,
@@ -189,7 +189,7 @@ function sf-PSproject-remove {
         $Script:clearCurrentSelectedProject = $false
         [SfProject]$currentProject = $null
         try {
-            $currentProject = sf-PSproject-get
+            $currentProject = sf-project-get
         }
         catch {
             Write-Verbose "No current project."    
@@ -209,7 +209,7 @@ function sf-PSproject-remove {
                 $Script:clearCurrentSelectedProject = $true
             }
 
-            sf-PSproject-setCurrent -newContext $project > $null
+            sf-project-setCurrent -newContext $project > $null
 
             $Global:SfEvents_OnProjectRemoving | % { Invoke-Command -ScriptBlock $_ }
 
@@ -282,12 +282,12 @@ function sf-PSproject-remove {
         }
         
         if ($Script:clearCurrentSelectedProject) {
-            sf-PSproject-setCurrent $null > $null
+            sf-project-setCurrent $null > $null
         }
     }
 }
 
-function sf-PSproject-rename {
+function sf-project-rename {
     Param(
         [string]$newName,
         # [switch]$renameAll,
@@ -360,12 +360,12 @@ function sf-PSproject-rename {
             # }
 
             _update-prompt $context
-            sf-PSproject-save $context
+            sf-project-save $context
         }
     }
 }
 
-function sf-PSproject-get {
+function sf-project-get {
     [OutputType([SfProject], ParameterSetName = "current")]
     [OutputType([SfProject[]], ParameterSetName = "all")]
     [CmdletBinding(DefaultParameterSetName = 'current')]
@@ -384,13 +384,13 @@ function sf-PSproject-get {
         $p
     }
     else {
-        _data-getAllProjects | sf-PSproject-tags-filter -tagsFilter $tagsFilter
+        _data-getAllProjects | sf-project-tags-filter -tagsFilter $tagsFilter
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-PSproject-get -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-project-get -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
 
-function sf-PSproject-setCurrent {
+function sf-project-setCurrent {
     Param(
         [Parameter(ValueFromPipeline)][SfProject]$newContext
     )
@@ -421,7 +421,7 @@ function sf-PSproject-setCurrent {
     }
 }
 
-function sf-PSproject-save {
+function sf-project-save {
     Param($context)
 
     if (!$context.id) {
@@ -572,7 +572,7 @@ function _getIsIdDuplicate ($id, $allIds) {
 function _generateId {
     $i = 0;
     # for performance get all external items like sites dbs etc before loop
-    $sitefinities = sf-PSproject-get -all | select -ExpandProperty displayName
+    $sitefinities = sf-project-get -all | select -ExpandProperty displayName
     # do not use get-iisapppool - does not return latest
     $appPools = Get-ChildItem "IIS:\AppPools" | select -ExpandProperty name
     $sites = Get-Website | select -ExpandProperty name
@@ -599,7 +599,7 @@ function _generateCustomSolutionName {
     )
 
     if (-not ($context)) {
-        $context = sf-PSproject-get
+        $context = sf-project-get
     }
 
     $solutionName = "$($context.id).sln"
@@ -674,7 +674,7 @@ function _proj-initialize {
     }
 
     if ($detectedChanges) {
-        sf-PSproject-save -context $project
+        sf-project-save -context $project
         _validateProject $project
     }
 

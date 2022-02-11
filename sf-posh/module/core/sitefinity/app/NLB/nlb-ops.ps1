@@ -3,7 +3,7 @@ function sf-nlb-getNodes {
         [switch]$excludeCurrent
     )
     
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     if (!$p) {
         throw "No project selected."
     }
@@ -14,7 +14,7 @@ function sf-nlb-getNodes {
     }
 
     $projectIds = _nlbData-getProjectIds -nlbId $nlbId | ? { $_ -ne $p.id -or !$excludeCurrent }
-    sf-PSproject-get -all | ? { $projectIds -Contains $_.id }
+    sf-project-get -all | ? { $projectIds -Contains $_.id }
 }
 
 function sf-nlb-forAllNodes {
@@ -36,7 +36,7 @@ function sf-nlb-setSslOffloadForAll {
 }
 
 function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
-    [SfProject]$currentNode = sf-PSproject-get
+    [SfProject]$currentNode = sf-project-get
     $srcConfigs = _sf-path-getConfigBasePath $currentNode
     if (!(Test-Path $srcConfigs)) {
         throw "No source config files."
@@ -44,7 +44,7 @@ function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
 
     $srcWebConfig = _sf-path-getWebConfigPath $currentNode
     sf-nlb-getNodes -excludeCurrent | Run-InProjectScope -script {
-        $p = sf-PSproject-get
+        $p = sf-project-get
         $trg = _sf-path-getConfigBasePath $p
         if (!(Test-Path $trg)) {
             New-Item $trg -ItemType Directory
@@ -71,7 +71,7 @@ function sf-nlb-resetAllNodes {
 }
 
 function sf-nlb-getUrl {
-    $p = sf-PSproject-get
+    $p = sf-project-get
     $nlbId = $p.nlbId
     if (!$nlbId) {
         throw "No nlb configured for current project."
@@ -83,7 +83,7 @@ function sf-nlb-getUrl {
 
 function sf-nlb-changeUrl {
     param($hostname)
-    $p = sf-PSproject-get
+    $p = sf-project-get
     $nlbId = $p.nlbId
     if (!$nlbId) {
         throw "No nlb configured for current project."
@@ -112,7 +112,7 @@ function sf-nlb-openNlbSite {
 }
 
 function sf-nlb-getNlbId {
-    sf-PSproject-get | % { $_.nlbId }
+    sf-project-get | % { $_.nlbId }
 }
 
 function _nlb-generateDomain {

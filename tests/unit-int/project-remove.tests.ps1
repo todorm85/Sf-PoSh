@@ -14,7 +14,7 @@ InModuleScope sf-posh {
 
     Describe "Project remove should" {
         InTestProjectScope {
-        [SfProject]$p = sf-PSproject-get
+        [SfProject]$p = sf-project-get
         $dbName = sf-db-getNameFromDataConfig
         
         It "is correctly initialized" {
@@ -22,8 +22,8 @@ InModuleScope sf-posh {
         }
 
         It "throw when no project selected" {
-            sf-PSproject-setCurrent $null
-            { sf-PSproject-remove -noPrompt } | Should -Throw -ExpectedMessage "No project selected"
+            sf-project-setCurrent $null
+            { sf-project-remove -noPrompt } | Should -Throw -ExpectedMessage "No project selected"
         }
 
         It "is correctly initialized after unsuccessful delete attempt" {
@@ -31,8 +31,8 @@ InModuleScope sf-posh {
         }
 
         It "not throw when one is selected" {
-            sf-PSproject-setCurrent $p
-            { sf-PSproject-remove -noPrompt } | Should -Not -Throw
+            sf-project-setCurrent $p
+            { sf-project-remove -noPrompt } | Should -Not -Throw
         }
 
         It "remove website" {
@@ -52,8 +52,8 @@ InModuleScope sf-posh {
         InTestProjectScope {
         
         It "throw" {
-            sf-PSproject-setCurrent $null
-            { sf-PSproject-remove -noPrompt } | Should -Throw -ExpectedMessage "No project selected"
+            sf-project-setCurrent $null
+            { sf-project-remove -noPrompt } | Should -Throw -ExpectedMessage "No project selected"
         }
 
         }
@@ -62,8 +62,8 @@ InModuleScope sf-posh {
     Describe "Project remove when no context passed and a project is selected should" {
         InTestProjectScope {
         It "remove the current selected" {
-            sf-PSproject-remove -noPrompt
-            { sf-PSproject-get } | Should -Throw -ExpectedMessage "No project selected!"
+            sf-project-remove -noPrompt
+            { sf-project-get } | Should -Throw -ExpectedMessage "No project selected!"
         }
         
         }
@@ -72,8 +72,8 @@ InModuleScope sf-posh {
     Describe "Project remove when context passed and same project is selected should" {
         InTestProjectScope {
         It "remove the current selected" {
-            sf-PSproject-remove -project (sf-PSproject-get) -noPrompt
-            { sf-PSproject-get } | Should -Throw -ExpectedMessage "No project selected!"
+            sf-project-remove -project (sf-project-get) -noPrompt
+            { sf-project-get } | Should -Throw -ExpectedMessage "No project selected!"
         }
         
         }
@@ -82,15 +82,15 @@ InModuleScope sf-posh {
     Describe "Project remove when context passed and another project is selected should" {
         InTestProjectScope {
         It "NOT remove the current selected" {
-            $toDelete = sf-PSproject-get
+            $toDelete = sf-project-get
             $another = [SfProject]::new()
             $another.id = "anotherId1"
             $path = "TestDrive:\project"
             New-Item $path -ItemType Directory
             $another.webAppPath = $path
-            sf-PSproject-setCurrent $another
-            sf-PSproject-remove -project $toDelete -noPrompt
-            sf-PSproject-get | Should -Be $another
+            sf-project-setCurrent $another
+            sf-project-remove -project $toDelete -noPrompt
+            sf-project-get | Should -Be $another
         }
         
         }

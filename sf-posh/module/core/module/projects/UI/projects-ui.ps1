@@ -2,7 +2,7 @@ $script:defaultProjectPropsToShow = @("id", "version", "branch", "title")
  
 $script:defaultProjectPropsToOrderBy = @("nlbId", "tags")
 
-function sf-PSproject-select {
+function sf-project-select {
     Param(
         # prefix with + for mandatory, prefix with _ to exclude, +u all untagged
         [string[]]$tagsFilter,
@@ -35,11 +35,11 @@ function sf-PSproject-select {
         $orderProps = _project-mapProperties -props $orderProps -forSort
 
         if (!$tagsFilter) {
-            $tagsFilter = sf-PSproject-tags-getDefaultFilter
+            $tagsFilter = sf-project-tags-getDefaultFilter
         }
         
         if (!$projects) {
-            $projects = sf-PSproject-get -all | sf-PSproject-tags-filter -tagsFilter $tagsFilter
+            $projects = sf-project-get -all | sf-project-tags-filter -tagsFilter $tagsFilter
         }
 
         if (!$projects) {
@@ -48,11 +48,11 @@ function sf-PSproject-select {
         }
         
         $selectedSitefinity = _proj-promptSelect -sitefinities $projects -propsToShow $props -propsToOrderBy $orderProps
-        sf-PSproject-setCurrent $selectedSitefinity
+        sf-project-setCurrent $selectedSitefinity
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-PSproject-select -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
 
 function _proj-promptSelect {
     param (

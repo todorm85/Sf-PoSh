@@ -1,6 +1,6 @@
 function sf-upgradeFrom {
-    $current = sf-PSproject-get
-    [SfProject[]]$sitefinities = sf-PSproject-get -all
+    $current = sf-project-get
+    [SfProject[]]$sitefinities = sf-project-get -all
     $source = ui-promptItemSelect -items $sitefinities -propsToShow displayName,id,version
     if (!(sf-app-isInitialized -project $source)) {
         throw "Source project is not initialized."

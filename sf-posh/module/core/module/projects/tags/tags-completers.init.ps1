@@ -5,8 +5,8 @@ $Script:tagCompleter = {
         $commandAst,
         $fakeBoundParameters )
 
-    # DO NOT USE sf-PSproject-tags-get as it will slow down performance on first load dramatically since it sets each project as current
-    $possibleValues = sf-PSproject-get -all | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
+    # DO NOT USE sf-project-tags-get as it will slow down performance on first load dramatically since it sets each project as current
+    $possibleValues = sf-project-get -all | ForEach-Object { $_.tags } | Sort-Object | Get-Unique | Where-Object { $_ }
 
     if ($wordToComplete) {
         $possibleValues = $possibleValues | Where-Object {

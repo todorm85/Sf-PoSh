@@ -3,7 +3,7 @@ function sf-app-ensureRunning {
         [Int32]$totalWaitSeconds = $GLOBAL:sf.config.app.startupMaxWait
     )
 
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     if (!$p.websiteName) {
         throw "No website found for project."
     }
@@ -86,7 +86,7 @@ function sf-app-initialize {
         [switch]$skipSendRequestAndEnsureInitialized
     )
 
-    [SfProject]$p = sf-PSproject-get
+    [SfProject]$p = sf-project-get
     if (!$p) {
         throw "No project selected."
     }
@@ -120,12 +120,12 @@ function sf-app-uninitialize {
         [switch]$force
     )
 
-    $project = sf-PSproject-get
+    $project = sf-project-get
     if (!$project) {
         Write-Error "No project selected"
     }
     
-    # not deleting the db as it might be used by other project if shared, if not it will be removed when sf-PSproject-remove is called
+    # not deleting the db as it might be used by other project if shared, if not it will be removed when sf-project-remove is called
     
     try {
         sf-iis-appPool-Reset
@@ -168,7 +168,7 @@ function sf-precompiledTemplates-add {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
 
-    $context = sf-PSproject-get
+    $context = sf-project-get
     $webAppPath = $context.webAppPath
     $appUrl = sf-iis-site-getUrl
     & $sitefinityCompiler /appdir="${webAppPath}" /username="" /password="" /strategy="Backend" /membershipprovider="Default" /templateStrategy="Default" /url="${appUrl}"
@@ -186,7 +186,7 @@ function sf-precompiledTemplates-remove {
         Throw "Sitefinity compiler tool not found. You need to set the path to it inside the function"
     }
 
-    $context = sf-PSproject-get
+    $context = sf-project-get
     $webAppPath = $context.webAppPath
     $dlls = Get-ChildItem -Force -Recurse "${webAppPath}\bin" | Where-Object { ($_.PSIsContainer -eq $false) -and (( $_.Name -like "Telerik.Sitefinity.PrecompiledTemplates.dll") -or ($_.Name -like "Telerik.Sitefinity.PrecompiledPages.Backend.0.dll")) }
     try {

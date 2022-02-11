@@ -1,6 +1,6 @@
 function sf-nlb-newCluster {
     if (!(_nlb-isProjectValidForNlb)) { return }
-    [SfProject]$firstNode = sf-PSproject-get
+    [SfProject]$firstNode = sf-project-get
     [SfProject]$secondNode = _nlb-createSecondProject -name "$($firstNode.displayName)_n2"
     
     $nlbNodesUrls = _nlb-getNlbClusterUrls $firstNode $secondNode
@@ -14,7 +14,7 @@ function sf-nlb-newCluster {
     _nlbData-add -entry $nlbEntry
 
     $firstNode.isInitialized = $false
-    sf-PSproject-setCurrent $firstNode
+    sf-project-setCurrent $firstNode
     if ($nlbId) {
         sf-states-save (_nlb-getInitialStateName $nlbId)
     }
@@ -25,7 +25,7 @@ function sf-nlb-removeCluster {
         [switch]$skipDeleteOtherNodes
     )
 
-    $p = sf-PSproject-get
+    $p = sf-project-get
     if (!$p) {
         throw 'No project selected.'
     }
@@ -39,7 +39,7 @@ function sf-nlb-removeCluster {
         try {
             Run-InProjectScope -project $_ -script { _nlb-unconfigureNlbForProject }
             if (!$skipDeleteOtherNodes) {
-                sf-PSproject-remove -project $_ -keepDb -noPrompt
+                sf-project-remove -project $_ -keepDb -noPrompt
             }
         }
         catch {
@@ -57,7 +57,7 @@ function sf-nlb-removeCluster {
 }
 
 function _nlb-unconfigureNlbForProject {
-    $p = sf-PSproject-get
+    $p = sf-project-get
     $nlbId = $p.nlbId
     try {
         _nlbData-remove -entry ([NlbEntity]::new($nlbId, $p.id))
@@ -91,7 +91,7 @@ function _nlb-unconfigureNlbForProject {
 }
 
 function sf-nlb-getStatus {
-    $p = sf-PSproject-get
+    $p = sf-project-get
     if (!$p) {
         throw "No project selected."
     }
@@ -131,16 +131,16 @@ function sf-nlb-getStatus {
 }
 
 $Global:SfEvents_OnProjectRemoving += {
-    $project = sf-PSproject-get -skipValidation
+    $project = sf-project-get -skipValidation
     if ($project.nlbId) {
         Run-InProjectScope $project { sf-nlb-removeCluster -skipDeleteOtherNodes }
     }
 }
 
 function _nlb-setupNode ([SfProject]$node, $urls) {
-    $previous = sf-PSproject-get
+    $previous = sf-project-get
     try {
-        sf-PSproject-setCurrent $node
+        sf-project-setCurrent $node
         sf-config-Web-setMachineKey
         sf-config-System-setNlbUrls -urls $urls
         sf-config-System-setSslOffload -flag $true
@@ -148,7 +148,7 @@ function _nlb-setupNode ([SfProject]$node, $urls) {
         sf-app-ensureRunning
     }
     finally {
-        sf-PSproject-setCurrent $previous
+        sf-project-setCurrent $previous
     }
 }
 
@@ -175,9 +175,9 @@ function _nlb-isProjectValidForNlb {
 }
 
 function _nlb-createSecondProject ($name) {
-    sf-PSproject-clone -skipSourceControlMapping -skipDatabaseClone -skipSolutionClone > $null
-    sf-PSproject-rename -newName $name > $null
-    sf-PSproject-get
+    sf-project-clone -skipSourceControlMapping -skipDatabaseClone -skipSolutionClone > $null
+    sf-project-rename -newName $name > $null
+    sf-project-get
 }
 
 function _nlb-getNlbClusterUrls {

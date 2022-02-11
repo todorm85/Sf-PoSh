@@ -1,5 +1,5 @@
 function sf-iis-site-getBinding {
-    [SfProject]$context = sf-PSproject-get
+    [SfProject]$context = sf-project-get
     if (!$context) {
         throw "No project selected."
     }
@@ -24,7 +24,7 @@ function sf-iis-site-setBinding {
         [SiteBinding]$defBinding
     )
 
-    [SfProject]$project = sf-PSproject-get
+    [SfProject]$project = sf-project-get
     if (!$defBinding) {
         $selectedBinding = _promptBindings
         $defBinding = @{
@@ -40,7 +40,7 @@ function sf-iis-site-setBinding {
         os-hosts-add -hostname $binding.domain
     }
 
-    sf-PSproject-save -context $project
+    sf-project-save -context $project
 }
 
 function sf-iis-site-getUrl {
@@ -60,7 +60,7 @@ function sf-iis-site-changeDomain {
 
     [SiteBinding]$binding = sf-iis-site-getBinding
     if ($binding) {
-        [SfProject]$p = sf-PSproject-get
+        [SfProject]$p = sf-project-get
         $websiteName = $p.websiteName
         try {
             Remove-WebBinding -Name $websiteName -Port $binding.port -HostHeader $binding.domain -Protocol $binding.protocol
@@ -75,7 +75,7 @@ function sf-iis-site-changeDomain {
 
         if ($p.defaultBinding) {
             $p.defaultBinding.domain = $domainName
-            sf-PSproject-save -context $p
+            sf-project-save -context $p
         }
     }
     else {
@@ -86,7 +86,7 @@ function sf-iis-site-changeDomain {
 function _iisSite-appendSubAppPath {
     param($path)
 
-    $context = sf-PSproject-get
+    $context = sf-project-get
     $subAppName = sf-iis-site-getSubAppName -websiteName $context.websiteName
     if ($null -ne $subAppName) {
         $path = "$path/${subAppName}"
@@ -96,7 +96,7 @@ function _iisSite-appendSubAppPath {
 }
 
 function _promptBindings {
-    [SfProject]$project = sf-PSproject-get
+    [SfProject]$project = sf-project-get
     if (!$project.websiteName) {
         Write-Warning "No website for project."
         return
@@ -152,7 +152,7 @@ function _checkAndUpdateBindings {
 }
 
 function _checkDefaultBindingIsWorking {
-    $selectedSitefinity = sf-PSproject-get
+    $selectedSitefinity = sf-project-get
     if (!$selectedSitefinity.websiteName) {
         return 
     }

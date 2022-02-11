@@ -4,7 +4,7 @@ function sf-license-set {
         [string]$mode
     )
     
-    [SfProject]$proj = sf-PSproject-get
+    [SfProject]$proj = sf-project-get
     $licensesPath = "$($proj.webAppPath)\App_Data\Sitefinity"
     $currentLicensePath = "$licensesPath\Sitefinity.lic"
     $defaultLicenseBackupPath = "$licensesPath\Sitefinity.lic.bak"

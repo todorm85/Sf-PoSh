@@ -45,7 +45,7 @@ function sf-config-Web-setStorageMode {
         [string]$restrictionLevel
     )
 
-    $context = sf-PSproject-get
+    $context = sf-project-get
     $webConfigPath = $context.webAppPath + '\web.config'
     # set web.config readonly off
     attrib -r $webConfigPath
@@ -109,7 +109,7 @@ function sf-config-Web-getStorageMode {
     
     Param()
 
-    $context = sf-PSproject-get
+    $context = sf-project-get
 
     # set web.config readonly off
     $webConfigPath = $context.webAppPath + '\web.config'
