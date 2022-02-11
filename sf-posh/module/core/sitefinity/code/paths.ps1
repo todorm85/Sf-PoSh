@@ -1,4 +1,4 @@
-function sf-goto {
+function sf-paths-goto {
     param (
         [switch]$logs,
         [switch]$configs,
@@ -48,7 +48,7 @@ function _runInRootLocation {
     )
     
     $originalLocation = Get-Location
-    sf-goto -root
+    sf-paths-goto -root
     try {
         Invoke-Command -ScriptBlock $script
     }
