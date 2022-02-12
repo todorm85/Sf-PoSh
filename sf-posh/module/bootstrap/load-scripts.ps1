@@ -6,7 +6,7 @@ function Get-ScriptFiles {
     Get-ChildItem -Path "$PSScriptRoot\..\core" -Filter '*.ps1' -Recurse
 }
 
-Import-Module WebAdministration -Force
+Import-Module WebAdministration
 
 # Do not dot source in function scope it won`t be loaded inside the module
 # Type definitions must be added as a single bundle
