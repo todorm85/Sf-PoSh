@@ -33,17 +33,17 @@ function sf-project-new {
     return $newContext
 }
 
-Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath -ScriptBlock {
-    param ( $commandName,
-        $parameterName,
-        $wordToComplete,
-        $commandAst,
-        $fakeBoundParameters )
+# Register-ArgumentCompleter -CommandName sf-project-new -ParameterName sourcePath -ScriptBlock {
+#     param ( $commandName,
+#         $parameterName,
+#         $wordToComplete,
+#         $commandAst,
+#         $fakeBoundParameters )
 
-    $values = $sf.config.predefinedBranches
-    $values += $sf.config.predefinedBuildPaths
-    $values | % { "'$_'" }
-}
+#     $values = $sf.config.predefinedBranches
+#     $values += $sf.config.predefinedBuildPaths
+#     $values | % { "'$_'" }
+# }
 
 function sf-project-clone {
     Param(
@@ -735,7 +735,7 @@ function _proj-tryCreateFromBranch {
     )
 
 
-    if ($sourcePath -eq "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity") {
+    if ($sourcePath.TrimEnd("/") -eq "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity") {
         $projectsDir = $($GLOBAL:sf.Config.projectsDirectory)
         sf-source-new -remotePath $sourcePath -localPath $projectsDir -directoryName $project.id
         if (Test-Path "$projectsDir\$($project.id)") {

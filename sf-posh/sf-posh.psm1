@@ -77,4 +77,4 @@ if (!$currentModulePath) {
 . "$currentModulePath\load-module.ps1"
 
 $public = _getFunctionNames -exportPrivate $exportPrivate
-Export-ModuleMember -Function $public
+Export-ModuleMember -Function $public -Alias *

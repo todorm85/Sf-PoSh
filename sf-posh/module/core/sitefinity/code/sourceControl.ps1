@@ -16,7 +16,7 @@ function sf-source-hasPendingChanges {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
             _runInRootLocation {
-                !(!(Invoke-Expression -Command "git status" | ? { $_ -contains "nothing to commit, working tree clean"}))
+                !(!(Invoke-Expression -Command "git status" | ? { $_ -contains "nothing to commit, working tree clean" }))
             }
         }
     }
@@ -53,15 +53,17 @@ function sf-source-new {
         $directoryName
     )
 
-    _runInRootLocation {
+    RunInLocation $localPath {
         Invoke-Expression -Command "git clone $remotePath $directoryName"
     }
 }
 
 function sf-source-getCurrentBranch {
-    $context = _source-getValidatedProject
     _runInRootLocation {
-        & git branch | ? {$_.StartsWith("*")} | % {$_.Split(' ')[1]}
+        $res = git-getCurrentBranch
+        if (!$res.StartsWith("fatal")) {
+            $res
+        }
     }
 }
 

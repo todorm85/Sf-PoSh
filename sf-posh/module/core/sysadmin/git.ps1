@@ -17,7 +17,7 @@ $Script:branchCompleter = {
     }
 }
 
-function sf-git-checkout {
+function git-checkout {
     param (
         $branch
     )
@@ -42,9 +42,9 @@ function sf-git-checkout {
     }
 }
 
-Register-ArgumentCompleter -CommandName sf-git-checkout -ParameterName branch -ScriptBlock $Script:branchCompleter
+Register-ArgumentCompleter -CommandName git-checkout -ParameterName branch -ScriptBlock $Script:branchCompleter
 
-function sf-git-getAllLocalBranches {
+function git-getAllLocalBranches {
     param(
         [switch]$skipDefaults
     )
@@ -56,5 +56,12 @@ function sf-git-getAllLocalBranches {
         }
         
         $res
+    }
+}
+
+function git-getCurrentBranch {
+    $res = git branch 2>&1
+    if (!$res.Exception) {
+        $res | ? { $_.StartsWith("*") } | % { $_.Split(' ')[1] }
     }
 }

@@ -55,7 +55,22 @@ function _runInRootLocation {
     finally {
         Set-Location $originalLocation
     }
+}
 
+function RunInLocation {
+    param (
+        $loc,
+        $script
+    )
+
+    $originalLocation = Get-Location
+    Set-Location $loc
+    try {
+        Invoke-Command -ScriptBlock $script
+    }
+    finally {
+        Set-Location $originalLocation
+    }
 }
 
 function _sf-path-getConfigBasePath ([SfProject]$project) {
