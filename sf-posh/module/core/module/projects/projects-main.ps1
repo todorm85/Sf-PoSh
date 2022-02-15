@@ -305,21 +305,23 @@ function sf-project-rename {
             [SfProject]$context = $project
 
             if (-not $newName) {
-                while ([string]::IsNullOrEmpty($newName)) {
-                    if ($newName) {
-                        Write-Warning "Invalid name syntax."
-                    }
+                # while ([string]::IsNullOrEmpty($newName)) {
+                #     if ($newName) {
+                #         Write-Warning "Invalid name syntax."
+                #     }
 
-                    $newName = $(Read-Host -Prompt "Enter new project name").ToString()
-                }
+                #     $newName = $(Read-Host -Prompt "Enter new project name").ToString()
+                # }
+
+                $newName = ''
             }
 
             $azureDevOpsResult = _getNameParts $newName
             $newName = $azureDevOpsResult.name
             $context.description = $azureDevOpsResult.link
 
-            if (!$newName) {
-                throw "Name is null or empty."
+            if ($null -eq $newName) {
+                throw "Name is null."
             }
 
             if ($newName -eq $context.displayName) {

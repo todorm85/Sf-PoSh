@@ -63,5 +63,7 @@ function git-getCurrentBranch {
     $res = git branch 2>&1
     if (!$res.Exception) {
         $res | ? { $_.StartsWith("*") } | % { $_.Split(' ')[1] }
+    } else{
+        Write-Warning "Error getting project branch in $(Get-Location).`n Error is: $($res.Exception.Message)"
     }
 }

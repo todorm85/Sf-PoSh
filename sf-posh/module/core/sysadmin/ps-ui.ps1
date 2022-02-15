@@ -1,4 +1,3 @@
-
 function ui-promptItemSelect {
     [OutputType([object])]
     param (
@@ -85,7 +84,7 @@ function _ui-showAllWithIndexedPrefix {
         $global:i = -1
         $props = @(
             @{
-                Label = "idx"; 
+                Label = "ix"; 
                 Expression = {
                     $global:i
                     $global:i++

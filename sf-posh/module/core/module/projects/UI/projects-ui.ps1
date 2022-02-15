@@ -1,12 +1,12 @@
-$script:defaultProjectPropsToShow = @("id", "version", "branch", "title")
+$script:defaultProjectPropsToShow = @("displayName", "id")
  
-$script:defaultProjectPropsToOrderBy = @("nlbId", "tags")
+$script:defaultProjectPropsToOrderBy = @("tags", "nlbId")
 
 function sf-project-select {
     Param(
         # prefix with + for mandatory, prefix with _ to exclude, +u all untagged
-        [string[]]$tagsFilter,
         [object[]]$additionalProps,
+        [string[]]$tagsFilter,
         [object[]]$orderProps,
         [Parameter(ValueFromPipeline)]
         [SfProject]
@@ -24,7 +24,7 @@ function sf-project-select {
     end {
         $props = $script:defaultProjectPropsToShow
         if ($additionalProps) {
-            $props = $additionalProps + $props
+            $props = $props + $additionalProps
         }
 
         if (!$orderProps) {
@@ -68,11 +68,11 @@ function _proj-promptSelect {
     }
 
     if (!$propsToShow) {
-        $propsToShow = @("displayName", "id", "branchDisplayName", "lastGetLatest", "tags", "nlbId")
+        $propsToShow = $script:defaultProjectPropsToShow
     }
 
     if (!$propsToOrderBy) {
-        $propsToOrderBy = @("nlbId", "tags", "branchDisplayName", "displayName")
+        $propsToOrderBy = $script:defaultProjectPropsToOrderBy
     }
 
     ui-promptItemSelect -items $sitefinities -propsToShow $propsToShow -propsToOrderBy $propsToOrderBy -multipleSelection:$multipleSelect

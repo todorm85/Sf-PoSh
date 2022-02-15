@@ -15,10 +15,10 @@ function _update-prompt {
         $projectName = if ($project) { $project.displayName } else { '' }
         $gitBranch = $project.branch
         if ($projectName) {
-            $prompt = " [$projectName : $gitBranch]"
+            $prompt = " [$projectName$(if ($gitBranch) {" : $gitBranch"})]"
         }
         else {
-            $prompt = ""
+            $prompt = " [untitled$(if ($gitBranch) {" : $gitBranch"})]"
         }
 
         $Script:prompt = $prompt

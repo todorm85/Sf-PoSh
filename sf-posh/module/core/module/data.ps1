@@ -53,7 +53,7 @@ function _data-getAllProjects {
         # Set-Location -Path $oldLocation.Path
 
         RunInLocation $clone.webAppPath {
-            $branch = git-getCurrentBranch
+            $script:branch = git-getCurrentBranch
         }
 
         $clone | Add-Member -Name nlbId -MemberType ScriptProperty -Force -PassThru -Value {

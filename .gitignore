@@ -2,3 +2,4 @@
 *.log
 .vs
 /dist
+sf-posh/update-check.txt
