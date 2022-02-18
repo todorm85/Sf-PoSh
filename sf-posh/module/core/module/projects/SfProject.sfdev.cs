@@ -48,6 +48,8 @@ public class SfProject
     // Intellisense properties that will be overriden in powershell with script logic
     public string nlbId { get; set; }
     public string dbName { get; set; }
+    public string version { get; set; }
+    public string branch { get; set; }
 
     public override bool Equals(object obj)
     {

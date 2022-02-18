@@ -24,7 +24,7 @@ InModuleScope sf-posh {
         }
         
         It "Set project data correctly" {
-            $createdSf.branch | Should -Be ''
+            $createdSf.branch | Should -Be 'master'
             $createdSf.solutionPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}"
             $createdSf.webAppPath | Should -Be "$($GLOBAL:sf.Config.projectsDirectory)\${id}\SitefinityWebApp"
             $createdSf.websiteName | Should -Be $id
@@ -100,7 +100,7 @@ InModuleScope sf-posh {
 
             $table = 'sf_xml_config_items'
             $columns = "path, dta, last_modified, id"
-            $values = "'test', '<testConfigs/>', '$([System.DateTime]::Now.ToString())', '$([System.Guid]::NewGuid())'"
+            $values = "'test', '<testConfigs/>', '2022-02-14 12:43:59.050', '$([System.Guid]::NewGuid())'"
             sql-insert-items -dbName $dbName -tableName $table -columns $columns -values $values
 
             $select = 'dta'
@@ -155,7 +155,7 @@ InModuleScope sf-posh {
         }
 
         It "set project branch" {
-            $project.branch | Should -Be ''
+            $project.branch | Should -Be $null
         }
 
         It "set project solution path" {

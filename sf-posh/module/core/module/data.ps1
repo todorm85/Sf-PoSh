@@ -56,11 +56,51 @@ function _data-getAllProjects {
             $script:branch = git-getCurrentBranch
         }
 
-        $clone | Add-Member -Name nlbId -MemberType ScriptProperty -Force -PassThru -Value {
+        # $clone | Add-Member -Name nlbId -MemberType ScriptProperty -Force -PassThru -Value {
+        #     _nlbData-getNlbIds -projectId $this.id
+        # } | Add-Member -Name dbName -MemberType ScriptProperty -PassThru -Force -Value { 
+        #     sf-db-getNameFromDataConfig -context $this
+        # } | Add-Member -Name version -MemberType ScriptProperty -PassThru -Force -Value {
+        #     $p = $this
+        #     # try get from dll
+        #     $dllPath = "$($p.webAppPath)\bin\Telerik.Sitefinity.dll"
+        #     if (Test-Path $dllPath) {
+        #         $version = (Get-Item $dllPath | Select-Object -ExpandProperty VersionInfo).ProductVersion
+        #     }
+                    
+        #     # try get from shared assembly
+        #     $assemblyFilePath = "$($p.webAppPath)\..\AssemblyInfoShare\SharedAssemblyInfo.cs"
+        #     if (Test-Path $assemblyFilePath) {
+        #         $versionRaw = Get-Content -Path $assemblyFilePath | ? { $_.StartsWith("[assembly: AssemblyVersion(") }
+        #         $version = $versionRaw.Split('"')[1]
+        #     }
+
+        #     $version
+        # } | Add-Member -Name branch -MemberType NoteProperty -PassThru -Force -Value $branch
+
+        $script:dynamicProps | % { Add-Member -InputObject $clone -MemberType $_.Type -Name $_.Name -Value $_.Value -Force}
+        $clone
+    }
+}
+
+$script:dynamicProps = @(
+    @{
+        Name = 'nlbId'
+        Value = {
             _nlbData-getNlbIds -projectId $this.id
-        } | Add-Member -Name dbName -MemberType ScriptProperty -PassThru -Force -Value { 
+        }
+        Type = 'ScriptProperty'
+    },
+    @{
+        Name = 'dbName'
+        Value = {
             sf-db-getNameFromDataConfig -context $this
-        } | Add-Member -Name version -MemberType ScriptProperty -PassThru -Force -Value {
+        }
+        Type = 'ScriptProperty'
+    },
+    @{
+        Name = 'version'
+        Value = {
             $p = $this
             # try get from dll
             $dllPath = "$($p.webAppPath)\bin\Telerik.Sitefinity.dll"
@@ -76,9 +116,15 @@ function _data-getAllProjects {
             }
 
             $version
-        } | Add-Member -Name branch -MemberType NoteProperty -PassThru -Force -Value $branch
+        }
+        Type = 'ScriptProperty'
+    },
+    @{
+        Name = 'branch'
+        Value = $branch
+        Type = 'NoteProperty'
     }
-}
+)
 
 function _removeProjectData {
     Param($context)
