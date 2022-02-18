@@ -15,18 +15,18 @@ Set-Alias -Name re -Value sf-iis-AppPool-Reset
 Set-Alias -Name b -Value sf-iis-Site-browse
 
 # states
-Set-Alias -Name asg -Value sf-States-get
-Set-Alias -Name ass -Value sf-States-save
-Set-Alias -Name asrs -Value sf-States-restore
-Set-Alias -Name asrm -Value sf-States-remove
+Set-Alias -Name sg -Value sf-States-get
+Set-Alias -Name ss -Value sf-States-save
+Set-Alias -Name sr -Value sf-States-restore
+Set-Alias -Name srm -Value sf-States-remove
 
 # sol
 Set-Alias -Name gt -Value sf-paths-goto
 Set-Alias -Name o -Value sf-sol-open
 
 # app
-Set-Alias -Name are -Value sf-app-reinitialize
-Set-Alias -Name aen -Value sf-app-ensureRunning
+Set-Alias -Name ar -Value sf-app-reinitialize
+Set-Alias -Name ae -Value sf-app-ensureRunning
 
 # test runner
 Set-Alias -Name sw -Value sfe-startWebTestRunner

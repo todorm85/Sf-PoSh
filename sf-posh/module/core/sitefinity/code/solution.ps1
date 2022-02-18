@@ -158,7 +158,7 @@ function sf-sol-open {
         throw "Invalid visual studio path configured ($vsPath). Configure it in $($global:sf.config.userConfigPath) -> vsPath or type command sf-config-open"
     }
 
-    execute-native "& `"$vsPath`" `"$path\$projectName`"" -successCodes @(1)
+    execute-native "& `"$vsPath`" `"$path\$projectName`"" -successCodes @(1,128)
 }
 
 <#

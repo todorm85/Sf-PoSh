@@ -2,6 +2,24 @@ $script:defaultProjectPropsToShow = @("displayName", "id")
  
 $script:defaultProjectPropsToOrderBy = @("tags", "nlbId")
 
+$Global:SfAdditionalPropsCompleter = {
+    param ( $commandName,
+        $parameterName,
+        $wordToComplete,
+        $commandAst,
+        $fakeBoundParameters
+    )
+    
+    $possibleValues = [SfProject].GetMembers() | ? MemberType -eq Property | select -ExpandProperty Name
+    if ($wordToComplete) {
+        $possibleValues = $possibleValues | Where-Object {
+            $_ -like "$wordToComplete*"
+        }
+    }
+
+    $possibleValues
+}
+
 function sf-project-select {
     Param(
         # prefix with + for mandatory, prefix with _ to exclude, +u all untagged
@@ -53,6 +71,7 @@ function sf-project-select {
 }
 
 Register-ArgumentCompleter -CommandName sf-project-select -ParameterName tagsFilter -ScriptBlock $Global:SfTagFilterCompleter
+Register-ArgumentCompleter -CommandName sf-project-select -ParameterName additionalProps -ScriptBlock $Global:SfAdditionalPropsCompleter
 
 function _proj-promptSelect {
     param (

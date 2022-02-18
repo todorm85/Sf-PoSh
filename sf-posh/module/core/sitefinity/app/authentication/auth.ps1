@@ -119,33 +119,6 @@ function sf-auth-google {
     sf-config-save -config $config
 }
 
-# Use localhost:18001
-function sf-auth-adfs {
-    param (
-        [switch]$enable,
-        [switch]$disable
-    )
-
-    $config = sf-config-open -name "Authentication"
-    $root = $config["authenticationConfig"]
-
-    if ($enable) {
-        $googleEntry = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Google]"
-        $googleEntry.SetAttribute("appId", "771822853545-92c5hongqfb80nh927ejv6hajpceorbs.apps.googleusercontent.com")
-        $googleEntry.SetAttribute("appSecret", "Sn8tDo28EIAL-oVxOy9euYp0")
-        $googleEntry.SetAttribute("enabled", "True")
-        $googleEntry.SetAttribute("autoAssignedRoles", "Users, BackendUsers, Administrators")
-
-    }
-    
-    if($disable) {
-        $googleEntry = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Google]"
-        $googleEntry.SetAttribute("enabled", "False")
-    }
-
-    sf-config-save -config $config
-}
-
 function sf-auth-basic {
     param (
         [switch]$disable
