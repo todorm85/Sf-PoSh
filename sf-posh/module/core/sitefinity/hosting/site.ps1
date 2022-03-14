@@ -11,7 +11,8 @@
 #>
 function sf-iis-site-browse {
     Param(
-        [switch]$useExistingBrowser
+        [switch]$useExistingBrowser,
+        [switch]$latestUrl
     )
 
     $browserPath = $GLOBAL:sf.Config.browserPath;
@@ -29,7 +30,7 @@ function sf-iis-site-browse {
         }
     }
 
-    $appUrl = sf-iis-site-getUrl
+    $appUrl = sf-iis-site-getUrl -latestUrl:$latestUrl
     if (!(Test-Path $browserPath)) {
         throw "Invalid browser path configured ($browserPath). Configure it in $($global:sf.config.userConfigPath). -> browserPath"
     }

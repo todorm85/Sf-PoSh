@@ -36,6 +36,65 @@ function sf-auth-ldap {
     sf-config-save -config $config
 }
 
+function sf-auth-azureB2C {
+    param (
+        [switch]$enable,
+        [switch]$disable
+    )
+
+    $config = sf-config-open -name "Authentication"
+    $root = $config["authenticationConfig"]
+
+    if ($enable) {
+        $provider = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=OpenIDConnect]"
+        $provider.SetAttribute("clientId", "a6378a5c-e146-44d8-9fa3-b52bea7eecd4")
+        $provider.SetAttribute("scope", "openid profile email")
+        $provider.SetAttribute("authority", "https://login.microsoftonline.com/sitefinityunit3.onmicrosoft.com/v2.0/authorize")
+        $provider.SetAttribute("metadataAddress", "https://login.microsoftonline.com/sitefinityunit3.onmicrosoft.com/v2.0/.well-known/openid-configuration")
+        $provider.SetAttribute("redirectUri", "https://sitefinitylocal.com:417/Sitefinity/Authenticate/OpenID/signin-custom")
+        $provider.SetAttribute("postLogoutRedirectUri", "https://sitefinitylocal.com:417/")
+        $provider.SetAttribute("enabled", "True")
+        $provider.SetAttribute("autoAssignedRoles", "Editors")
+        $provider.SetAttribute("requireEmail", "False")
+        $provider.SetAttribute("autoAssignedRoles", "Users, BackendUsers, Administrators")
+        $provider.SetAttribute("config:flags", "1")
+        Write-Warning "You must login with the user account from Credentials.xml and use https://sitefinitylocal.com:417 as domain"
+    }
+    
+    if ($disable) {
+        $provider = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=OpenIDConnect]"
+        $provider.SetAttribute("enabled", "False")
+    }
+
+    sf-config-save -config $config
+}
+
+function sf-auth-facebook {
+    param (
+        [switch]$enable,
+        [switch]$disable
+    )
+
+    $config = sf-config-open -name "Authentication"
+    $root = $config["authenticationConfig"]
+
+    if ($enable) {
+        $provider = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Facebook]"
+        $provider.SetAttribute("appId", "1939601666302240")
+        $provider.SetAttribute("appSecret", "4d4a8a2585baf51d4f9db79e6af4bee0")
+        $provider.SetAttribute("enabled", "True")
+        $provider.SetAttribute("autoAssignedRoles", "Users, BackendUsers, Administrators")
+        $provider.SetAttribute("config:flags", "1")
+    }
+    
+    if ($disable) {
+        $provider = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Facebook]"
+        $provider.SetAttribute("enabled", "False")
+    }
+
+    sf-config-save -config $config
+}
+
 function sf-auth-aspsql {
     param (
         [switch]$enable,
@@ -108,10 +167,10 @@ function sf-auth-google {
         $googleEntry.SetAttribute("appSecret", "Sn8tDo28EIAL-oVxOy9euYp0")
         $googleEntry.SetAttribute("enabled", "True")
         $googleEntry.SetAttribute("autoAssignedRoles", "Users, BackendUsers, Administrators")
-
+        $googleEntry.SetAttribute("config:flags", "1")
     }
     
-    if($disable) {
+    if ($disable) {
         $googleEntry = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Google]"
         $googleEntry.SetAttribute("enabled", "False")
     }

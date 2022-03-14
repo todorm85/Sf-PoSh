@@ -79,6 +79,12 @@ function _data-getAllProjects {
         # } | Add-Member -Name branch -MemberType NoteProperty -PassThru -Force -Value $branch
 
         $script:dynamicProps | % { Add-Member -InputObject $clone -MemberType $_.Type -Name $_.Name -Value $_.Value -Force}
+        
+        RunInLocation $clone.webAppPath {
+            $script:branch = git-getCurrentBranch
+        }
+        
+        $clone.branch = $branch
         $clone
     }
 }
@@ -121,7 +127,6 @@ $script:dynamicProps = @(
     },
     @{
         Name = 'branch'
-        Value = $branch
         Type = 'NoteProperty'
     }
 )

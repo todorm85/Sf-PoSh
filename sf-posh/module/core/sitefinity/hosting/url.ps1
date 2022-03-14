@@ -1,4 +1,5 @@
 function sf-iis-site-getBinding {
+    Param([switch]$latestBinding)
     [SfProject]$context = sf-project-get
     if (!$context) {
         throw "No project selected."
@@ -9,7 +10,7 @@ function sf-iis-site-getBinding {
         return
     }
 
-    if ($context.defaultBinding -and (_checkDefaultBindingIsWorking)) {
+    if (!$latestBinding -and $context.defaultBinding -and (_checkDefaultBindingIsWorking)) {
         return $context.defaultBinding
     }
     
@@ -44,7 +45,8 @@ function sf-iis-site-setBinding {
 }
 
 function sf-iis-site-getUrl {
-    [SiteBinding]$binding = sf-iis-site-getBinding
+    Param([switch]$latestUrl)
+    [SiteBinding]$binding = sf-iis-site-getBinding -latestBinding:$latestUrl
     _sd-iisSite-buildUrlFromBinding -binding $binding
 }
 

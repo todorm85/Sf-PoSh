@@ -221,6 +221,11 @@ function _buildProj {
         [Parameter(Mandatory)][string]$path
     )
 
+    if (-not (Test-Path '\\progress.com\corp\sofia')) {
+        Write-Warning "You must have VPN in order to build projects! Skipped."
+        return
+    }
+
     if (!(Test-Path $path)) {
         throw "invalid or no proj path"
     }

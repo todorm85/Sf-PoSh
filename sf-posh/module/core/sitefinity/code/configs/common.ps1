@@ -43,6 +43,26 @@ function sf-config-save {
     $config.Save($path) > $null
 }
 
+function sf-config-update {
+    param (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$name,
+        $path,
+        $attributeName,
+        $attributeValue
+    )
+
+    $res = sf-config-open -name $name
+    $el = $res["$($name)Config"]
+    if ($path) {
+        $el = xml-getOrCreateElementPath -root $el -elementPath $path
+    }
+    
+    $el.SetAttribute($attributeName, $attributeValue)
+    sf-config-save $res
+}
+
 function xml-getOrCreateElementPath {
     [OutputType([System.XML.XmlElement])]
     param (

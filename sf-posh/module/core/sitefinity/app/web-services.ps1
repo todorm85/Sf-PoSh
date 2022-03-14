@@ -28,6 +28,6 @@ function sf-date-convertToJSFormat {
         [datetime]$date
     )
     
-    $timestamp = [Math]::Floor(1000 * (Get-Date $date -UFormat %s))
+    $timestamp = [Math]::Floor(1000 * (Get-Date $date -UFormat %s).Replace(',','.'))
     $timestamp
 }
