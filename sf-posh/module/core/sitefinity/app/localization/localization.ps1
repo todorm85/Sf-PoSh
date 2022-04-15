@@ -16,11 +16,11 @@ function sf-localization-addCultures {
             $frontendCultures = @($frontendCultures) + "en"
         }
 
-        xml-getOrCreateElementPath $root "//cultures/clear"
+        xml-getOrCreateElementPath $root "cultures/clear"
         foreach ($culture in $frontendCultures) {
             $cultureInfo = [System.Globalization.CultureInfo]::GetCultureInfo($culture)
             $key = [String]::Format("{0}-{1}", $cultureInfo.EnglishName, $cultureInfo.Name).ToLowerInvariant()
-            $cultureEntry = xml-getOrCreateElementPath $root "//cultures/add[@key=$key]"
+            $cultureEntry = xml-getOrCreateElementPath $root "cultures/add[@key=$key]"
             $cultureEntry.SetAttribute("culture", $culture)
             $cultureEntry.SetAttribute("uiCulture", $culture)
         }
@@ -29,7 +29,7 @@ function sf-localization-addCultures {
     foreach ($culture in $backendCultures) {
         $cultureInfo = [System.Globalization.CultureInfo]::GetCultureInfo($culture)
         $key = [String]::Format("{0}-{1}", $cultureInfo.EnglishName, $cultureInfo.Name).ToLowerInvariant()
-        $cultureEntry = xml-getOrCreateElementPath $root "//backendCultures/add[@key=$key]"
+        $cultureEntry = xml-getOrCreateElementPath $root "backendCultures/add[@key=$key]"
         $cultureEntry.SetAttribute("culture", $culture)
         $cultureEntry.SetAttribute("uiCulture", $culture)
     }

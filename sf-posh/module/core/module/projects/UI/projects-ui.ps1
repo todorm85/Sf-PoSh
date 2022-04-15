@@ -1,4 +1,4 @@
-$script:defaultProjectPropsToShow = @("displayName", "id")
+$script:defaultProjectPropsToShow = @("displayName", "id", "branch")
  
 $script:defaultProjectPropsToOrderBy = @("tags", "nlbId")
 

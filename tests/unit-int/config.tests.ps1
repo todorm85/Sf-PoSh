@@ -23,17 +23,17 @@ InModuleScope sf-posh {
                 [xml]$xml = sf-config-open "dedov"
                 $xml.dedovConfig.test.GetAttribute("testAt") | Should -be "opa"
 
-                $testEl = xml-getOrCreateElementPath $xml.dedovConfig "//test[@testAt='opa']"
+                $testEl = xml-getOrCreateElementPath $xml.dedovConfig "test[@testAt='opa']"
                 $testEl.GetAttribute("testB") | Should -be "opaB"
             }
             It "create elemet path when not existing and get element if exists" {
                 [xml]$xml = sf-config-open "dedov"
-                $testEl = xml-getOrCreateElementPath $xml.dedovConfig "//test/testChild/testGrandChild"
+                $testEl = xml-getOrCreateElementPath $xml.dedovConfig "test/testChild/testGrandChild"
                 $testEl.SetAttribute("testAt", "grandChildVal")
                 sf-config-save $xml
                 [xml]$xml = sf-config-open "dedov"
                 $xml.dedovConfig.test.testChild.testGrandChild.GetAttribute("testAt") | Should -be "grandChildVal"
-                $testEl = xml-getOrCreateElementPath $xml.dedovConfig "//test/testChild"
+                $testEl = xml-getOrCreateElementPath $xml.dedovConfig "test/testChild"
                 $testEl.SetAttribute("testAt", "testChildVal")
                 sf-config-save $xml
                 [xml]$xml = sf-config-open "dedov"

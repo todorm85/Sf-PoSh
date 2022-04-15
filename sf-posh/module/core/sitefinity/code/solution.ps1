@@ -215,6 +215,11 @@ function sf-sol-resetSitefinityFolder {
     }
 }
 
+function sf-sol-executeIrisInstall {
+    $p = sf-project-get
+    & "$($p.webAppPath)\Build\Iris\IrisInstall.ps1"
+}
+
 function _buildProj {
 
     Param(
@@ -222,7 +227,7 @@ function _buildProj {
     )
 
     if (-not (Test-Path '\\progress.com\corp\sofia')) {
-        Write-Warning "You must have VPN in order to build projects! Skipped."
+        throw "You must have VPN in order to build projects! Skipped."
         return
     }
 

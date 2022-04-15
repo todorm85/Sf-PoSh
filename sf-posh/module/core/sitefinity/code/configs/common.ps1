@@ -45,22 +45,13 @@ function sf-config-save {
 
 function sf-config-update {
     param (
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$name,
-        $path,
-        $attributeName,
-        $attributeValue
+        $configName,
+        $script
     )
-
-    $res = sf-config-open -name $name
-    $el = $res["$($name)Config"]
-    if ($path) {
-        $el = xml-getOrCreateElementPath -root $el -elementPath $path
-    }
     
-    $el.SetAttribute($attributeName, $attributeValue)
-    sf-config-save $res
+    $config = sf-config-open -name $configName
+    Invoke-Command -ScriptBlock $script -ArgumentList $config
+    sf-config-save -config $config
 }
 
 function xml-getOrCreateElementPath {
@@ -76,9 +67,9 @@ function xml-getOrCreateElementPath {
     
     process {
         $currentParentElement = $root
-        $elementQueryParts = $elementPath.Split('/', [stringsplitoptions]::RemoveEmptyEntries)
-        for ($i = 0; $i -lt $elementQueryParts.Count; $i++) {
-            $currentQueryPart = $elementQueryParts[$i]
+        while ($elementPath -and $elementPath -match "(?<attribute>^[\w\.:]+?\[.+?\])|(?<element>^[\w\.:]+?)(\/|$)") {
+            $currentQueryPart = if ($Matches["element"]) {$Matches["element"]} else {$Matches["attribute"]}
+            
             if ($currentQueryPart.Contains("[@")) {
                 $elementName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[0]
                 $attributeName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[0]
@@ -101,7 +92,41 @@ function xml-getOrCreateElementPath {
     
                 $currentParentElement = $currentElement
             }
+
+            if ($elementPath.Length -eq $currentQueryPart.Length) {
+                break;
+            }
+            else {
+                $elementPath = ($elementPath.Substring($currentQueryPart.Length, $elementPath.Length - $currentQueryPart.Length)).Trim('/')
+            }
         }
+
+        # $elementQueryParts = $elementPath.Split('/', [stringsplitoptions]::RemoveEmptyEntries)
+        # for ($i = 0; $i -lt $elementQueryParts.Count; $i++) {
+        #     $currentQueryPart = $elementQueryParts[$i]
+        #     if ($currentQueryPart.Contains("[@")) {
+        #         $elementName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[0]
+        #         $attributeName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[0]
+        #         $attrValue = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[1].Trim("]").Trim("'")
+        #         $currentElement = $currentParentElement.SelectSingleNode("$elementName[@$attributeName='$attrValue']")
+        #         if (!$currentElement) {
+        #             $currentElement = $currentParentElement.OwnerDocument.CreateElement($elementName)
+        #             $currentElement.SetAttribute($attributeName, $attrValue)
+        #             $currentParentElement.AppendChild($currentElement) > $null
+        #         }
+                
+        #         $currentParentElement = $currentElement
+        #     }
+        #     else {
+        #         $currentElement = $currentParentElement[$currentQueryPart]
+        #         if (!$currentElement) {
+        #             $currentElement = $currentParentElement.OwnerDocument.CreateElement($currentQueryPart)
+        #             $currentParentElement.AppendChild($currentElement) > $null
+        #         }
+    
+        #         $currentParentElement = $currentElement
+        #     }
+        # }
 
         [System.XML.XmlElement]$currentParentElement
     }

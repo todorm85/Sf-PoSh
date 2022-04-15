@@ -6,7 +6,7 @@ function sf-config-Web-setMachineKey {
     )
 
     [XML]$xmlDoc = sf-config-open "web"
-    $machineKey = xml-getOrCreateElementPath $xmlDoc.configuration "//system.web/machineKey"
+    $machineKey = xml-getOrCreateElementPath $xmlDoc.configuration "system.web/machineKey"
     $machineKey.SetAttribute("decryption", $decryption)
     $machineKey.SetAttribute("decryptionKey", $decryptionKey)
     $machineKey.SetAttribute("validationKey", $validationKey)

@@ -7,7 +7,7 @@ function sf-auth-ldap {
     $config = sf-config-open -name "Security"
     $root = $config["securityConfig"]
     if ($enable) {
-        $ldapConnection = Xml-GetOrCreateElementPath $root -elementPath "//LdapConnections/connections/LdapConnection[@name=DefaultLdapConnection]"
+        $ldapConnection = Xml-GetOrCreateElementPath $root -elementPath "LdapConnections/connections/LdapConnection[@name=DefaultLdapConnection]"
         $ldapConnection.SetAttribute("serverName", "NTSOFDCBED02.bedford.progress.com")
         $ldapConnection.SetAttribute("connectionDomain", "bedford.progress.com")
         $ldapConnection.SetAttribute("connectionUsername", "SitefinityLdapReader")
@@ -15,21 +15,21 @@ function sf-auth-ldap {
         $ldapConnection.SetAttribute("usersDN", "dc=bedford,dc=progress,dc=com")
         $ldapConnection.SetAttribute("rolesDns", "dc=bedford,dc=progress,dc=com")
 
-        $ldapUsers = xml-getOrCreateElementPath $root -elementPath "//membershipProviders/add[@name=LdapUsers]"
+        $ldapUsers = xml-getOrCreateElementPath $root -elementPath "membershipProviders/add[@name=LdapUsers]"
         $ldapUsers.SetAttribute("enabled", "True")
 
-        $roleProvider = xml-getOrCreateElementPath $root -elementPath "//roleProviders/add[@name=LdapRoles]"
+        $roleProvider = xml-getOrCreateElementPath $root -elementPath "roleProviders/add[@name=LdapRoles]"
         $roleProvider.SetAttribute("enabled", "True")
 
-        $administrativeRoles = xml-getOrCreateElementPath $root -elementPath "//administrativeRoles/role[@roleName=SitefinityToolingTeam]"
+        $administrativeRoles = xml-getOrCreateElementPath $root -elementPath "administrativeRoles/role[@roleName=SitefinityToolingTeam]"
         $administrativeRoles.SetAttribute("roleProvider", "LdapRoles")
     }
 
     if ($disable) {
-        $ldapUsers = xml-getOrCreateElementPath $root -elementPath "//membershipProviders/add[@name=LdapUsers]"
+        $ldapUsers = xml-getOrCreateElementPath $root -elementPath "membershipProviders/add[@name=LdapUsers]"
         $ldapUsers.SetAttribute("enabled", "False")
 
-        $roleProvider = xml-getOrCreateElementPath $root -elementPath "//roleProviders/add[@name=LdapRoles]"
+        $roleProvider = xml-getOrCreateElementPath $root -elementPath "roleProviders/add[@name=LdapRoles]"
         $roleProvider.SetAttribute("enabled", "False")
     }
 
@@ -46,7 +46,7 @@ function sf-auth-azureB2C {
     $root = $config["authenticationConfig"]
 
     if ($enable) {
-        $provider = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=OpenIDConnect]"
+        $provider = xml-getOrCreateElementPath $root -elementPath "securityTokenServiceSettings/authenticationProviders/add[@name=OpenIDConnect]"
         $provider.SetAttribute("clientId", "a6378a5c-e146-44d8-9fa3-b52bea7eecd4")
         $provider.SetAttribute("scope", "openid profile email")
         $provider.SetAttribute("authority", "https://login.microsoftonline.com/sitefinityunit3.onmicrosoft.com/v2.0/authorize")
@@ -62,7 +62,7 @@ function sf-auth-azureB2C {
     }
     
     if ($disable) {
-        $provider = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=OpenIDConnect]"
+        $provider = xml-getOrCreateElementPath $root -elementPath "securityTokenServiceSettings/authenticationProviders/add[@name=OpenIDConnect]"
         $provider.SetAttribute("enabled", "False")
     }
 
@@ -79,7 +79,7 @@ function sf-auth-facebook {
     $root = $config["authenticationConfig"]
 
     if ($enable) {
-        $provider = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Facebook]"
+        $provider = xml-getOrCreateElementPath $root -elementPath "securityTokenServiceSettings/authenticationProviders/add[@name=Facebook]"
         $provider.SetAttribute("appId", "1939601666302240")
         $provider.SetAttribute("appSecret", "4d4a8a2585baf51d4f9db79e6af4bee0")
         $provider.SetAttribute("enabled", "True")
@@ -88,7 +88,7 @@ function sf-auth-facebook {
     }
     
     if ($disable) {
-        $provider = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Facebook]"
+        $provider = xml-getOrCreateElementPath $root -elementPath "securityTokenServiceSettings/authenticationProviders/add[@name=Facebook]"
         $provider.SetAttribute("enabled", "False")
     }
 
@@ -112,14 +112,14 @@ function sf-auth-aspsql {
         $RelocateLog = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity_Log", "c:\$dbName.ldf")
         Restore-SqlDatabase -ServerInstance "." -Database $dbName -BackupFile "$PSScriptRoot\Sitefinity.bak" -Credential $credential -ReplaceDatabase -RelocateFile @($RelocateData, $RelocateLog)
 
-        $connectionString = xml-getOrCreateElementPath $root -elementPath "//connectionStrings/add[@name=AspNetMembership]"
+        $connectionString = xml-getOrCreateElementPath $root -elementPath "connectionStrings/add[@name=AspNetMembership]"
         $connectionString.SetAttribute("connectionString", "data source=.;UID=sa;PWD=admin@2admin@2;initial catalog=$dbName")
 
-        $roleManager = xml-getOrCreateElementPath $root -elementPath "//system.web/roleManager"
+        $roleManager = xml-getOrCreateElementPath $root -elementPath "system.web/roleManager"
         $roleManager.SetAttribute("enabled", "true")
 
-        $roleProvider = xml-getOrCreateElementPath $roleManager -elementPath "//providers/clear"
-        $roleProvider = xml-getOrCreateElementPath $roleManager -elementPath "//providers/add[@name=AspNetSqlRoleProvider]"
+        $roleProvider = xml-getOrCreateElementPath $roleManager -elementPath "providers/clear"
+        $roleProvider = xml-getOrCreateElementPath $roleManager -elementPath "providers/add[@name=AspNetSqlRoleProvider]"
         $roleProvider.SetAttribute("connectionStringName", "AspNetMembership")
         $roleProvider.SetAttribute("applicationName", "/")
         $roleProvider.SetAttribute("type", "System.Web.Security.SqlRoleProvider")
@@ -162,7 +162,7 @@ function sf-auth-google {
     $root = $config["authenticationConfig"]
 
     if ($enable) {
-        $googleEntry = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Google]"
+        $googleEntry = xml-getOrCreateElementPath $root -elementPath "securityTokenServiceSettings/authenticationProviders/add[@name=Google]"
         $googleEntry.SetAttribute("appId", "771822853545-92c5hongqfb80nh927ejv6hajpceorbs.apps.googleusercontent.com")
         $googleEntry.SetAttribute("appSecret", "Sn8tDo28EIAL-oVxOy9euYp0")
         $googleEntry.SetAttribute("enabled", "True")
@@ -171,7 +171,7 @@ function sf-auth-google {
     }
     
     if ($disable) {
-        $googleEntry = xml-getOrCreateElementPath $root -elementPath "//securityTokenServiceSettings/authenticationProviders/add[@name=Google]"
+        $googleEntry = xml-getOrCreateElementPath $root -elementPath "securityTokenServiceSettings/authenticationProviders/add[@name=Google]"
         $googleEntry.SetAttribute("enabled", "False")
     }
 
@@ -190,7 +190,7 @@ function sf-auth-basic {
 
     $config = sf-config-open -name "Authentication"
     $root = $config["authenticationConfig"]
-    $relyingPartySettings = xml-getOrCreateElementPath -elementPath "//relyingPartySettings" -root $root
+    $relyingPartySettings = xml-getOrCreateElementPath -elementPath "relyingPartySettings" -root $root
     $existingValue = $relyingPartySettings.GetAttribute("enableBasicAuthenticationForBackendServices")
     if (!$existingValue -or ($existingValue.ToLower() -ne $configVal.ToLower())) {
         $relyingPartySettings.SetAttribute("enableBasicAuthenticationForBackendServices", $configVal)

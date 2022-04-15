@@ -59,11 +59,11 @@ function os-test-isPortFree {
 $path = "tf.exe"
 execute-native "& `"$path`" workspaces `"C:\dummySubApp`""
 #>
-function execute-native ([string]$command, [array]$successCodes) {
+function execute-native ([string]$command, [array]$successCodes, [switch]$doNotThrowError) {
     $command = $command + " 2>&1"
     $output = Invoke-Expression $command
 
-    if ($lastexitcode -and -not ($successCodes -and $successCodes.Count -gt 0 -and $successCodes.Contains($lastexitcode))) {
+    if (!$doNotThrowError -and $lastexitcode -and -not ($successCodes -and $successCodes.Count -gt 0 -and $successCodes.Contains($lastexitcode))) {
         throw "Error executing native operation ($command). Last exit code was $lastexitcode. Native call output: $output`n"
     }
     else {
@@ -159,7 +159,7 @@ function os-browseUrl {
         Start-Sleep -Seconds 1
     }
 
-    execute-native "& `"$browserPath`" `"$url`" -noframemerging" -successCodes @(100,128)
+    & "$browserPath" "$url" -noframemerging --profile-directory="Profile 2"
 }
 
 function _clean-emptyDirs ($path) {

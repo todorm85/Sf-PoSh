@@ -23,6 +23,7 @@ Set-Alias -Name srm -Value sf-States-remove
 # sol
 Set-Alias -Name gt -Value sf-paths-goto
 Set-Alias -Name o -Value sf-sol-open
+Set-Alias -Name sb -Value sf-sol-build
 
 # app
 Set-Alias -Name ar -Value sf-app-reinitialize

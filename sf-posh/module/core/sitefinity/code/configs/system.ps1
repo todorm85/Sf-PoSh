@@ -11,7 +11,7 @@ function sf-config-System-setNlbUrls {
     )
     
     [xml]$sysConf = sf-config-open -name "System"
-    [System.Xml.XmlElement]$nlbParams = xml-getOrCreateElementPath $sysConf.systemConfig "//loadBalancingConfig/parameters"
+    [System.Xml.XmlElement]$nlbParams = xml-getOrCreateElementPath $sysConf.systemConfig "loadBalancingConfig/parameters"
 
     $nlbParams.RemoveAll() > $null
     foreach ($url in $urls) {
