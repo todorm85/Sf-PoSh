@@ -33,7 +33,7 @@ Set-Alias -Name ae -Value sf-app-ensureRunning
 Set-Alias -Name sw -Value sfe-startWebTestRunner
 
 # git
-Set-Alias -Name ch -Value git-checkout
+Set-Alias -Name ch -Value sf-git-checkout
 
 # nlb
 Set-Alias -Name oa -Value sf-nlb-overrideOtherNodeConfigs

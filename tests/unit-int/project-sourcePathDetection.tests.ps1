@@ -33,7 +33,7 @@ InModuleScope sf-posh {
         It "create from source when supplied" {
             $id = generateRandomName
             [SfProject]$project = _newSfProjectObject -id "$id"
-            Mock sf-source-new {
+            Mock git-clone {
                 New-Item -Path "$localPath\$directoryName" -ItemType Directory -Force
             }
 

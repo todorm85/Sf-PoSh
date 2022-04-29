@@ -86,6 +86,8 @@ function sf-sol-clean {
         Where-Object { $_.Name.ToLower() -eq "bin" -or $_.Name.ToLower() -eq "obj" } | `
         Remove-Item -Force -Recurse -ErrorVariable +errorMessage -ErrorAction "Continue"
 
+    Remove-Item -Force -Recurse -ErrorVariable +errorMessage -ErrorAction "Continue" -Path "$($project.webAppPath)/ResourcePackages"
+
     if ($errorMessage) {
         $errorMessage = "Errors while deleting bins and objs:`n$errorMessage"
     }

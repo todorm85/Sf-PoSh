@@ -1,11 +1,4 @@
-function sf-source-undoPendingChanges {
-    $context = _source-getValidatedProject
-    _runInRootLocation {
-        Invoke-Expression -Command "git restore *"
-    }
-}
-
-function sf-source-hasPendingChanges {
+function sf-git-isClean {
     param(
         [Parameter(ValueFromPipeline)]
         [SfProject]
@@ -15,51 +8,15 @@ function sf-source-hasPendingChanges {
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
-            _runInRootLocation {
+            RunInRootLocation {
                 !(!(Invoke-Expression -Command "git status" | ? { $_ -contains "nothing to commit, working tree clean" }))
             }
         }
     }
 }
 
-function _source-getValidatedProject {
-    [OutputType([SfProject])]
-    param()
-
-    [SfProject]$context = sf-project-get
-    $solutionPath = $context.solutionPath
-    if (!$solutionPath -or !(Test-Path $solutionPath)) {
-        throw "invalid or no solution path"
-    }
-
-    $context
-}
-
-function sf-source-getLatestChanges {
-
-    $context = _source-getValidatedProject
-    _runInRootLocation {
-        Invoke-Expression -Command "git pull"
-    }
-
-    $context.lastGetLatest = [System.DateTime]::Now
-    sf-project-save $context
-}
-
-function sf-source-new {
-    param (
-        $remotePath,
-        $localPath,
-        $directoryName
-    )
-
-    RunInLocation $localPath {
-        Invoke-Expression -Command "git clone $remotePath $directoryName"
-    }
-}
-
-function sf-source-getCurrentBranch {
-    _runInRootLocation {
+function sf-git-getCurrentBranch {
+    RunInRootLocation {
         $res = git-getCurrentBranch
         if (!$res.StartsWith("fatal")) {
             $res
@@ -67,14 +24,50 @@ function sf-source-getCurrentBranch {
     }
 }
 
-function sf-source-hasSourceControl {
-    try {
-        $context = _source-getValidatedProject
+function sf-git-isEnabled {
+    RunInRootLocation {
+        Test-Path ".\.git"
     }
-    catch {
-        return $false        
-    }
-    
-    Test-Path "$($context.solutionPath)\.git"
 }
 
+function sf-git-resetAllChanges {
+    RunInRootLocation {
+        git-resetAllChanges
+    }
+}
+
+$Script:branchCompleter = {
+    param ( $commandName,
+        $parameterName,
+        $wordToComplete,
+        $commandAst,
+        $fakeBoundParameters )
+    RunInRootLocation {
+        git-completeBranchName $wordToComplete
+    }
+}
+
+function sf-git-checkout {
+    param (
+        $branch
+    )
+
+    RunInRootLocation {
+        $branchExists = git-getAllBranches | ? { $_ -eq $branch }
+        if ($branchExists) {
+            $res = git checkout $branch 2>&1
+        }
+        else {
+            $res = git checkout -b $branch 2>&1
+        }
+        
+        if ($res | ? { $_.Exception -and $_.Exception.Message.StartsWith("Switched to") }) {
+            $p = sf-project-get
+            $p.branch = $branch
+            _update-prompt $p
+        }
+        else {
+            Write-Error "Something went wrong: $res"
+        }
+    }
+}

@@ -42,7 +42,7 @@ function _paths-validatePath {
     return $path -and (Test-Path $path)
 }
 
-function _runInRootLocation {
+function RunInRootLocation {
     param (
         $script
     )

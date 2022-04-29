@@ -647,9 +647,9 @@ function _proj-initialize {
 
     # try {
     #     if (!$cachedProject -and !$project.branch -or $project.branch -ne $cachedProject.branch) {
-    #         if (sf-source-hasSourceControl) {
+    #         if (sf-git-isEnabled) {
     #             $detectedChanges = $true
-    #             $project.branch = sf-source-getCurrentBranch
+    #             $project.branch = sf-git-getCurrentBranch
     #         }
     #     }
     # }
@@ -739,7 +739,7 @@ function _proj-tryCreateFromBranch {
 
     if ($sourcePath.TrimEnd("/") -eq "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity") {
         $projectsDir = $($GLOBAL:sf.Config.projectsDirectory)
-        sf-source-new -remotePath $sourcePath -localPath $projectsDir -directoryName $project.id
+        git-clone -remotePath $sourcePath -localPath $projectsDir -directoryName $project.id
         if (Test-Path "$projectsDir\$($project.id)") {
             $project.solutionPath = "$projectsDir\$($project.id)";
             $project.webAppPath = "$($project.solutionPath)\SitefinityWebApp";

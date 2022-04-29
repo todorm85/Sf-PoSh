@@ -36,7 +36,8 @@ function Run-InFunctionAcceptingProjectFromPipeline {
         [ValidateNotNull()]
         [ScriptBlock]$script,
         [object[]]$scriptArguments,
-        [SfProject]$project
+        [SfProject]$project,
+        [switch]$passthrough
     )
         
     $isFromPipeline = (Get-PSCallStack)[1].InvocationInfo.ExpectingInput
@@ -54,7 +55,7 @@ function Run-InFunctionAcceptingProjectFromPipeline {
     }
     else {
         Run-InProjectScope -project $project -script $script -scriptArguments $scriptArguments
-        if ($isFromPipeline) {
+        if ($isFromPipeline -and $passthrough) {
             $project
         }
     }
