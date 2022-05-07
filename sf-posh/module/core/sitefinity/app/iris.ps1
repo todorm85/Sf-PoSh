@@ -12,10 +12,17 @@ function sf-iris-configureStandalone {
     sf-config-update -configName webServices {
         param($config)
         $configNamespace = "urn:telerik:sitefinity:configuration"
-        $service = xml-getOrCreateElementPath -root $config.webServicesConfig -elementPath "Routes/add[@name=Sitefinity]"
+        $service = xml-getOrCreateElementPath -root $config."webServicesConfig" -elementPath "Routes/add[@name=Sitefinity]"
         $service.SetAttribute("flags", $configNamespace, "1")
         $cor = xml-getOrCreateElementPath -root $service -elementPath "services/add[@urlName=system]"
         $cor.SetAttribute("accessControlAllowOrigin", "*")
         $cor.SetAttribute("flags", $configNamespace, "1")
+    }
+}
+
+function sf-iris-install {
+    $p = sf-project-get
+    RunInLocation -loc $p.webAppPath -script {
+        Build\Iris\IrisInstall.ps1
     }
 }

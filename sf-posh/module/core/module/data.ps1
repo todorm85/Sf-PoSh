@@ -30,7 +30,7 @@ function _data-getAllProjects {
             $clone.solutionPath = $_.solutionPath
         }
 
-        $clone.lastGetLatest = _deserializeDate -dateEntry $_.lastGetLatest;
+        # $clone.lastGetLatest = _deserializeDate -dateEntry $_.lastGetLatest;
 
         $clone.tags = [Collections.Generic.List[string]]$tags;
 
@@ -128,6 +128,23 @@ $script:dynamicProps = @(
     @{
         Name = 'branch'
         Type = 'NoteProperty'
+    },
+    @{
+        Name = 'behind'
+        Type = 'ScriptProperty'
+        Value = {
+            Run-InProjectScope $this {
+                $branch = sf-git-getCurrentBranch
+                $behindSelf = sf-git-getCommitsBehind
+                if ($branch -eq 'master' -or $branch -eq 'patches') {
+                    return $behindSelf
+                }
+
+                $behindMaster = sf-git-getCommitsBehind origin/master
+                $behindPatches = sf-git-getCommitsBehind origin/patches
+                "($behindSelf) M($behindMaster) P($behindPatches)"
+            }
+        }
     }
 )
 

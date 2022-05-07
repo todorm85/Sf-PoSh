@@ -40,8 +40,6 @@ function git-completeBranchName {
     $possibleValues
 }
 
-Register-ArgumentCompleter -CommandName sf-git-checkout -ParameterName branch -ScriptBlock $Script:branchCompleter
-
 function git-getAllLocalBranches {
     param(
         [switch]$skipDefaults
@@ -68,6 +66,7 @@ function git-getCurrentBranch {
 }
 
 function git-resetAllChanges {
-    git clean -fd
+    git restore --staged *
     git restore *
+    git clean -fd
 }

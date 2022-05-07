@@ -38,7 +38,7 @@ function sf-sol-build {
                 Write-Information "Build failed. Retrying..."
             }
             else {
-                throw "Solution could not build after $retryCount retries. $_"
+                throw $_.Exception
             }
         }
     }
@@ -86,7 +86,7 @@ function sf-sol-clean {
         Where-Object { $_.Name.ToLower() -eq "bin" -or $_.Name.ToLower() -eq "obj" } | `
         Remove-Item -Force -Recurse -ErrorVariable +errorMessage -ErrorAction "Continue"
 
-    Remove-Item -Force -Recurse -ErrorVariable +errorMessage -ErrorAction "Continue" -Path "$($project.webAppPath)/ResourcePackages"
+    Remove-Item -Force -Recurse -ErrorVariable +errorMessage -ErrorAction "SilentlyContinue" -Path "$($project.webAppPath)/ResourcePackages"
 
     if ($errorMessage) {
         $errorMessage = "Errors while deleting bins and objs:`n$errorMessage"
@@ -160,7 +160,7 @@ function sf-sol-open {
         throw "Invalid visual studio path configured ($vsPath). Configure it in $($global:sf.config.userConfigPath) -> vsPath or type command sf-config-open"
     }
 
-    execute-native "& `"$vsPath`" `"$path\$projectName`"" -successCodes @(1,128)
+    execute-native "& `"$vsPath`" `"$path\$projectName`"" -successCodes @(1, 128)
 }
 
 <#
@@ -189,7 +189,7 @@ function sf-sol-unlockAllFiles {
         $path = $project.webAppPath
     }
 
-    if ($path) {
+    if ($path -and !$Global:isVisualStudio) {
         unlock-allFiles $path
     }
 }
@@ -211,7 +211,7 @@ function sf-sol-resetSitefinityFolder {
         }
     }
 
-    $errorMessage = $errorMessage | ? {$_ -notlike "\Logs" }
+    $errorMessage = $errorMessage | ? { $_ -notlike "\Logs" }
     if ($errorMessage) {
         throw $errorMessage
     }
@@ -228,10 +228,10 @@ function _buildProj {
         [Parameter(Mandatory)][string]$path
     )
 
-    if (-not (Test-Path '\\progress.com\corp\sofia')) {
-        throw "You must have VPN in order to build projects! Skipped."
-        return
-    }
+    # if (-not (Test-Path '\\progress.com\corp\sofia')) {
+    #     throw "You must have VPN in order to build projects! Skipped."
+    #     return
+    # }
 
     if (!(Test-Path $path)) {
         throw "invalid or no proj path"
@@ -244,16 +244,23 @@ function _buildProj {
     }
 
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
-    $output = Invoke-Expression "& `"$($GLOBAL:sf.config.msBuildPath)`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:d"
+    $output = Invoke-Expression "& `"$($GLOBAL:sf.config.msBuildPath)`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:q"
     $elapsed.Stop()
+    Write-Information "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
 
     if ($LastExitCode -ne 0) {
-        $errorLogPath = "$Script:moduleUserDir/MsBuild-Errors.log"
-        $output | Out-File $errorLogPath
-        throw "Build errors occurred. See log at $errorLogPath"
-    }
-    else {
-        Write-Information "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
+        $irisErrorFilter = "*error MSB3073:*IrisInstall.ps1*"        
+        $errors = $output -like "*): error *"
+        $blockingErrors = $errors -notlike $irisErrorFilter
+        if ($errors -like $irisErrorFilter) {
+            Write-Warning "Could not install Iris. Probably no VPN."
+        }
+
+        if ($blockingErrors) {
+            $errorLogPath = "$Script:moduleUserDir/MsBuild-Errors.log"
+            $output | Out-File $errorLogPath
+            throw "`n################################################`n$hasErrors`n################################################`nBuild errors occurred - Full log at $errorLogPath"
+        }
     }
 }
 

@@ -31,48 +31,48 @@ function _sf-get-date {
     "$($d.Day).$($d.Month).$($d.Year)"
 }
 
-$updateCheckPath = "$PSScriptRoot\update-check.txt"
-$currentDate = _sf-get-date
-$date = $null
-if (Test-Path $updateCheckPath) {
-    $date = Get-Content $updateCheckPath
-}
+# $updateCheckPath = "$PSScriptRoot\update-check.txt"
+# $currentDate = _sf-get-date
+# $date = $null
+# if (Test-Path $updateCheckPath) {
+#     $date = Get-Content $updateCheckPath
+# }
 
 $lastUpdatedVersionLoc = Get-ChildItem $PSScriptRoot -Directory | Sort-Object -Property CreationTime -Descending | Select -First 1
 $currentModulePath = $lastUpdatedVersionLoc.FullName
-if (!$date -or ($currentDate -ne $date)) {
-    Write-Host "Checking for new version"
+# if (!$date -or ($currentDate -ne $date)) {
+#     Write-Host "Checking for new version"
     
-    $remotesPath = "\\filesrvbg01\Resources\Sitefinity\sf-posh"
-    $remoteLocation = Get-ChildItem -Path $remotesPath -Directory -ErrorAction SilentlyContinue | Sort-Object -Property CreationTime -Descending | Select -First 1
-    $currentVn = Get-Content -Path "$currentModulePath\version.txt" -ErrorAction SilentlyContinue
-    $remoteVn = Get-Content "$($remoteLocation.FullName)\version.txt" -ErrorAction SilentlyContinue
-    if ($remoteVn -and (!$currentVn -or (_isFirstVersionLower $currentVn $remoteVn))) {
-        $update = Read-Host -Prompt "New module version detected. Update? - y/n"
-        if ($update -eq 'y') {
-            $remotePath = $remoteLocation.FullName
-            $newModulePath = "$PSScriptRoot\$($remoteLocation.Name)"
-            New-Item $newModulePath -ItemType Directory -Force
-            Copy-Item "$remotePath\*" $newModulePath -Force -Recurse -ErrorVariable errorCopying
-            if ($errorCopying) {
-                Write-Warning "Error updating module. Error copying files locally: $errorCopying"
-                Remove-Item $newModulePath -Force -Recurse
-            }
-            else {
-                $currentModulePath = $newModulePath
-                Write-Warning "Module updated."
-                Get-ChildItem $PSScriptRoot -Directory | ? Name -ne $remoteLocation.Name | Remove-Item -Force -Recurse
-            }
-        }
-    }
+#     $remotesPath = "\\filesrvbg01\Resources\Sitefinity\sf-posh"
+#     $remoteLocation = Get-ChildItem -Path $remotesPath -Directory -ErrorAction SilentlyContinue | Sort-Object -Property CreationTime -Descending | Select -First 1
+#     $currentVn = Get-Content -Path "$currentModulePath\version.txt" -ErrorAction SilentlyContinue
+#     $remoteVn = Get-Content "$($remoteLocation.FullName)\version.txt" -ErrorAction SilentlyContinue
+#     if ($remoteVn -and (!$currentVn -or (_isFirstVersionLower $currentVn $remoteVn))) {
+#         $update = Read-Host -Prompt "New module version detected. Update? - y/n"
+#         if ($update -eq 'y') {
+#             $remotePath = $remoteLocation.FullName
+#             $newModulePath = "$PSScriptRoot\$($remoteLocation.Name)"
+#             New-Item $newModulePath -ItemType Directory -Force
+#             Copy-Item "$remotePath\*" $newModulePath -Force -Recurse -ErrorVariable errorCopying
+#             if ($errorCopying) {
+#                 Write-Warning "Error updating module. Error copying files locally: $errorCopying"
+#                 Remove-Item $newModulePath -Force -Recurse
+#             }
+#             else {
+#                 $currentModulePath = $newModulePath
+#                 Write-Warning "Module updated."
+#                 Get-ChildItem $PSScriptRoot -Directory | ? Name -ne $remoteLocation.Name | Remove-Item -Force -Recurse
+#             }
+#         }
+#     }
 
-    _sf-get-date | Out-File $updateCheckPath
-}
-else { Write-Host 'skipping update check' }
+#     _sf-get-date | Out-File $updateCheckPath
+# }
+# else { Write-Host 'skipping update check' }
 
-if (!$currentModulePath) {
-    throw "No local module available and no access to $remotesPath to download latest version."
-}
+# if (!$currentModulePath) {
+#     throw "No local module available and no access to $remotesPath to download latest version."
+# }
 
 . "$currentModulePath\load-module.ps1"
 

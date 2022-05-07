@@ -8,10 +8,88 @@ function sf-git-isClean {
     process {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
-            RunInRootLocation {
-                !(!(Invoke-Expression -Command "git status" | ? { $_ -contains "nothing to commit, working tree clean" }))
+            
+            $ignoredPaths = @("^[\./]*?\.nuget/NuGet.Config$",
+                "^[\./]*?Builds/StyleCop/StyleCop.Targets$",
+                "^[\./]*?Feather/Tests/Telerik.Sitefinity.Frontend.ClientTest/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache$",
+                "^[\./]*?Builds/StyleCop/StyleCop.Targets$",
+                "^[\./]*?sf.*?\d+?\.sln$")
+            
+            $status = sf-git-status
+            return !($status | ? { $path = $_.path; !($ignoredPaths | ? { $path -match $_ }) })
+        }
+    }
+}
+
+function sf-git-status {
+    RunInRootLocation {
+        $rawOutput = git status
+        $statusContext = ""
+        $changes = @()
+        foreach ($line in $rawOutput) {
+            # context
+            if ($line -like "Changes not staged for commit*") {
+                $statusContext = "notStaged"
+                continue
+            }
+            
+            if ($line -like "Untracked files:*") {
+                $statusContext = "untracked"
+                continue
+            }
+
+            if ($line -like "Changes to be committed:*") {
+                $statusContext = "staged"
+                continue
+            }
+
+            #process context
+            if ($statusContext -eq "notStaged" -or $statusContext -eq "staged") {
+                if ($line -like '*(use "git*') {
+                    continue
+                }
+                elseif ($line -and $line -match "^\s?.*") {
+                    $parts = $line -split ": " | ? { -not [string]::IsNullOrWhiteSpace($_) }
+                    if ($parts.Count -ne 2) {
+                        throw "unexpected line";
+                    }
+
+                    $changes += [PSCustomObject]@{type = $parts[0].Trim(); path = $parts[1].Trim() }
+                    continue
+                }
+                elseif (!$line) {
+                    $statusContext = ''
+                }
+                else {
+                    throw "Unexpected character."
+                }
+            }
+
+            if ($statusContext -eq "untracked") {
+                if ($line -like '*(use "git*') {
+                    continue
+                }
+                elseif ($line -and $line -match "^\s?.+") {
+                    $changes += [PSCustomObject]@{type = "untracked"; path = $line.Trim() }
+                    continue
+                }
+                elseif (!$line) {
+                    $statusContext = ''
+                }
+                else {
+                    throw "Unexpected character."
+                }
             }
         }
+
+        $changes
+    }
+}
+
+function sf-git-isUpToDateWithRemote {
+    RunInRootLocation {
+        $fetchResult = git fetch -p 2>&1
+        !(!(Invoke-Expression -Command "git status" | ? { $_ -like "*up to date*" }))
     }
 }
 
@@ -71,3 +149,26 @@ function sf-git-checkout {
         }
     }
 }
+
+Register-ArgumentCompleter -CommandName sf-git-checkout -ParameterName branch -ScriptBlock $Script:branchCompleter
+
+function sf-git-getCommitsBehind {
+    param (
+        $branch
+    )
+
+    RunInRootLocation {
+        git fetch
+        if ($branch) {
+            + (git rev-list --count HEAD ^$branch)
+        }
+        else {
+
+            $commitsCount = (git status) -like "Your branch is behind*" | % { $_ -match "Your branch is behind 'origin/.*?' by (?<commits>\d+)? commits" | Out-Null; + $Matches['commits'] }
+            if (!$commitsCount) { $commitsCount = 0 }
+            $commitsCount
+        }
+    }
+}
+
+Register-ArgumentCompleter -CommandName sf-git-getCommitsBehind -ParameterName branch -ScriptBlock $Script:branchCompleter

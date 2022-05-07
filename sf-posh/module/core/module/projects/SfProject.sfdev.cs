@@ -50,6 +50,7 @@ public class SfProject
     public string dbName { get; set; }
     public string version { get; set; }
     public string branch { get; set; }
+    public string behind { get; set; }
 
     public override bool Equals(object obj)
     {
