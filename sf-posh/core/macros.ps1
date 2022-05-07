@@ -54,16 +54,6 @@ function sf-macros-resetProject {
     }
 }
 
-$Script:branchCompleter = {
-    param ( $commandName,
-        $parameterName,
-        $wordToComplete,
-        $commandAst,
-        $fakeBoundParameters )
-        
-    git-completeBranchName $wordToComplete
-}
-
 Register-ArgumentCompleter -CommandName sf-macros-resetProject -ParameterName branch -ScriptBlock $Script:branchCompleter
 
 function sf-macros-resetAllUnused {

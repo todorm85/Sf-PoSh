@@ -1,5 +1,6 @@
 . "$PSScriptRoot\constants.ps1"
 
+throw 'TODO: finsih auto update version from psd1'
 $version = Get-Content "$PSScriptRoot\..\sf-posh\module\version.txt"
 
 if (!$version) {
@@ -23,4 +24,4 @@ $destinationRoot = "\\filesrvbg01\Resources\Sitefinity\sf-posh"
 Remove-Item "$destinationRoot\*" -Recurse -Force
 $destination = "$destinationRoot\$version"
 New-Item $destination -Force -ItemType Directory > $null
-Copy-Item "$PSScriptRoot\..\sf-posh\module\*" $destination -Force -Recurse
+Copy-Item "$PSScriptRoot\..\sf-posh\*" $destination -Force -Recurse

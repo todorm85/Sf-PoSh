@@ -1,80 +1,18 @@
-param(
-    [bool]$exportPrivate
-)
+$GLOBAL:sf = [PSCustomObject]@{ }
 
-function _isFirstVersionLower {
-    param (
-        [ValidatePattern({^\d+\.\d+\.\d+$})]$first,
-        [ValidatePattern({^\d+\.\d+\.\d+$})]$second
-    )
-    
-    $firstParts = $first.Split('.')
-    $secondParts = $second.Split('.')
-    for ($i = 0; $i -lt 3; $i++) {
-        if ([int]::Parse($firstParts[$i]) -eq [int]::Parse($secondParts[$i])) {
-            continue
-        }
+Add-Member -InputObject $GLOBAL:sf -MemberType NoteProperty -Name appRelativeServerCodeRootPath -Value "App_Code\sf-posh-extensions"
 
-        if ([int]::Parse($firstParts[$i]) -lt [int]::Parse($secondParts[$i])) {
-            return $true    
-        }
-        else {
-            return $false
-        }
-    }
-
-    return $false
+$Script:moduleUserDir = "$Global:HOME\documents\sf-posh"
+if (-not (Test-Path $Script:moduleUserDir)) {
+    New-Item -Path $Script:moduleUserDir -ItemType Directory
 }
 
-function _sf-get-date {
-    $d = Get-Date
-    "$($d.Day).$($d.Month).$($d.Year)"
-}
+Import-Module WebAdministration -Force
 
-# $updateCheckPath = "$PSScriptRoot\update-check.txt"
-# $currentDate = _sf-get-date
-# $date = $null
-# if (Test-Path $updateCheckPath) {
-#     $date = Get-Content $updateCheckPath
-# }
+. "$PSScriptRoot\bootstrap\init-config.ps1"
+. "$PSScriptRoot\bootstrap\initialize-events.ps1"
+. "$PSScriptRoot\bootstrap\init-psPrompt.ps1"
+. "$PSScriptRoot\bootstrap\load-scripts.ps1"
 
-$lastUpdatedVersionLoc = Get-ChildItem $PSScriptRoot -Directory | Sort-Object -Property CreationTime -Descending | Select -First 1
-$currentModulePath = $lastUpdatedVersionLoc.FullName
-# if (!$date -or ($currentDate -ne $date)) {
-#     Write-Host "Checking for new version"
-    
-#     $remotesPath = "\\filesrvbg01\Resources\Sitefinity\sf-posh"
-#     $remoteLocation = Get-ChildItem -Path $remotesPath -Directory -ErrorAction SilentlyContinue | Sort-Object -Property CreationTime -Descending | Select -First 1
-#     $currentVn = Get-Content -Path "$currentModulePath\version.txt" -ErrorAction SilentlyContinue
-#     $remoteVn = Get-Content "$($remoteLocation.FullName)\version.txt" -ErrorAction SilentlyContinue
-#     if ($remoteVn -and (!$currentVn -or (_isFirstVersionLower $currentVn $remoteVn))) {
-#         $update = Read-Host -Prompt "New module version detected. Update? - y/n"
-#         if ($update -eq 'y') {
-#             $remotePath = $remoteLocation.FullName
-#             $newModulePath = "$PSScriptRoot\$($remoteLocation.Name)"
-#             New-Item $newModulePath -ItemType Directory -Force
-#             Copy-Item "$remotePath\*" $newModulePath -Force -Recurse -ErrorVariable errorCopying
-#             if ($errorCopying) {
-#                 Write-Warning "Error updating module. Error copying files locally: $errorCopying"
-#                 Remove-Item $newModulePath -Force -Recurse
-#             }
-#             else {
-#                 $currentModulePath = $newModulePath
-#                 Write-Warning "Module updated."
-#                 Get-ChildItem $PSScriptRoot -Directory | ? Name -ne $remoteLocation.Name | Remove-Item -Force -Recurse
-#             }
-#         }
-#     }
-
-#     _sf-get-date | Out-File $updateCheckPath
-# }
-# else { Write-Host 'skipping update check' }
-
-# if (!$currentModulePath) {
-#     throw "No local module available and no access to $remotesPath to download latest version."
-# }
-
-. "$currentModulePath\load-module.ps1"
-
-$public = _getFunctionNames -exportPrivate $exportPrivate
-Export-ModuleMember -Function $public -Alias *
+# $public = _getFunctionNames -exportPrivate $exportPrivate
+Export-ModuleMember -Function * -Alias *

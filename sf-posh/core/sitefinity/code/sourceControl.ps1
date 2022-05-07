@@ -114,17 +114,6 @@ function sf-git-resetAllChanges {
     }
 }
 
-$Script:branchCompleter = {
-    param ( $commandName,
-        $parameterName,
-        $wordToComplete,
-        $commandAst,
-        $fakeBoundParameters )
-    RunInRootLocation {
-        git-completeBranchName $wordToComplete
-    }
-}
-
 function sf-git-checkout {
     param (
         $branch

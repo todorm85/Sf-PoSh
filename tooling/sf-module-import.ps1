@@ -37,25 +37,24 @@ $global:sfposhenv = $env
 $Global:SfEvents_OnAfterConfigInit = @()
 switch ($env) {
     "dev" { 
-        $sfPoshPath = "$sfPoshDevPath\sf-posh.psm1"
+        $sfPoshPath = "$sfPoshDevPath\sf-posh.psd1"
         $Global:SfEvents_OnAfterConfigInit += {
-            . "$script:sfPoshDevTestsPath\common-config.ps1"
+            . "$Global:sfPoshDevTestsPath\common-config.ps1"
         }
     }
     "e2e" { 
-        $sfPoshPath = "$sfPoshDevPath\sf-posh.psm1"
+        $sfPoshPath = "$sfPoshDevPath\sf-posh.psd1"
         $Global:SfEvents_OnAfterConfigInit += {
-            . "$script:sfPoshDevTestsPath\e2e-tests-config.ps1"
+            . "$Global:sfPoshDevTestsPath\e2e-tests-config.ps1"
         }
     }
     "live" { 
-        $sfPoshPath = "$sfPoshLivePath\sf-posh.psm1"
+        $sfPoshPath = "$sfPoshLivePath\sf-posh.psd1"
     }
     Default { }
 }
 
-$exportPrivateFunctions = $env -ne "live"
-Import-Module $sfPoshPath -Force -ArgumentList $exportPrivateFunctions
+Import-Module $sfPoshPath -Force
 
 $Global:SfEvents_OnAfterProjectSet += {
     [System.Console]::Title = "$([System.Console]::Title) ($($global:sfposhenv.ToUpper()))"
