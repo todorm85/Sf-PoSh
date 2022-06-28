@@ -16,6 +16,7 @@ $Script:stateCompleter = {
 }
 
 function sf-states-save {
+    [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -61,6 +62,7 @@ function sf-states-save {
 Register-ArgumentCompleter -CommandName sf-states-save -ParameterName stateName -ScriptBlock $Script:stateCompleter
 
 function sf-states-restore {
+    [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]

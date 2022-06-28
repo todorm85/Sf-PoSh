@@ -3,6 +3,7 @@
  Sets the last argument passed to the script to the $project.
  #>
 function Run-InProjectScope {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [ValidateNotNull()]
@@ -28,7 +29,7 @@ function Run-InProjectScope {
 <#
  Allows the function to be used both in pipeline expressions and as standalone function that takes into account the current selected project.
  Sets the last argument passed to the script to the evaluated $project.
- The calling function must have a parameter named [SfProject]$projectthat is received from the pipeline.
+ The calling function must have a parameter named [SfProject]$project that is received from the pipeline.
  #>
 function Run-InFunctionAcceptingProjectFromPipeline {
     param (

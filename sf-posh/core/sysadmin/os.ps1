@@ -159,7 +159,7 @@ function os-browseUrl {
         Start-Sleep -Seconds 1
     }
 
-    & "$browserPath" "$url" -noframemerging --profile-directory="Profile 2"
+    & "$browserPath" "$url" -noframemerging --profile-directory="Profile 1"
 }
 
 function _clean-emptyDirs ($path) {

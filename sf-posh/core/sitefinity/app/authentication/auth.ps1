@@ -8,11 +8,11 @@ function sf-auth-ldap {
     $root = $config["securityConfig"]
     if ($enable) {
         $ldapConnection = Xml-GetOrCreateElementPath $root -elementPath "LdapConnections/connections/LdapConnection[@name=DefaultLdapConnection]"
-        $ldapConnection.SetAttribute("serverName", "NTSOFDCBED02.bedford.progress.com")
-        $ldapConnection.SetAttribute("connectionDomain", "bedford.progress.com")
-        $ldapConnection.SetAttribute("connectionUsername", "SitefinityLdapReader")
-        $ldapConnection.SetAttribute("connectionPassword", "ldlk5tZJ9xbjAP9U")
-        $ldapConnection.SetAttribute("usersDN", "dc=bedford,dc=progress,dc=com")
+        $ldapConnection.SetAttribute("serverName", "ntsofpdcdev01.dev.progress.com")
+        $ldapConnection.SetAttribute("connectionDomain", "dev.progress.com")
+        $ldapConnection.SetAttribute("connectionUsername", "sfldapuser")
+        $ldapConnection.SetAttribute("connectionPassword", "RqzWtboY0AsCctlz")
+        $ldapConnection.SetAttribute("usersDN", "OU=Sitefinity,OU=PSC Service Accounts,DC=dev,DC=progress,DC=com")
         $ldapConnection.SetAttribute("rolesDns", "dc=bedford,dc=progress,dc=com")
 
         $ldapUsers = xml-getOrCreateElementPath $root -elementPath "membershipProviders/add[@name=LdapUsers]"
@@ -23,6 +23,7 @@ function sf-auth-ldap {
 
         $administrativeRoles = xml-getOrCreateElementPath $root -elementPath "administrativeRoles/role[@roleName=SitefinityToolingTeam]"
         $administrativeRoles.SetAttribute("roleProvider", "LdapRoles")
+        Write-Host "User: ldapadmin, Pass: P@ssw0rd4321"
     }
 
     if ($disable) {
@@ -58,7 +59,7 @@ function sf-auth-azureB2C {
         $provider.SetAttribute("requireEmail", "False")
         $provider.SetAttribute("autoAssignedRoles", "Users, BackendUsers, Administrators")
         $provider.SetAttribute("config:flags", "1")
-        Write-Warning "You must login with the user account from Credentials.xml and use https://sitefinitylocal.com:417 as domain"
+        Write-Warning "You must login with the user account sitefinity_test@sitefinityunit3.onmicrosoft.com k3ZgwBCP3 and use https://sitefinitylocal.com:417 as domain"
     }
     
     if ($disable) {
@@ -85,6 +86,7 @@ function sf-auth-facebook {
         $provider.SetAttribute("enabled", "True")
         $provider.SetAttribute("autoAssignedRoles", "Users, BackendUsers, Administrators")
         $provider.SetAttribute("config:flags", "1")
+        Write-Warning "You must login with the user account sitefinity_afcrrkq_testuser@tfbnw.net z2KgBW3CPTOmg34LDjy and use https://sitefinitylocal.com:417 as domain"
     }
     
     if ($disable) {

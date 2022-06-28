@@ -1,4 +1,5 @@
 function sf-app-ensureRunning {
+    [CmdletBinding()]
     param(
         [Int32]$totalWaitSeconds = $GLOBAL:sf.config.app.startupMaxWait
     )
@@ -68,14 +69,17 @@ function sf-app-ensureRunning {
             $response = _invokeNonTerminatingRequest $url
             # if request to base url is 200 ok sitefinity has started
             if ($response -eq 200) {
+                $elapsed.Stop()
                 Write-Information "Sitefinity has started after $($elapsed.Elapsed.TotalSeconds) second(s)"
                 break
             }
             else {
+                $elapsed.Stop()
                 throw "Sitefinity initialization failed!"
             }
         }
         else {
+            $elapsed.Stop()
             throw "Sitefinity failed to start - StatusCode: $($response)"
         }
     }
@@ -208,7 +212,7 @@ function sf-app-isInitialized {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
             try {
-                sf-app-ensureRunning > $null
+                sf-app-ensureRunning -totalWaitSeconds 29 > $null
             }
             catch {
                 return $false        

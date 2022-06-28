@@ -32,6 +32,7 @@
         'PSUseShouldProcessForStateChangingFunctions',
         'PSUseApprovedVerbs',
         'PSAvoidTrailingWhitespace',
-        'PSUseSingularNouns'
+        'PSUseSingularNouns',
+        'PSAvoidUsingInvokeExpression'
         )
 }

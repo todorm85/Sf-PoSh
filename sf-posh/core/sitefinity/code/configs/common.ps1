@@ -101,33 +101,6 @@ function xml-getOrCreateElementPath {
             }
         }
 
-        # $elementQueryParts = $elementPath.Split('/', [stringsplitoptions]::RemoveEmptyEntries)
-        # for ($i = 0; $i -lt $elementQueryParts.Count; $i++) {
-        #     $currentQueryPart = $elementQueryParts[$i]
-        #     if ($currentQueryPart.Contains("[@")) {
-        #         $elementName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[0]
-        #         $attributeName = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[0]
-        #         $attrValue = $currentQueryPart.Split("[@", [stringsplitoptions]::RemoveEmptyEntries)[1].Split("=", [stringsplitoptions]::RemoveEmptyEntries)[1].Trim("]").Trim("'")
-        #         $currentElement = $currentParentElement.SelectSingleNode("$elementName[@$attributeName='$attrValue']")
-        #         if (!$currentElement) {
-        #             $currentElement = $currentParentElement.OwnerDocument.CreateElement($elementName)
-        #             $currentElement.SetAttribute($attributeName, $attrValue)
-        #             $currentParentElement.AppendChild($currentElement) > $null
-        #         }
-                
-        #         $currentParentElement = $currentElement
-        #     }
-        #     else {
-        #         $currentElement = $currentParentElement[$currentQueryPart]
-        #         if (!$currentElement) {
-        #             $currentElement = $currentParentElement.OwnerDocument.CreateElement($currentQueryPart)
-        #             $currentParentElement.AppendChild($currentElement) > $null
-        #         }
-    
-        #         $currentParentElement = $currentElement
-        #     }
-        # }
-
         [System.XML.XmlElement]$currentParentElement
     }
 }

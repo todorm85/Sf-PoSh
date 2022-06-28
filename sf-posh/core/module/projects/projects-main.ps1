@@ -64,7 +64,8 @@ function sf-project-clone {
         throw "Invalid app path";
     }
 
-    $targetDirectoryName = [Guid]::NewGuid().ToString().Split('-')[0]
+    [SfProject]$newProject = _newSfProjectObject
+    $targetDirectoryName = $newProject.id
     $targetPath = $GLOBAL:sf.Config.projectsDirectory + "\$targetDirectoryName"
     if (Test-Path $targetPath) {
         throw "Path exists: ${targetPath}"
@@ -89,7 +90,7 @@ function sf-project-clone {
         }
     }
 
-    [SfProject]$newProject = _newSfProjectObject
+    
     $newProject.displayName = "$($context.displayName)-clone"
     if ($useSolution) {
         $newProject.webAppPath = "$targetPath\SitefinityWebApp"
