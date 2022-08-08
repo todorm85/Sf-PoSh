@@ -179,6 +179,16 @@ function sf-sol-buildWebAppProj () {
     _buildProj $path
 }
 
+function sf-sol-buildIntegrationTestsProject () {
+    $context = sf-project-get
+    $path = "$($context.solutionPath)\Telerik.Sitefinity.TestIntegration\Telerik.Sitefinity.TestIntegration.csproj"
+    if (!(Test-Path $path)) {
+        throw "invalid or no solution or web app project path"
+    }
+
+    _buildProj $path
+}
+
 function sf-sol-unlockAllFiles {
     $project = sf-project-get
 
@@ -259,7 +269,7 @@ function _buildProj {
         if ($blockingErrors) {
             $errorLogPath = "$Script:moduleUserDir/MsBuild-Errors.log"
             $output | Out-File $errorLogPath
-            throw "`n################################################`n$hasErrors`n################################################`nBuild errors occurred - Full log at $errorLogPath"
+            throw "`n################################################`n$hasErrors`n################################################`nBuild errors occurred - Full log at $errorLogPath`n$blockingErrors"
         }
     }
 }

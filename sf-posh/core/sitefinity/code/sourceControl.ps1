@@ -9,15 +9,51 @@ function sf-git-isClean {
         Run-InFunctionAcceptingProjectFromPipeline {
             param($project)
             
-            $ignoredPaths = @("^[\./]*?\.nuget/NuGet.Config$",
-                "^[\./]*?Builds/StyleCop/StyleCop.Targets$",
-                "^[\./]*?Feather/Tests/Telerik.Sitefinity.Frontend.ClientTest/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache$",
-                "^[\./]*?Builds/StyleCop/StyleCop.Targets$",
-                "^[\./]*?sf.*?\d+?\.sln$")
-            
-            $status = sf-git-status
-            return !($status | ? { $path = $_.path; !($ignoredPaths | ? { $path -match $_ }) })
+            sf-git-cleanDevArtefacts            
+            $changes = sf-git-status
+            $changes.Count -eq 0
         }
+    }
+}
+
+function sf-git-isBehind {
+    param(
+        [Parameter(ValueFromPipeline)]
+        [SfProject]
+        $project
+    )
+    
+    process {
+        Run-InFunctionAcceptingProjectFromPipeline {
+            param($project)
+            
+            RunInRootLocation {
+                git fetch
+                $status = git status
+                if ($status -like "Your branch is behind*") {
+                    return $true
+                } else {
+                    return $false
+                }
+            }
+        }
+    }
+}
+
+function sf-git-cleanDevArtefacts {
+    RunInRootLocation {
+        $ignoredPaths = @(".nuget/NuGet.Config",
+        "Builds/StyleCop/StyleCop.Targets",
+        "Feather/Tests/Telerik.Sitefinity.Frontend.ClientTest/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache",
+        "Builds/StyleCop/StyleCop.Targets")
+        $ignoredPaths | % { git restore $_ }
+
+        $trxFile = "SitefinityWebApp/results.trx"
+        if (Test-Path $trxFile) {
+            Remove-Item -Path $trxFile
+        }
+
+        Get-ChildItem | ? Name -match "sf.*?\d+?\.sln" | select -ExpandProperty FullName | Remove-Item -Force
     }
 }
 
@@ -83,13 +119,6 @@ function sf-git-status {
         }
 
         $changes
-    }
-}
-
-function sf-git-isUpToDateWithRemote {
-    RunInRootLocation {
-        $fetchResult = git fetch -p 2>&1
-        !(!(Invoke-Expression -Command "git status" | ? { $_ -like "*up to date*" }))
     }
 }
 
