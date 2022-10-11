@@ -35,7 +35,7 @@ function sf-nlb-setSslOffloadForAll {
     }
 }
 
-function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
+function sf-nlb-overrideOtherNodeConfigs {
     [SfProject]$currentNode = sf-project-get
     $srcConfigs = _sf-path-getConfigBasePath $currentNode
     if (!(Test-Path $srcConfigs)) {
@@ -57,16 +57,12 @@ function sf-nlb-overrideOtherNodeConfigs ([switch]$skipWait) {
         Copy-Item $srcWebConfig $trgWebConfig -Force
     }
 
-    sf-nlb-resetAllNodes -skipWait:$skipWait
+    sf-nlb-resetAllNodes
 }
 
 function sf-nlb-resetAllNodes {
-    param([switch]$skipWait)
     sf-nlb-forAllNodes {
         sf-iis-appPool-Reset
-        if (!$skipWait) {
-            sf-app-ensureRunning
-        }
     }
 }
 

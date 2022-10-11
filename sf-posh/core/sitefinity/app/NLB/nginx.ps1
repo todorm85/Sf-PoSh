@@ -49,7 +49,7 @@ function _nginx-getNlbClusterDomain {
     $nlbPairConfigPath = _nginx-getClusterConfigPath $nlbClusterId
     $result = ''
     Get-Content -Path $nlbPairConfigPath | % {
-        if ($_ -Match " *?server_name (?<host>.*);") {
+        if ($_ -Match " *?server_name (?<host>.*) .*;") {
             $result = $Matches.host
         }
     }

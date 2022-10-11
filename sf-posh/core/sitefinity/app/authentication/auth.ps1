@@ -110,8 +110,13 @@ function sf-auth-aspsql {
     $p = sf-project-get
     $dbName = $p.id + "_aspMembership"
     if ($enable) {
-        $RelocateData = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity", "$PSScriptRoot\$dbName.mdf")
-        $RelocateLog = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity_Log", "$PSScriptRoot\$dbName.ldf")
+        $moduleRoot = "$Script:moduleUserDir\aspsqldbs"
+        if (!(Test-Path $moduleRoot)) {
+            New-Item -Path $moduleRoot -ItemType Directory
+        }
+        
+        $RelocateData = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity", "$moduleRoot\$dbName.mdf")
+        $RelocateLog = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("Sitefinity_Log", "$moduleRoot\$dbName.ldf")
         Restore-SqlDatabase -ServerInstance "." -Database $dbName -BackupFile "$PSScriptRoot\Sitefinity.bak" -Credential $credential -ReplaceDatabase -RelocateFile @($RelocateData, $RelocateLog)
 
         $connectionString = xml-getOrCreateElementPath $root -elementPath "connectionStrings/add[@name=AspNetMembership]"
