@@ -27,7 +27,8 @@ function sf-tests-runIntTests {
         [switch]$rerunFailed,
         [switch]$skipInitialStateSave,
         [switch]$debugger,
-        [switch]$skipStates
+        [switch]$skipStates,
+        $resultFile
     )
     
     if (!$skipInitialStateSave -and !$skipStates) {
@@ -57,23 +58,29 @@ function sf-tests-runIntTests {
     
     if ($failedTests) {
         Write-Warning "Failed tests:`n"
-        $failedTests
+        $failedTests | % { Write-Warning $_.name}
     }
     
     if (!$skipStates -and !$categories) {
         sf-states-restore init_tests -InformationAction SilentlyContinue; sf-app-ensureRunning -InformationAction SilentlyContinue;
     }
+
+    if ($resultFile) {
+        $failedTests | ConvertTo-Json | Out-File $resultFile
+    }
 }
 
-function _extractFailedResults {
+function sf-tests-extractFailedResults {
     param (
         $resultFile
     )
 
-    $failedTests = @()
+    $Script:failedTests = @()
     [xml]$resultFileXmlContent = Get-Content -Path $resultFile.FullName
     $resultFileXmlContent.SelectNodes("//TestResults/testRun/RunnerTestResult/Result[. = 'Failed']") | % { 
         $testMethod = [string]$_.ParentNode.TestMethodName
+        $fixture = [string]$_.ParentNode.FixtureName
+        $exception = [string]$_.ParentNode.Message
         if ($testMethod.EndsWith("_ML")) {
             $testMethod = $testMethod.Substring(0, $testMethod.Length - "_ML".Length)
         }
@@ -83,11 +90,11 @@ function _extractFailedResults {
         }
 
         if ($testMethod) {
-            $failedTests += $testMethod
+            $Script:failedTests += @{name = $testMethod; error = $exception; fixture = $fixture }
         }
     }
 
-    $failedTests
+    $Script:failedTests
 }
 
 function _webTestRunnerXmlHasFailedTests($xmlFile) {
@@ -328,7 +335,7 @@ function _executeTestRunnerTests {
     $failedTests = @()
     $testResults = Get-ChildItem $testResultsBasePath -Filter *.xml
     foreach ($resultFile in $testResults) {
-        $newFailingTests = _extractFailedResults $resultFile
+        $newFailingTests = sf-tests-extractFailedResults $resultFile
         if ($newFailingTests) {
             $failedTests += $newFailingTests
         }
