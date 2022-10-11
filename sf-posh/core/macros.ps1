@@ -61,7 +61,7 @@ Register-ArgumentCompleter -CommandName sf-macros-resetProject -ParameterName br
 
 function sf-macros-applyLatestChanges {
     param(
-        $mergeBranch,
+        [switch]$mergeBranch,
         [switch]$force,
         [switch]$skipBuild,
         [switch]$skipInit,

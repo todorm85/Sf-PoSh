@@ -19,7 +19,7 @@ function sf-tests-startWebTestRunner {
 
     & "$testRunnerPath\Telerik.WebTestRunner.Client.exe"
 }
-
+ 
 function sf-tests-runIntTests {
     param (
         $testsNames,
@@ -180,7 +180,7 @@ function _updateSitefinityApplicationModule {
 
     $doc = New-Object System.Xml.XmlDocument
     if (!(Test-Path $systemConfig)) {
-        $doc.LoadXml("<?xml version=""1.0"" encoding=""utf-8""?><systemConfig xmlns:config=""urn:telerik:sitefinity:configuration"" xmlns:type=""urn:telerik:sitefinity:configuration:type""><applicationModules><add name=""$($moduleName)"" startupType=""$($startupType)""/></applicationModules></systemConfig>") | Out-Null
+        $doc.LoadXml("<?xml version=""1.0"" encoding=""utf-8""?><systemConfig xmlns:config=""urn:telerik:sitefinity:configuration"" xmlns:type=""urn:telerik:sitefinity:configuration:type""><applicationModules><add name=""$($moduleName)"" startupType=""$($startupType)""/></applicationModules></systemConfig>")
         $doc.Save($systemConfig) | Out-Null
     }
     else {
