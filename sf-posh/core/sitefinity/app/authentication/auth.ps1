@@ -48,6 +48,7 @@ function sf-auth-azureB2C {
 
     if ($enable) {
         $provider = xml-getOrCreateElementPath $root -elementPath "securityTokenServiceSettings/authenticationProviders/add[@name=OpenIDConnect]"
+        $provider.SetAttribute("responseType", "id_token")
         $provider.SetAttribute("clientId", "a6378a5c-e146-44d8-9fa3-b52bea7eecd4")
         $provider.SetAttribute("scope", "openid profile email")
         $provider.SetAttribute("authority", "https://login.microsoftonline.com/sitefinityunit3.onmicrosoft.com/v2.0/authorize")
