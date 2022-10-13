@@ -106,8 +106,10 @@ function sf-macros-applyLatestChanges {
                             sf-sol-build -retryCount 2
                             Write-Information "$($project.id): Build complete."
                             if (!$skipInit) {
-                                Write-Information "$($project.id): Backup state before reset."
-                                ss -stateName "backup"
+                                if (sf-app-isInitialized) {
+                                    Write-Information "$($project.id): Backup state before reset."
+                                    ss -stateName "backup"
+                                }
                                 Write-Information "$($project.id): Reinitializing app."
                                 sf-app-reinitialize
                                 sf-states-save -stateName init
