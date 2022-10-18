@@ -78,6 +78,7 @@ function sf-project-clone {
             Copy-Item "$sourcePath\*" $targetPath -Recurse -Exclude ".git"
         } else {
             Copy-Item "$sourcePath\*" $targetPath -Recurse
+            Copy-Item "$sourcePath\.git" $targetPath -Recurse
         }
     }
     catch {
