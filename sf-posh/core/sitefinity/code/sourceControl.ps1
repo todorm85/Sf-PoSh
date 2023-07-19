@@ -1,3 +1,13 @@
+function sf-git-removeBranches {
+    param (
+        $startsWith = 'tmitskov/'
+    )
+    
+    RunInRootLocation {
+        git branch | % {$_.TrimStart()} | ? {$_.StartsWith($startsWith)} | % { git branch -d $_}
+    }
+}
+
 function sf-git-isClean {
     param(
         [Parameter(ValueFromPipeline)]

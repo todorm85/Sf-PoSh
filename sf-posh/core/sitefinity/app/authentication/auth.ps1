@@ -8,11 +8,11 @@ function sf-auth-ldap {
     $root = $config["securityConfig"]
     if ($enable) {
         $ldapConnection = Xml-GetOrCreateElementPath $root -elementPath "LdapConnections/connections/LdapConnection[@name=DefaultLdapConnection]"
-        $ldapConnection.SetAttribute("serverName", "ntsofpdcdev01.dev.progress.com")
-        $ldapConnection.SetAttribute("connectionDomain", "dev.progress.com")
-        $ldapConnection.SetAttribute("connectionUsername", "sfldapuser")
-        $ldapConnection.SetAttribute("connectionPassword", "RqzWtboY0AsCctlz")
-        $ldapConnection.SetAttribute("usersDN", "OU=Sitefinity,OU=PSC Service Accounts,DC=dev,DC=progress,DC=com")
+        $ldapConnection.SetAttribute("serverName", "NTSOFDCBED02.bedford.progress.com")
+        $ldapConnection.SetAttribute("connectionDomain", "bedford.progress.com")
+        $ldapConnection.SetAttribute("connectionUsername", "sfldapuser@dev.progress.com")
+        $ldapConnection.SetAttribute("connectionPassword", "H266fURJaWbP3U9Ln80se11124ze10q1")
+        $ldapConnection.SetAttribute("usersDN", "dc=bedford,dc=progress,dc=com")
         $ldapConnection.SetAttribute("rolesDns", "dc=bedford,dc=progress,dc=com")
 
         $ldapUsers = xml-getOrCreateElementPath $root -elementPath "membershipProviders/add[@name=LdapUsers]"
@@ -23,7 +23,6 @@ function sf-auth-ldap {
 
         $administrativeRoles = xml-getOrCreateElementPath $root -elementPath "administrativeRoles/role[@roleName=SitefinityToolingTeam]"
         $administrativeRoles.SetAttribute("roleProvider", "LdapRoles")
-        Write-Host "User: ldapadmin, Pass: P@ssw0rd4321"
     }
 
     if ($disable) {

@@ -16,7 +16,7 @@ Import-Module WebAdministration -Force
 . "$PSScriptRoot\bootstrap\load-scripts.ps1"
 
 # $public = _getFunctionNames -exportPrivate $exportPrivate
-Export-ModuleMember -Function * -Alias *
+# Export-ModuleMember -Function * -Alias *
 
 $elapsedModule.Stop();
 Write-Host "Total module load time: $($elapsedModule.Elapsed.TotalSeconds) second(s)"

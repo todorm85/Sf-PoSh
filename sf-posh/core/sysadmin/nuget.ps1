@@ -6,15 +6,25 @@ if (!(Test-Path $toolDir)) {
 }
 
 $Script:nugetExePath = "$toolDir\nuget.exe"
-if (!(Test-Path $nugetExePath)) {
-    try {
-        Invoke-WebRequest -Uri $nugetDownloadLink -OutFile $nugetExePath
-    }
-    catch {
-        Write-Error "Error fetching the nuget tool from $nugetDownloadLink nuget operations might not work"
+
+function _nuget-downloadExe {
+    if (!(Test-Path $nugetExePath)) {
+        try {
+            Invoke-WebRequest -Uri $nugetDownloadLink -OutFile $nugetExePath
+        }
+        catch {
+            Write-Error "Error fetching the nuget tool from $nugetDownloadLink nuget operations might not work"
+        }
     }
 }
 
-function clear-nugetCache {
+_nuget-downloadExe
+
+function os-nuget-clearCache {
     execute-native "& `"$Script:nugetExePath`" locals all -clear"
+}
+
+function sf-module-updateNugetExe {
+    Remove-Item $Script:nugetExePath -Force
+    _nuget-downloadExe
 }

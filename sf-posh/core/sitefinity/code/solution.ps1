@@ -94,7 +94,7 @@ function sf-sol-clean {
 
     if ($cleanPackages) {
         try {
-            sf-sol-clearPackages
+            sf-sol-packagesClear
         }
         catch {
             $errorMessage = "$errorMessage`nErrors while deleting packages:`n" + $_
@@ -106,7 +106,7 @@ function sf-sol-clean {
     }
 }
 
-function sf-sol-clearPackages {
+function sf-sol-packagesClear {
     [SfProject]$project = sf-project-get
     $solutionPath = $project.solutionPath
     if (!(Test-Path "${solutionPath}\packages")) {
@@ -230,6 +230,11 @@ function sf-sol-resetSitefinityFolder {
 function sf-sol-executeIrisInstall {
     $p = sf-project-get
     & "$($p.webAppPath)\Build\Iris\IrisInstall.ps1"
+}
+
+function sf-sol-packagesRestore {
+    $p = sf-project-get
+    Invoke-Expression "$($Script:nugetExePath) restore '$($p.solutionPath)\Telerik.Sitefinity.sln'"
 }
 
 function _buildProj {

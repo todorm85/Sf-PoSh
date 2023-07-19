@@ -13,7 +13,7 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
 function sf-project-new {
     Param(
         [string]$displayName = 'Untitled',
-        [string]$sourcePath = "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity"
+        [string]$sourcePath = "prgs-sitefinity@vs-ssh.visualstudio.com:v3/prgs-sitefinity/Sitefinity/sitefinity"
     )
 
     [SfProject]$newContext = _newSfProjectObject
@@ -739,7 +739,7 @@ function _proj-tryCreateFromBranch {
     )
 
 
-    if ($sourcePath.TrimEnd("/") -eq "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity") {
+    if ($sourcePath.TrimEnd("/") -eq "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity" -or $sourcePath.TrimEnd("/") -eq "prgs-sitefinity@vs-ssh.visualstudio.com:v3/prgs-sitefinity/Sitefinity/sitefinity") {
         $projectsDir = $($GLOBAL:sf.Config.projectsDirectory)
         git-clone -remotePath $sourcePath -localPath $projectsDir -directoryName $project.id
         if (Test-Path "$projectsDir\$($project.id)") {

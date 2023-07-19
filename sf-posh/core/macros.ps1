@@ -22,6 +22,7 @@ function sf-macros-resetProject {
                         sf-git-checkout -branch $branch
                     }
 
+                    sf-git-removeBranches
                     if (!$force -and (sf-git-isClean) -and !(sf-git-isBehind) -and (sf-app-isInitialized)) {
                         Write-Information "`n$($project.id) is clean and not behind and running skipping update."
                     }
@@ -29,13 +30,16 @@ function sf-macros-resetProject {
                         Write-Information "`n$($project.id): Resetting"
                         git-resetAllChanges
                         Write-Information "$($project.id): Cleaning solution."
-                        sf-sol-clean
                         if (!$skipSourceUpdate) {
                             Write-Information "$($project.id): Pulling latest."
                             git pull
                         }
                         
                         if (!$skipBuild) {
+                            sf-sol-clean
+                            sf-sol-packagesClear
+                            os-nuget-clearCache
+                            sf-sol-packagesRestore
                             Write-Information "$($project.id): Build started."
                             sf-sol-build -retryCount 2
                             Write-Information "$($project.id): Build complete."
