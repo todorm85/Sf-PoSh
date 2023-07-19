@@ -39,5 +39,6 @@ function Get-ScriptFiles {
 # Do not dot source in function scope it won`t be loaded inside the module
 # Type definitions must be added as a single bundle
 $definitions = Get-CsharpClasses | % { Get-Content -Path $_.FullName -Raw } | Out-File "$PSScriptRoot\..\sf-posh\bootstrap\types.txt"
-Get-ScriptFiles | Where-Object Name -Like "*.init.ps1" | ForEach-Object { $_.FullName.Replace("C:\work\sf-posh\Sf-PoSh-Dev\sf-posh\", "") } | Out-File "$PSScriptRoot\..\sf-posh\bootstrap\scriptPaths.txt"
-Get-ScriptFiles | Where-Object Name -NotLike "*.init.ps1" | ForEach-Object { $_.FullName.Replace("C:\work\sf-posh\Sf-PoSh-Dev\sf-posh\", "") } | Out-File "$PSScriptRoot\..\sf-posh\bootstrap\scriptPaths.txt" -Append
+$devPath = (Get-Item $Global:sfPoshDevPath).FullName
+Get-ScriptFiles | Where-Object Name -Like "*.init.ps1" | ForEach-Object { $_.FullName.Replace($devPath, "") } | Out-File "$PSScriptRoot\..\sf-posh\bootstrap\scriptPaths.txt"
+Get-ScriptFiles | Where-Object Name -NotLike "*.init.ps1" | ForEach-Object { $_.FullName.Replace($devPath, "") } | Out-File "$PSScriptRoot\..\sf-posh\bootstrap\scriptPaths.txt" -Append
