@@ -1,7 +1,6 @@
 param([ValidateSet("dev", "e2e", "live")][string]$env)
 
 . "$PSScriptRoot\constants.ps1"
-. "$PSScriptRoot\aliases.ps1"
 
 if (!$env -and !$global:sfposhenv) {
     throw "You must specify an environment on first run!"
