@@ -55,10 +55,6 @@ switch ($env) {
 
 Import-Module $sfPoshPath -Force
 
-$Global:SfEvents_OnAfterProjectSet += {
-    [System.Console]::Title = "$([System.Console]::Title) ($($global:sfposhenv.ToUpper()))"
-}
-    
 if ($keepProject -and $currentProject) {
     sf-project-get -all | ? id -eq $currentProject.id | sf-project-setCurrent
 }
