@@ -1,7 +1,7 @@
 . "$PSScriptRoot\common-config.ps1"
 
 $GLOBAL:sf.config.idPrefix = "sfe"
-$GLOBAL:sf.config.projectsDirectory = "c:\work\dev-sitefinities\e2e-tests"
+$GLOBAL:sf.config.projectsDirectory = "c:\dev-sitefinities\e2e-tests"
 $GLOBAL:sf.Config.dataPath = "$($GLOBAL:sf.Config.projectsDirectory)\e2e-tests-db.xml"
 $GLOBAL:sf.config.pathToNginxConfig = "C:\nginx-tests\conf\nginx.conf"
     

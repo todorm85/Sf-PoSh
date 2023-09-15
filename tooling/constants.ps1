@@ -1,3 +1,3 @@
 $Global:sfPoshDevPath = "$PSScriptRoot\..\sf-posh"
 $Global:sfPoshDevTestsPath = "$sfPoshDevPath\..\tests"
-$Global:sfPoshLivePath = "$PSScriptRoot\..\..\sf-posh-live"
+$Global:sfPoshLivePath = "$home\Documents\WindowsPowerShell\Modules\sf-posh"
