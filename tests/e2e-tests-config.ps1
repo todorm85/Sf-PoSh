@@ -1,4 +1,4 @@
-. "$PSScriptRoot\common-config.ps1"
+. dev-config.ps1
 
 $GLOBAL:sf.config.idPrefix = "sfe"
 $GLOBAL:sf.config.projectsDirectory = "c:\dev-sitefinities\e2e-tests"
