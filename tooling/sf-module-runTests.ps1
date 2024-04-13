@@ -1,7 +1,8 @@
 param([switch]$int, [switch]$e2e)
 
 . constants.ps1
-    
+$sfPoshDevTestsPath = "$sfPoshDevPath\..\tests"
+
 $oldWarn = $Global:WarningPreference
 $oldInfo = $Global:InformationPreference
 
