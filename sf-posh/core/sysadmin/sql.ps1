@@ -8,12 +8,12 @@ function sql-delete-database {
         return
     }
 
-    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$dbName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
-
+    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$dbName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
+    
     ForEach ($Database in $Databases) {
         Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query (
             "alter database [" + $Database.Name + "] set single_user with rollback immediate
-            DROP DATABASE [" + $Database.Name + "]") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+            DROP DATABASE [" + $Database.Name + "]") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
     }
 }
 
@@ -23,18 +23,18 @@ function sql-rename-database {
         [Parameter(Mandatory = $true)][string] $newName
     )
 
-    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$oldName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases where NAME = '$oldName'") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
 
     ForEach ($Database in $Databases) {
         Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query (
             "alter database [" + $Database.Name + "] set single_user with rollback immediate
             EXEC sp_renamedb '$oldName', '$newName'
-            ALTER DATABASE [$newName] SET MULTI_USER") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+            ALTER DATABASE [$newName] SET MULTI_USER") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
     }
 }
 
 function sql-get-dbs {
-    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+    $Databases = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("SELECT * from sys.databases") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
 
     return $Databases
 }
@@ -45,7 +45,7 @@ function sql-get-items {
     $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("
         SELECT $selectFilter
         FROM [${dbName}].[dbo].[${tableName}]
-        WHERE $whereFilter") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+        WHERE $whereFilter") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
 
     return $result
 }
@@ -56,7 +56,7 @@ function sql-update-items {
     $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query "
         UPDATE [${dbName}].[dbo].[${tableName}]
         SET ${value}
-        WHERE $whereFilter" -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+        WHERE $whereFilter" -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
 
     return $result
 }
@@ -68,7 +68,7 @@ function sql-insert-items {
 
     $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query "
         INSERT INTO [${dbName}].[dbo].[${tableName}] ($columns)
-        VALUES (${values})" -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+        VALUES (${values})" -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
 
     return $result
 }
@@ -78,7 +78,7 @@ function sql-delete-items {
 
     Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("
         DELETE FROM [${dbName}].[dbo].[${tableName}]
-        WHERE $whereFilter") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+        WHERE $whereFilter") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
 }
 
 function sql-test-isDbNameDuplicate {
@@ -163,7 +163,7 @@ function sql-createDb {
         return
     }
 
-    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("CREATE DATABASE $dbName") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+    $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("CREATE DATABASE $dbName") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
 
     return $result
 }
@@ -176,7 +176,7 @@ function sql-createTable {
 
     $result = Invoke-SQLcmd -ServerInstance $GLOBAL:sf.config.sqlServerInstance -Query ("CREATE TABLE [$dbName].[dbo].[$tableName] (
         test varchar(255)
-    )") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass
+    )") -Username $GLOBAL:sf.config.sqlUser -Password $GLOBAL:sf.config.sqlPass -TrustServerCertificate
 
     return $result
 }

@@ -25,7 +25,7 @@ function sf-config-getFromDb {
         SELECT *
         FROM [$dbName].[dbo].[sf_xml_config_items]
         WHERE path = '$configName.config'
-        ") -MaxCharLength 500000
+        ") -MaxCharLength 500000 -TrustServerCertificate
 
     if ($null -ne $config -and $config -ne '') {
         if (!(Test-Path $filePath)) {
@@ -117,7 +117,7 @@ function sf-config-exportAllFromDb {
         SELECT *
         FROM [$dbName].[dbo].[sf_xml_config_items]
         ORDER BY path
-        ") -MaxCharLength 500000
+        ") -MaxCharLength 500000 -TrustServerCertificate
     $results | % {
         if ($mergeInOneFile) {
             "<!--  $($_.path) -->`n$($_.dta)`n" | Out-File -FilePath $mergeFilePath -Encoding utf8 -Append

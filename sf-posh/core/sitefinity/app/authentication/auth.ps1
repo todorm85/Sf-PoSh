@@ -86,7 +86,7 @@ function sf-auth-facebook {
         $provider.SetAttribute("enabled", "True")
         $provider.SetAttribute("autoAssignedRoles", "Users, BackendUsers, Administrators")
         $provider.SetAttribute("config:flags", "1")
-        Write-Warning "You must login with the user account sitefinity_afcrrkq_testuser@tfbnw.net z2KgBW3CPTOmg34LDjy and use https://sitefinitylocal.com:417 as domain"
+        Write-Warning "You must login with the user account sitefinity_afcrrkq_testuser@tfbnw.net z2KgBW3CPTOmg34LDjy and use https://www.externalauth.com/ as domain"
     }
     
     if ($disable) {
