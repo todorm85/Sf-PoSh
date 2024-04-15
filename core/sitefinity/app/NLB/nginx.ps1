@@ -135,10 +135,7 @@ function _nginx-initializeConfig {
     $trg = _nginx-getConfigDirPath
     if (!(_sf-serverCode-areSourceAndTargetSfDevVersionsEqual $src $trg)) {
         Copy-Item "$src\*" $trg -Recurse -Force
-        $certificate = get-item "Cert:\LocalMachine\Root\c993ecf08a781102da4936160849281d3d8e78ec" -ErrorAction:SilentlyContinue
-        if (!$certificate) {
-            Import-Certificate -FilePath "$src\sf-posh\sfdev.crt" -CertStoreLocation "Cert:\LocalMachine\Root" > $null
-        }
+        Write-Warning "SSL certificate needs to be created for nginx. Check path in common.config in $trg"
     }
 
 }
