@@ -41,7 +41,7 @@ Set-Alias -Name oa -Value sf-nlb-overrideOtherNodeConfigs -Scope global
 # module
 Set-Alias -Name deploy -Value sf-module-copyDevToLive -Scope global
 Set-Alias -Name test -Value sf-module-runTests -Scope global
-Set-Alias -Name reload -Value sf-module-import -Scope global
+Set-Alias -Name reload -Value sf-module-reload -Scope global
 Set-Alias -Name pub -Value sf-module-publish -Scope global
 
 function ree {
