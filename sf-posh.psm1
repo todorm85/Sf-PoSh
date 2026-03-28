@@ -29,7 +29,6 @@ function sf-module-reload {
     }
 }
 
-# $public = _getFunctionNames -exportPrivate $exportPrivate
 Export-ModuleMember -Function * -Alias *
 
 $elapsedModule.Stop();
