@@ -1,9 +1,9 @@
 {
     "idPrefix":  "sf",
-    "projectsDirectory":  "C:\\\\todor\\work_src\\sitefinities",
-    "browserPath":  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-    "vsPath":  "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\Common7\\IDE\\devenv.exe",
-    "msBuildPath":  "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe",
+    "projectsDirectory":  "C:\\\\todor\\progress\\sitefinities",
+    "browserPath":  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "vsPath":  "C:\\Program Files\\Microsoft Visual Studio\\18\\Professional\\Common7\\IDE",
+    "msBuildPath":  "C:\\Program Files\\Microsoft Visual Studio\\18\\Professional\\MSBuild\\Current\\Bin",
     "sitefinityUser":  "admin@test.test",
     "sitefinityPassword":  "admin@2",
     "sqlServerInstance":  ".",
