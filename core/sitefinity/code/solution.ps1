@@ -233,15 +233,15 @@ function sf-sol-executeIrisInstall {
     & "$($p.webAppPath)\Build\Iris\IrisInstall.ps1"
 }
 
-function sf-sol-packagesRestore {
+function sf-sol-restore {
     $p = sf-project-get
     $solutionFileName = _getSfSolutionFileName $p.solutionPath
     $solutionFilePath = "$($p.solutionPath)\$solutionFileName"
     if ($solutionFileName.EndsWith('.slnx')) {
-        Invoke-Expression "msbuild '$solutionFilePath' -t:restore"
+        & "$($GLOBAL:sf.config.msBuildPath)" "$solutionFilePath" -t:restore
     }
     else {
-        Invoke-Expression "$($Script:nugetExePath) restore '$solutionFilePath'"
+        Invoke-Expression "`"$($Script:nugetExePath)`" restore '$solutionFilePath'"
     }
 }
 
