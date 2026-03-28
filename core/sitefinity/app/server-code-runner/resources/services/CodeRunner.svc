@@ -1,0 +1,3 @@
+﻿<%@ ServiceHost Language="C#" Debug="true"
+    Service="SitefinityWebApp.SfDev.CodeRunner"
+    Factory="Telerik.Sitefinity.Web.Services.WcfHostFactory" %>

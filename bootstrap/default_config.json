@@ -1,0 +1,19 @@
+{
+    "idPrefix":  "sf",
+    "projectsDirectory":  "C:\\\\todor\\work_src\\sitefinities",
+    "browserPath":  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "vsPath":  "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\Common7\\IDE\\devenv.exe",
+    "msBuildPath":  "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe",
+    "sitefinityUser":  "admin@test.test",
+    "sitefinityPassword":  "admin@2",
+    "sqlServerInstance":  ".",
+    "sqlUser":  "sa",
+    "sqlPass":  "admin@2admin@2",
+    "pathToNginxConfig":  "C:\\nginx\\conf\\nginx.conf",
+    "predefinedBuildPaths":  [
+                                 "K:\\OfficialReleases\\Sitefinity\\12.x\\12.0\\Sitefinity_12.0"
+                             ],
+    "app":  {
+                "startupMaxWait":  180
+            }
+}
