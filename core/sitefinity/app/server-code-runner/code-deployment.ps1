@@ -29,7 +29,7 @@ function sf-serverCode-run {
     sf-app-ensureRunning -InformationAction:SilentlyContinue > $null
     
     $baseUrl = sf-iis-site-getUrl
-    $response = Invoke-WebRequest -Uri "$baseUrl/$($Script:codeDeployment_ServicePath.Replace('\', '/'))/$serviceRequestPath"
+    $response = Invoke-WebRequest -Uri "$baseUrl/$($Script:codeDeployment_ServicePath.Replace('\', '/'))/$serviceRequestPath" -UseBasicParsing
     if ($response.StatusCode -ne 200) {
         Write-Error "Response status code for call $serviceRequestPath was not 200 OK."
     }
