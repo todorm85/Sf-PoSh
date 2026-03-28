@@ -1,7 +1,7 @@
 {
     "idPrefix":  "sf",
     "projectsDirectory":  "C:\\todor\\progress\\sitefinities",
-    "browserPath":  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "browserPath":  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
     "vsPath":  "C:\\Program Files\\Microsoft Visual Studio\\18\\Professional\\Common7\\IDE\\devenv.exe",
     "msBuildPath":  "C:\\Program Files\\Microsoft Visual Studio\\18\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe",
     "sitefinityUser":  "admin@test.test",
