@@ -13,7 +13,7 @@ $GLOBAL:sf.config | Add-Member -Name azureDevOpsItemTypes -Value @("Product Back
 function sf-project-new {
     Param(
         [string]$displayName = 'Untitled',
-        [string]$sourcePath = "prgs-sitefinity@vs-ssh.visualstudio.com:v3/prgs-sitefinity/Sitefinity/sitefinity"
+        [string]$sourcePath = "git@github.com:Sitefinity/sitefinity.git"
     )
 
     [SfProject]$newContext = _newSfProjectObject
@@ -519,8 +519,26 @@ function _getValidTitle {
     return $resultTitle;
 }
 
+function _getSfSolutionFileName {
+    param([string]$directory)
+
+    if (!$directory) {
+        return
+    }
+
+    if (Test-Path "$directory\Telerik.Sitefinity.sln") {
+        return "Telerik.Sitefinity.sln"
+    }
+    if (Test-Path "$directory\Telerik.Sitefinity.slnx") {
+        return "Telerik.Sitefinity.slnx"
+    }
+
+    throw "No solution file in $directory"
+}
+
 function _createCustomSolutionName ($context) {
-    $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+    $solutionFileName = _getSfSolutionFileName $context.solutionPath
+    $solutionFilePath = "$($context.solutionPath)\$solutionFileName"
     if (!(Test-Path $solutionFilePath)) {
         return
     }
@@ -547,7 +565,8 @@ function _validateProject {
             Write-Warning "Solution path does not exist."
         }
 
-        $solutionFilePath = "$($context.solutionPath)\Telerik.Sitefinity.sln"
+        $solutionFileName = _getSfSolutionFileName $context.solutionPath
+        $solutionFilePath = "$($context.solutionPath)\$solutionFileName"
         if (!(Test-Path $solutionFilePath)) {
             Write-Warning "Solution file not existing."
         }
@@ -738,7 +757,7 @@ function _proj-tryCreateFromBranch {
     )
 
 
-    if ($sourcePath.TrimEnd("/") -eq "https://prgs-sitefinity.visualstudio.com/Sitefinity/_git/sitefinity" -or $sourcePath.TrimEnd("/") -eq "prgs-sitefinity@vs-ssh.visualstudio.com:v3/prgs-sitefinity/Sitefinity/sitefinity") {
+    if ($sourcePath.TrimEnd("/") -like "git@github.com:*") {
         $projectsDir = $($GLOBAL:sf.Config.projectsDirectory)
         git-clone -remotePath $sourcePath -localPath $projectsDir -directoryName $project.id
         if (Test-Path "$projectsDir\$($project.id)") {
@@ -763,7 +782,7 @@ function _proj-tryCreateFromZip {
     if ($sourcePath.EndsWith('.zip') -and (Test-Path $sourcePath)) {
         $projectDirectory = _proj-createProjectDirectory -project $project
         expand-archive -path $sourcePath -destinationpath $projectDirectory
-        $isSolution = (Test-Path -Path "$projectDirectory\Telerik.Sitefinity.sln") -and (Test-Path "$projectDirectory\SitefinityWebApp")
+        $isSolution = ((Test-Path -Path "$projectDirectory\Telerik.Sitefinity.sln") -or (Test-Path -Path "$projectDirectory\Telerik.Sitefinity.slnx")) -and (Test-Path "$projectDirectory\SitefinityWebApp")
         if ($isSolution) {
             $project.webAppPath = "$projectDirectory\SitefinityWebApp"
             $project.solutionPath = "$projectDirectory"
@@ -789,7 +808,7 @@ function _proj-tryCreateFromZip {
 }
 
 function _proj-isSolution ([SfProject]$project) {
-    Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.sln"
+    (Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.sln") -or (Test-Path "$($project.webAppPath)\..\Telerik.Sitefinity.slnx")
 }
 
 function _proj-detectSite ([Sfproject]$project) {

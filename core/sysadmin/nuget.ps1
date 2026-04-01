@@ -10,7 +10,7 @@ $Script:nugetExePath = "$toolDir\nuget.exe"
 function _nuget-downloadExe {
     if (!(Test-Path $nugetExePath)) {
         try {
-            Invoke-WebRequest -Uri $nugetDownloadLink -OutFile $nugetExePath
+            Invoke-WebRequest -Uri $nugetDownloadLink -OutFile $nugetExePath -UseBasicParsing
         }
         catch {
             Write-Error "Error fetching the nuget tool from $nugetDownloadLink nuget operations might not work"

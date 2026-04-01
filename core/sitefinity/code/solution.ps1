@@ -11,7 +11,8 @@ function sf-sol-build {
 
     $project = sf-project-get
 
-    $solutionPath = "$($project.solutionPath)\Telerik.Sitefinity.sln"
+    $solutionFileName = _getSfSolutionFileName $project.solutionPath
+    $solutionPath = "$($project.solutionPath)\$solutionFileName"
 
     $tries = 0
     $isBuilt = $false
@@ -148,7 +149,7 @@ function sf-sol-open {
     }
     else {
         if (-not $useCustomName) {
-            $projectName = "Telerik.Sitefinity.sln"
+            $projectName = _getSfSolutionFileName $path
         }
         else {
             $projectName = _generateCustomSolutionName
@@ -232,9 +233,16 @@ function sf-sol-executeIrisInstall {
     & "$($p.webAppPath)\Build\Iris\IrisInstall.ps1"
 }
 
-function sf-sol-packagesRestore {
+function sf-sol-restore {
     $p = sf-project-get
-    Invoke-Expression "$($Script:nugetExePath) restore '$($p.solutionPath)\Telerik.Sitefinity.sln'"
+    $solutionFileName = _getSfSolutionFileName $p.solutionPath
+    $solutionFilePath = "$($p.solutionPath)\$solutionFileName"
+    if ($solutionFileName.EndsWith('.slnx')) {
+        & "$($GLOBAL:sf.config.msBuildPath)" "$solutionFilePath" -t:restore
+    }
+    else {
+        Invoke-Expression "`"$($Script:nugetExePath)`" restore '$solutionFilePath'"
+    }
 }
 
 function _buildProj {

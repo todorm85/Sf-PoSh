@@ -17,9 +17,9 @@ function sf-wcf-invoke {
     
     $baseUrl = sf-iis-site-getUrl
     if ($method -eq "GET") {
-        Invoke-WebRequest -Uri "$baseUrl/$path" -Method $method -Headers $headers
+        Invoke-WebRequest -Uri "$baseUrl/$path" -Method $method -Headers $headers -UseBasicParsing
     } else {
-        Invoke-WebRequest -Uri "$baseUrl/$path" -Method $method -Headers $headers -Body $body -ContentType $contentType
+        Invoke-WebRequest -Uri "$baseUrl/$path" -Method $method -Headers $headers -Body $body -ContentType $contentType -UseBasicParsing
     }
 }
 

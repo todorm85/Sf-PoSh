@@ -55,7 +55,7 @@ InModuleScope sf-posh {
             }
 
             It "copy the original solution file" {
-                Test-Path "$($project.solutionPath)\Telerik.Sitefinity.sln" | Should -Be $true
+                ((Test-Path "$($project.solutionPath)\Telerik.Sitefinity.sln") -or (Test-Path "$($project.solutionPath)\Telerik.Sitefinity.slnx")) | Should -Be $true
             }
 
             It "create website pool" {

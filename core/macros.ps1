@@ -39,7 +39,7 @@ function sf-macros-resetProject {
                             sf-sol-clean
                             sf-sol-packagesClear
                             os-nuget-clearCache
-                            sf-sol-packagesRestore
+                            sf-sol-restore
                             Write-Information "$($project.id): Build started."
                             sf-sol-build -retryCount 2
                             Write-Information "$($project.id): Build complete."

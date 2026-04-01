@@ -32,7 +32,7 @@ InModuleScope sf-posh {
 
         It "Create project artefacts correctly" {
             Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id\$id.sln" | Should -Be $true
-            Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id\Telerik.Sitefinity.sln" | Should -Be $true
+            ((Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id\Telerik.Sitefinity.sln") -or (Test-Path "$($GLOBAL:sf.Config.projectsDirectory)\$id\Telerik.Sitefinity.slnx")) | Should -Be $true
             Test-Path "IIS:\AppPools\${id}" | Should -Be $true
             Test-Path "IIS:\Sites\${id}" | Should -Be $true
             existsInHostsFile -searchParam $id | Should -Be $true
@@ -179,7 +179,7 @@ InModuleScope sf-posh {
         }
 
         It "copy the original solution file" {
-            Test-Path "$($project.solutionPath)\Telerik.Sitefinity.sln" | Should -Be $true
+            ((Test-Path "$($project.solutionPath)\Telerik.Sitefinity.sln") -or (Test-Path "$($project.solutionPath)\Telerik.Sitefinity.slnx")) | Should -Be $true
         }
 
         It "create website pool" {

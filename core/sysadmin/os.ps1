@@ -11,7 +11,7 @@ $handleToolPath = "$handleExternalToolsDir\handle.exe"
 if (!(Test-Path $handleToolPath)) {
     $archive = "$handleExternalToolsDir\Handle.zip"
     try {
-        Invoke-WebRequest -Uri $handleLink -OutFile $archive
+        Invoke-WebRequest -Uri $handleLink -OutFile $archive -UseBasicParsing
         expand-archive -path $archive -destinationpath $handleExternalToolsDir
         . "$handleExternalToolsDir\Eula.txt"
         Remove-Item -Path $archive -Force

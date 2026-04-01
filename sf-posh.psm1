@@ -16,7 +16,19 @@ Import-Module WebAdministration -Force
 . "$PSScriptRoot\bootstrap\load-scripts.ps1"
 . "$PSScriptRoot\bootstrap\aliases.ps1"
 
-# $public = _getFunctionNames -exportPrivate $exportPrivate
+function sf-module-reload {
+    Param(
+        [switch]$quiet
+    )
+
+    $manifestPath = Join-Path -Path $PSScriptRoot -ChildPath "sf-posh.psd1"
+    Import-Module -Name $manifestPath -Force -Global
+
+    if (!$quiet) {
+        Write-Information "Module reloaded from $manifestPath"
+    }
+}
+
 Export-ModuleMember -Function * -Alias *
 
 $elapsedModule.Stop();

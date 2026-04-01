@@ -230,7 +230,7 @@ function _sd-appPrecompiledTemplates-getCompilerPath() {
 function _invokeNonTerminatingRequest ($url) {
     $result = $null
     try {
-        $response = Invoke-WebRequest $url -TimeoutSec 120
+        $response = Invoke-WebRequest $url -TimeoutSec 120 -UseBasicParsing
         $result = $response.StatusCode
     }
     catch {
