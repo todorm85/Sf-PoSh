@@ -1,4 +1,4 @@
-@{
+﻿@{
     RootModule        = '.\sf-posh.psm1'
     GUID              = '570fb657-4d88-4883-8b39-2dae4db1280c'
     Author            = 'Todor Mitskovski'

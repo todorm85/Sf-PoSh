@@ -6,7 +6,8 @@
 #>
 function sf-sol-build {
     Param(
-        $retryCount = 0
+        $retryCount = 0,
+        [switch]$restore
     )
 
     $project = sf-project-get
@@ -24,7 +25,7 @@ function sf-sol-build {
             else {
                 try {
                     _switchStyleCop -enable:$false
-                    _buildProj $solutionPath
+                    _buildProj $solutionPath -restore:$restore
                 }
                 finally {
                     _switchStyleCop -enable:$true
@@ -55,7 +56,8 @@ function sf-sol-rebuild {
 
     Param(
         [bool]$cleanPackages = $false,
-        $retryCount = 0)
+        $retryCount = 0,
+        [switch]$restore)
 
     Write-Information "Rebuilding solution..."
     try {
@@ -65,7 +67,7 @@ function sf-sol-rebuild {
         Write-Information "Errors while cleaning solution: $_"
     }
 
-    sf-sol-build -retryCount $retryCount
+    sf-sol-build -retryCount $retryCount -restore:$restore
 }
 
 function sf-sol-clean {
@@ -170,24 +172,32 @@ function sf-sol-open {
     .OUTPUTS
     None
 #>
-function sf-sol-buildWebAppProj () {
+function sf-sol-buildWebAppProj {
+    Param(
+        [switch]$restore
+    )
+
     $context = sf-project-get
     $path = "$($context.webAppPath)\SitefinityWebApp.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"
     }
 
-    _buildProj $path
+    _buildProj $path -restore:$restore
 }
 
-function sf-sol-buildIntegrationTestsProject () {
+function sf-sol-buildIntegrationTestsProject {
+    Param(
+        [switch]$restore
+    )
+
     $context = sf-project-get
     $path = "$($context.solutionPath)\Telerik.Sitefinity.TestIntegration\Telerik.Sitefinity.TestIntegration.csproj"
     if (!(Test-Path $path)) {
         throw "invalid or no solution or web app project path"
     }
 
-    _buildProj $path
+    _buildProj $path -restore:$restore
 }
 
 function sf-sol-unlockAllFiles {
@@ -248,7 +258,8 @@ function sf-sol-restore {
 function _buildProj {
 
     Param(
-        [Parameter(Mandatory)][string]$path
+        [Parameter(Mandatory)][string]$path,
+        [switch]$restore
     )
 
     # if (-not (Test-Path '\\progress.com\corp\sofia')) {
@@ -267,7 +278,8 @@ function _buildProj {
     }
 
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
-    $output = Invoke-Expression "& `"$($GLOBAL:sf.config.msBuildPath)`" `"$path`" /nologo /maxcpucount /p:RunCodeAnalysis=False /Verbosity:q"
+    $restoreArg = if ($restore) { '/restore' } else { '' }
+    $output = Invoke-Expression "& `"$($GLOBAL:sf.config.msBuildPath)`" `"$path`" /nologo $restoreArg /maxcpucount /p:RunCodeAnalysis=False /Verbosity:q"
     $elapsed.Stop()
     Write-Information "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
 
