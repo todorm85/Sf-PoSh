@@ -6,7 +6,6 @@
 $moduleName = "sf-posh"
 $releaseDir = "$PSScriptRoot\..\release"
 $targetDir = if ($env:SF_POSH_MODULE_PATH) { $env:SF_POSH_MODULE_PATH } else { $releaseDir }
-$targetDir = Join-Path $targetDir $moduleName
 
 if (Test-Path $targetDir) {
     Remove-Item -Path $targetDir -Recurse -Force
