@@ -2,7 +2,7 @@ param(
     [switch]$exportPrivate
 )
 
-. constants.ps1
+. .\constants.ps1
 
 # get functions from ps1 files
 $functions = Get-ChildItem -Path "$PSScriptRoot\..\core" -File -Recurse | 
