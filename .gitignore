@@ -2,4 +2,5 @@
 *.log
 .vs
 /dist
+/release
 sf-posh/update-check.txt
