@@ -53,6 +53,12 @@ Add-Member -InputObject $configFile -MemberType NoteProperty -Name userConfigPat
 Add-Member -InputObject $configFile -MemberType NoteProperty -Name dataPath -Value "$Script:moduleUserDir\db.xml"
 $configFile.projectsDirectory = [System.Environment]::ExpandEnvironmentVariables($configFile.projectsDirectory)
 
+if (Test-Path "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe") {
+    $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" `
+    -latest -requires Microsoft.Component.MSBuild -property installationPath
+    $configFile.msBuildPath = "$vs\MSBuild\Current\Bin\MSBuild.exe"
+}
+
 Add-Member -InputObject $GLOBAL:sf -MemberType NoteProperty -Name config -Value $configFile
 
 if ($Global:SfEvents_OnAfterConfigInit) {

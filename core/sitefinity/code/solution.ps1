@@ -278,8 +278,17 @@ function _buildProj {
     }
 
     $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
-    $restoreArg = if ($restore) { '/restore' } else { '' }
-    $output = Invoke-Expression "& `"$($GLOBAL:sf.config.msBuildPath)`" `"$path`" /nologo $restoreArg /maxcpucount /p:RunCodeAnalysis=False /Verbosity:q"
+    $restoreArg = ''
+    if ($restore) {
+        $restoreArg = '/restore'
+        $p = sf-project-get
+        $nuget = "$($p.solutionPath)\Builds\Dependencies\nuget.exe"
+        Get-ChildItem $p.solutionPath -Recurse -Filter packages.config | ForEach-Object {
+            & $nuget restore $_.FullName -SolutionDirectory $p.solutionPath
+        }
+    }
+
+    Invoke-Expression "& `"$($GLOBAL:sf.config.msBuildPath)`" `"$path`" /nologo $restoreArg /maxcpucount /p:RunCodeAnalysis=False /v:q" 2>&1 | Tee-Object -Variable output
     $elapsed.Stop()
     Write-Information "Build took $($elapsed.Elapsed.TotalSeconds) second(s)"
 
