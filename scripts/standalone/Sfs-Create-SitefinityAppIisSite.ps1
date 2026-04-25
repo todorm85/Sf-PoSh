@@ -1,37 +1,52 @@
 <#
 .SYNOPSIS
-    Standalone equivalent of sf-iis-site-new: creates an IIS website + app pool
-    for a Sitefinity project on disk.
+    Creates a dedicated IIS website and application pool for an existing
+    Sitefinity web application on disk.
 
 .DESCRIPTION
-    Creates a dedicated IIS application pool and website pointing to the
-    project's Sitefinity web app folder, with permissions for the new app
-    pool identity. Optionally adds a hosts-file entry for a custom domain.
+    For the Sitefinity project located at -ProjectRoot:
+      1. Resolves the web app folder (the folder containing web.config),
+         either -ProjectRoot itself or its 'SitefinityWebApp' subfolder.
+      2. Throws if any IIS website already points to that folder, or if a
+         site or application pool with -Name already exists.
+      3. Creates an application pool named -Name with idleTimeout disabled.
+      4. Creates an IIS website named -Name pointing at the web app folder,
+         bound to *:<Port>: over HTTP, using the new app pool.
+      5. If -Domain is supplied, also adds a *:<Port>:<Domain> binding and
+         appends '127.0.0.1 <Domain>' to the Windows hosts file (if missing).
+      6. Grants 'IIS AppPool\<Name>' Full Control on the web app folder.
 
-    Requires Windows + PowerShell 7 + WebAdministration. Run as Administrator.
+    Requirements:
+      - Windows + PowerShell 7, run elevated (IIS configuration + hosts
+        file + ACLs).
+      - IIS installed (uses Microsoft.Web.Administration directly).
 
 .PARAMETER ProjectRoot
     Path to the Sitefinity project. Either the web app folder itself
     (containing web.config) or a parent solution folder containing a
-    SitefinityWebApp subfolder.
+    'SitefinityWebApp' subfolder.
 
 .PARAMETER Name
-    Name to use for the new IIS website AND application pool. Must be unique
-    in IIS.
+    Name to use for both the new IIS website and the new application pool.
+    Must not already exist in IIS.
 
 .PARAMETER Port
-    Port to bind on. If omitted, the first free TCP/HTTP port >= 49152 is
-    picked.
+    TCP port to bind on. If omitted, the first free TCP port >= 49152 not
+    already used by an IIS binding or a listening socket is picked.
 
 .PARAMETER Domain
-    Optional host header. When provided it is also added to the Windows
-    hosts file as 127.0.0.1.
+    Optional host header. When provided, an additional binding for that
+    host is added and a '127.0.0.1 <Domain>' line is appended to the
+    Windows hosts file if not already present.
 
 .EXAMPLE
-    pwsh -File .\Sf-Site-New.ps1 -ProjectRoot 'C:\sitefinities\my-sf' -Name 'my-sf'
+    pwsh -File .\Sfs-Create-SitefinityAppIisSite.ps1 `
+        -ProjectRoot 'C:\sitefinities\my-sf' -Name 'my-sf'
 
 .EXAMPLE
-    pwsh -File .\Sf-Site-New.ps1 -ProjectRoot 'C:\sitefinities\my-sf' -Name 'my-sf' -Port 8080 -Domain 'my-sf.local'
+    pwsh -File .\Sfs-Create-SitefinityAppIisSite.ps1 `
+        -ProjectRoot 'C:\sitefinities\my-sf' -Name 'my-sf' `
+        -Port 8080 -Domain 'my-sf.local'
 #>
 [CmdletBinding()]
 param(

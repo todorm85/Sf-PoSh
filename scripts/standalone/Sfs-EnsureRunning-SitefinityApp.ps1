@@ -1,16 +1,45 @@
 <#
 .SYNOPSIS
-    Standalone equivalent of sf-app-ensureRunning.
+    Ensures a Sitefinity web application is running and finished initializing.
 
 .DESCRIPTION
-    Verifies that the IIS site for a Sitefinity project is started, that its
-    database (or a StartupConfig fallback) is present, and then polls
-    /appstatus until Sitefinity reports it has finished initializing.
+    For the Sitefinity project located at -ProjectRoot:
+      1. Locates the IIS website whose root virtual directory points to the
+         project's web app folder (the folder containing web.config).
+      2. Starts that IIS website if it is stopped.
+      3. Verifies that either the project's database (read from
+         App_Data\Sitefinity\Configuration\DataConfig.config) exists on the
+         given SQL Server, or, if the project has not been initialized yet,
+         that a StartupConfig.config is present.
+      4. Issues an HTTP request against the site's URL and then polls
+         /appstatus until Sitefinity reports it has finished startup, or
+         until -TotalWaitSeconds elapses (throws on timeout).
 
-    Requires Windows + PowerShell 7 + WebAdministration + SqlServer modules.
+    Requirements:
+      - Windows + PowerShell 7, run elevated (IIS configuration access).
+      - IIS installed (uses Microsoft.Web.Administration directly).
+      - SqlServer PowerShell module (Invoke-Sqlcmd).
+
+.PARAMETER ProjectRoot
+    Path to the Sitefinity project. Either the web app folder itself
+    (containing web.config) or a parent solution folder containing a
+    'SitefinityWebApp' subfolder.
+
+.PARAMETER SqlServerInstance
+    SQL Server instance used to verify the project database exists.
+
+.PARAMETER SqlUser
+    SQL Server login.
+
+.PARAMETER SqlPassword
+    Password for -SqlUser.
+
+.PARAMETER TotalWaitSeconds
+    Maximum number of seconds to wait for Sitefinity to finish initializing.
+    Defaults to 180.
 
 .EXAMPLE
-    pwsh -File .\Sf-App-EnsureRunning.ps1 `
+    pwsh -File .\Sfs-EnsureRunning-SitefinityApp.ps1 `
         -ProjectRoot 'C:\sites\my-sf' `
         -SqlServerInstance '.' -SqlUser 'sa' -SqlPassword 'pw'
 #>

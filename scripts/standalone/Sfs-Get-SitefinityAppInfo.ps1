@@ -1,21 +1,39 @@
 <#
 .SYNOPSIS
-    Returns detailed info for a Sitefinity project at a given path.
+    Returns detailed info about a Sitefinity web application on disk.
 
 .DESCRIPTION
-    Resolves the web app folder under -ProjectRoot, finds the IIS website
-    that points to it, reads DataConfig.config to determine the database
-    name (if configured), and emits an object with:
+    For the Sitefinity project located at -ProjectRoot:
+      1. Resolves the web app folder (the folder containing web.config),
+         either -ProjectRoot itself or its 'SitefinityWebApp' subfolder.
+      2. Locates the IIS website whose root virtual directory points to
+         that folder.
+      3. Reads the database name from
+         App_Data\Sitefinity\Configuration\DataConfig.config (empty when
+         the project has not been initialized yet).
+      4. Inspects the IIS site for its application pool, current state,
+         bindings and any sub-application path.
+      5. Composes one HTTP(S) URL per binding (sub-app path appended when
+         present).
+
+    Emits a single object with these properties:
         ProjectRoot, WebAppPath, WebsiteName, DbName,
         AppPool, SiteState, SubAppName,
         Bindings  (Protocol, Port, Domain),
-        Urls      (one URL per binding, sub-app appended when present),
-        Url       (primary URL)
+        Urls      (one URL per binding),
+        Url       (primary URL = last binding)
 
-    Requires Windows + PowerShell 7 + IIS (Microsoft.Web.Administration).
+    Requirements:
+      - Windows + PowerShell 7, run elevated (IIS configuration access).
+      - IIS installed (uses Microsoft.Web.Administration directly).
+
+.PARAMETER ProjectRoot
+    Path to the Sitefinity project. Either the web app folder itself
+    (containing web.config) or a parent solution folder containing a
+    'SitefinityWebApp' subfolder.
 
 .EXAMPLE
-    pwsh -File .\Sfs-Get-ProjectInfo.ps1 -ProjectRoot 'C:\sites\my-sf'
+    pwsh -File .\Sfs-Get-SitefinityAppInfo.ps1 -ProjectRoot 'C:\sites\my-sf'
 #>
 [CmdletBinding()]
 param(

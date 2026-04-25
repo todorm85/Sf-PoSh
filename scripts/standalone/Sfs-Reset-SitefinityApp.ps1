@@ -1,16 +1,47 @@
 <#
 .SYNOPSIS
-    Resets a Sitefinity app: recycles the app pool, clears App_Data
-    (Configuration, Temp, Logs), and optionally drops the database.
+    Resets a Sitefinity web application: recycles its IIS app pool and
+    clears its runtime App_Data folders. Optionally also drops its database.
 
 .DESCRIPTION
-    Standalone equivalent of sf-app-uninitialize. By default the database
-    is NOT touched. Pass -DeleteDatabase to also drop the database
-    referenced by DataConfig.config (if any). When -DeleteDatabase is
-    used, -SqlServerInstance / -SqlUser / -SqlPassword become mandatory.
+    For the Sitefinity project located at -ProjectRoot:
+      1. Locates the IIS website whose root virtual directory points to the
+         project's web app folder (the folder containing web.config) and
+         recycles its application pool.
+      2. Optionally (when -DeleteDatabase is supplied) reads the database
+         name from App_Data\Sitefinity\Configuration\DataConfig.config and
+         drops that database from the given SQL Server. If no DataConfig
+         exists, no database action is taken.
+      3. Deletes App_Data\Sitefinity\Configuration, Temp and Logs.
 
-    Requires Windows + PowerShell 7 (run elevated) + SqlServer module
-    (only when -DeleteDatabase is used).
+    After this script runs the project is in an uninitialized state: the
+    next startup will require a StartupConfig.config (see
+    Sfs-Reinitialize-SitefinityApp.ps1) to provision a fresh database.
+
+    Requirements:
+      - Windows + PowerShell 7, run elevated (IIS configuration access).
+      - IIS installed (uses Microsoft.Web.Administration directly).
+      - SqlServer PowerShell module (only when -DeleteDatabase is used).
+
+.PARAMETER ProjectRoot
+    Path to the Sitefinity project. Either the web app folder itself
+    (containing web.config) or a parent solution folder containing a
+    'SitefinityWebApp' subfolder.
+
+.PARAMETER DeleteDatabase
+    Also drop the database recorded in DataConfig.config from the SQL
+    Server. When supplied, -SqlServerInstance / -SqlUser / -SqlPassword
+    become required.
+
+.PARAMETER SqlServerInstance
+    SQL Server instance hosting the database to drop. Required only with
+    -DeleteDatabase.
+
+.PARAMETER SqlUser
+    SQL Server login. Required only with -DeleteDatabase.
+
+.PARAMETER SqlPassword
+    Password for -SqlUser. Required only with -DeleteDatabase.
 
 .EXAMPLE
     pwsh -File .\Sfs-Reset-SitefinityApp.ps1 -ProjectRoot 'C:\sites\my-sf'
