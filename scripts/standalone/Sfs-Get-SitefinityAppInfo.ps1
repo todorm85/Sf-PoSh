@@ -45,25 +45,34 @@ $ErrorActionPreference = 'Stop'
 
 Assert-StandaloneEnvironment
 
-$project  = Resolve-SfProjectInfo -ProjectRoot $ProjectRoot
-$bindings = @(Get-IisSiteBindings -WebsiteName $project.WebsiteName)
-$subApp   = Get-IisSubAppName    -WebsiteName $project.WebsiteName
+$project = Resolve-SfProjectInfo -ProjectRoot $ProjectRoot
 
-$urls = foreach ($b in $bindings) {
-    $hostname = if ($b.Domain) { $b.Domain } else { 'localhost' }
-    $u = "$($b.Protocol)://${hostname}:$($b.Port)"
-    if ($subApp) { $u = "$u/$subApp" }
-    $u
-}
+$bindings = @()
+$subApp   = $null
+$appPool  = $null
+$state    = $null
+$urls     = @()
 
-$sm = [Microsoft.Web.Administration.ServerManager]::new()
-try {
-    $site    = $sm.Sites[$project.WebsiteName]
-    $rootApp = $site.Applications | Where-Object { $_.Path -eq '/' } | Select-Object -First 1
-    $appPool = if ($rootApp) { $rootApp.ApplicationPoolName } else { $null }
-    $state   = [string]$site.State
+if ($project.WebsiteName) {
+    $bindings = @(Get-IisSiteBindings -WebsiteName $project.WebsiteName)
+    $subApp   = Get-IisSubAppName    -WebsiteName $project.WebsiteName
+
+    $urls = foreach ($b in $bindings) {
+        $hostname = if ($b.Domain) { $b.Domain } else { 'localhost' }
+        $u = "$($b.Protocol)://${hostname}:$($b.Port)"
+        if ($subApp) { $u = "$u/$subApp" }
+        $u
+    }
+
+    $sm = [Microsoft.Web.Administration.ServerManager]::new()
+    try {
+        $site    = $sm.Sites[$project.WebsiteName]
+        $rootApp = $site.Applications | Where-Object { $_.Path -eq '/' } | Select-Object -First 1
+        $appPool = if ($rootApp) { $rootApp.ApplicationPoolName } else { $null }
+        $state   = [string]$site.State
+    }
+    finally { $sm.Dispose() }
 }
-finally { $sm.Dispose() }
 
 [pscustomobject]@{
     ProjectRoot = $project.ProjectRoot

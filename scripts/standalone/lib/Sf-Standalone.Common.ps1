@@ -85,21 +85,9 @@ function Resolve-SfProjectInfo {
     }
 
     $WebsiteName = Find-IisSiteByPhysicalPath -PhysicalPath $webAppPath
-    if (-not $WebsiteName) {
-        $sm = _newServerManager
-        try {
-            $known = @($sm.Sites | ForEach-Object {
-                $rootApp = $_.Applications | Where-Object { $_.Path -eq '/' } | Select-Object -First 1
-                $vdir = $null
-                if ($rootApp) { $vdir = $rootApp.VirtualDirectories | Where-Object { $_.Path -eq '/' } | Select-Object -First 1 }
-                $p = if ($vdir) { $vdir.PhysicalPath } else { '<unknown>' }
-                "$($_.Name) -> $p"
-            })
-        }
-        finally { $sm.Dispose() }
-        $detail = if ($known) { "`nKnown sites:`n  " + ($known -join "`n  ") } else { '' }
-        throw "Could not determine IIS website for web app path '$webAppPath'.$detail"
-    }
+    # An empty WebsiteName is allowed: it just means no IIS site has been
+    # created yet for this web app folder. Callers that need a site (e.g.
+    # ensure-running, reset) should validate it themselves.
 
     return [pscustomobject]@{
         ProjectRoot = $ProjectRoot
@@ -442,9 +430,15 @@ function Invoke-NonTerminatingRequest {
         return $response.StatusCode
     }
     catch {
-        $statusCode = $_.Exception.Response.StatusCode
-        if ($statusCode) {
-            return $statusCode.ToString()
+        # Strict mode: don't access .Response without checking. Some failures
+        # (DNS, connect refused, timeout) won't carry an HTTP response at all.
+        $ex = $_.Exception
+        $resp = $null
+        if ($ex -and ($ex.PSObject.Properties.Match('Response').Count -gt 0)) {
+            $resp = $ex.Response
+        }
+        if ($resp -and ($resp.PSObject.Properties.Match('StatusCode').Count -gt 0) -and $resp.StatusCode) {
+            return $resp.StatusCode.ToString()
         }
         return $null
     }

@@ -58,6 +58,9 @@ $ErrorActionPreference = 'Stop'
 Assert-StandaloneEnvironment
 
 $project = Resolve-SfProjectInfo -ProjectRoot $ProjectRoot
+if (-not $project.WebsiteName) {
+    throw "No IIS website is bound to '$($project.WebAppPath)'. Create one first (see Sfs-Create-SitefinityAppIisSite.ps1)."
+}
 Invoke-SfAppEnsureRunning -Project $project `
     -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword `
     -TotalWaitSeconds $TotalWaitSeconds
