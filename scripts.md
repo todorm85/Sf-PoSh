@@ -9,6 +9,7 @@ Windows + PowerShell 7 (run elevated). IIS (Microsoft.Web.Administration) + `Sql
 - [scripts/standalone/Sf-App-Reinitialize.ps1](scripts/standalone/Sf-App-Reinitialize.ps1) – standalone equivalent of `sf-app-reinitialize`
 - [scripts/standalone/Sf-Site-New.ps1](scripts/standalone/Sf-Site-New.ps1) – standalone equivalent of `sf-iis-site-new` (creates IIS site + app pool for a project)
 - [scripts/standalone/Sf-Project-Info.ps1](scripts/standalone/Sf-Project-Info.ps1) – returns `{ProjectRoot, WebAppPath, WebsiteName, DbName}` for a given path
+- [scripts/standalone/Sfs-Reset-SitefinityApp.ps1](scripts/standalone/Sfs-Reset-SitefinityApp.ps1) – standalone equivalent of `sf-app-uninitialize` (recycles app pool + clears App_Data; `-DeleteDatabase` also drops the DB)
 
 ```powershell
 pwsh -File .\scripts\standalone\Sf-App-EnsureRunning.ps1 `
