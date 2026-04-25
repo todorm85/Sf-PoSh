@@ -598,18 +598,13 @@ function Invoke-SfAppReinitialize {
         [Parameter(Mandatory)][string]$SqlPassword,
         [Parameter(Mandatory)][string]$SitefinityUser,
         [Parameter(Mandatory)][string]$SitefinityPassword,
-        [string]$DbName,
+        [Parameter(Mandatory)][string]$DbName,
         [int]$TotalWaitSeconds = 180,
         [switch]$SkipEnsureRunning
     )
 
     Invoke-SfAppUninitialize -Project $Project `
         -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword
-
-    if (-not $DbName) {
-        # Default new DB name to the project root folder name (parity with sf-app-initialize using $p.id).
-        $DbName = Split-Path $Project.ProjectRoot -Leaf
-    }
 
     Invoke-SfAppInitialize -Project $Project `
         -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword `

@@ -24,7 +24,7 @@ param(
     [Parameter(Mandatory)][string]$SqlPassword,
     [Parameter(Mandatory)][string]$SitefinityUser,
     [Parameter(Mandatory)][string]$SitefinityPassword,
-    [string]$DbName,
+    [Parameter(Mandatory)][string]$DbName,
     [int]$TotalWaitSeconds = 180,
     [switch]$SkipEnsureRunning
 )
