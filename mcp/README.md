@@ -12,10 +12,11 @@ Hand-rolled PowerShell over stdio. No external runtime dependencies.
 
 | Tool name | Underlying script | Purpose |
 | --- | --- | --- |
+| `build-sitefinity-app` | `Sfs-Build-SitefinityApp.ps1` | Build a Sitefinity solution / web app with optional restore + clean. |
 | `create-sitefinity-app-iis-site` | `Sfs-Create-SitefinityAppIisSite.ps1` | Create an IIS site + app pool for a Sitefinity project on disk. |
-| `ensure-running-sitefinity-app` | `Sfs-EnsureRunning-SitefinityApp.ps1` | Start the site, ensure DB / startup config, wait for `/appstatus`. |
+| `ensure-running-sitefinity-app` | `Sfs-EnsureRunning-SitefinityApp.ps1` | Start the IIS site and wait for `/appstatus` to report ready. |
 | `get-sitefinity-app-info` | `Sfs-Get-SitefinityAppInfo.ps1` | Resolve project metadata (URL, bindings, DB name, app pool, state). |
-| `reinitialize-sitefinity-app` | `Sfs-Reinitialize-SitefinityApp.ps1` | Drop DB, clear App_Data, write fresh StartupConfig, wait for ready. |
+| `reset-sitefinity-app` | `Sfs-Reset-SitefinityApp.ps1` | Drop DB, clear App_Data, write fresh StartupConfig, wait for ready. |
 
 Tool input schemas are auto-generated from each script's `param()` block and
 comment-based help via the PowerShell AST. To add a new tool, drop a new
@@ -42,6 +43,22 @@ The server reads JSON-RPC 2.0 messages (one per line) on stdin and writes
 responses on stdout. All diagnostics go to stderr.
 
 Set `SF_MCP_LOG_LEVEL=debug` for verbose logs.
+
+## Configuration (env vars)
+
+These env vars, when set on the MCP server process, become defaults for
+tool arguments so the AI never has to pass them (and they never enter
+the LLM context):
+
+| Env var | Used by | Defaults |
+| --- | --- | --- |
+| `SF_SQL_SERVER` | `reset-sitefinity-app` | `-SqlServerInstance` |
+| `SF_SQL_USER` | `reset-sitefinity-app` | `-SqlUser` |
+| `SF_SQL_PASSWORD` | `reset-sitefinity-app` | `-SqlPassword` |
+| `SF_MCP_LOG_LEVEL` | the server | log verbosity (`debug`/`info`/`warn`/`error`) |
+
+Set them once in your MCP client's `env` block (see config examples
+below). The child pwsh that runs each script inherits them automatically.
 
 ## Register with VS Code
 
@@ -88,10 +105,13 @@ See [`client-config-examples/claude-desktop.json`](client-config-examples/claude
 
 ## Security
 
-- **Credentials are passed through tool arguments.** SQL and Sitefinity
-  passwords appear in the tool input schema and flow through the LLM context
-  when the agent calls the tool. Do **not** point this server at anything
-  you wouldn't already trust the LLM client and its provider with.
+- Configure SQL credentials via `SF_SQL_SERVER` / `SF_SQL_USER` / `SF_SQL_PASSWORD`
+  on the MCP server process (see *Configuration*). When supplied this way they
+  stay in the server's environment and are NOT visible in the LLM context.
+  If you instead pass them as tool arguments they will appear in the model's
+  conversation — prefer the env vars.
+- The Sitefinity admin user/password embedded in `Sfs-Reset-SitefinityApp.ps1`
+  (`admin@test.test` / `admin@2`) are dev defaults; override per-call when needed.
 - The server only spawns the scripts under `scripts/standalone/` discovered
   at startup. New scripts added at runtime are not picked up until restart.
 - No HTTP transport is exposed. stdio only.

@@ -45,6 +45,14 @@ catch {
     throw
 }
 
+# Report which SF_SQL_* defaults are inherited from the launching MCP client.
+# Values are intentionally NOT logged; presence only.
+$sqlEnvStatus = foreach ($n in 'SF_SQL_SERVER','SF_SQL_USER','SF_SQL_PASSWORD') {
+    $set = -not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($n))
+    "${n}=$(if ($set) { 'set' } else { 'unset' })"
+}
+Write-McpLog -Level info -Message ("SQL env defaults: " + ($sqlEnvStatus -join ', '))
+
 # ---------------------------------------------------------------------------
 # Method handlers
 # ---------------------------------------------------------------------------

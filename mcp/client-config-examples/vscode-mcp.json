@@ -9,7 +9,10 @@
         "${workspaceFolder}/mcp/Start-SfMcpServer.ps1"
       ],
       "env": {
-        "SF_MCP_LOG_LEVEL": "info"
+        "SF_MCP_LOG_LEVEL": "info",
+        "SF_SQL_SERVER": ".",
+        "SF_SQL_USER": "sa",
+        "SF_SQL_PASSWORD": "REPLACE_ME"
       }
     }
   }
