@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "sitefinity-app-dev": {
+      "type": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-File",
+        "${workspaceFolder}/mcp/Start-SfMcpServer.ps1"
+      ],
+      "env": {
+        "SF_MCP_LOG_LEVEL": "info"
+      }
+    }
+  }
+}

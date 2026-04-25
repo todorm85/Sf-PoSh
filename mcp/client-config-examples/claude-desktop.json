@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "sitefinity-app-dev": {
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-File",
+        "C:/todor/repos/Sf-PoSh/mcp/Start-SfMcpServer.ps1"
+      ],
+      "env": {
+        "SF_MCP_LOG_LEVEL": "info"
+      }
+    }
+  }
+}

@@ -63,6 +63,11 @@ else {
     throw "Could not locate Sitefinity web app under '$ProjectRoot'. Expected a 'web.config' there or under a 'SitefinityWebApp' subfolder."
 }
 
+$existingSite = Find-IisSiteByPhysicalPath -PhysicalPath $webAppPath
+if ($existingSite) {
+    throw "IIS website '$existingSite' already points to web app path '$webAppPath'."
+}
+
 $sm = [Microsoft.Web.Administration.ServerManager]::new()
 try {
     if ($sm.Sites[$Name])            { throw "IIS website '$Name' already exists." }
