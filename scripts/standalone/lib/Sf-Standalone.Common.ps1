@@ -533,30 +533,6 @@ function Invoke-SfAppEnsureRunning {
     }
 }
 
-function Invoke-SfAppUninitialize {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)] $Project,
-        [Parameter(Mandatory)][string]$SqlServerInstance,
-        [Parameter(Mandatory)][string]$SqlUser,
-        [Parameter(Mandatory)][string]$SqlPassword
-    )
-
-    try {
-        Reset-IisAppPoolForSite -WebsiteName $Project.WebsiteName
-
-        $dbName = Get-SfDbNameFromDataConfig -WebAppPath $Project.WebAppPath
-        if ($dbName) {
-            Remove-SqlDatabaseIfExists -DbName $dbName -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword
-        }
-
-        Reset-SitefinityAppDataFolder -WebAppPath $Project.WebAppPath
-    }
-    catch {
-        Write-Warning "Errors occurred while uninitializing app: $_"
-    }
-}
-
 function Invoke-SfAppInitialize {
     [CmdletBinding()]
     param(
@@ -587,27 +563,4 @@ function Invoke-SfAppInitialize {
             -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword `
             -TotalWaitSeconds $TotalWaitSeconds
     }
-}
-
-function Invoke-SfAppReinitialize {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)] $Project,
-        [Parameter(Mandatory)][string]$SqlServerInstance,
-        [Parameter(Mandatory)][string]$SqlUser,
-        [Parameter(Mandatory)][string]$SqlPassword,
-        [Parameter(Mandatory)][string]$SitefinityUser,
-        [Parameter(Mandatory)][string]$SitefinityPassword,
-        [Parameter(Mandatory)][string]$DbName,
-        [int]$TotalWaitSeconds = 180,
-        [switch]$SkipEnsureRunning
-    )
-
-    Invoke-SfAppUninitialize -Project $Project `
-        -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword
-
-    Invoke-SfAppInitialize -Project $Project `
-        -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword `
-        -SitefinityUser $SitefinityUser -SitefinityPassword $SitefinityPassword `
-        -DbName $DbName -TotalWaitSeconds $TotalWaitSeconds -SkipEnsureRunning:$SkipEnsureRunning
 }
