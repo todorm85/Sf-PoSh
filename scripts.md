@@ -13,8 +13,7 @@ Windows + PowerShell 7 (run elevated). IIS (Microsoft.Web.Administration) + `Sql
 
 ```powershell
 pwsh -File .\scripts\standalone\Sfs-EnsureRunning-SitefinityApp.ps1 `
-    -ProjectRoot 'C:\sites\my-sf' `
-    -SqlServerInstance '.' -SqlUser 'sa' -SqlPassword 'pw'
+    -ProjectRoot 'C:\sites\my-sf'
 
 pwsh -File .\scripts\standalone\Sfs-Reset-SitefinityApp.ps1 `
     -ProjectRoot 'C:\sites\my-sf' `

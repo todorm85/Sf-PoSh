@@ -452,74 +452,38 @@ function Invoke-SfAppEnsureRunning {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)] $Project,
-        [Parameter(Mandatory)][string]$SqlServerInstance,
-        [Parameter(Mandatory)][string]$SqlUser,
-        [Parameter(Mandatory)][string]$SqlPassword,
         [int]$TotalWaitSeconds = 180
     )
 
     if (-not (Test-IisSiteStarted -WebsiteName $Project.WebsiteName)) {
         Start-IisSite -WebsiteName $Project.WebsiteName
-        if (-not (Test-IisSiteStarted -WebsiteName $Project.WebsiteName)) {
-            throw "Website '$($Project.WebsiteName)' is stopped in IIS. Duplicate port?"
-        }
-    }
-
-    $dbName = Get-SfDbNameFromDataConfig -WebAppPath $Project.WebAppPath
-    if ($dbName) {
-        if (-not (Test-SqlDbExists -DbName $dbName -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword)) {
-            throw "Project database '$dbName' not found in database server."
-        }
-    }
-    else {
-        $startupConfigPath = Join-Path $Project.WebAppPath 'App_Data\Sitefinity\Configuration\StartupConfig.config'
-        if (-not (Test-Path $startupConfigPath)) {
-            throw "No DataConfig.config found and no StartupConfig.config found."
-        }
     }
 
     $url = Get-IisSiteUrl -WebsiteName $Project.WebsiteName
-    if (-not $url) { throw "Could not construct site URL." }
+    $statusUrl = "$url/appstatus"
+    Write-Information "Polling Sitefinity status at '$statusUrl'" -InformationAction Continue
 
-    Write-Information "Starting Sitefinity at $url ..." -InformationAction Continue
     $previousErrAction = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        $response = Invoke-NonTerminatingRequest -Url $url
-        if ($response -and $response -ne 200 -and $response -ne 503) {
-            throw "Could not make initial connection to Sitefinity. StatusCode: $response"
-        }
-
-        $statusUrl = "$url/appstatus"
-        Write-Information "Polling Sitefinity status at '$statusUrl'" -InformationAction Continue
         $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
-
         while ($true) {
-            $response = Invoke-NonTerminatingRequest -Url $statusUrl
             if ($elapsed.Elapsed.TotalSeconds -gt $TotalWaitSeconds) {
                 throw "Sitefinity did NOT start within $TotalWaitSeconds seconds."
             }
 
-            if ($response -eq 200) {
-                Write-Progress -Activity 'Waiting for Sitefinity to start' -PercentComplete (($elapsed.Elapsed.TotalSeconds / $TotalWaitSeconds) * 100)
-                Start-Sleep -Seconds 5
-                continue
-            }
+            $response = Invoke-NonTerminatingRequest -Url $statusUrl
 
+            # 200 = still initializing (appstatus endpoint reachable, work in progress).
+            # 404 = appstatus endpoint gone, meaning startup completed.
             if ($response -eq 404 -or $response -eq 'NotFound') {
-                $response = Invoke-NonTerminatingRequest -Url $url
-                if ($response -eq 200) {
-                    $elapsed.Stop()
-                    Write-Information "Sitefinity has started after $([int]$elapsed.Elapsed.TotalSeconds) second(s)." -InformationAction Continue
-                    return
-                }
-
                 $elapsed.Stop()
-                throw "Sitefinity initialization failed (base URL returned: $response)."
+                Write-Information "Sitefinity has started after $([int]$elapsed.Elapsed.TotalSeconds) second(s)." -InformationAction Continue
+                return
             }
 
-            $elapsed.Stop()
-            throw "Sitefinity failed to start - StatusCode: $response"
+            Write-Progress -Activity 'Waiting for Sitefinity to start' -PercentComplete (($elapsed.Elapsed.TotalSeconds / $TotalWaitSeconds) * 100)
+            Start-Sleep -Seconds 5
         }
     }
     finally {
@@ -553,8 +517,6 @@ function Invoke-SfAppInitialize {
         -SitefinityUser $SitefinityUser -SitefinityPassword $SitefinityPassword
 
     if (-not $SkipEnsureRunning) {
-        Invoke-SfAppEnsureRunning -Project $Project `
-            -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword `
-            -TotalWaitSeconds $TotalWaitSeconds
+        Invoke-SfAppEnsureRunning -Project $Project -TotalWaitSeconds $TotalWaitSeconds
     }
 }
