@@ -30,14 +30,15 @@
 .PARAMETER ProjectRoot
     Path to the Sitefinity project. Either the web app folder itself
     (containing web.config) or a parent solution folder containing a
-    'SitefinityWebApp' subfolder.
+    'SitefinityWebApp' subfolder. Defaults to $env:SF_PROJECT_ROOT;
+    required if the env var is unset.
 
 .EXAMPLE
     pwsh -File .\Sfs-Get-SitefinityAppInfo.ps1 -ProjectRoot 'C:\sites\my-sf'
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string]$ProjectRoot
+    [string]$ProjectRoot = $(if ($env:SF_PROJECT_ROOT) { $env:SF_PROJECT_ROOT } else { throw 'ProjectRoot not provided and $env:SF_PROJECT_ROOT is not set.' })
 )
 
 $ErrorActionPreference = 'Stop'

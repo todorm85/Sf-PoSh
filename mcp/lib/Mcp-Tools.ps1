@@ -140,6 +140,12 @@ function Get-McpToolDefinitionFromScript {
         type       = 'object'
         properties = $properties
     }
+    # MCP-only override: ProjectRoot is always required from the agent's
+    # perspective, because the SF_PROJECT_ROOT env-var fallback used by the
+    # scripts only makes sense when invoking them from a shell.
+    if ($properties.Contains('ProjectRoot') -and -not $required.Contains('ProjectRoot')) {
+        $required.Add('ProjectRoot') | Out-Null
+    }
     if ($required.Count -gt 0) { $inputSchema.required = $required.ToArray() }
     $inputSchema.additionalProperties = $false
 

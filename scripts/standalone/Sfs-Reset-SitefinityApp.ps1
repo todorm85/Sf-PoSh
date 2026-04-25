@@ -30,7 +30,8 @@
 .PARAMETER ProjectRoot
     Path to the Sitefinity project. Either the web app folder itself
     (containing web.config) or a parent solution folder containing a
-    'SitefinityWebApp' subfolder.
+    'SitefinityWebApp' subfolder. Defaults to $env:SF_PROJECT_ROOT;
+    required if the env var is unset.
 
 .PARAMETER SqlServerInstance
     SQL Server instance to drop databases from and that Sitefinity will
@@ -83,8 +84,8 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string]$ProjectRoot,
     [Parameter(Mandatory)][string]$DbName,
+    [string]$ProjectRoot = $(if ($env:SF_PROJECT_ROOT) { $env:SF_PROJECT_ROOT } else { throw 'ProjectRoot not provided and $env:SF_PROJECT_ROOT is not set.' }),
     [string]$SqlServerInstance = $env:SF_SQL_SERVER,
     [string]$SqlUser           = $env:SF_SQL_USER,
     [string]$SqlPassword       = $env:SF_SQL_PASSWORD,
