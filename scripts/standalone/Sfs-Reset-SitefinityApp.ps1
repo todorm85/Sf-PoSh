@@ -45,10 +45,10 @@
 
 .PARAMETER SitefinityUser
     Email/username of the Sitefinity admin user to be provisioned during
-    initialization.
+    initialization. Defaults to 'admin@test.test'.
 
 .PARAMETER SitefinityPassword
-    Password for the Sitefinity admin user.
+    Password for the Sitefinity admin user. Defaults to 'admin@2'.
 
 .PARAMETER DbName
     Name of the SQL Server database to (re)create for this Sitefinity
@@ -72,7 +72,6 @@
     pwsh -File .\Sfs-Reset-SitefinityApp.ps1 `
         -ProjectRoot 'C:\sites\my-sf' `
         -SqlServerInstance '.' -SqlUser 'sa' -SqlPassword 'pw' `
-        -SitefinityUser 'admin@test.test' -SitefinityPassword 'pw' `
         -DbName 'my-sf'
 
 .EXAMPLE
@@ -88,9 +87,9 @@ param(
     [Parameter(Mandatory)][string]$SqlServerInstance,
     [Parameter(Mandatory)][string]$SqlUser,
     [Parameter(Mandatory)][string]$SqlPassword,
-    [Parameter(Mandatory)][string]$SitefinityUser,
-    [Parameter(Mandatory)][string]$SitefinityPassword,
     [Parameter(Mandatory)][string]$DbName,
+    [string]$SitefinityPassword = 'admin@2',
+    [string]$SitefinityUser = 'admin@test.test',
     [switch]$DeleteOldDatabase,
     [int]$TotalWaitSeconds = 180,
     [switch]$SkipEnsureRunning
