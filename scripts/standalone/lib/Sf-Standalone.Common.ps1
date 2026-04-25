@@ -418,6 +418,25 @@ DROP DATABASE [$name];
     }
 }
 
+function Assert-SfSqlParams {
+    # Validates the SQL connection trio. Entry scripts default these from
+    # SF_SQL_SERVER / SF_SQL_USER / SF_SQL_PASSWORD env vars (set by the
+    # MCP server or the user's shell), so this just produces one consistent
+    # error message when something is still missing.
+    param(
+        [string]$SqlServerInstance,
+        [string]$SqlUser,
+        [string]$SqlPassword
+    )
+    $missing = @()
+    if ([string]::IsNullOrWhiteSpace($SqlServerInstance)) { $missing += 'SqlServerInstance (env: SF_SQL_SERVER)' }
+    if ([string]::IsNullOrWhiteSpace($SqlUser))           { $missing += 'SqlUser (env: SF_SQL_USER)' }
+    if ([string]::IsNullOrWhiteSpace($SqlPassword))       { $missing += 'SqlPassword (env: SF_SQL_PASSWORD)' }
+    if ($missing.Count -gt 0) {
+        throw "Missing SQL connection parameter(s): $($missing -join ', '). Pass them explicitly or set the listed environment variables."
+    }
+}
+
 # ---------------------------------------------------------------------------
 # HTTP polling
 # ---------------------------------------------------------------------------

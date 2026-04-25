@@ -34,14 +34,14 @@
 
 .PARAMETER SqlServerInstance
     SQL Server instance to drop databases from and that Sitefinity will
-    use to create the new DB.
+    use to create the new DB. Defaults to $env:SF_SQL_SERVER.
 
 .PARAMETER SqlUser
     SQL Server login (also written into StartupConfig.config so Sitefinity
-    can create the new database).
+    can create the new database). Defaults to $env:SF_SQL_USER.
 
 .PARAMETER SqlPassword
-    Password for -SqlUser.
+    Password for -SqlUser. Defaults to $env:SF_SQL_PASSWORD.
 
 .PARAMETER SitefinityUser
     Email/username of the Sitefinity admin user to be provisioned during
@@ -84,10 +84,10 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$ProjectRoot,
-    [Parameter(Mandatory)][string]$SqlServerInstance,
-    [Parameter(Mandatory)][string]$SqlUser,
-    [Parameter(Mandatory)][string]$SqlPassword,
     [Parameter(Mandatory)][string]$DbName,
+    [string]$SqlServerInstance = $env:SF_SQL_SERVER,
+    [string]$SqlUser           = $env:SF_SQL_USER,
+    [string]$SqlPassword       = $env:SF_SQL_PASSWORD,
     [string]$SitefinityPassword = 'admin@2',
     [string]$SitefinityUser = 'admin@test.test',
     [switch]$DeleteOldDatabase,
@@ -99,6 +99,8 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib\Sf-Standalone.Common.ps1')
 
 Assert-StandaloneEnvironment
+
+Assert-SfSqlParams -SqlServerInstance $SqlServerInstance -SqlUser $SqlUser -SqlPassword $SqlPassword
 
 $project = Resolve-SfProjectInfo -ProjectRoot $ProjectRoot
 if (-not $project.WebsiteName) {

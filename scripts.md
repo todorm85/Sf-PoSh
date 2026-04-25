@@ -23,3 +23,5 @@ pwsh -File .\scripts\standalone\Sfs-Reset-SitefinityApp.ps1 `
 ```
 
 `-ProjectRoot` may be the web app folder itself (containing `web.config`) or a parent solution folder containing `SitefinityWebApp`. The IIS website is auto-resolved from the project. `-SkipEnsureRunning` skips the readiness wait after reset.
+
+SQL connection params (`-SqlServerInstance`, `-SqlUser`, `-SqlPassword`) default to `$env:SF_SQL_SERVER`, `$env:SF_SQL_USER`, `$env:SF_SQL_PASSWORD` respectively, so the MCP server (or your shell) can supply them once and callers can omit them.
