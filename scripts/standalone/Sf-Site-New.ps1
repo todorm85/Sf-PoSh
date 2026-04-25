@@ -63,51 +63,59 @@ else {
     throw "Could not locate Sitefinity web app under '$ProjectRoot'. Expected a 'web.config' there or under a 'SitefinityWebApp' subfolder."
 }
 
-if (Get-Website -Name $Name -ErrorAction SilentlyContinue) {
-    throw "IIS website '$Name' already exists."
-}
-if (Get-ChildItem 'IIS:\AppPools' | Where-Object { $_.Name -eq $Name }) {
-    throw "IIS application pool '$Name' already exists."
-}
+$sm = [Microsoft.Web.Administration.ServerManager]::new()
+try {
+    if ($sm.Sites[$Name])            { throw "IIS website '$Name' already exists." }
+    if ($sm.ApplicationPools[$Name]) { throw "IIS application pool '$Name' already exists." }
 
-function _isPortFree {
-    param([int]$Port)
-    $boundInIis = @(Get-WebBinding | Select-Object -Expand bindingInformation |
-        ForEach-Object { $_.Split(':')[1] } | Where-Object { [int]$_ -eq $Port })
-    if ($boundInIis.Count -gt 0) { return $false }
-    $listening = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
-        Where-Object { $_.LocalPort -eq $Port })
-    return $listening.Count -eq 0
-}
-
-if (-not $Port) {
-    $candidatePort = Get-Random -Minimum 49152 -Maximum 65535
-    while (-not (_isPortFree -Port $candidatePort)) { $candidatePort++ }
-    $Port = $candidatePort
-}
-elseif (-not (_isPortFree -Port $Port)) {
-    throw "Port $Port is already in use."
-}
-
-# App pool
-$poolPath = "IIS:\AppPools\$Name"
-New-Item $poolPath | Out-Null
-Set-ItemProperty $poolPath -Name 'processModel.idleTimeout' -Value ([TimeSpan]::FromMinutes(0))
-
-# Website
-New-Item ("IIS:\Sites\$Name") `
-    -bindings @{ protocol = 'http'; bindingInformation = "*:${Port}:" } `
-    -physicalPath $webAppPath |
-    Set-ItemProperty -Name 'applicationPool' -Value $Name | Out-Null
-
-if ($Domain) {
-    New-WebBinding -Name $Name -Protocol http -Port $Port -HostHeader $Domain | Out-Null
-
-    $hostsPath = Join-Path $env:WINDIR 'System32\drivers\etc\hosts'
-    $entry = "127.0.0.1 $Domain"
-    if ((Get-Content $hostsPath) -notcontains $entry) {
-        Add-Content -Encoding utf8 $hostsPath $entry
+    $usedIisPorts = @()
+    foreach ($s in $sm.Sites) {
+        foreach ($b in $s.Bindings) {
+            $p = ([string]$b.BindingInformation).Split(':')[1]
+            if ($p) { $usedIisPorts += [int]$p }
+        }
     }
+
+    function _isPortFree {
+        param([int]$Port, [int[]]$Used)
+        if ($Used -contains $Port) { return $false }
+        $listening = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
+            Where-Object { $_.LocalPort -eq $Port })
+        return $listening.Count -eq 0
+    }
+
+    if (-not $Port) {
+        $candidatePort = Get-Random -Minimum 49152 -Maximum 65535
+        while (-not (_isPortFree -Port $candidatePort -Used $usedIisPorts)) { $candidatePort++ }
+        $Port = $candidatePort
+    }
+    elseif (-not (_isPortFree -Port $Port -Used $usedIisPorts)) {
+        throw "Port $Port is already in use."
+    }
+
+    # App pool
+    $pool = $sm.ApplicationPools.Add($Name)
+    $pool.ProcessModel.IdleTimeout = [TimeSpan]::Zero
+
+    # Website
+    $bindingInfo = "*:${Port}:"
+    $site = $sm.Sites.Add($Name, 'http', $bindingInfo, $webAppPath)
+    $site.Applications['/'].ApplicationPoolName = $Name
+
+    if ($Domain) {
+        $site.Bindings.Add("*:${Port}:$Domain", 'http') | Out-Null
+
+        $hostsPath = Join-Path $env:WINDIR 'System32\drivers\etc\hosts'
+        $entry = "127.0.0.1 $Domain"
+        if ((Get-Content $hostsPath) -notcontains $entry) {
+            Add-Content -Encoding utf8 $hostsPath $entry
+        }
+    }
+
+    $sm.CommitChanges()
+}
+finally {
+    $sm.Dispose()
 }
 
 # Grant app pool identity full control on the web app folder
@@ -122,9 +130,9 @@ $acl.SetAccessRule($rule)
 Set-Acl -Path $webAppPath -AclObject $acl
 
 [pscustomobject]@{
-    WebsiteName = $Name
-    AppPool     = $Name
-    Port        = $Port
-    Domain      = $Domain
+    WebsiteName  = $Name
+    AppPool      = $Name
+    Port         = $Port
+    Domain       = $Domain
     PhysicalPath = $webAppPath
 }

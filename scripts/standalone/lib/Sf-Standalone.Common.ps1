@@ -9,7 +9,8 @@
 
     Hard requirements:
       - Windows + PowerShell 7
-      - WebAdministration module (IIS)
+      - IIS installed (uses Microsoft.Web.Administration directly,
+        no WebAdministration PowerShell module needed)
       - SqlServer module (Invoke-Sqlcmd)
 #>
 
@@ -17,7 +18,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # ---------------------------------------------------------------------------
-# Environment / module loading
+# Environment / IIS .NET assembly loading
 # ---------------------------------------------------------------------------
 
 function Assert-StandaloneEnvironment {
@@ -29,25 +30,30 @@ function Assert-StandaloneEnvironment {
         throw "Standalone Sitefinity scripts require PowerShell 7 or later. Current: $($PSVersionTable.PSVersion)"
     }
 
-    # WebAdministration ships only with Windows PowerShell 5.1. In pwsh 7 we
-    # import it through the Windows PowerShell compatibility session, which
-    # proxies the cmdlets (Get-Website, Get-WebBinding, IIS:\ drive, etc).
-    if (-not (Get-Module -Name WebAdministration)) {
-        # WebAdministration lives under Windows PowerShell, not under pwsh 7,
-        # so Get-Module -ListAvailable won't see it. Just attempt the compat
-        # import directly. The non-terminating "elevated status" error emitted
-        # on first load when not admin is harmless (the proxy still loads).
-        Import-Module WebAdministration -UseWindowsPowerShell -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Out-Null
-
-        if (-not (Get-Module -Name WebAdministration)) {
-            throw "Failed to load WebAdministration via Windows PowerShell compatibility. Ensure IIS Management Scripts and Tools are installed (Windows feature 'Web-Scripting-Tools') and run pwsh as Administrator."
+    if (-not ('Microsoft.Web.Administration.ServerManager' -as [type])) {
+        $dll = Join-Path $env:WINDIR 'System32\inetsrv\Microsoft.Web.Administration.dll'
+        if (-not (Test-Path $dll)) {
+            throw "Microsoft.Web.Administration.dll not found at '$dll'. Install IIS (Windows feature 'Web-Server') and try again."
         }
+        Add-Type -Path $dll
+    }
+
+    # ServerManager reads applicationHost.config directly; that requires admin.
+    # Without elevation it silently returns an empty/phantom site list.
+    $id = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [System.Security.Principal.WindowsPrincipal]::new($id)
+    if (-not $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        throw "This script must be run as Administrator (Microsoft.Web.Administration requires elevation to read IIS configuration)."
     }
 
     if (-not (Get-Module -ListAvailable -Name SqlServer)) {
         throw "Required module 'SqlServer' is not installed. Run: Install-Module SqlServer -Scope CurrentUser"
     }
     Import-Module SqlServer -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+}
+
+function _newServerManager {
+    return [Microsoft.Web.Administration.ServerManager]::new()
 }
 
 # ---------------------------------------------------------------------------
@@ -80,13 +86,19 @@ function Resolve-SfProjectInfo {
 
     $WebsiteName = Find-IisSiteByPhysicalPath -PhysicalPath $webAppPath
     if (-not $WebsiteName) {
-        $known = @(Get-Website | ForEach-Object { "$($_.Name) -> $($_.physicalPath)" })
+        $sm = _newServerManager
+        try {
+            $known = @($sm.Sites | ForEach-Object {
+                $rootApp = $_.Applications | Where-Object { $_.Path -eq '/' } | Select-Object -First 1
+                $vdir = $null
+                if ($rootApp) { $vdir = $rootApp.VirtualDirectories | Where-Object { $_.Path -eq '/' } | Select-Object -First 1 }
+                $p = if ($vdir) { $vdir.PhysicalPath } else { '<unknown>' }
+                "$($_.Name) -> $p"
+            })
+        }
+        finally { $sm.Dispose() }
         $detail = if ($known) { "`nKnown sites:`n  " + ($known -join "`n  ") } else { '' }
         throw "Could not determine IIS website for web app path '$webAppPath'.$detail"
-    }
-
-    if (-not (Get-Website -Name $WebsiteName -ErrorAction SilentlyContinue)) {
-        throw "IIS website '$WebsiteName' does not exist."
     }
 
     return [pscustomobject]@{
@@ -115,25 +127,19 @@ function Find-IisSiteByPhysicalPath {
 
     $target = _normalizePath $PhysicalPath
 
-    foreach ($site in @(Get-Website)) {
-        if ((_normalizePath $site.physicalPath) -eq $target) {
-            return $site.Name
-        }
-    }
-
-    foreach ($app in @(Get-WebApplication)) {
-        if ((_normalizePath $app.PhysicalPath) -eq $target) {
-            # Get-WebApplication returns objects with a GetParentElement method
-            # only when used via the IIS:\ provider. With proxied cmdlets the
-            # site name is exposed directly on the object.
-            if ($app.PSObject.Properties.Match('GetSite').Count) {
-                return $app.GetSite().Name
-            }
-            if ($app.PSObject.Properties.Match('SiteName').Count) {
-                return [string]$app.SiteName
+    $sm = _newServerManager
+    try {
+        foreach ($site in $sm.Sites) {
+            foreach ($app in $site.Applications) {
+                foreach ($vdir in $app.VirtualDirectories) {
+                    if ($vdir.Path -eq '/' -and (_normalizePath $vdir.PhysicalPath) -eq $target) {
+                        return $site.Name
+                    }
+                }
             }
         }
     }
+    finally { $sm.Dispose() }
 
     return $null
 }
@@ -161,43 +167,82 @@ function _normalizePath {
 
 function Test-IisSiteStarted {
     param([Parameter(Mandatory)][string]$WebsiteName)
-    return (Get-WebsiteState -Name $WebsiteName).Value -eq 'Started'
+    $sm = _newServerManager
+    try {
+        $site = $sm.Sites[$WebsiteName]
+        if (-not $site) { throw "IIS website '$WebsiteName' not found." }
+        return $site.State -eq [Microsoft.Web.Administration.ObjectState]::Started
+    }
+    finally { $sm.Dispose() }
+}
+
+function Start-IisSite {
+    param([Parameter(Mandatory)][string]$WebsiteName)
+    $sm = _newServerManager
+    try {
+        $site = $sm.Sites[$WebsiteName]
+        if (-not $site) { throw "IIS website '$WebsiteName' not found." }
+        $site.Start() | Out-Null
+    }
+    finally { $sm.Dispose() }
 }
 
 function Reset-IisAppPoolForSite {
     param([Parameter(Mandatory)][string]$WebsiteName)
 
-    $appPool = (Get-Website -Name $WebsiteName).applicationPool
-    if ([string]::IsNullOrEmpty($appPool)) {
-        throw "No application pool set for website '$WebsiteName'."
-    }
+    $sm = _newServerManager
+    try {
+        $site = $sm.Sites[$WebsiteName]
+        if (-not $site) { throw "IIS website '$WebsiteName' not found." }
 
-    Restart-WebAppPool -Name $appPool
+        $rootApp = $site.Applications | Where-Object { $_.Path -eq '/' } | Select-Object -First 1
+        $appPool = if ($rootApp) { $rootApp.ApplicationPoolName } else { $null }
+        if ([string]::IsNullOrEmpty($appPool)) {
+            throw "No application pool set for website '$WebsiteName'."
+        }
+
+        $pool = $sm.ApplicationPools[$appPool]
+        if (-not $pool) { throw "Application pool '$appPool' not found." }
+        $pool.Recycle() | Out-Null
+    }
+    finally { $sm.Dispose() }
 }
 
 function Get-IisSiteBindings {
     param([Parameter(Mandatory)][string]$WebsiteName)
 
-    $bindings = @(Get-WebBinding -Name $WebsiteName)
-    return $bindings | ForEach-Object {
-        $info = $_.bindingInformation
-        [pscustomobject]@{
-            Protocol = $_.protocol
-            Port     = $info.Split(':')[1]
-            Domain   = $info.Split(':')[2]
-        }
+    $sm = _newServerManager
+    try {
+        $site = $sm.Sites[$WebsiteName]
+        if (-not $site) { throw "IIS website '$WebsiteName' not found." }
+        return @($site.Bindings | ForEach-Object {
+            $info = [string]$_.BindingInformation
+            $parts = $info.Split(':')
+            [pscustomobject]@{
+                Protocol = [string]$_.Protocol
+                Port     = if ($parts.Count -ge 2) { $parts[1] } else { '' }
+                Domain   = if ($parts.Count -ge 3) { $parts[2] } else { '' }
+            }
+        })
     }
+    finally { $sm.Dispose() }
 }
 
 function Get-IisSubAppName {
     param([Parameter(Mandatory)][string]$WebsiteName)
 
-    $apps = @(Get-WebApplication -Site $WebsiteName)
-    foreach ($app in $apps) {
-        if ($app.path -and $app.path -ne '/') {
-            return $app.path.TrimStart('/')
+    $sm = _newServerManager
+    try {
+        $site = $sm.Sites[$WebsiteName]
+        if (-not $site) { return $null }
+        foreach ($app in $site.Applications) {
+            if ($app.Path -and $app.Path -ne '/') {
+                return $app.Path.TrimStart('/')
+            }
         }
+        return $null
     }
+    finally { $sm.Dispose() }
     return $null
 }
 
@@ -420,7 +465,7 @@ function Invoke-SfAppEnsureRunning {
     )
 
     if (-not (Test-IisSiteStarted -WebsiteName $Project.WebsiteName)) {
-        Start-Website -Name $Project.WebsiteName
+        Start-IisSite -WebsiteName $Project.WebsiteName
         if (-not (Test-IisSiteStarted -WebsiteName $Project.WebsiteName)) {
             throw "Website '$($Project.WebsiteName)' is stopped in IIS. Duplicate port?"
         }
