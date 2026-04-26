@@ -14,7 +14,7 @@ Hand-rolled PowerShell over stdio. No external runtime dependencies.
 | --- | --- | --- |
 | `build-sitefinity-app` | `Sfs-Build-SitefinityApp.ps1` | Build a Sitefinity solution / web app with optional restore + clean. |
 | `create-sitefinity-app-iis-site` | `Sfs-Create-SitefinityAppIisSite.ps1` | Create an IIS site + app pool for a Sitefinity project on disk. |
-| `ensure-running-sitefinity-app` | `Sfs-EnsureRunning-SitefinityApp.ps1` | Start the IIS site and wait for `/appstatus` to report ready. |
+| `check-sitefinity-app-online-status` | `Sfs-Check-SitefinityAppOnlineStatus.ps1` | Check that the app is online: start the IIS site if stopped, then poll `/appstatus` until it reports ready. |
 | `get-sitefinity-app-info` | `Sfs-Get-SitefinityAppInfo.ps1` | Resolve project metadata (URL, bindings, DB name, app pool, state). |
 | `reset-sitefinity-app` | `Sfs-Reset-SitefinityApp.ps1` | Drop DB, clear App_Data, write fresh StartupConfig, wait for ready. |
 
@@ -27,7 +27,7 @@ comment-based help via the PowerShell AST. To add a new tool, drop a new
 - Windows
 - PowerShell 7+
 - IIS with `Microsoft.Web.Administration.dll`
-- `SqlServer` PowerShell module (only for `ensure-running` / `reinitialize`)
+- `SqlServer` PowerShell module (only for `reset-sitefinity-app`)
 - The pwsh process must run **as Administrator** for IIS / hosts-file edits
 
 The server itself has no extra dependencies. The above are required by the
@@ -74,7 +74,13 @@ Add to your workspace `.vscode/mcp.json` (or User Settings JSON):
         "-NoProfile",
         "-File",
         "C:/todor/repos/Sf-PoSh/mcp/Start-SfMcpServer.ps1"
-      ]
+      ],
+      "env": {
+        "SF_MCP_LOG_LEVEL": "info",
+        "SF_SQL_SERVER": ".",
+        "SF_SQL_USER": "sa",
+        "SF_SQL_PASSWORD": "REPLACE_ME"
+      }
     }
   }
 }
@@ -95,7 +101,13 @@ In `%APPDATA%/Claude/claude_desktop_config.json`:
         "-NoProfile",
         "-File",
         "C:/todor/repos/Sf-PoSh/mcp/Start-SfMcpServer.ps1"
-      ]
+      ],
+      "env": {
+        "SF_MCP_LOG_LEVEL": "info",
+        "SF_SQL_SERVER": ".",
+        "SF_SQL_USER": "sa",
+        "SF_SQL_PASSWORD": "REPLACE_ME"
+      }
     }
   }
 }

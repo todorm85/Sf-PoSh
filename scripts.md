@@ -5,14 +5,14 @@ sf-app-reinitialize
 
 Windows + PowerShell 7 (run elevated). IIS (Microsoft.Web.Administration) + `SqlServer` module.
 
-- [scripts/standalone/Sfs-EnsureRunning-SitefinityApp.ps1](scripts/standalone/Sfs-EnsureRunning-SitefinityApp.ps1) – starts the IIS site for a Sitefinity project and waits for `/appstatus` to report ready
+- [scripts/standalone/Sfs-Check-SitefinityAppOnlineStatus.ps1](scripts/standalone/Sfs-Check-SitefinityAppOnlineStatus.ps1) – checks that a Sitefinity app is online: starts its IIS site if stopped, then polls `/appstatus` until it reports ready
 - [scripts/standalone/Sfs-Reset-SitefinityApp.ps1](scripts/standalone/Sfs-Reset-SitefinityApp.ps1) – uninitializes a Sitefinity app and re-initializes it against a fresh `-DbName`. `-DeleteOldDatabase` also drops the DB previously recorded in `DataConfig.config`
 - [scripts/standalone/Sfs-Create-SitefinityAppIisSite.ps1](scripts/standalone/Sfs-Create-SitefinityAppIisSite.ps1) – creates a dedicated IIS website + application pool for a Sitefinity project on disk
 - [scripts/standalone/Sfs-Get-SitefinityAppInfo.ps1](scripts/standalone/Sfs-Get-SitefinityAppInfo.ps1) – returns project + site info (paths, DB name, app pool, bindings, URLs) for a given path
 - [scripts/standalone/Sfs-Build-SitefinityApp.ps1](scripts/standalone/Sfs-Build-SitefinityApp.ps1) – builds the Sitefinity solution (or just `SitefinityWebApp.csproj`) with optional `-Restore`, `-Clean`, `-CleanPackages`, `-RetryCount`. MSBuild is auto-discovered via vswhere/PATH; nuget.exe is auto-discovered or downloaded.
 
 ```powershell
-pwsh -File .\scripts\standalone\Sfs-EnsureRunning-SitefinityApp.ps1 `
+pwsh -File .\scripts\standalone\Sfs-Check-SitefinityAppOnlineStatus.ps1 `
     -ProjectRoot 'C:\sites\my-sf'
 
 pwsh -File .\scripts\standalone\Sfs-Reset-SitefinityApp.ps1 `

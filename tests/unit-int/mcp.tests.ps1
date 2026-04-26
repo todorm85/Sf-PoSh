@@ -25,8 +25,8 @@ Describe 'Mcp-Tools: discovery' {
         $script:tools.Count | Should -Be 5
         $script:byName.Keys | Sort-Object | Should -Be @(
             'build-sitefinity-app',
+            'check-sitefinity-app-online-status',
             'create-sitefinity-app-iis-site',
-            'ensure-sitefinity-app-online',
             'get-sitefinity-app-info',
             'reset-sitefinity-app'
         )
@@ -43,7 +43,7 @@ Describe 'Mcp-Tools: discovery' {
     }
 
     It 'preserves literal default values' {
-        $tool = $script:byName['ensure-sitefinity-app-online']
+        $tool = $script:byName['check-sitefinity-app-online-status']
         $tool.inputSchema.properties['TotalWaitSeconds'].default | Should -Be 180
     }
 

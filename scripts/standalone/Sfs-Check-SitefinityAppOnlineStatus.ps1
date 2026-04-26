@@ -1,14 +1,19 @@
 <#
 .SYNOPSIS
-    Ensures a Sitefinity web application is running and finished initializing.
+    Checks that a Sitefinity web application is online and finished initializing.
 
 .DESCRIPTION
     For the Sitefinity project located at -ProjectRoot:
       1. Locates the IIS website whose root virtual directory points to the
          project's web app folder (the folder containing web.config).
-      2. Starts that IIS website if it is stopped.
-      3. Polls /appstatus until Sitefinity reports it has finished startup,
-         or until -TotalWaitSeconds elapses (throws on timeout).
+      2. Starts that IIS website if it is stopped (so the status check has
+         something to talk to).
+      3. Polls /appstatus until Sitefinity reports it has finished startup
+         (i.e. is online), or until -TotalWaitSeconds elapses (throws on
+         timeout).
+
+    Returns successfully once the app is confirmed online; throws if it does
+    not come online within the wait window.
 
     Requirements:
       - Windows + PowerShell 7, run elevated (IIS configuration access).
@@ -21,11 +26,11 @@
     required if the env var is unset.
 
 .PARAMETER TotalWaitSeconds
-    Maximum number of seconds to wait for Sitefinity to finish initializing.
+    Maximum number of seconds to wait for Sitefinity to come online.
     Defaults to 180.
 
 .EXAMPLE
-    pwsh -File .\Sfs-EnsureRunning-SitefinityApp.ps1 -ProjectRoot 'C:\sites\my-sf'
+    pwsh -File .\Sfs-Check-SitefinityAppOnlineStatus.ps1 -ProjectRoot 'C:\sites\my-sf'
 #>
 [CmdletBinding()]
 param(
