@@ -1,7 +1,9 @@
 <#
 .SYNOPSIS
     Resets a Sitefinity web application: uninitializes it and then
-    re-initializes it against a fresh database.
+    re-initializes it against a fresh database. Long-running (typically
+    30-180s); the MCP server emits notifications/progress while it runs,
+    so do NOT retry on an apparent client-side timeout.
 
 .DESCRIPTION
     For the Sitefinity project located at -ProjectRoot:

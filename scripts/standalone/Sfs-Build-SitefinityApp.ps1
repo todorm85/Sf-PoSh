@@ -2,7 +2,10 @@
 .SYNOPSIS
     Builds a Sitefinity solution (or just the SitefinityWebApp.csproj when
     no solution file is present), with optional package restore, clean,
-    package cache wipe, and retry support.
+    package cache wipe, and retry support. Long-running (typically several
+    minutes, especially with -Restore / -CleanPackages); the MCP server
+    emits notifications/progress while it runs, so do NOT retry on an
+    apparent client-side timeout.
 
 .DESCRIPTION
     For the Sitefinity project located at -ProjectRoot:

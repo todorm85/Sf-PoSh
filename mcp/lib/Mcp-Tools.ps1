@@ -218,10 +218,22 @@ function Invoke-SfMcpTool {
     .SYNOPSIS
         Executes a tool by spawning a child pwsh process running the script
         with the supplied arguments. Returns @{ stdout; stderr; exitCode }.
+
+    .DESCRIPTION
+        Stderr from the child wrapper is read line-by-line on a background
+        event handler. Lines prefixed with '[progress] ' are forwarded to
+        the optional -OnProgress callback (one call per line). All other
+        stderr lines are accumulated into the returned 'stderr' string.
+
+        While the child is running, a heartbeat is also dispatched via
+        -OnProgress every -HeartbeatSeconds (default 10s) so silent scripts
+        still keep the MCP client's per-request timeout alive.
     #>
     param(
         [Parameter(Mandatory)][hashtable]$Tool,
-        $Arguments
+        $Arguments,
+        [scriptblock]$OnProgress,
+        [int]$HeartbeatSeconds = 10
     )
 
     $scriptPath = $Tool._scriptPath
@@ -294,12 +306,69 @@ function Invoke-SfMcpTool {
 
     $proc = [System.Diagnostics.Process]::Start($psi)
 
-    # Read both streams concurrently to avoid deadlock on large output.
-    $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
-    $stderrTask = $proc.StandardError.ReadToEndAsync()
-    $proc.WaitForExit()
-    $stdout = $stdoutTask.GetAwaiter().GetResult()
-    $stderr = $stderrTask.GetAwaiter().GetResult()
+    # Shared state for the stderr reader. Use a synchronized hashtable so
+    # the event handler can safely append from a worker thread.
+    $state = [hashtable]::Synchronized(@{
+        ProgressQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
+        StderrBuf     = New-Object System.Text.StringBuilder
+    })
+
+    $eventSub = Register-ObjectEvent -InputObject $proc -EventName 'ErrorDataReceived' -MessageData $state -Action {
+        $data = $EventArgs.Data
+        if ($null -eq $data) { return }
+        $s = $Event.MessageData
+        if ($data.StartsWith('[progress] ')) {
+            $s.ProgressQueue.Enqueue($data.Substring(11))
+        }
+        else {
+            [void]$s.StderrBuf.AppendLine($data)
+        }
+    }
+
+    try {
+        $proc.BeginErrorReadLine()
+        # Stdout is the final JSON payload — read fully in the background.
+        $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
+
+        $msgRef = [ref]([string]'')
+        $heartbeatMs = [Math]::Max(1000, $HeartbeatSeconds * 1000)
+        while (-not $proc.WaitForExit($heartbeatMs)) {
+            # Drain progress queue first.
+            while ($state.ProgressQueue.TryDequeue($msgRef)) {
+                if ($OnProgress) {
+                    try { & $OnProgress $msgRef.Value } catch {
+                        Write-McpLog -Level warn -Message "OnProgress threw: $($_.Exception.Message)"
+                    }
+                }
+            }
+            # Then send a heartbeat so silent tools still keep the client alive.
+            if ($OnProgress) {
+                try { & $OnProgress $null } catch {
+                    Write-McpLog -Level warn -Message "OnProgress (heartbeat) threw: $($_.Exception.Message)"
+                }
+            }
+        }
+
+        # Flush any remaining buffered events from the child after exit.
+        $proc.WaitForExit()
+        # Give the event subscriber a moment to drain the final lines.
+        Start-Sleep -Milliseconds 50
+        while ($state.ProgressQueue.TryDequeue($msgRef)) {
+            if ($OnProgress) {
+                try { & $OnProgress $msgRef.Value } catch { }
+            }
+        }
+
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $state.StderrBuf.ToString()
+    }
+    finally {
+        try { $proc.CancelErrorRead() } catch { }
+        if ($eventSub) {
+            Unregister-Event -SubscriptionId $eventSub.Id -ErrorAction SilentlyContinue
+            Remove-Job -Id $eventSub.Id -Force -ErrorAction SilentlyContinue
+        }
+    }
 
     return @{
         stdout   = $stdout

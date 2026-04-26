@@ -135,10 +135,14 @@ Implemented:
 - `initialize`, `notifications/initialized`
 - `ping`
 - `tools/list`, `tools/call`
+- `notifications/progress` (server -> client) for long-running tools when
+  the client supplies `params._meta.progressToken` on `tools/call`. The
+  server forwards each `Write-Information` / `Write-Progress` line emitted
+  by the script and adds a ~10s heartbeat so silent tools still keep the
+  client's per-request timeout (e.g. `-32001`) at bay.
 
 Not implemented:
 
 - Cancellation (`notifications/cancelled` is accepted but ignored)
-- Progress notifications
 - Resources, prompts, sampling
 - HTTP / SSE transport

@@ -1,6 +1,10 @@
 <#
 .SYNOPSIS
-    Checks that a Sitefinity web application is online and finished initializing.
+    Checks that a Sitefinity web application is online and finished
+    initializing. May be long-running on a cold start (up to
+    -TotalWaitSeconds, default 180s); the MCP server emits
+    notifications/progress while it polls, so do NOT retry on an
+    apparent client-side timeout.
 
 .DESCRIPTION
     For the Sitefinity project located at -ProjectRoot:

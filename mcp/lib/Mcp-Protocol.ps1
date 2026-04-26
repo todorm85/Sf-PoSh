@@ -60,6 +60,40 @@ function New-McpResponse {
     }
 }
 
+function New-McpProgressNotification {
+    <#
+    .SYNOPSIS
+        Builds a 'notifications/progress' JSON-RPC notification frame.
+
+    .DESCRIPTION
+        Per MCP 2025-06-18, when a request includes 'params._meta.progressToken',
+        the server MAY emit one or more 'notifications/progress' notifications
+        carrying that same token until it sends the final response.
+
+        Compliant clients reset their per-request timeout each time they
+        receive a progress notification for an in-flight request, so this is
+        the spec-blessed way to keep long-running tool calls from tripping
+        client-side request timeouts (e.g. -32001).
+    #>
+    param(
+        [Parameter(Mandatory)]$ProgressToken,
+        [Parameter(Mandatory)][double]$Progress,
+        [double]$Total,
+        [string]$Message
+    )
+    $params = [ordered]@{
+        progressToken = $ProgressToken
+        progress      = $Progress
+    }
+    if ($PSBoundParameters.ContainsKey('Total')) { $params.total = $Total }
+    if ($PSBoundParameters.ContainsKey('Message') -and $Message) { $params.message = $Message }
+    return @{
+        jsonrpc = '2.0'
+        method  = 'notifications/progress'
+        params  = $params
+    }
+}
+
 function New-McpErrorResponse {
     param(
         $Id,

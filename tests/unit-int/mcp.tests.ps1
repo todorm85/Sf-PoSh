@@ -85,12 +85,78 @@ Describe 'Mcp-Protocol: framing helpers' {
         $r.error.message | Should -Be 'Method not found'
         $r.id            | Should -Be 9
     }
+
+    It 'New-McpProgressNotification produces a valid notification shape' {
+        $n = New-McpProgressNotification -ProgressToken 'tok-1' -Progress 3 -Message 'still going'
+        $n.jsonrpc | Should -Be '2.0'
+        $n.method  | Should -Be 'notifications/progress'
+        $n.params.progressToken | Should -Be 'tok-1'
+        $n.params.progress      | Should -Be 3
+        $n.params.message       | Should -Be 'still going'
+        # Notifications must NOT carry an 'id'.
+        $n.ContainsKey('id') | Should -Be $false
+    }
 }
 
 Describe 'Mcp-Tools: ConvertTo-McpKebabName' {
     It 'kebab-cases mixed-case PascalCase script names' {
         ConvertTo-McpKebabName -BaseName 'Sfs-Create-SitefinityAppIisSite' |
             Should -Be 'sfs-create-sitefinity-app-iis-site'
+    }
+}
+
+Describe 'Mcp-Tools: Invoke-SfMcpTool progress channel' {
+    BeforeAll {
+        # Build a synthetic standalone-style script that emits two
+        # Write-Information lines, then returns a payload.
+        $script:tmpScript = Join-Path ([System.IO.Path]::GetTempPath()) "Sfs-Test-Progress-$([guid]::NewGuid().ToString('N')).ps1"
+        @'
+[CmdletBinding()]
+param([string]$Label = 'demo')
+$ErrorActionPreference = 'Stop'
+Write-Information "step 1: starting $Label" -InformationAction Continue
+Write-Information "step 2: working on $Label" -InformationAction Continue
+[pscustomobject]@{ ok = $true; label = $Label }
+'@ | Set-Content -Path $script:tmpScript -Encoding UTF8
+
+        $script:fakeTool = @{
+            name        = 'test-progress'
+            _scriptPath = $script:tmpScript
+            _paramMeta  = [ordered]@{
+                Label = @{ IsSwitch = $false }
+            }
+        }
+    }
+
+    AfterAll {
+        if ($script:tmpScript -and (Test-Path $script:tmpScript)) {
+            Remove-Item -LiteralPath $script:tmpScript -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'forwards Write-Information lines via the OnProgress callback' {
+        $script:progressCalls = New-Object System.Collections.Generic.List[string]
+        $cb = {
+            param($msg)
+            # $null = heartbeat; ignore in this assertion.
+            if ($null -ne $msg) { $script:progressCalls.Add([string]$msg) }
+        }
+
+        $res = Invoke-SfMcpTool -Tool $script:fakeTool -Arguments @{ Label = 'unit' } `
+            -OnProgress $cb -HeartbeatSeconds 60
+
+        $res.exitCode | Should -Be 0
+        $res.stdout.Trim() | Should -Match '"label"\s*:\s*"unit"'
+        $script:progressCalls.Count | Should -BeGreaterOrEqual 2
+        ($script:progressCalls -join "`n") | Should -Match 'step 1: starting unit'
+        ($script:progressCalls -join "`n") | Should -Match 'step 2: working on unit'
+    }
+
+    It 'still works when no OnProgress is supplied' {
+        $res = Invoke-SfMcpTool -Tool $script:fakeTool -Arguments @{ Label = 'noprog' } `
+            -HeartbeatSeconds 60
+        $res.exitCode | Should -Be 0
+        $res.stdout.Trim() | Should -Match '"label"\s*:\s*"noprog"'
     }
 }
 

@@ -94,9 +94,39 @@ function Invoke-ToolsCall {
         }
     }
 
+    # Per MCP 2025-06-18, params._meta.progressToken signals the client wants
+    # progress notifications for this request. We forward each child progress
+    # line (and a periodic heartbeat) as notifications/progress; this keeps
+    # the client's per-request timeout alive for long-running tools like
+    # reset-sitefinity-app.
+    $progressToken = $null
+    if ($Params -is [hashtable] -and $Params.ContainsKey('_meta')) {
+        $meta = $Params['_meta']
+        if ($meta -is [hashtable] -and $meta.ContainsKey('progressToken')) {
+            $progressToken = $meta['progressToken']
+        }
+    }
+
+    $onProgress = $null
+    if ($null -ne $progressToken) {
+        # Counter is captured by reference via a single-element array so the
+        # closure can mutate it across invocations.
+        $counter = @(0)
+        $startedAt = [datetime]::UtcNow
+        $onProgress = {
+            param($message)
+            $counter[0]++
+            $elapsed = [int]([datetime]::UtcNow - $startedAt).TotalSeconds
+            $text = if ($message) { $message } else { "still running... ${elapsed}s elapsed" }
+            $note = New-McpProgressNotification -ProgressToken $progressToken `
+                -Progress ([double]$counter[0]) -Message $text
+            Write-McpMessage $note
+        }.GetNewClosure()
+    }
+
     $tool = $script:Tools[$name]
     try {
-        $res = Invoke-SfMcpTool -Tool $tool -Arguments $args
+        $res = Invoke-SfMcpTool -Tool $tool -Arguments $args -OnProgress $onProgress
     }
     catch {
         return @{
