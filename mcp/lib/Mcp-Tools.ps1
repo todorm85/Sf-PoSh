@@ -243,39 +243,42 @@ function Invoke-SfMcpTool {
         }
     }
 
-    # Build the trailing script arguments (passed via $args inside the wrapper).
-    $scriptArgs = New-Object System.Collections.Generic.List[string]
+    # Build a typed hashtable of parameters, preserving boolean / numeric
+    # types. This will be JSON-encoded and splatted by the wrapper.
+    $params = @{}
     foreach ($name in $paramMeta.Keys) {
         if (-not $Arguments.ContainsKey($name)) { continue }
         $value = $Arguments[$name]
         $meta  = $paramMeta[$name]
 
         if ($meta.IsSwitch) {
-            if ([bool]$value) { $scriptArgs.Add("-$name") | Out-Null }
+            if ([bool]$value) { $params[$name] = $true }
             continue
         }
 
         if ($null -eq $value) { continue }
-        $scriptArgs.Add("-$name") | Out-Null
-        $scriptArgs.Add([string]$value) | Out-Null
+        $params[$name] = $value
     }
 
-    # Wrap the script call so its [pscustomobject] output is serialized to
-    # compact JSON on stdout (a single line is fine; we surface stdout as-is).
-    $escapedPath = $scriptPath -replace "'", "''"
-    $wrapper = "& { `$o = & '$escapedPath' @args; if (`$null -ne `$o) { `$o | ConvertTo-Json -Depth 10 -Compress } }"
+    $paramsJson = $params | ConvertTo-Json -Depth 10 -Compress
+    if ([string]::IsNullOrWhiteSpace($paramsJson)) { $paramsJson = '{}' }
+
+    # Use -File against an in-tree wrapper script so:
+    #   - per-tool params bind cleanly via a JSON-encoded hashtable
+    #   - errors surface as non-zero exit + stderr (not silent success)
+    #   - output is always serialized to a single JSON line
+    $wrapperPath = Join-Path $PSScriptRoot 'Invoke-McpToolWrapper.ps1'
 
     $argList = New-Object System.Collections.Generic.List[string]
     $argList.Add('-NoProfile') | Out-Null
     $argList.Add('-NoLogo') | Out-Null
     $argList.Add('-NonInteractive') | Out-Null
-    $argList.Add('-Command') | Out-Null
-    $argList.Add($wrapper) | Out-Null
-    if ($scriptArgs.Count -gt 0) {
-        # '--' separates pwsh's own args from the remaining args that become $args
-        $argList.Add('--') | Out-Null
-        foreach ($a in $scriptArgs) { $argList.Add($a) | Out-Null }
-    }
+    $argList.Add('-File') | Out-Null
+    $argList.Add($wrapperPath) | Out-Null
+    $argList.Add('-ScriptPath') | Out-Null
+    $argList.Add($scriptPath) | Out-Null
+    $argList.Add('-ParamsJson') | Out-Null
+    $argList.Add($paramsJson) | Out-Null
 
     Write-McpLog -Level debug -Message "Invoking tool '$($Tool.name)' -> pwsh $($argList -join ' ')"
 

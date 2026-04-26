@@ -21,13 +21,14 @@ Describe 'Mcp-Tools: discovery' {
         foreach ($t in $script:tools) { $script:byName[$t.name] = $t }
     }
 
-    It 'discovers exactly the 4 standalone scripts' {
-        $script:tools.Count | Should -Be 4
+    It 'discovers exactly the 5 standalone scripts' {
+        $script:tools.Count | Should -Be 5
         $script:byName.Keys | Sort-Object | Should -Be @(
+            'build-sitefinity-app',
             'create-sitefinity-app-iis-site',
-            'ensure-running-sitefinity-app',
+            'ensure-sitefinity-app-online',
             'get-sitefinity-app-info',
-            'reinitialize-sitefinity-app'
+            'reset-sitefinity-app'
         )
     }
 
@@ -37,21 +38,19 @@ Describe 'Mcp-Tools: discovery' {
     }
 
     It 'maps [switch] parameters to JSON Schema "boolean"' {
-        $tool = $script:byName['reinitialize-sitefinity-app']
+        $tool = $script:byName['reset-sitefinity-app']
         $tool.inputSchema.properties['SkipEnsureRunning'].type | Should -Be 'boolean'
     }
 
     It 'preserves literal default values' {
-        $tool = $script:byName['ensure-running-sitefinity-app']
+        $tool = $script:byName['ensure-sitefinity-app-online']
         $tool.inputSchema.properties['TotalWaitSeconds'].default | Should -Be 180
     }
 
     It 'collects [Parameter(Mandatory)] params into required[]' {
-        $tool = $script:byName['reinitialize-sitefinity-app']
+        $tool = $script:byName['reset-sitefinity-app']
         $tool.inputSchema.required | Should -Contain 'ProjectRoot'
-        $tool.inputSchema.required | Should -Contain 'SqlPassword'
-        $tool.inputSchema.required | Should -Contain 'SitefinityPassword'
-        $tool.inputSchema.required | Should -Not -Contain 'DbName'
+        $tool.inputSchema.required | Should -Contain 'DbName'
         $tool.inputSchema.required | Should -Not -Contain 'SkipEnsureRunning'
     }
 
@@ -152,7 +151,7 @@ Describe 'End-to-end stdio handshake' {
         $msgs[0].result.capabilities.tools.listChanged | Should -Be $false
     }
 
-    It 'lists 4 tools via tools/list' {
+    It 'lists 5 tools via tools/list' {
         $res = Invoke-McpServerWithLines -Lines @(
             '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"0"}}}',
             '{"jsonrpc":"2.0","method":"notifications/initialized"}',
@@ -161,7 +160,7 @@ Describe 'End-to-end stdio handshake' {
         $msgs = ConvertFrom-NdJson -Text $res.stdout
         $listResp = $msgs | Where-Object { $_.id -eq 2 } | Select-Object -First 1
         $listResp | Should -Not -BeNullOrEmpty
-        $listResp.result.tools.Count | Should -Be 4
+        $listResp.result.tools.Count | Should -Be 5
         ($listResp.result.tools | ForEach-Object { $_.name }) |
             Should -Contain 'get-sitefinity-app-info'
     }
